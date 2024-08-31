@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "721015795859",
+    "project_id": "ottrojja-238c0",
+    "storage_bucket": "ottrojja-238c0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:721015795859:android:d5cea159940d326ef19d66",
+        "android_client_info": {
+          "package_name": "com.ottrojja"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "721015795859-0rg8p4erkq6qql2krtm5nl7uhd300mmo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKRJvf7H0QD_NdkVhvXhBdj5cp4nugvWU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "721015795859-0rg8p4erkq6qql2krtm5nl7uhd300mmo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
