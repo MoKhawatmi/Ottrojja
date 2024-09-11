@@ -13,7 +13,6 @@ object QuranStore {
     private var quranData = listOf<QuranPage>()
     private var chaptersData = listOf<ChapterData>()
     private var partsData = listOf<PartData>()
-    //private var tafseerData =  listOf<TafseerData>()
     private var e3rabData = listOf<E3rabData>()
 
 

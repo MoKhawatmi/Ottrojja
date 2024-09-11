@@ -2,6 +2,7 @@ package com.ottrojja.classes
 
 sealed class Screen(val route: String) {
     object MainScreen : Screen(route = "main_screen")
+    object LoadingScreen : Screen(route = "loading_screen")
     object BookmarksScreen : Screen(route = "bookmarks_screen")
     object AzkarScreen : Screen(route = "azkar_screen")
     object ChaptersScreen : Screen(route = "chapters_screen")

@@ -13,58 +13,85 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.BottomNavigation
 import com.ottrojja.screens.BookmarksScreen.BookmarksScreen
 import com.ottrojja.screens.azkarScreen.AzkarScreen
 import com.ottrojja.screens.chaptersScreen.ChaptersScreen
+import com.ottrojja.screens.loadingScreen.LoadingScreen
 import com.ottrojja.screens.mainScreen.MainScreen
 import com.ottrojja.screens.quranScreen.QuranScreen
 import com.ottrojja.screens.settingsScreen.SettingsScreen
 import com.ottrojja.screens.zikrScreen.ZikrScreen
 
 @Composable
-fun NavGraph(navController: NavHostController) {
+fun NavGraph(navController: NavHostController, repository: QuranRepository) {
     NavHost(
         navController = navController,
-        startDestination = Screen.MainScreen.route
+        startDestination = Screen.LoadingScreen.route
     )
     {
         composable(route = Screen.MainScreen.route) {
             Box() {
-                MainScreen(navController,  modifier = Modifier.align(Alignment.TopCenter))
-                BottomNavigation(navController, Screen.MainScreen.route, modifier = Modifier.align(Alignment.BottomCenter))
+                MainScreen(navController, modifier = Modifier.align(Alignment.TopCenter))
+                BottomNavigation(
+                    navController,
+                    Screen.MainScreen.route,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
             }
         }
+
+        composable(route = Screen.LoadingScreen.route) {
+            LoadingScreen(navController, repository)
+        }
+
         composable(route = Screen.AzkarScreen.route) {
             Box() {
                 AzkarScreen(navController, modifier = Modifier.align(Alignment.TopCenter))
-                BottomNavigation(navController, Screen.AzkarScreen.route, modifier = Modifier.align(Alignment.BottomCenter))
+                BottomNavigation(
+                    navController,
+                    Screen.AzkarScreen.route,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
             }
         }
         composable(route = Screen.BookmarksScreen.route) {
             Box() {
                 BookmarksScreen(navController, modifier = Modifier.align(Alignment.TopCenter))
-                BottomNavigation(navController, Screen.BookmarksScreen.route, modifier = Modifier.align(Alignment.BottomCenter))
+                BottomNavigation(
+                    navController,
+                    Screen.BookmarksScreen.route,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
             }
         }
         composable(route = Screen.ChaptersScreen.route) {
             Box() {
                 ChaptersScreen(modifier = Modifier.align(Alignment.TopCenter))
-                BottomNavigation(navController, Screen.ChaptersScreen.route, modifier = Modifier.align(Alignment.BottomCenter))
+                BottomNavigation(
+                    navController,
+                    Screen.ChaptersScreen.route,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
             }
         }
         composable(route = Screen.SettingsScreen.route) {
             Box() {
                 SettingsScreen(modifier = Modifier.align(Alignment.TopCenter))
-                BottomNavigation(navController, Screen.SettingsScreen.route ,modifier = Modifier.align(Alignment.BottomCenter))
+                BottomNavigation(
+                    navController,
+                    Screen.SettingsScreen.route,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
             }
         }
         composable(route = Screen.QuranScreen.route, arguments = listOf(navArgument("pageNum") {
             type = NavType.StringType
         })) {
             val pageNum = requireNotNull(it.arguments).getString("pageNum")
-            QuranScreen(navController, pageNum)
+            QuranScreen(navController, pageNum, repository)
         }
         composable(route = Screen.ZikrScreen.route, arguments = listOf(navArgument("zikerTitle") {
             type = NavType.StringType

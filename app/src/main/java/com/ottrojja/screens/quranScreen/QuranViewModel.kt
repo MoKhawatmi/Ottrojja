@@ -16,12 +16,18 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.room.Room
 import com.ottrojja.classes.MediaPlayerService
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.QuranStore
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.QuranDatabase
+import com.ottrojja.screens.loadingScreen.LoadingScreenViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +41,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 
 
-class QuranViewModel(application: Application) : AndroidViewModel(application), LifecycleObserver {
+class QuranViewModel(repository: QuranRepository, application: Application) : AndroidViewModel(application), LifecycleObserver {
     val context = application.applicationContext;
     val sharedPreferences: SharedPreferences =
         application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
@@ -66,7 +72,6 @@ class QuranViewModel(application: Application) : AndroidViewModel(application), 
     fun setIsPlaying(value: Boolean) {
         _isPlaying.value = value;
     }
-
 
     private var _continuousPlay = mutableStateOf(false)
     var continuousPlay: Boolean
@@ -307,15 +312,15 @@ class QuranViewModel(application: Application) : AndroidViewModel(application), 
     }
 
     fun getCurrentPageVerses(): Array<PageContent> {
-        val versesList =
-            QuranStore.getQuranData()[Integer.parseInt(_currentPage.value) - 1].pageContent;
+        val versesList = _currentPageObject.pageContent
+        //      QuranStore.getQuranData()[Integer.parseInt(_currentPage.value) - 1].pageContent;
         return versesList;
     }
 
     fun resetPlayer() {
         mediaPlayer.reset();
-        _versesPlayList =
-            QuranStore.getQuranData()[Integer.parseInt(_currentPage.value) - 1].pageContent//getCurrentPageVersesUrls();
+        _versesPlayList = _currentPageObject.pageContent
+        //    QuranStore.getQuranData()[Integer.parseInt(_currentPage.value) - 1].pageContent//getCurrentPageVersesUrls();
         currentPlayingIndex.value = 0;
         _selectedVerse =
             PageContent("", "", "", "", "", "", "", "")//getCurrentPageVerses().first();
@@ -626,4 +631,16 @@ class QuranViewModel(application: Application) : AndroidViewModel(application), 
         isPageBookmarked();
     }
 
+}
+
+class QuranScreenViewModelFactory(
+    private val repository: QuranRepository,
+    private val application: Application
+) : ViewModelProvider.AndroidViewModelFactory(application) {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(QuranViewModel::class.java)) {
+            return QuranViewModel(repository, application) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
 }

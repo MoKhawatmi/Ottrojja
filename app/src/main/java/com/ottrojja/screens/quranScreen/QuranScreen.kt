@@ -2,6 +2,7 @@ package com.ottrojja.screens.quranScreen
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -108,7 +109,10 @@ import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.classes.MediaPlayerService
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.QuranPage
+import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.QuranStore
+import com.ottrojja.screens.loadingScreen.LoadingScreenViewModel
+import com.ottrojja.screens.loadingScreen.LoadingScreenViewModelFactory
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
@@ -128,9 +132,13 @@ import java.io.IOException
 @SuppressLint("UnrememberedMutableState", "DiscouragedApi")
 @Composable
 fun QuranScreen(
-    navController: NavController, pageNum: String?, quranViewModel: QuranViewModel = viewModel()
-) {
+    navController: NavController, pageNum: String?, repository: QuranRepository) {
     val context = LocalContext.current
+    val application = context.applicationContext as Application
+
+    val quranViewModel: QuranViewModel = viewModel(
+        factory = QuranScreenViewModelFactory(repository, application)
+    )
 
     val currentPage by quranViewModel.currentPage.collectAsState(initial = pageNum)
 
@@ -145,9 +153,8 @@ fun QuranScreen(
         "الصفحة" to "page", "الآيات" to "verses", "الفوائد" to "benefits", "الفيديو" to "yt"
     )
     val primaryColor = MaterialTheme.colorScheme.primary
-    LaunchedEffect(currentPage) {
-        quranViewModel.isPageBookmarked();
-    }
+
+    quranViewModel.isPageBookmarked();
 
 
     fun confirmRemoveBookmark() {
@@ -806,7 +813,7 @@ fun PagesContainer(
                     )
                 }
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().clickable { setContPlay(!continuousPlay) },
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
