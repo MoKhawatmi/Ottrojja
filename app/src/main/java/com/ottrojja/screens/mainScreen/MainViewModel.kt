@@ -1,21 +1,32 @@
 package com.ottrojja.screens.mainScreen
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
-import com.ottrojja.classes.Helpers.convertToIndianNumbers
-import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.QuranPage
+import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.QuranStore
 import com.ottrojja.classes.SearchResult
+import com.ottrojja.screens.quranScreen.QuranViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-class MainViewModel : ViewModel() {
-    val quranData: List<QuranPage> = QuranStore.getQuranData();
-    private val pagesList: List<String> = getPages();
-    private val partsList: List<PartData> = getParts();
-    private val chaptersList: List<ChapterData> = getChapters();
+class MainViewModel(private val repository: QuranRepository) : ViewModel() {
+    private val pagesList: List<String> = (1..604).map { "صفحة $it" };
+    lateinit private var partsList: List<PartData>;
+    lateinit private var chaptersList: List<ChapterData>;
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            partsList = repository.getAllParts()
+            chaptersList = repository.getAllChapters()
+        }
+    }
 
     private var _searchFilter by mutableStateOf("")
     var searchFilter: String
@@ -48,40 +59,48 @@ class MainViewModel : ViewModel() {
     fun searchInQuran(text: String) {
         val searchText = text.trim()
         if (searchText.length == 0) {
-            _quranSearchResults.value.clear()
+            _quranSearchResults.value = emptyList<SearchResult>().toMutableList()
             return;
         }
         _quranSearchResults.value.clear()
         var tempResults = mutableListOf<SearchResult>()
-        quranData.forEach { page ->
-            page.pageContent.forEach { verse ->
-                if (verse.type == "verse" && (verse.verseText.contains(searchText) || verse.verseTextPlain.contains(
-                        searchText
-                    ))
-                ) {
-                    tempResults.add(
-                        SearchResult(
-                            page.pageNum,
-                            verse.surahNum,
-                            verse.verseNum,
-                            verse.verseText
-                        )
-                    );
+        println("searching for $text")
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.getAllPages().forEach { page ->
+                page.pageContent.forEach { verse ->
+                    if (verse.type == "verse" && (verse.verseText.contains(searchText) || verse.verseTextPlain.contains(
+                            searchText
+                        ))
+                    ) {
+                        tempResults.add(
+                            SearchResult(
+                                page.pageNum,
+                                verse.surahNum,
+                                verse.verseNum,
+                                verse.verseText
+                            )
+                        );
+                    }
                 }
             }
+            _quranSearchResults.value = tempResults;
         }
-        _quranSearchResults.value = tempResults;
     }
 
-
-    private var sectionsArray = arrayOf("الصفحات", "الاجزاء", "السور")
-
     fun getPagesList(): List<String> {
-        return pagesList.filter { data -> data.indexOf(_searchFilter) != -1 || data.indexOf(convertToArabicNumbers(_searchFilter)) != -1 };
+        return pagesList.filter { data ->
+            data.indexOf(_searchFilter) != -1 || data.indexOf(
+                convertToArabicNumbers(_searchFilter)
+            ) != -1
+        };
     }
 
     fun getPartsList(): List<PartData> {
-        return partsList.filter { data -> data.partName.indexOf(_searchFilter) != -1 || data.partId.indexOf(_searchFilter) != -1 || data.partId.indexOf(convertToArabicNumbers(_searchFilter)) != -1 };
+        return partsList.filter { data ->
+            data.partName.indexOf(_searchFilter) != -1 || data.partId.indexOf(
+                _searchFilter
+            ) != -1 || data.partId.indexOf(convertToArabicNumbers(_searchFilter)) != -1
+        };
     }
 
     fun getChaptersList(): List<ChapterData> {
@@ -93,19 +112,13 @@ class MainViewModel : ViewModel() {
     }
 }
 
-
-private fun getPages(): List<String> {
-    val list = mutableListOf<String>()
-    for (i in 1..604) {
-        list.add("صفحة $i")
+class MainViewModelFactory(
+    private val repository: QuranRepository,
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+            return MainViewModel(repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
-    return list
-}
-
-private fun getParts(): List<PartData> {
-    return QuranStore.getPartsData()
-}
-
-private fun getChapters(): List<ChapterData> {
-    return QuranStore.getChaptersData();
 }

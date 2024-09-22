@@ -40,6 +40,7 @@ interface AudioServiceInterface {
     fun playNextChapter()
     fun playPreviousChapter()
     fun resumeClicked(): StateFlow<Int> //to serve as a notification to viewmodels that the resume was clicked, nothing more
+    fun getPlaybackSpeed(): StateFlow<Float>
 }
 
 
@@ -48,7 +49,7 @@ class MediaPlayerService : Service(), AudioServiceInterface {
     var length = 0;
     var currentlyPlaying = "";
     val playbackParams = PlaybackParams()
-    private var _playbackSpeed by mutableStateOf(1.0f)
+    private var _playbackSpeed = MutableStateFlow<Float>(1.0f)
     lateinit var timer: Timer
     private val _isPlaying = MutableStateFlow<Boolean>(false)
     private val _isPaused = MutableStateFlow<Boolean>(false)
@@ -102,11 +103,15 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         return _maxDuration
     }
 
+    override fun getPlaybackSpeed(): StateFlow<Float> {
+        return _playbackSpeed
+    }
+
     override fun setSliderPosition(value: Float) {
         _sliderPosition.value = value;
-        mediaPlayer!!.value.pause()
-        mediaPlayer!!.value.seekTo(value.toInt());
-        mediaPlayer!!.value.start();
+        mediaPlayer?.value?.pause()
+        mediaPlayer?.value?.seekTo(value.toInt());
+        mediaPlayer?.value?.start();
     }
 
     override fun isServiceRunning(): Boolean {
@@ -114,8 +119,8 @@ class MediaPlayerService : Service(), AudioServiceInterface {
     }
 
     override fun getPlayingState(link: String, playingChapter: Boolean): StateFlow<Boolean> {
-        println("media player playing ${mediaPlayer!!.value.isPlaying}")
-        if (mediaPlayer!!.value.isPlaying) {
+        println("media player playing ${mediaPlayer?.value?.isPlaying}")
+        if (mediaPlayer?.value?.isPlaying == true) {
             _isPlaying.value =
                 (!currentlyPlaying.contains("azkar") && playingChapter) || (currentlyPlaying == link)
         } else {
@@ -168,8 +173,8 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
     private fun resumeTrack() {
         println("resuming")
-        mediaPlayer!!.value.seekTo(length);
-        mediaPlayer!!.value.start();
+        mediaPlayer?.value?.seekTo(length);
+        mediaPlayer?.value?.start();
     }
 
     private fun playNewTrack(link: String) {
@@ -177,8 +182,8 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         println(link)
         prepareForNewTrack();
         currentlyPlaying = link;
-        playbackParams.speed = _playbackSpeed
-        mediaPlayer!!.value.apply {
+        playbackParams.speed = _playbackSpeed.value
+        mediaPlayer?.value?.apply {
             reset()
             setDataSource(link)
             setPlaybackParams(playbackParams)
@@ -191,7 +196,7 @@ class MediaPlayerService : Service(), AudioServiceInterface {
                 timer = Timer();
                 timer.scheduleAtFixedRate(object : TimerTask() {
                     override fun run() {
-                        _sliderPosition.value = mediaPlayer!!.value.currentPosition.toFloat();
+                        _sliderPosition.value = mediaPlayer?.value?.currentPosition!!.toFloat();
                     }
                 }, 0, 400)
                 println("on prepared done")
@@ -223,27 +228,27 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         length = 0;
         _maxDuration.value = 0f;
         _sliderPosition.value = 0f;
-        _playbackSpeed=1.0f
-        mediaPlayer!!.value.reset();
+        _playbackSpeed.value = 1.0f
+        mediaPlayer?.value?.reset();
     }
 
     override fun pause() {
-        length = mediaPlayer!!.value.currentPosition;
+        length = mediaPlayer?.value?.currentPosition!!;
         _isPlaying.value = false;
         _isPaused.value = true;
-        mediaPlayer!!.value.pause()
+        mediaPlayer?.value?.pause()
     }
 
     override fun increaseSpeed() {
-        if (_playbackSpeed < 2.0f) {
-            this._playbackSpeed += 0.25f;
+        if (_playbackSpeed.value < 2.0f) {
+            _playbackSpeed.value += 0.25f;
             updatePlaybackSpeed()
         }
     }
 
     override fun decreaseSpeed() {
-        if (_playbackSpeed > 0.25f) {
-            this._playbackSpeed -= 0.25f;
+        if (_playbackSpeed.value > 0.25f) {
+            _playbackSpeed.value -= 0.25f;
             updatePlaybackSpeed()
         }
     }
@@ -254,76 +259,91 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
 
     fun updatePlaybackSpeed() {
-        val playbackParams = PlaybackParams()
-        playbackParams.speed = this._playbackSpeed
-        mediaPlayer!!.value.playbackParams = playbackParams;
+        try {
+            val playbackParams = PlaybackParams()
+            playbackParams.speed = _playbackSpeed.value
+            mediaPlayer?.value?.playbackParams = playbackParams;
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _playbackSpeed.value = 1.0F
+            val playbackParams = PlaybackParams()
+            playbackParams.speed = 1.0F
+            mediaPlayer?.value?.playbackParams = playbackParams;
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent!!.action) {
+        if (intent != null) {
+            try {
+                when (intent.action) {
+                    Actions.START.toString() -> {
+                        _destroyed.value = false;
+                        startService()
+                    }
 
-            Actions.START.toString() -> {
-                _destroyed.value = false;
-                startService()
-            }
+                    Actions.STOP.toString() -> {
+                        println("stopping media inside app")
+                        if (::timer.isInitialized) {
+                            timer.cancel();
+                            timer.purge();
+                        }
+                        mediaPlayer?.value?.reset();
+                        _isPlaying.value = false;
+                        _isPaused.value = false;
+                        _playingChapter.value = false;
+                        _playingZikr.value = false;
+                        _selectedChapterId.value = "";
+                    }
 
-            Actions.STOP.toString() -> {
-                println("stopping media inside app")
-                if (::timer.isInitialized) {
-                    timer.cancel();
-                    timer.purge();
-                }
-                mediaPlayer?.value?.reset();
-                _isPlaying.value = false;
-                _isPaused.value = false;
-                _playingChapter.value = false;
-                _playingZikr.value = false;
-                _selectedChapterId.value = "";
-            }
+                    Actions.TERMINATE.toString() -> {
+                        println("stopping self")
+                        if (::timer.isInitialized) {
+                            timer.cancel();
+                            timer.purge();
+                        }
+                        if (mediaPlayer != null) {
+                            mediaPlayer?.value?.reset();
+                            mediaPlayer?.value?.release();
+                        }
+                        mediaPlayer = null;
+                        _isPlaying.value = false;
+                        _isPaused.value = false;
+                        _playingChapter.value = false;
+                        _playingZikr.value = false;
+                        _selectedChapterId.value = "";
+                        _destroyed.value = true;
+                        stopForeground(true)
+                        stopSelf()
+                    }
 
-            Actions.TERMINATE.toString() -> {
-                println("stopping self")
-                if (::timer.isInitialized) {
-                    timer.cancel();
-                    timer.purge();
-                }
-                if (mediaPlayer != null) {
-                    mediaPlayer!!.value.reset();
-                    mediaPlayer!!.value.release();
-                }
-                mediaPlayer = null;
-                _isPlaying.value = false;
-                _isPaused.value = false;
-                _playingChapter.value = false;
-                _playingZikr.value = false;
-                _selectedChapterId.value = "";
-                _destroyed.value = true;
-                stopForeground(true)
-                stopSelf()
-            }
+                    Actions.NOTI_PLAY.toString() -> {
+                        if (!_isPlaying.value) {
+                            resumeTrack()
+                            resumeFlag.value++;
+                            // getPlayingState(currentlyPlaying, _playingChapter.value)
+                        }
+                    }
 
-            Actions.NOTI_PLAY.toString() -> {
-                if (!_isPlaying.value) {
-                    resumeTrack()
-                    resumeFlag.value++;
-                    // getPlayingState(currentlyPlaying, _playingChapter.value)
+                    Actions.NOTI_PAUSE.toString() -> {
+                        if (mediaPlayer?.value?.isPlaying == true) {
+                            pause()
+                        }
+                    }
                 }
-            }
-
-            Actions.NOTI_PAUSE.toString() -> {
-                if (mediaPlayer!!.value.isPlaying) {
-                    pause()
-                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
-        return super.onStartCommand(intent, flags, startId)
+
+        //return super.onStartCommand(intent, flags, startId)
+        return android.app.Service.START_REDELIVER_INTENT
     }
 
     fun startService() {
         println("starting service")
         if (mediaPlayer != null) {
-            mediaPlayer!!.value.reset();
-            mediaPlayer!!.value.release();
+            mediaPlayer?.value?.reset();
+            mediaPlayer?.value?.release();
         }
         mediaPlayer = mutableStateOf(MediaPlayer())
 

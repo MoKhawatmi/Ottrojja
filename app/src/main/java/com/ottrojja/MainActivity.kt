@@ -85,7 +85,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         println("configured");
@@ -101,6 +100,5 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) {
             println(e)
         }
-
     }
 }

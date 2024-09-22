@@ -6,7 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -89,6 +91,13 @@ class ZikrViewModel(application: Application) : AndroidViewModel(application) {
         get() = this._maxDuration.value
         set(value) {
             this._maxDuration.value = value
+        }
+
+    private var _playbackSpeed by mutableStateOf(1.0f)
+    var playbackSpeed: Float
+        get() = this._playbackSpeed
+        set(value) {
+            this._playbackSpeed = value
         }
 
 
@@ -182,6 +191,11 @@ class ZikrViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
 
+                viewModelScope.launch {
+                    audioService?.getPlaybackSpeed()!!.collect { state ->
+                        _playbackSpeed = state;
+                    }
+                }
 
                 if (clickedPlay) {
                     audioService?.playZiker(_zikr.value.firebaseAddress);

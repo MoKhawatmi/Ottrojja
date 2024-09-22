@@ -19,15 +19,12 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.room.Room
 import com.ottrojja.classes.MediaPlayerService
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.QuranStore
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.room.QuranDatabase
-import com.ottrojja.screens.loadingScreen.LoadingScreenViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,15 +38,13 @@ import java.io.FileOutputStream
 import java.io.IOException
 
 
-class QuranViewModel(repository: QuranRepository, application: Application) : AndroidViewModel(application), LifecycleObserver {
+class QuranViewModel(private val repository: QuranRepository, application: Application) :
+    AndroidViewModel(application), LifecycleObserver {
     val context = application.applicationContext;
     val sharedPreferences: SharedPreferences =
         application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
     val jsonParser = JsonParser(application.applicationContext);
 
-    //val tafseerData: List<TafseerData> = QuranStore.getTafseerData();
-    var tafseerData: List<TafseerData> = QuranStore.tafseerData;
-    val e3rabData: List<E3rabData> = QuranStore.getE3rabData();
 
     private var _versesPlayList: Array<PageContent> by mutableStateOf(arrayOf<PageContent>());
     var mediaPlayer = MediaPlayer()
@@ -64,7 +59,6 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
     fun onEnterBackground() {
         resetPlayer();
     }
-
 
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
@@ -90,32 +84,36 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
 
     private var _tafseerSheetMode by mutableStateOf("tafseer")
     var tafseerSheetMode: String
-        get() = this._tafseerSheetMode
+        get() = _tafseerSheetMode
         set(value) {
-            this._tafseerSheetMode = value
+            _tafseerSheetMode = value
         }
 
     private var _selectedTab by mutableStateOf("page")
     var selectedTab: String
-        get() = this._selectedTab
+        get() = _selectedTab
         set(value) {
-            this._selectedTab = value
+            _selectedTab = value
         }
 
-    private val _currentPage = MutableStateFlow("1")
-    val currentPage: StateFlow<String> = _currentPage.asStateFlow()
-
     fun setCurrentPage(value: String) {
-        _currentPage.value = value
-        resetPlayer()
-        this._selectedRepetition = "0"
-        checkVerseFilesExistance()
-        _currentPageObject = QuranStore.getQuranData().get(Integer.parseInt(value) - 1)
+        println("setting current page to $value")
+        _selectedRepetition = "0"
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _currentPageObject = repository.getPage(value)
+                println(_currentPageObject)
+                _versesPlayList = _currentPageObject.pageContent
+                resetPlayer()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     private var _currentPageObject by mutableStateOf(
         QuranPage(
-            "",
+            "1",
             "",
             arrayOf(""),
             arrayOf(""),
@@ -130,7 +128,7 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
             this._currentPageObject = value
         }
 
-    val repetitionOptionsMap = hashMapOf<String, Int>(
+    val repetitionOptionsMap = linkedMapOf<String, Int>(
         "0" to 0,
         "1" to 1,
         "2" to 2,
@@ -150,7 +148,7 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
     var selectedRepetition: String
         get() = this._selectedRepetition
         set(value) {
-            this._selectedRepetition = value
+            _selectedRepetition = value
         }
 
     fun updateSelectedRep() {
@@ -177,10 +175,10 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
     var selectedVerse: PageContent
         get() = this._selectedVerse
         set(value) {
-            this._selectedVerse = value;
+            _selectedVerse = value;
             mediaPlayer.reset();
             setIsPlaying(false)
-            this._selectedRepetition = "0"
+            _selectedRepetition = "0"
             length = 0; //seek a better way for this length issue
             val index =
                 getCurrentPageVerses().indexOf(getCurrentPageVerses().find { item -> item.surahNum == value.surahNum && item.verseNum == value.verseNum });
@@ -193,30 +191,38 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
 
     private var _playbackSpeed by mutableStateOf(1.0f)
     var playbackSpeed: Float
-        get() = this._playbackSpeed
+        get() = _playbackSpeed
         set(value) {
-            this._playbackSpeed = value
+            _playbackSpeed = value
         }
 
     fun increasePlaybackSpeed() {
         if (_playbackSpeed < 2.0f) {
-            this._playbackSpeed += 0.25f;
+            _playbackSpeed += 0.25f;
             updatePlaybackSpeed()
         }
     }
 
     fun decreasePlaybackSpeed() {
         if (_playbackSpeed > 0.25f) {
-            this._playbackSpeed -= 0.25f;
+            _playbackSpeed -= 0.25f;
             updatePlaybackSpeed()
         }
     }
 
     fun updatePlaybackSpeed() {
         if (_isPlaying.value) {
-            val playbackParams = PlaybackParams()
-            playbackParams.speed = this._playbackSpeed
-            mediaPlayer.playbackParams = playbackParams;
+            try {
+                val playbackParams = PlaybackParams()
+                playbackParams.speed = _playbackSpeed
+                mediaPlayer.playbackParams = playbackParams;
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _playbackSpeed = 1.0f
+                val playbackParams = PlaybackParams()
+                playbackParams.speed = _playbackSpeed
+                mediaPlayer.playbackParams = playbackParams;
+            }
         }
     }
 
@@ -232,35 +238,41 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
     var tafseerTargetVerse: String
         get() = this._tafseerTargetVerse
         set(value) {
-            this._tafseerTargetVerse = value
-            val surah = value.split("-")[0]
-            val verse = value.split("-")[1]
-            this._verseTafseer =
-                tafseerData.find { item -> item.sura == surah && item.aya == verse }!!.text
-            this._verseE3rab =
-                e3rabData.find { item -> item.sura == surah && item.aya == verse }!!.text
+            viewModelScope.launch(Dispatchers.IO) {
+                _tafseerTargetVerse = value
+                val surah = value.split("-")[0]
+                val verse = value.split("-")[1]
+
+                println("tafseer for $surah-$verse at ${tafseerNamesMap.get(_selectedTafseer)}")
+
+                _verseTafseer = repository.getVerseTafseerData(
+                    surah,
+                    verse,
+                    tafseerNamesMap.get(_selectedTafseer)!!
+                ).text
+                _verseE3rab = repository.getVerseE3rabData(surah, verse).text
+            }
         }
 
-    private var _verseTafseer by mutableStateOf("Tafseer")
+    private var _verseTafseer by mutableStateOf("")
     var verseTafseer: String
-        get() = this._verseTafseer
+        get() = _verseTafseer
         set(value) {
-            this._verseTafseer = value
+            _verseTafseer = value
         }
 
-    private var _verseE3rab by mutableStateOf("E3rab")
+    private var _verseE3rab by mutableStateOf("")
     var verseE3rab: String
-        get() = this._verseE3rab
+        get() = _verseE3rab
         set(value) {
-            this._verseE3rab = value
+            _verseE3rab = value
         }
-
 
     private var _showTafseerSheet by mutableStateOf(false)
     var showTafseerSheet: Boolean
-        get() = this._showTafseerSheet
+        get() = _showTafseerSheet
         set(value) {
-            this._showTafseerSheet = value
+            _showTafseerSheet = value
         }
 
     private var _showTafseerOptions by mutableStateOf(false)
@@ -290,7 +302,7 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
         "تفسير ابن كثير" to "katheer",
         "التفسير الميسر" to "muyassar",
         "تفسير القرطبي" to "qortoby",
-        "تفسير السعدي" to "tafseer",
+        "تفسير السعدي" to "saadi",
         "تفسير الوسيط" to "waseet",
     )
 
@@ -302,28 +314,29 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
         }
 
     fun updateSelectedTafseer(value: String) {
-        this._selectedTafseer = value;
-        jsonParser.parseJsonArrayFileTafseer("${tafseerNamesMap.get(value).toString()}.json")
-            ?.let { tafseerData = it }
-        val surah = this._tafseerTargetVerse.split("-")[0]
-        val verse = this._tafseerTargetVerse.split("-")[1]
-        this._verseTafseer =
-            tafseerData.find { item -> item.sura == surah && item.aya == verse }!!.text
+        _selectedTafseer = value;
+        viewModelScope.launch(Dispatchers.IO) {
+            val surah = _tafseerTargetVerse.split("-")[0]
+            val verse = _tafseerTargetVerse.split("-")[1]
+            _verseTafseer = repository.getVerseTafseerData(
+                surah,
+                verse,
+                tafseerNamesMap.get(value)!!
+            ).text
+
+        }
     }
 
     fun getCurrentPageVerses(): Array<PageContent> {
         val versesList = _currentPageObject.pageContent
-        //      QuranStore.getQuranData()[Integer.parseInt(_currentPage.value) - 1].pageContent;
         return versesList;
     }
 
     fun resetPlayer() {
         mediaPlayer.reset();
-        _versesPlayList = _currentPageObject.pageContent
-        //    QuranStore.getQuranData()[Integer.parseInt(_currentPage.value) - 1].pageContent//getCurrentPageVersesUrls();
         currentPlayingIndex.value = 0;
         _selectedVerse =
-            PageContent("", "", "", "", "", "", "", "")//getCurrentPageVerses().first();
+            PageContent("", "", "", "", "", "", "", "");
         setIsPlaying(false);
         length = 0;
         repeatedTimes = 0;
@@ -346,22 +359,22 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
     fun checkVerseFilesExistance() {
         allVersesExist = false;
         //check if all verse files exist, if not then download must be initialized
-        println("checking verses of page ${currentPage.value}");
+        println("checking verses of page ${currentPageObject.pageNum}");
         for (item in _versesPlayList) {
             var path: String;
             if (item.type == "surah") {
                 path = "1-1-1.mp3"
             } else {
-                path = "${currentPage.value}-${item.surahNum}-${item.verseNum}.mp3"
+                path = "${currentPageObject.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
             }
             val localFile = File(context.getExternalFilesDir(null), path)
             if (!localFile.exists()) {
-                println("audio files for page ${_currentPage.value} need downloading")
+                println("audio files for page ${currentPageObject.pageNum} need downloading")
                 allVersesExist = false;
                 return;
             }
         }
-        println("audio files for page ${_currentPage.value} are complete")
+        println("audio files for page ${currentPageObject.pageNum} are complete")
         allVersesExist = true;
     }
 
@@ -424,7 +437,7 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
         if (item.type == "surah") {
             urlParam = "1-1-1.mp3"
         } else {
-            urlParam = "${_currentPage.value}-${item.surahNum}-${item.verseNum}.mp3"
+            urlParam = "${currentPageObject.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
         }
         // println(item.toString())
 
@@ -473,7 +486,7 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
                         )
                     } else {
                         resetPlayer()
-                        if (_currentPage.value != "604" && _continuousPlay.value) {
+                        if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
                             playNextPage()
                         }
                     }
@@ -484,7 +497,7 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
 
     private fun playNextPage() {
         _shouldAutoPlay.value = true;
-        setCurrentPage("${_currentPage.value.toInt() + 1}")
+        setCurrentPage("${currentPageObject.pageNum.toInt() + 1}")
     }
 
     var downloadIndex = 0;
@@ -502,7 +515,7 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
         if (item.type == "surah") {
             path = "1-1-1.mp3"
         } else {
-            path = "${currentPage.value}-${item.surahNum}-${item.verseNum}.mp3"
+            path = "${currentPageObject.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
         }
         //   val fileReference = storageReference.child("/final/$path")
 
@@ -542,12 +555,13 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
                     }
                 } catch (e: Exception) {
                     println("error in download")
-                    println(e)
+                    e.printStackTrace()
                     withContext(Dispatchers.Main) {
                         Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
                     }
                     isDownloading = false;
                     allVersesExist = false;
+                    _isPlaying.value = false;
                 }
             }
         }
@@ -598,13 +612,13 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
     fun isPageBookmarked() {
         val bookmarks = sharedPreferences.getString("bookmarks", "");
         val bookmarksList = bookmarks?.split(",");
-        println("checking")
+        println("checking bookmarks")
         println(bookmarksList)
-        println("for ${_currentPage.value}")
+        println("for ${currentPageObject.pageNum}")
         if (bookmarksList?.size == 0) {
             this._isBookmarked.value = false;
         } else {
-            this._isBookmarked.value = bookmarksList?.indexOf(_currentPage.value) != -1;
+            this._isBookmarked.value = bookmarksList?.indexOf(currentPageObject.pageNum) != -1;
         }
     }
 
@@ -612,12 +626,12 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
         val bookmarks = sharedPreferences.getString("bookmarks", "");
         val bookmarksList = bookmarks?.split(",")?.toMutableList();
         if (bookmarksList?.size == 0) {
-            bookmarksList.add(_currentPage.value)
+            bookmarksList.add(currentPageObject.pageNum)
         } else {
-            if (bookmarksList?.indexOf(_currentPage.value) == -1) {
-                bookmarksList.add(_currentPage.value)
+            if (bookmarksList?.indexOf(currentPageObject.pageNum) == -1) {
+                bookmarksList.add(currentPageObject.pageNum)
             } else {
-                bookmarksList?.remove(_currentPage.value)
+                bookmarksList?.remove(currentPageObject.pageNum)
             }
         }
 
@@ -630,6 +644,7 @@ class QuranViewModel(repository: QuranRepository, application: Application) : An
         //just to update ui
         isPageBookmarked();
     }
+
 
 }
 

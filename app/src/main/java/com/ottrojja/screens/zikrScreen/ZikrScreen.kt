@@ -1,6 +1,5 @@
 package com.ottrojja.screens.zikrScreen
 
-import android.content.Intent
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -26,12 +25,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,11 +49,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.R
-import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.quranScreen.NoRippleInteractionSource
@@ -205,7 +200,8 @@ fun ZikrScreen(
                 { zikrViewModel.pauseZikr() },
                 zikrViewModel.maxDuration,
                 zikrViewModel.sliderPosition,
-                { value -> zikrViewModel.sliderChanged(value) }
+                { value -> zikrViewModel.sliderChanged(value) },
+                zikrViewModel.playbackSpeed
             );
             "الفيديو" -> YouTube(link = zikrViewModel.zikr.ytLink.split("v=").last())
         }
@@ -227,7 +223,8 @@ fun ZikrSection(
     onPauseClicked: () -> Unit,
     sliderMaxDuration: Float,
     sliderPosition: Float,
-    setSliderPosition: (Float) -> Unit
+    setSliderPosition: (Float) -> Unit,
+    playbackSpeed: Float
 ) {
     Box(modifier = Modifier
         .fillMaxSize()
@@ -303,6 +300,28 @@ fun ZikrSection(
                             },
                             valueRange = 0f..sliderMaxDuration,
                         )
+                    }
+                }
+                if (isPlaying) {
+                    Row(
+                        modifier = Modifier
+                            .background(color = MaterialTheme.colorScheme.primaryContainer)
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "x$playbackSpeed",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Left,
+                            )
+                        }
                     }
                 }
                 Row(

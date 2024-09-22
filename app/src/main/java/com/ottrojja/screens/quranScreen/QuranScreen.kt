@@ -59,7 +59,6 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults.elevatedButtonElevation
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -79,7 +78,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -108,31 +106,23 @@ import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.classes.MediaPlayerService
 import com.ottrojja.classes.PageContent
-import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.classes.QuranStore
-import com.ottrojja.screens.loadingScreen.LoadingScreenViewModel
-import com.ottrojja.screens.loadingScreen.LoadingScreenViewModelFactory
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnrememberedMutableState", "DiscouragedApi")
 @Composable
 fun QuranScreen(
-    navController: NavController, pageNum: String?, repository: QuranRepository) {
+    navController: NavController, pageNum: String, repository: QuranRepository
+) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
 
@@ -140,14 +130,14 @@ fun QuranScreen(
         factory = QuranScreenViewModelFactory(repository, application)
     )
 
-    val currentPage by quranViewModel.currentPage.collectAsState(initial = pageNum)
-
-    try {
-        quranViewModel.currentPageObject =
-            QuranStore.getQuranData().get(Integer.parseInt(currentPage) - 1)
-    } catch (e: Exception) {
-        Log.e("error", "Error getting current page in quran screen: $e")
+    LaunchedEffect(Unit) {
+        try {
+            quranViewModel.setCurrentPage(pageNum)
+        } catch (e: Exception) {
+            Log.e("error", "Error getting current page in quran screen: $e")
+        }
     }
+
     val isPlaying by quranViewModel.isPlaying.collectAsState(initial = false)
     val pageTabsMap: HashMap<String, String> = hashMapOf(
         "الصفحة" to "page", "الآيات" to "verses", "الفوائد" to "benefits", "الفيديو" to "yt"
@@ -172,8 +162,6 @@ fun QuranScreen(
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
     }
-
-
 
     Column {
         Row(
@@ -205,7 +193,7 @@ fun QuranScreen(
                 }
                 ElevatedButton(
                     onClick = {
-                        val varName = "p_$currentPage"
+                        val varName = "p_${quranViewModel.currentPageObject.pageNum}"
                         val resourceId: Int = context.getResources()
                             .getIdentifier(varName, "drawable", context.packageName)
 
@@ -225,6 +213,7 @@ fun QuranScreen(
 
                         val shareIntent = Intent(Intent.ACTION_SEND)
                         shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         shareIntent.type = "image/*"
                         val imageUri = FileProvider.getUriForFile(
                             context,
@@ -235,13 +224,15 @@ fun QuranScreen(
 
                         shareIntent.putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
                         shareIntent.putExtra(
-                            Intent.EXTRA_TEXT, "مشاركة الصفحة رقم $currentPage"
+                            Intent.EXTRA_TEXT,
+                            "الصفحة رقم ${quranViewModel.currentPageObject.pageNum}"
                         )
 
                         val chooserIntent = Intent.createChooser(shareIntent, "تطبيق اترجة")
                         chooserIntent.putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
                         chooserIntent.putExtra(
-                            Intent.EXTRA_TEXT, "مشاركة الصفحة رقم $currentPage"
+                            Intent.EXTRA_TEXT,
+                            "الصفحة رقم ${quranViewModel.currentPageObject.pageNum}"
                         )
                         chooserIntent.putExtra(Intent.EXTRA_CONTENT_QUERY, "image/png")
 
@@ -316,11 +307,9 @@ fun QuranScreen(
         when (quranViewModel.selectedTab) {
             "page" -> Column(verticalArrangement = Arrangement.SpaceBetween) {
                 PagesContainer(
-                    QuranStore.getQuranData(),
-                    currentPage,
+                    quranViewModel.currentPageObject.pageNum,
                     { newPage ->
                         quranViewModel.setCurrentPage(newPage)
-                        // quranViewModel.currentPageObject = QuranStore.getQuranData().get(Integer.parseInt(newPage) - 1)
                     },
                     {
                         if (checkNetworkConnectivity(context)) {
@@ -346,7 +335,8 @@ fun QuranScreen(
                     { quranViewModel.goPreviousVerse() },
                     quranViewModel.continuousPlay,
                     { value -> quranViewModel.continuousPlay = value },
-                    quranViewModel.shouldAutoPlay
+                    quranViewModel.shouldAutoPlay,
+                    quranViewModel.playbackSpeed
                 )
             }
 
@@ -362,6 +352,7 @@ fun QuranScreen(
                     quranViewModel.tafseerSheetMode = "e3rab"
                     quranViewModel.showTafseerSheet = true
                 },
+                repository
             )
 
             "benefits" -> Benefits(
@@ -421,6 +412,7 @@ fun QuranScreen(
         }, quranViewModel.tafseerNamesMap
         )
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -691,7 +683,6 @@ fun SelectVerseDialog(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PagesContainer(
-    quranData: List<QuranPage>,
     pageNum: String?,
     onPageChanged: (String) -> Unit,
     onPlayClicked: () -> Unit,
@@ -711,15 +702,22 @@ fun PagesContainer(
     continuousPlay: Boolean,
     setContPlay: (Boolean) -> Unit,
     shouldAutoPlay: Boolean,
+    playbackSpeed: Float
 ) {
+    val quranPagesNumbers = Array(604) { (it + 1).toString() }
+
     val pagerState = rememberPagerState(
-        initialPage = Integer.parseInt(pageNum) - 1, initialPageOffsetFraction = 0f
+        initialPage = Integer.parseInt(pageNum) - 1,
+        initialPageOffsetFraction = 0f
     ) {
-        quranData.size
+        quranPagesNumbers.size //number of the pages of quran
     }
     var showController by remember {
         mutableStateOf(true)
     }
+    val hasPageChanged =
+        remember { mutableStateOf(false) } // To track if the page has changed at least once
+
 
     /*val coroutineScope = rememberCoroutineScope()  // Use rememberCoroutineScope
     Button(onClick = {
@@ -734,14 +732,20 @@ fun PagesContainer(
         if (shouldAutoPlay) {
             pagerState.animateScrollToPage(pageNum!!.toInt() - 1)
             onPlayClicked()
+        } else {
+            pagerState.scrollToPage(pageNum!!.toInt() - 1)
+
         }
     }
 
-
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
-            Log.d("Page change", "Page changed to $page")
-            onPageChanged("${page + 1}")
+            if (hasPageChanged.value) {
+                Log.d("Page change", "Page changed to $page")
+                onPageChanged("${page + 1}")
+            } else {
+                hasPageChanged.value = true // Skip the first value
+            }
         }
     }
 
@@ -759,7 +763,7 @@ fun PagesContainer(
 
     Box(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(state = pagerState,
-            key = { quranData[it].pageNum },
+            key = { quranPagesNumbers[it] },
             pageSize = PageSize.Fill,
             modifier = Modifier
                 .pointerInput(Unit) {
@@ -770,7 +774,7 @@ fun PagesContainer(
                 .clickable(
                     indication = null, interactionSource = NoRippleInteractionSource()
                 ) { showController = !showController }) { index ->
-            SinglePage(quranData[index].pageNum)
+            SinglePage(quranPagesNumbers[index])
         }
 
         AnimatedVisibility(
@@ -813,20 +817,41 @@ fun PagesContainer(
                     )
                 }
                 Row(
-                    modifier = Modifier.fillMaxWidth().clickable { setContPlay(!continuousPlay) },
-                    horizontalArrangement = Arrangement.Start,
+                    modifier = Modifier
+                        .background(color = MaterialTheme.colorScheme.primaryContainer)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Checkbox(
-                        checked = continuousPlay,
-                        onCheckedChange = { newCheckedState -> setContPlay(newCheckedState) }
-                    )
-                    Text(
-                        text = "تشغيل متتال",
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Right,
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { setContPlay(!continuousPlay) }
+                    ) {
+                        Checkbox(
+                            checked = continuousPlay,
+                            onCheckedChange = { newCheckedState -> setContPlay(newCheckedState) }
+                        )
+                        Text(
+                            text = "تشغيل متتال",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Right,
+                        )
+                    }
+                    if (isPlaying) {
+                        Row(
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "x$playbackSpeed",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Left,
+                            )
+                        }
+                    }
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1242,9 +1267,16 @@ fun VersesSection(
     items: List<PageContent>,
     onTafseerClick: (String) -> Unit,
     onE3rabClick: (String) -> Unit,
-    versesSectionViewModel: VersesSectionViewModel = viewModel()
+    repository: QuranRepository
 ) {
     val context = LocalContext.current
+    val application = context.applicationContext as Application
+
+    val versesSectionViewModel: VersesSectionViewModel = viewModel(
+        factory = VersesSectionViewModelFactory(repository, application)
+    )
+
+
     LaunchedEffect(null) {
         versesSectionViewModel.setItems(items);
     }
@@ -1302,21 +1334,7 @@ fun VersesSection(
                                 modifier = Modifier
                                     .weight(1.0f)
                                     .background(MaterialTheme.colorScheme.tertiary)
-                                    .clickable {
-                                        val sendIntent: Intent = Intent().apply {
-                                            action = Intent.ACTION_SEND
-                                            putExtra(Intent.EXTRA_SUBJECT, "آية قرآنية")
-                                            putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
-                                            putExtra(
-                                                Intent.EXTRA_TEXT, item.pageContent.verseText
-                                            )
-                                            type = "text/plain"
-                                        }
-
-                                        val shareIntent =
-                                            Intent.createChooser(sendIntent, "مشاركة الآية")
-                                        startActivity(context, shareIntent, null)
-                                    }
+                                    .clickable { versesSectionViewModel.shareVerse(item.pageContent) }
                                     .padding(4.dp, 6.dp)
                             ) {
                                 Text(

@@ -1,14 +1,26 @@
 package com.ottrojja.screens.quranScreen
 
 import android.app.Application
+import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.PageContent
+import com.ottrojja.classes.QuranRepository
+import com.ottrojja.classes.QuranStore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
-class VersesSectionViewModel(application: Application) : AndroidViewModel(application),
+class VersesSectionViewModel(private val repository: QuranRepository, application: Application) :
+    AndroidViewModel(application),
     LifecycleObserver {
+    val context = application.applicationContext;
     private val itemsList = MutableStateFlow(mutableListOf<SectionVerse>())
     val items: StateFlow<List<SectionVerse>> get() = itemsList
 
@@ -27,4 +39,36 @@ class VersesSectionViewModel(application: Application) : AndroidViewModel(applic
         itemsList.value = tempList;
     }
 
+    fun shareVerse(verseItem: PageContent) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val chapterName = repository.getChapter(verseItem.surahNum.toInt()).chapterName
+            val sendIntent: Intent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_SUBJECT, "آية قرآنية")
+                putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
+                putExtra(
+                    Intent.EXTRA_TEXT,
+                    "{${verseItem.verseText}} \n سورة ${chapterName} - ${verseItem.verseNum}"
+                )
+                type = "text/plain"
+            }
+
+            val shareIntent =
+                Intent.createChooser(sendIntent, "مشاركة الآية")
+            shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            ContextCompat.startActivity(context, shareIntent, null)
+        }
+    }
+}
+
+class VersesSectionViewModelFactory(
+    private val repository: QuranRepository,
+    private val application: Application
+) : ViewModelProvider.AndroidViewModelFactory(application) {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(VersesSectionViewModel::class.java)) {
+            return VersesSectionViewModel(repository, application) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
 }

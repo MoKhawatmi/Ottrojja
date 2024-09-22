@@ -1,5 +1,6 @@
 package com.ottrojja.screens.chaptersScreen
 
+import android.app.Application
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -40,23 +41,33 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.MediaPlayerService
+import com.ottrojja.classes.QuranRepository
 import com.ottrojja.composables.Header
+import com.ottrojja.screens.quranScreen.QuranScreenViewModelFactory
+import com.ottrojja.screens.quranScreen.QuranViewModel
 import com.ottrojja.screens.quranScreen.checkNetworkConnectivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChaptersScreen(
     modifier: Modifier = Modifier,
-    chaptersViewModel: ChaptersViewModel = viewModel()
+    repository: QuranRepository
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val context = LocalContext.current;
+    val context = LocalContext.current
+    val application = context.applicationContext as Application
+
+    val chaptersViewModel: ChaptersViewModel = viewModel(
+        factory = ChaptersViewModelFactory(repository, application)
+    )
+
 
     LaunchedEffect(Unit) {
         //chaptersViewModel.startAndBind()
@@ -150,7 +161,7 @@ fun ChaptersScreen(
                 }
             }
 
-            if (( (chaptersViewModel.isPlaying && chaptersViewModel.isChapterPlaying) || chaptersViewModel.isPaused) && chaptersViewModel.selectedSurah.surahId != 0) {
+            if (((chaptersViewModel.isPlaying && chaptersViewModel.isChapterPlaying) || chaptersViewModel.isPaused) && chaptersViewModel.selectedSurah.surahId != 0) {
                 Column(
                     modifier = Modifier
                         .background(MaterialTheme.colorScheme.background)
@@ -193,6 +204,28 @@ fun ChaptersScreen(
                                 },
                                 valueRange = 0f..chaptersViewModel.maxDuration,
                             )
+                        }
+                    }
+                    if (chaptersViewModel.isPlaying) {
+                        Row(
+                            modifier = Modifier
+                                .background(color = MaterialTheme.colorScheme.primaryContainer)
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.Start,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "x${chaptersViewModel.playbackSpeed}",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Left,
+                                )
+                            }
                         }
                     }
                     Row(

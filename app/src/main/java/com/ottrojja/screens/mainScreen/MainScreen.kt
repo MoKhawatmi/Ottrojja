@@ -1,5 +1,6 @@
 package com.ottrojja.screens.mainScreen
 
+import android.app.Application
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -54,6 +55,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -65,19 +67,26 @@ import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.QuranPage
+import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
 import com.ottrojja.composables.Header
+import com.ottrojja.screens.quranScreen.QuranScreenViewModelFactory
+import com.ottrojja.screens.quranScreen.QuranViewModel
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MainScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
-    mainViewModel: MainViewModel = viewModel()
+    repository: QuranRepository
 ) {
+
+    val mainViewModel: MainViewModel = viewModel(
+        factory = MainViewModelFactory(repository)
+    )
+
+
     val browsingOptions = arrayOf("الصفحات", "الاجزاء", "السور", "البحث")
     val primaryColor = MaterialTheme.colorScheme.primary;
-
 
     DisposableEffect(Unit) {
         onDispose {
@@ -129,7 +138,9 @@ fun MainScreen(
                         painter = painterResource(id = R.drawable.q_image1),
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(112.dp).clip(CircleShape)
+                        modifier = Modifier
+                            .size(112.dp)
+                            .clip(CircleShape)
                     )
                 }
                 Row(
@@ -161,7 +172,9 @@ fun MainScreen(
                         painter = painterResource(id = R.drawable.q_image2),
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(112.dp).clip(CircleShape)
+                        modifier = Modifier
+                            .size(112.dp)
+                            .clip(CircleShape)
                     )
                 }
                 Row(
@@ -193,7 +206,9 @@ fun MainScreen(
                         painter = painterResource(id = R.drawable.q_image3),
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(112.dp).clip(CircleShape)
+                        modifier = Modifier
+                            .size(112.dp)
+                            .clip(CircleShape)
                     )
                 }
             }
@@ -256,7 +271,10 @@ fun MainScreen(
                                         )
                                     }
                                 }
-                                .clickable { mainViewModel.selectedSection = index; mainViewModel.searchFilter="" }
+                                .clickable {
+                                    mainViewModel.selectedSection =
+                                        index; mainViewModel.searchFilter = ""
+                                }
                                 .defaultMinSize(minWidth = 100.dp)
                                 .padding(0.dp, 6.dp, 0.dp, 6.dp)
                         )
@@ -447,10 +465,11 @@ fun SearchMenu(
             .background(MaterialTheme.colorScheme.background)
     ) {
         item {
-            Column(modifier = Modifier
-                .padding(12.dp, 2.dp)
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
+            Column(
+                modifier = Modifier
+                    .padding(12.dp, 2.dp)
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 Row(
                     modifier = Modifier
@@ -504,7 +523,7 @@ fun SearchMenu(
                 )
             }
         }
-        item{
+        item {
             Row(modifier = Modifier.height(100.dp)) {}
         }
     }

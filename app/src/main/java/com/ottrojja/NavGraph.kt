@@ -34,7 +34,11 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
     {
         composable(route = Screen.MainScreen.route) {
             Box() {
-                MainScreen(navController, modifier = Modifier.align(Alignment.TopCenter))
+                MainScreen(
+                    navController = navController,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    repository = repository
+                )
                 BottomNavigation(
                     navController,
                     Screen.MainScreen.route,
@@ -69,7 +73,7 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
         }
         composable(route = Screen.ChaptersScreen.route) {
             Box() {
-                ChaptersScreen(modifier = Modifier.align(Alignment.TopCenter))
+                ChaptersScreen(modifier = Modifier.align(Alignment.TopCenter), repository)
                 BottomNavigation(
                     navController,
                     Screen.ChaptersScreen.route,
@@ -91,7 +95,7 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
             type = NavType.StringType
         })) {
             val pageNum = requireNotNull(it.arguments).getString("pageNum")
-            QuranScreen(navController, pageNum, repository)
+            QuranScreen(navController, pageNum!!, repository)
         }
         composable(route = Screen.ZikrScreen.route, arguments = listOf(navArgument("zikerTitle") {
             type = NavType.StringType

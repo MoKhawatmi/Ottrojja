@@ -8,22 +8,29 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.AudioServiceInterface
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.MediaPlayerService
+import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.QuranStore
 import com.ottrojja.screens.mainScreen.ChapterData
+import com.ottrojja.screens.quranScreen.QuranViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ChaptersViewModel(application: Application) : AndroidViewModel(application) {
+class ChaptersViewModel(private val repository: QuranRepository, application: Application) :
+    AndroidViewModel(application) {
     val context = application.applicationContext;
-    val chaptersList: List<ChapterData> = getChapters()
+    lateinit var chaptersList: List<ChapterData>;
 
     private var _selectedSurah = mutableStateOf(ChapterData("", "", 0, "", 0))
     var selectedSurah: ChapterData
@@ -102,6 +109,13 @@ class ChaptersViewModel(application: Application) : AndroidViewModel(application
         get() = this._sliderPosition.value
         set(value) {
             this._sliderPosition.value = value
+        }
+
+    private var _playbackSpeed by mutableStateOf(1.0f)
+    var playbackSpeed: Float
+        get() = this._playbackSpeed
+        set(value) {
+            this._playbackSpeed = value
         }
 
     private var _maxDuration = mutableStateOf(0f)
@@ -190,6 +204,11 @@ class ChaptersViewModel(application: Application) : AndroidViewModel(application
                     }
                 }
 
+                viewModelScope.launch {
+                    audioService?.getPlaybackSpeed()!!.collect { state ->
+                        _playbackSpeed = state;
+                    }
+                }
 
                 println("should play $clickedPlay")
                 if (clickedPlay) {
@@ -225,11 +244,11 @@ class ChaptersViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    private fun getChapters(): List<ChapterData> {
-        return QuranStore.getChaptersData();
-    }
-
     init {
+        viewModelScope.launch(Dispatchers.IO) {
+            chaptersList = repository.getAllChapters();
+        }
+
         val sr = isMyServiceRunning(MediaPlayerService::class.java, context);
         println("service running $sr")
         if (sr) {
@@ -237,4 +256,16 @@ class ChaptersViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+}
+
+class ChaptersViewModelFactory(
+    private val repository: QuranRepository,
+    private val application: Application
+) : ViewModelProvider.AndroidViewModelFactory(application) {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ChaptersViewModel::class.java)) {
+            return ChaptersViewModel(repository, application) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
 }
