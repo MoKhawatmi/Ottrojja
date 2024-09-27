@@ -1,17 +1,14 @@
 package com.ottrojja.screens.chaptersScreen
 
-import android.app.ActivityManager
 import android.app.Application
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -20,9 +17,7 @@ import com.ottrojja.classes.AudioServiceInterface
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.MediaPlayerService
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.classes.QuranStore
 import com.ottrojja.screens.mainScreen.ChapterData
-import com.ottrojja.screens.quranScreen.QuranViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -156,7 +151,6 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
                 viewModelScope.launch {
                     audioService?.getIsChapterPlaying()?.collect { state ->
-                        // Handle state updates here
                         _isChapterPlaying.value = state;
                     }
                 }

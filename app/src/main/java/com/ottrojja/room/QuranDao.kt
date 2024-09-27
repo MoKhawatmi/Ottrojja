@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.ottrojja.classes.QuranPage
+import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.screens.quranScreen.E3rabData
@@ -73,6 +74,19 @@ interface QuranDao {
 
     @Query("SELECT count(*) FROM TafseerData")
     fun getTafseersCount(): Int
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertAllAzkar(azkar: List<Azkar>)
+
+    @Query("SELECT * FROM Azkar")
+    fun getAllAzkar(): List<Azkar>
+
+    @Query("SELECT * FROM Azkar WHERE azkarTitle=:title")
+    fun getAzkarByTitle(title: String): Azkar
+
+    @Query("SELECT count(*) FROM Azkar")
+    fun getAzkarCount(): Int
+
 
 
 }

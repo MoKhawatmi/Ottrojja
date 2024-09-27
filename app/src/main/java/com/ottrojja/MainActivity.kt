@@ -21,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import com.ottrojja.classes.MediaPlayerService
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.MIGRATION_1_2
 import com.ottrojja.room.QuranDatabase
 import com.ottrojja.ui.theme.TestAppTheme
 import java.util.Locale
@@ -62,13 +63,16 @@ class MainActivity : ComponentActivity() {
             } else {
                 permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
-        } else { }
+        } else {
+        }
 
 
         val db = Room.databaseBuilder(
             application,
             QuranDatabase::class.java, "QuranDB"
-        ).build()
+        ).addMigrations(MIGRATION_1_2)
+         .fallbackToDestructiveMigration()
+         .build()
         val quranRepository = QuranRepository(db.quranDao())
 
         setContent {

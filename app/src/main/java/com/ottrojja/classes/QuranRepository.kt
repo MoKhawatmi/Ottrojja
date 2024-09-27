@@ -1,6 +1,7 @@
 package com.ottrojja.classes
 
 import com.ottrojja.room.QuranDao
+import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.screens.quranScreen.E3rabData
@@ -94,5 +95,21 @@ class QuranRepository(private val quranDao: QuranDao) {
 
     suspend fun getTafseersCount(): Int {
         return quranDao.getTafseersCount()
+    }
+
+    suspend fun insertAllAzkar(azkar: List<Azkar>) {
+        return quranDao.insertAllAzkar(azkar)
+    }
+
+    suspend fun getAllAzkar(): List<Azkar> {
+        return quranDao.getAllAzkar()
+    }
+
+    suspend fun getAzkarByTitle(title: String): Azkar {
+        return quranDao.getAzkarByTitle(title)
+    }
+
+    suspend fun getAzkarCount(): Int {
+        return quranDao.getAzkarCount()
     }
 }

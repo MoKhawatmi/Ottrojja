@@ -1,6 +1,5 @@
 package com.ottrojja.screens.mainScreen
 
-import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,11 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
-import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.classes.QuranStore
 import com.ottrojja.classes.SearchResult
-import com.ottrojja.screens.quranScreen.QuranViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -51,9 +47,9 @@ class MainViewModel(private val repository: QuranRepository) : ViewModel() {
 
     private val _quranSearchResults = mutableStateOf(mutableListOf<SearchResult>())
     var quranSearchResults: MutableList<SearchResult>
-        get() = this._quranSearchResults.value
+        get() = _quranSearchResults.value
         set(value) {
-            this._quranSearchResults.value = value
+            _quranSearchResults.value = value
         }
 
     fun searchInQuran(text: String) {

@@ -845,7 +845,7 @@ fun PagesContainer(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "x$playbackSpeed",
+                                text = "${playbackSpeed}x",
                                 color = MaterialTheme.colorScheme.primary,
                                 style = MaterialTheme.typography.bodyMedium,
                                 textAlign = TextAlign.Left,

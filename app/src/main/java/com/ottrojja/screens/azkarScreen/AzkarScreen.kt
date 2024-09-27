@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.R
+import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.Header
 
@@ -42,10 +44,16 @@ import com.ottrojja.composables.Header
 fun AzkarScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
-    azkarViewModel: AzkarViewModel = viewModel()
+    repository: QuranRepository
 ) {
-
     val context = LocalContext.current;
+    val azkarViewModel: AzkarViewModel = viewModel(
+        factory = AzkarModelFactory(repository)
+    )
+
+    LaunchedEffect(Unit) {
+        azkarViewModel.fetchAzakr()
+    }
 
     Column {
         Header()
@@ -79,7 +87,9 @@ fun AzkarScreen(
                             ),
                             contentDescription = "",
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(100.dp).clip(CircleShape)
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(CircleShape)
                         )
                     }
                 }

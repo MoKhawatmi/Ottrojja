@@ -1,5 +1,6 @@
 package com.ottrojja.screens.zikrScreen
 
+import android.app.Application
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -53,6 +54,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers.copyToClipboard
+import com.ottrojja.classes.QuranRepository
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.quranScreen.NoRippleInteractionSource
 import com.ottrojja.screens.quranScreen.YouTube
@@ -62,14 +64,19 @@ import com.ottrojja.screens.quranScreen.checkNetworkConnectivity
 fun ZikrScreen(
     zikrTitle: String,
     navController: NavController,
-    zikrViewModel: ZikrViewModel = viewModel()
+    repository: QuranRepository
 ) {
     val context = LocalContext.current;
-    zikrViewModel.setZikr(zikrTitle)
+    val application = context.applicationContext as Application
+
+    val zikrViewModel: ZikrViewModel = viewModel(
+        factory = ZikrViewModelFactory(repository, application)
+    )
+
     val primaryColor = MaterialTheme.colorScheme.primary
 
     LaunchedEffect(Unit) {
-        //zikrViewModel.startAndBind();
+        zikrViewModel.setZikr(zikrTitle)
     }
 
     Column() {
@@ -316,7 +323,7 @@ fun ZikrSection(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "x$playbackSpeed",
+                                text = "${playbackSpeed}x",
                                 color = MaterialTheme.colorScheme.primary,
                                 style = MaterialTheme.typography.bodyMedium,
                                 textAlign = TextAlign.Left,

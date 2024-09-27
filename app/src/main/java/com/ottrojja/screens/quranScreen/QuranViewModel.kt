@@ -22,7 +22,6 @@ import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.MediaPlayerService
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.QuranPage
-import com.ottrojja.classes.QuranStore
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
 import kotlinx.coroutines.Dispatchers

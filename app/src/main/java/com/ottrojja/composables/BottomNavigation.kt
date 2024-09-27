@@ -27,7 +27,7 @@ import com.ottrojja.classes.Screen
 @Composable
 fun BottomNavigation(
     navController: NavController,
-    currentRoute:String,
+    currentRoute: String,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -39,127 +39,96 @@ fun BottomNavigation(
             .horizontalScroll(rememberScrollState())
             .padding(8.dp)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.clickable {
-                if (currentRoute != Screen.MainScreen.route) {
-                    navController.navigate(Screen.MainScreen.route)
+        BottomNavigationOption(
+            optionText = "المصحف",
+            isCurrent = Screen.MainScreen.route == currentRoute,
+            onClick = { navController.navigate(Screen.MainScreen.route) },
+            iconId = R.drawable.chapters_open,
+            alternateIcon = R.drawable.chapters_closed
+        )
+
+        BottomNavigationOption(
+            optionText = "الاستماع",
+            isCurrent = Screen.ChaptersScreen.route == currentRoute,
+            onClick = { navController.navigate(Screen.ChaptersScreen.route) },
+            iconId = R.drawable.chapters_listen,
+            alternateIcon = null
+        )
+
+        BottomNavigationOption(
+            optionText = "الاذكار",
+            isCurrent = Screen.AzkarScreen.route == currentRoute,
+            onClick = { navController.navigate(Screen.AzkarScreen.route) },
+            iconId = R.drawable.azkar,
+            alternateIcon = null
+        )
+
+        BottomNavigationOption(
+            optionText = "المسبحة",
+            isCurrent = Screen.TasbeehScreen.route == currentRoute,
+            onClick = { navController.navigate(Screen.TasbeehScreen.route) },
+            iconId = R.drawable.pin,
+            alternateIcon = null
+        )
+
+        /*BottomNavigationOption(
+            optionText = "صلاتي",
+            isCurrent = Screen.PrayerScreen.route == currentRoute,
+            onClick = { navController.navigate(Screen.PrayerScreen.route) },
+            iconId = R.drawable.prayer_times,
+            alternateIcon = null
+        )*/
+
+        BottomNavigationOption(
+            optionText = "المرجعيات",
+            isCurrent = Screen.BookmarksScreen.route == currentRoute,
+            onClick = { navController.navigate(Screen.BookmarksScreen.route) },
+            iconId = R.drawable.bookmarks,
+            alternateIcon = null
+        )
+
+        BottomNavigationOption(
+            optionText = "الاعدادات",
+            isCurrent = Screen.SettingsScreen.route == currentRoute,
+            onClick = { navController.navigate(Screen.SettingsScreen.route) },
+            iconId = R.drawable.settings,
+            alternateIcon = null
+        )
+    }
+}
+
+@Composable
+fun BottomNavigationOption(
+    optionText: String,
+    isCurrent: Boolean,
+    onClick: () -> Unit,
+    iconId: Int,
+    alternateIcon: Int? // used when route is not current
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .clickable {
+                if (!isCurrent) {
+                    onClick()
                 }
-            }.padding(2.dp)
-        ) {
-            Image(
-                painter = painterResource(id = if (currentRoute == Screen.MainScreen.route) R.drawable.chapters_open else R.drawable.chapters_closed),
-                contentDescription = "",
-                colorFilter = if (currentRoute == Screen.MainScreen.route) ColorFilter.tint(Color.Black) else ColorFilter.tint(
-                    Color(0xFF9E9E9E)
-                )
+            }
+            .padding(6.dp, 2.dp)
+    ) {
+        Image(
+            painter = painterResource(id = if (isCurrent) iconId else if (alternateIcon != null) alternateIcon else iconId),
+            contentDescription = "",
+            colorFilter = if (isCurrent) ColorFilter.tint(
+                Color.Black
+            ) else ColorFilter.tint(Color(0xFF9E9E9E))
+        )
+        Text(
+            text = optionText,
+            style = MaterialTheme.typography.bodySmall,
+            color = if (isCurrent) Color.Black else Color(
+                0xFF9E9E9E
             )
-            Text(
-                text = "المصحف",
-                style = MaterialTheme.typography.bodySmall,
-                color = if (currentRoute == Screen.MainScreen.route) Color.Black else Color(
-                    0xFF9E9E9E
-                )
-            )
-        }
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.clickable {
-                if (currentRoute != Screen.ChaptersScreen.route) {
-                    navController.navigate(Screen.ChaptersScreen.route)
-                }
-            }.padding(2.dp)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.chapters_listen),
-                contentDescription = "",
-                colorFilter = if (currentRoute == Screen.ChaptersScreen.route) ColorFilter.tint(
-                    Color.Black
-                ) else ColorFilter.tint(
-                    Color(0xFF9E9E9E)
-                )
-            )
-            Text(
-                text = "الاستماع",
-                style = MaterialTheme.typography.bodySmall,
-                color = if (currentRoute == Screen.ChaptersScreen.route) Color.Black else Color(
-                    0xFF9E9E9E
-                )
-            )
-        }
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.clickable {
-                if (currentRoute != Screen.AzkarScreen.route) {
-                    navController.navigate(Screen.AzkarScreen.route)
-                }
-            }.padding(2.dp)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.azkar),
-                contentDescription = "",
-                colorFilter = if (currentRoute == Screen.AzkarScreen.route) ColorFilter.tint(Color.Black) else ColorFilter.tint(
-                    Color(0xFF9E9E9E)
-                )
-            )
-            Text(
-                text = "الاذكار",
-                style = MaterialTheme.typography.bodySmall,
-                color = if (currentRoute == Screen.AzkarScreen.route) Color.Black else Color(
-                    0xFF9E9E9E
-                )
-            )
-        }
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.clickable {
-                if (currentRoute != Screen.BookmarksScreen.route) {
-                    navController.navigate(Screen.BookmarksScreen.route)
-                }
-            }.padding(2.dp)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.bookmarks),
-                contentDescription = "",
-                colorFilter = if (currentRoute == Screen.BookmarksScreen.route) ColorFilter.tint(
-                    Color.Black
-                ) else ColorFilter.tint(Color(0xFF9E9E9E))
-            )
-            Text(
-                text = "المرجعيات",
-                style = MaterialTheme.typography.bodySmall,
-                color = if (currentRoute == Screen.BookmarksScreen.route) Color.Black else Color(
-                    0xFF9E9E9E
-                )
-            )
-        }
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.clickable {
-                if (currentRoute != Screen.SettingsScreen.route) {
-                    navController.navigate(Screen.SettingsScreen.route)
-                }
-            }.padding(2.dp)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.settings),
-                contentDescription = "",
-                colorFilter = if (currentRoute == Screen.SettingsScreen.route) ColorFilter.tint(
-                    Color.Black
-                ) else ColorFilter.tint(Color(0xFF9E9E9E))
-            )
-            Text(
-                text = "الاعدادات",
-                style = MaterialTheme.typography.bodySmall,
-                color = if (currentRoute == Screen.SettingsScreen.route) Color.Black else Color(
-                    0xFF9E9E9E
-                )
-            )
-        }
+        )
     }
 }

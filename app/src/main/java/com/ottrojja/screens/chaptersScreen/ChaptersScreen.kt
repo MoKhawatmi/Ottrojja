@@ -220,7 +220,7 @@ fun ChaptersScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "x${chaptersViewModel.playbackSpeed}",
+                                    text = "${chaptersViewModel.playbackSpeed}x",
                                     color = MaterialTheme.colorScheme.primary,
                                     style = MaterialTheme.typography.bodyMedium,
                                     textAlign = TextAlign.Left,

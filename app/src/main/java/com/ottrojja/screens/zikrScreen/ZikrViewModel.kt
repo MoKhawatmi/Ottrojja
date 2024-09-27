@@ -11,12 +11,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.AudioServiceInterface
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.MediaPlayerService
+import com.ottrojja.classes.QuranRepository
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.azkarScreen.AzkarStore
+import com.ottrojja.screens.quranScreen.QuranViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -25,20 +28,22 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ZikrViewModel(application: Application) : AndroidViewModel(application) {
+class ZikrViewModel(private val repository: QuranRepository, application: Application) :
+    AndroidViewModel(application) {
     val context = application.applicationContext;
 
 
     private var _zikr = mutableStateOf(Azkar("", "", "", "", ""))
     var zikr: Azkar
-        get() = this._zikr.value
+        get() = _zikr.value
         set(value) {
-            this._zikr.value = value
+            _zikr.value = value
         }
 
     fun setZikr(zikrTitle: String) {
-        this._zikr.value =
-            AzkarStore.getAzkarData().find { azkar -> azkar.azkarTitle == zikrTitle }!!
+        viewModelScope.launch(Dispatchers.IO) {
+            _zikr.value = repository.getAzkarByTitle(zikrTitle)
+        }
     }
 
     private var _selectedTab = mutableStateOf("الذكر")
@@ -239,5 +244,16 @@ class ZikrViewModel(application: Application) : AndroidViewModel(application) {
             bindToService()
         }
     }
+}
 
+class ZikrViewModelFactory(
+    private val repository: QuranRepository,
+    private val application: Application
+) : ViewModelProvider.AndroidViewModelFactory(application) {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ZikrViewModel::class.java)) {
+            return ZikrViewModel(repository, application) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
 }

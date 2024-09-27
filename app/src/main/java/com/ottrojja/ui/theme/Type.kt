@@ -16,10 +16,14 @@ val uthmanic = FontFamily(
 
 val qalam = FontFamily(Font(R.font.qalam, FontWeight.Normal, FontStyle.Normal))
 
+val timeNormal = FontFamily(
+    Font(R.font.timenormal, FontWeight.Normal, FontStyle.Normal)
+)
+
 // Set of Material typography styles to start with
 val Typography = Typography(
     bodyLarge = TextStyle(
-      //  fontFamily = qalam,
+        //  fontFamily = qalam,
         fontWeight = FontWeight.Normal,
         fontSize = 26.sp,
         lineHeight = 24.sp,
@@ -27,7 +31,7 @@ val Typography = Typography(
         textDirection = TextDirection.Rtl
     ),
     bodyMedium = TextStyle(
-      //  fontFamily = qalam,
+        //  fontFamily = qalam,
         fontWeight = FontWeight.Normal,
         fontSize = 18.sp,
         lineHeight = 24.sp,
@@ -36,7 +40,7 @@ val Typography = Typography(
 
     ),
     bodySmall = TextStyle(
-      //  fontFamily = qalam,
+        //  fontFamily = qalam,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
@@ -52,7 +56,7 @@ val Typography = Typography(
         textDirection = TextDirection.Rtl
     ),
     displayMedium = TextStyle(
-       // fontFamily = qalam,
+        // fontFamily = qalam,
         fontWeight = FontWeight.Normal,
         fontSize = 18.sp,
         lineHeight = 24.sp,

@@ -14,18 +14,13 @@ import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.storage
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.classes.QuranStore
 import com.ottrojja.screens.azkarScreen.AzkarStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
-import java.io.IOException
-import java.nio.charset.Charset
 
 class LoadingScreenViewModel(private val repository: QuranRepository, application: Application) :
     AndroidViewModel(application) {
@@ -49,9 +44,6 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
 
     init {
         FirebaseApp.initializeApp(context)
-
-        jsonParser.parseJsonArrayFileAzkar("azkar.json")?.let { AzkarStore.setAzkarData(it) }
-
 
         /* val quranFile = File(context.filesDir, "quran.json")
 
@@ -193,6 +185,15 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 }
             }
 
+            if (repository.getAzkarCount() == 0) {
+                jsonParser.parseJsonArrayFileAzkar("azkar.json")?.let {
+                    try {
+                        repository.insertAllAzkar(it)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
 
             if (repository.getTafseersCount() != 6236 * 7) {
                 //insert the available tafseer files to db

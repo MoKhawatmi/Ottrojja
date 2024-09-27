@@ -7,6 +7,7 @@ import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.quranScreen.TafseerData
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.ottrojja.classes.Tasabeeh
 import java.io.File
 import java.io.IOException
 import java.lang.reflect.Type
@@ -122,4 +123,16 @@ class JsonParser(private val context: Context) {
         }
         return json
     }
+
+    fun parseJsonArrayFileTasabeeh(fileName: String): List<Tasabeeh>? {
+        val json: String? = loadJsonFromAsset(fileName)
+
+        return if (json != null) {
+            val listType = object : TypeToken<List<Tasabeeh>>() {}.type
+            Gson().fromJson(json, listType)
+        } else {
+            null
+        }
+    }
+
 }

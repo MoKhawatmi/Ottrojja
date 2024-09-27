@@ -6,10 +6,4 @@ object AzkarStore {
     fun getAzkarData():List<Azkar> {
         return azkarData;
     }
-
-    fun setAzkarData(data: List<Azkar>) {
-        azkarData = data;
-    }
-
-
 }

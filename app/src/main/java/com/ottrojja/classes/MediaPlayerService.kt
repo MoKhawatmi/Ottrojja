@@ -8,6 +8,7 @@ import android.media.PlaybackParams
 import android.os.Binder
 import android.os.IBinder
 import android.widget.RemoteViews
+import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -349,10 +350,10 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
         val notificationLayout = buildNotificationLayout()
 
-        val pendingIntent: PendingIntent =
+        /*val pendingIntent: PendingIntent =
             Intent(this, MainActivity::class.java).let { notificationIntent ->
                 PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
-            }
+            }*/
 
 
         val notification = NotificationCompat.Builder(this, "PLAYER_CHANNEL")

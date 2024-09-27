@@ -21,8 +21,10 @@ import com.ottrojja.screens.azkarScreen.AzkarScreen
 import com.ottrojja.screens.chaptersScreen.ChaptersScreen
 import com.ottrojja.screens.loadingScreen.LoadingScreen
 import com.ottrojja.screens.mainScreen.MainScreen
+import com.ottrojja.screens.prayerScreen.PrayerScreen
 import com.ottrojja.screens.quranScreen.QuranScreen
 import com.ottrojja.screens.settingsScreen.SettingsScreen
+import com.ottrojja.screens.tasbeehScreen.TasbeehScreen
 import com.ottrojja.screens.zikrScreen.ZikrScreen
 
 @Composable
@@ -53,7 +55,7 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
 
         composable(route = Screen.AzkarScreen.route) {
             Box() {
-                AzkarScreen(navController, modifier = Modifier.align(Alignment.TopCenter))
+                AzkarScreen(navController, modifier = Modifier.align(Alignment.TopCenter), repository)
                 BottomNavigation(
                     navController,
                     Screen.AzkarScreen.route,
@@ -81,6 +83,26 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
                 )
             }
         }
+        composable(route = Screen.TasbeehScreen.route) {
+            Box() {
+                TasbeehScreen(modifier = Modifier.align(Alignment.TopCenter))
+                BottomNavigation(
+                    navController,
+                    Screen.TasbeehScreen.route,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
+            }
+        }
+        composable(route = Screen.PrayerScreen.route) {
+            Box() {
+                PrayerScreen(modifier = Modifier.align(Alignment.TopCenter))
+                BottomNavigation(
+                    navController,
+                    Screen.PrayerScreen.route,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
+            }
+        }
         composable(route = Screen.SettingsScreen.route) {
             Box() {
                 SettingsScreen(modifier = Modifier.align(Alignment.TopCenter))
@@ -101,7 +123,7 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
             type = NavType.StringType
         })) {
             val zikrTitle = requireNotNull(it.arguments).getString("zikerTitle")
-            ZikrScreen(zikrTitle!!, navController)
+            ZikrScreen(zikrTitle!!, navController, repository)
         }
     }
 }
