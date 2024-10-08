@@ -63,6 +63,14 @@ fun BottomNavigation(
             alternateIcon = null
         )
 
+        /*BottomNavigationOption(
+            optionText = "المعلم",
+            isCurrent = Screen.TeacherScreen.route == currentRoute,
+            onClick = { navController.navigate(Screen.TeacherScreen.route) },
+            iconId = R.drawable.teacher,
+            alternateIcon = null
+        )*/
+
         BottomNavigationOption(
             optionText = "المسبحة",
             isCurrent = Screen.TasbeehScreen.route == currentRoute,

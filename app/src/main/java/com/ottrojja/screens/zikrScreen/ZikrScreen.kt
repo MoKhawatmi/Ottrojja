@@ -40,6 +40,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,14 +71,12 @@ fun ZikrScreen(
     val application = context.applicationContext as Application
 
     val zikrViewModel: ZikrViewModel = viewModel(
-        factory = ZikrViewModelFactory(repository, application)
+        factory = ZikrViewModelFactory(repository, application, zikrTitle)
     )
 
-    val primaryColor = MaterialTheme.colorScheme.primary
+    val zikr= zikrViewModel._zikr.collectAsState()
 
-    LaunchedEffect(Unit) {
-        zikrViewModel.setZikr(zikrTitle)
-    }
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     Column() {
         Row(
@@ -92,7 +91,7 @@ fun ZikrScreen(
                 onClick = {
                     copyToClipboard(
                         context,
-                        zikrViewModel.zikr.azkarText,
+                        zikr.value.azkarText,
                         "تم تسخ الذكر بنجاح"
                     );
                     /*val sendIntent: Intent = Intent().apply {
@@ -130,7 +129,7 @@ fun ZikrScreen(
             }
 
             Text(
-                text = zikrViewModel.zikr.azkarTitle,
+                text = zikr.value.azkarTitle,
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center
@@ -188,7 +187,7 @@ fun ZikrScreen(
         }
         when (zikrViewModel.selectedTab) {
             "الذكر" -> ZikrSection(
-                zikr = zikrViewModel.zikr,
+                zikr = zikr.value,
                 zikrViewModel.showController,
                 zikrViewModel.isPlaying,
                 zikrViewModel.isZikrPlaying,
@@ -210,7 +209,7 @@ fun ZikrScreen(
                 { value -> zikrViewModel.sliderChanged(value) },
                 zikrViewModel.playbackSpeed
             );
-            "الفيديو" -> YouTube(link = zikrViewModel.zikr.ytLink.split("v=").last())
+            "الفيديو" -> YouTube(link = zikr.value.ytLink.split("v=").last())
         }
     }
 }
@@ -257,11 +256,12 @@ fun ZikrSection(
                 .background(MaterialTheme.colorScheme.primary)
                 .padding(8.dp, 20.dp, 8.dp, 8.dp)
         ) {
-            Row {
+            Row(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = zikr.azkarText,
                     style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.onPrimary
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.padding(2.dp, 8.dp)
                 )
             }
         }

@@ -1,6 +1,6 @@
 package com.ottrojja.screens.mainScreen
 
-import android.app.Application
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -35,7 +34,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.classes.Screen
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.onFocusChanged
@@ -56,22 +53,16 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
-import com.ottrojja.classes.PageContent
-import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
 import com.ottrojja.composables.Header
-import com.ottrojja.screens.quranScreen.QuranScreenViewModelFactory
-import com.ottrojja.screens.quranScreen.QuranViewModel
 
 @Composable
 fun MainScreen(
@@ -79,7 +70,7 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     repository: QuranRepository
 ) {
-
+    val context = LocalContext.current;
     val mainViewModel: MainViewModel = viewModel(
         factory = MainViewModelFactory(repository)
     )
@@ -91,11 +82,22 @@ fun MainScreen(
     DisposableEffect(Unit) {
         onDispose {
             mainViewModel.showImageList = true;
+            mainViewModel.searchFilter = "";
+            mainViewModel.quranSearchResults.clear()
         }
     }
 
-    BackHandler(enabled = !mainViewModel.showImageList) {
-        mainViewModel.showImageList = true;
+    BackHandler() {
+        if (!mainViewModel.showImageList) {
+            mainViewModel.showImageList = true;
+        } else {
+            val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_HOME)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            context.startActivity(homeIntent)
+
+        }
     }
 
     if (mainViewModel.showImageList) {
@@ -211,6 +213,42 @@ fun MainScreen(
                             .clip(CircleShape)
                     )
                 }
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(12.dp, 24.dp)
+                        .clip(RoundedCornerShape(10))
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color(0xFFD0B968),
+                                    Color(0xFFA86809)
+                                )
+                            )
+                        )
+                        .fillMaxWidth()
+                        .clickable {
+                            mainViewModel.selectedSection = 3; mainViewModel.showImageList = false;
+                        }
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = "البحث",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White
+                    );
+                    Image(
+                        painter = painterResource(id = R.drawable.q_image4),
+                        contentDescription = "",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(112.dp)
+                            .clip(CircleShape)
+                    )
+                }
+
+                Row(modifier = Modifier.height(50.dp)) {}
             }
         }
     } else {
@@ -302,7 +340,6 @@ fun MainScreen(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun BrowseMenu(
     items: List<String> = listOf<String>(),
@@ -341,7 +378,6 @@ fun BrowseMenu(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PartsMenu(
     items: List<PartData> = listOf<PartData>(),
@@ -380,7 +416,6 @@ fun PartsMenu(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChaptersMenu(
     items: List<ChapterData> = listOf<ChapterData>(),
@@ -452,7 +487,6 @@ fun ChaptersMenu(
 }
 
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SearchMenu(
     items: List<SearchResult> = listOf<SearchResult>(),

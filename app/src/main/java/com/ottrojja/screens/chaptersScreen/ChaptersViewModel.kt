@@ -17,15 +17,18 @@ import com.ottrojja.classes.AudioServiceInterface
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.MediaPlayerService
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ChaptersViewModel(private val repository: QuranRepository, application: Application) :
     AndroidViewModel(application) {
     val context = application.applicationContext;
-    lateinit var chaptersList: List<ChapterData>;
+
+    val _chaptersList = MutableStateFlow<List<ChapterData>>(listOf<ChapterData>())
 
     private var _selectedSurah = mutableStateOf(ChapterData("", "", 0, "", 0))
     var selectedSurah: ChapterData
@@ -165,7 +168,7 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
                 viewModelScope.launch {
                     audioService?.getSelectedChapterId()!!.collect { state ->
                         val tempChapter =
-                            chaptersList.find { chapter -> "${chapter.surahId}" == state }
+                            _chaptersList.value.find { chapter -> "${chapter.surahId}" == state }
                         if (tempChapter != null) {
                             _selectedSurah.value = tempChapter;
                         }
@@ -240,7 +243,7 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            chaptersList = repository.getAllChapters();
+            _chaptersList.value = repository.getAllChapters();
         }
 
         val sr = isMyServiceRunning(MediaPlayerService::class.java, context);
@@ -249,6 +252,7 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
             bindToService()
         }
     }
+
 
 }
 

@@ -20,6 +20,7 @@ import com.ottrojja.classes.QuranRepository
 import com.ottrojja.screens.azkarScreen.AzkarStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.File
 
 class LoadingScreenViewModel(private val repository: QuranRepository, application: Application) :
@@ -32,6 +33,10 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     val sharedPreferences: SharedPreferences =
         application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
     val quranFileCreateTime = sharedPreferences.getLong("quranFileCreateTime", 0L)
+    val azkarJsonVersion = sharedPreferences.getInt("azkarJsonVersion", 0)
+    val chaptersJsonVersion = sharedPreferences.getInt("chaptersJsonVersion", 0)
+    val partsJsonVersion = sharedPreferences.getInt("partsJsonVersion", 0)
+    val e3rabJsonVersion = sharedPreferences.getInt("e3rabJsonVersion", 0)
 
 
     private var _loaded = mutableStateOf(false)
@@ -152,8 +157,12 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 */
 
         viewModelScope.launch(Dispatchers.IO) {
+            var versions = hashMapOf<String, Int>()
+            runBlocking {
+                versions = jsonParser.getFilesVersions()
+            }
 
-            if (repository.getChaptersCount() != 114) {
+            if (repository.getChaptersCount() != 114 || versions.get("chapters")!! > chaptersJsonVersion) {
                 jsonParser.parseJsonArrayFileChapters("chaptersList.json")
                     ?.let {
                         try {
@@ -162,9 +171,10 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                             e.printStackTrace()
                         }
                     }
+                sharedPreferences.edit().putInt("chaptersJsonVersion", versions.get("chapters")!!).apply()
             }
 
-            if (repository.getPartsCount() != 30) {
+            if (repository.getPartsCount() != 30 || versions.get("parts")!! > partsJsonVersion) {
                 jsonParser.parseJsonArrayFileParts("partsList.json")
                     ?.let {
                         try {
@@ -173,9 +183,10 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                             e.printStackTrace()
                         }
                     }
+                sharedPreferences.edit().putInt("partsJsonVersion", versions.get("parts")!!).apply()
             }
 
-            if (repository.getE3rabsCount() != 6236) {
+            if (repository.getE3rabsCount() != 6236 || versions.get("e3rab")!! > e3rabJsonVersion) {
                 jsonParser.parseJsonArrayFileE3rab("e3rab.json")?.let {
                     try {
                         repository.insertAllE3rabData(it)
@@ -183,9 +194,10 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                         e.printStackTrace()
                     }
                 }
+                sharedPreferences.edit().putInt("e3rabJsonVersion", versions.get("e3rab")!!).apply()
             }
 
-            if (repository.getAzkarCount() == 0) {
+            if (repository.getAzkarCount() == 0 || versions.get("azkar")!! > azkarJsonVersion) {
                 jsonParser.parseJsonArrayFileAzkar("azkar.json")?.let {
                     try {
                         repository.insertAllAzkar(it)
@@ -193,6 +205,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                         e.printStackTrace()
                     }
                 }
+                sharedPreferences.edit().putInt("azkarJsonVersion", versions.get("azkar")!!).apply()
             }
 
             if (repository.getTafseersCount() != 6236 * 7) {

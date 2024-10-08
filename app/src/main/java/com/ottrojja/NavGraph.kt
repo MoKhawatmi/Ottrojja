@@ -17,6 +17,7 @@ import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.BottomNavigation
 import com.ottrojja.screens.BookmarksScreen.BookmarksScreen
+import com.ottrojja.screens.TeacherScreen.TeacherScreen
 import com.ottrojja.screens.azkarScreen.AzkarScreen
 import com.ottrojja.screens.chaptersScreen.ChaptersScreen
 import com.ottrojja.screens.loadingScreen.LoadingScreen
@@ -63,12 +64,13 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
                 )
             }
         }
-        composable(route = Screen.BookmarksScreen.route) {
+
+        composable(route = Screen.TeacherScreen.route) {
             Box() {
-                BookmarksScreen(navController, modifier = Modifier.align(Alignment.TopCenter))
+                TeacherScreen(modifier = Modifier.align(Alignment.TopCenter), repository)
                 BottomNavigation(
                     navController,
-                    Screen.BookmarksScreen.route,
+                    Screen.TeacherScreen.route,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
@@ -103,6 +105,18 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
                 )
             }
         }
+
+        composable(route = Screen.BookmarksScreen.route) {
+            Box() {
+                BookmarksScreen(navController, modifier = Modifier.align(Alignment.TopCenter))
+                BottomNavigation(
+                    navController,
+                    Screen.BookmarksScreen.route,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
+            }
+        }
+
         composable(route = Screen.SettingsScreen.route) {
             Box() {
                 SettingsScreen(modifier = Modifier.align(Alignment.TopCenter))

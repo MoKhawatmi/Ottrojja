@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -27,6 +28,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.RadioButtonChecked
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
@@ -138,7 +143,7 @@ fun CounterContent(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(0.dp, 32.dp, 0.dp, 32.dp)
+            .padding(0.dp, 18.dp, 0.dp, 24.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.Center,
@@ -166,6 +171,29 @@ fun CounterContent(
     }
 
     Row(
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(0.dp, 0.dp, 10.dp, 0.dp)
+            .fillMaxWidth()
+    ) {
+        Button(
+            onClick = { confirmTasbeehReset() },
+            modifier = Modifier
+                .size(50.dp),
+            shape = CircleShape,
+            contentPadding = PaddingValues(8.dp)
+        ) {
+            Icon(
+                Icons.Default.Replay,
+                contentDescription = "Reset",
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+
+    Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
@@ -176,30 +204,18 @@ fun CounterContent(
             contentPadding = PaddingValues(0.dp),
             shape = CircleShape,
             modifier = Modifier
-                .padding(0.dp, 24.dp)
+                .padding(0.dp, 2.dp, 0.dp, 12.dp)
                 .fillMaxWidth(0.9F)
-                .fillMaxHeight(0.6F)
+                .fillMaxHeight(0.7F)
                 .padding(24.dp, 24.dp)
                 .clip(CircleShape)
         ) {
             Icon(
-                Icons.Default.Add,
+                Icons.Default.TouchApp,
                 contentDescription = "Counter",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(128.dp)
             )
-        }
-    }
-
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(0.dp, 32.dp, 0.dp, 0.dp)
-            .fillMaxWidth()
-    ) {
-        Button(onClick = { confirmTasbeehReset() }) {
-            Text(text = "إعادة البدء", style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

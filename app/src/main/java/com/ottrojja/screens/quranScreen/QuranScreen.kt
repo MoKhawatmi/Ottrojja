@@ -13,6 +13,7 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.expandVertically
@@ -130,12 +131,24 @@ fun QuranScreen(
         factory = QuranScreenViewModelFactory(repository, application)
     )
 
+    fun handleBackBehaviour(){
+        if (quranViewModel.selectedTab != "page") {
+            quranViewModel.selectedTab = "page"
+        } else {
+            navController.popBackStack()
+        }
+    }
+
     LaunchedEffect(Unit) {
         try {
             quranViewModel.setCurrentPage(pageNum)
         } catch (e: Exception) {
             Log.e("error", "Error getting current page in quran screen: $e")
         }
+    }
+
+    BackHandler {
+        handleBackBehaviour()
     }
 
     val isPlaying by quranViewModel.isPlaying.collectAsState(initial = false)
@@ -260,7 +273,7 @@ fun QuranScreen(
             }
 
             ElevatedButton(
-                onClick = { navController.popBackStack() },
+                onClick = { handleBackBehaviour() },
                 elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
                 contentPadding = PaddingValues(0.dp),
                 shape = CircleShape,
@@ -412,7 +425,6 @@ fun QuranScreen(
         }, quranViewModel.tafseerNamesMap
         )
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -24,23 +24,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ZikrViewModel(private val repository: QuranRepository, application: Application) :
+class ZikrViewModel(
+    private val repository: QuranRepository,
+    application: Application,
+    zikrTitle: String
+) :
     AndroidViewModel(application) {
     val context = application.applicationContext;
 
 
-    private var _zikr = mutableStateOf(Azkar("", "", "", "", ""))
-    var zikr: Azkar
-        get() = _zikr.value
-        set(value) {
-            _zikr.value = value
-        }
-
-    fun setZikr(zikrTitle: String) {
+    var _zikr = MutableStateFlow<Azkar>(Azkar("", "", "", "", ""))
+    init {
         viewModelScope.launch(Dispatchers.IO) {
             _zikr.value = repository.getAzkarByTitle(zikrTitle)
         }
@@ -149,17 +148,16 @@ class ZikrViewModel(private val repository: QuranRepository, application: Applic
                 println("in binder get service")
                 println(audioService)
 
-                // Collect StateFlow updates
                 viewModelScope.launch {
                     audioService?.getPlayingState(_zikr.value.firebaseAddress)?.collect { state ->
-                        // Handle state updates here
+                        println("is same zikr playing: $state")
                         _isPlaying.value = state;
                     }
                 }
 
                 viewModelScope.launch {
                     audioService?.getIsZikrPlaying()?.collect { state ->
-                        // Handle state updates here
+                        println("is zikr playing: $state")
                         _isZikrPlaying.value = state;
                     }
                 }
@@ -248,11 +246,12 @@ class ZikrViewModel(private val repository: QuranRepository, application: Applic
 
 class ZikrViewModelFactory(
     private val repository: QuranRepository,
-    private val application: Application
+    private val application: Application,
+    private val zikrTitle:String,
 ) : ViewModelProvider.AndroidViewModelFactory(application) {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ZikrViewModel::class.java)) {
-            return ZikrViewModel(repository, application) as T
+            return ZikrViewModel(repository, application, zikrTitle) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

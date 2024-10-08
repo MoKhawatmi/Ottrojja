@@ -21,6 +21,20 @@
         "image":"salah"
     },
     {
+        "azkarTitle":"الصلاة على النبي",
+        "ytLink":"https://www.youtube.com/watch?v=re972XJuKz8",
+        "firebaseAddress":"https://ottrojja.fra1.cdn.digitaloceanspaces.com/azkar/peace_be_upon_prophet.mp3",
+        "azkarText":"اللهم صل وسلم على نبينا محمد وآله.",
+        "image":""
+    },
+    {
+        "azkarTitle":"الذكر المضاعف",
+        "ytLink":"https://www.youtube.com/watch?v=L63qJMwLdTY",
+        "firebaseAddress":"https://ottrojja.fra1.cdn.digitaloceanspaces.com/azkar/multiplied_zikr.mp3",
+        "azkarText":"عن أبي أمامة ـ رضي الله عنه ـ قال رآني النبي صلى الله عليه وسلم وأنا أحرك شفتي فقال لي: بأي شيء تحرك شفتيك يا أبا أمامة؟ فقلت: أذكر الله يا رسول الله، فقال: ألا أخبرك بأكثر وأفضل من ذكرك بالليل والنهار؟ قلت: بلى يا رسول الله، قال: تقول: سبحان الله عدد ما خلق، سبحان الله ملء ما خلق، سبحان الله عدد ما في الأرض والسماء، سبحان الله ملء ما في الأرض والسماء، سبحان الله عدد ما أحصى كتابه، سبحان الله ملء ما أحصى كتابه، سبحان الله عدد كل شيء، سبحان الله ملء كل شيء، الحمد لله عدد ما خلق، والحمد لله ملء ما خلق، والحمد لله عدد ما في الأرض والسماء، والحمد لله ملء ما في الأرض والسماء، والحمد لله عدد ما أحصى كتابه، والحمد لله ملء ما أحصى كتابه، والحمد لله عدد كل شيء، والحمد لله ملء كل شيء.",
+        "image":""
+    },
+    {
         "azkarTitle":"تكبيرات العيد",
         "ytLink":"https://www.youtube.com/watch?v=GCtuUM46ZJE",
         "firebaseAddress":"https://ottrojja.fra1.cdn.digitaloceanspaces.com/azkar/takbeer.mp3",

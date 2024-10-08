@@ -82,8 +82,8 @@ fun AzkarScreen(
                         )
                         Image(
                             painter = painterResource(
-                                id = context.getResources()
-                                    .getIdentifier(item.image, "drawable", context.getPackageName())
+                                id = if(item.image.length>0) context.getResources()
+                                    .getIdentifier(item.image, "drawable", context.getPackageName()) else R.drawable.azkar_filler
                             ),
                             contentDescription = "",
                             contentScale = ContentScale.Crop,

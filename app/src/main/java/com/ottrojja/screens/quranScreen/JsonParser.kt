@@ -6,8 +6,10 @@ import com.ottrojja.classes.QuranPage
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.quranScreen.TafseerData
 import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.google.gson.reflect.TypeToken
 import com.ottrojja.classes.Tasabeeh
+import org.json.JSONObject
 import java.io.File
 import java.io.IOException
 import java.lang.reflect.Type
@@ -107,6 +109,17 @@ class JsonParser(private val context: Context) {
         }
     }
 
+    fun getFilesVersions(): HashMap<String, Int> {
+        val json: String? = loadJsonFromAsset("files_versions.json")
+        val jsonObject = JSONObject(json)
+
+        return hashMapOf<String, Int>(
+            "azkar" to jsonObject.getInt("azkar"),
+            "chapters" to jsonObject.getInt("chapters"),
+            "parts" to jsonObject.getInt("parts"),
+            "e3rab" to jsonObject.getInt("e3rab")
+        )
+    }
 
 
     private fun loadJsonFromAsset(fileName: String): String? {

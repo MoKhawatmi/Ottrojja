@@ -78,6 +78,7 @@ interface QuranDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertAllAzkar(azkar: List<Azkar>)
 
+
     @Query("SELECT * FROM Azkar")
     fun getAllAzkar(): List<Azkar>
 

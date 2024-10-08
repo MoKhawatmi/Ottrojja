@@ -33,6 +33,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,10 +69,7 @@ fun ChaptersScreen(
         factory = ChaptersViewModelFactory(repository, application)
     )
 
-
-    LaunchedEffect(Unit) {
-        //chaptersViewModel.startAndBind()
-    }
+    val chaptersList=chaptersViewModel._chaptersList.collectAsState()
 
     Column {
         Header()
@@ -82,7 +80,7 @@ fun ChaptersScreen(
                     .background(MaterialTheme.colorScheme.background)
                     .align(Alignment.TopCenter)
             ) {
-                items(chaptersViewModel.chaptersList) { item ->
+                items(chaptersList.value) { item ->
                     Column(modifier = Modifier
                         .padding(12.dp, 2.dp)
                         .fillMaxWidth()

@@ -5,6 +5,7 @@ sealed class Screen(val route: String) {
     object LoadingScreen : Screen(route = "loading_screen")
     object BookmarksScreen : Screen(route = "bookmarks_screen")
     object AzkarScreen : Screen(route = "azkar_screen")
+    object TeacherScreen : Screen(route = "teacher_screen")
     object ChaptersScreen : Screen(route = "chapters_screen")
     object TasbeehScreen : Screen(route = "tasbeeh_screen")
     object PrayerScreen : Screen(route = "prayer_screen")
