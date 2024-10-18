@@ -248,7 +248,7 @@ fun MainScreen(
                     )
                 }
 
-                Row(modifier = Modifier.height(50.dp)) {}
+                Row(modifier = Modifier.height(75.dp)) {}
             }
         }
     } else {
@@ -271,12 +271,9 @@ fun MainScreen(
                 PillShapedTextFieldWithIcon(
                     value = mainViewModel.searchFilter,
                     onValueChange = { newText ->
-                        if (mainViewModel.selectedSection != 3) {
-                            mainViewModel.searchFilter = newText
-                        } else {
-                            mainViewModel.searchFilter = newText; mainViewModel.searchInQuran(
-                                newText
-                            )
+                        mainViewModel.searchFilter = newText
+                        if (mainViewModel.selectedSection == 3) {
+                            mainViewModel.searchInQuran(newText)
                         }
                     },
                     leadingIcon = painterResource(id = R.drawable.search),
@@ -310,8 +307,11 @@ fun MainScreen(
                                     }
                                 }
                                 .clickable {
-                                    mainViewModel.selectedSection =
-                                        index; mainViewModel.searchFilter = ""
+                                    if (mainViewModel.selectedSection == 3) {
+                                        mainViewModel.quranSearchResults.clear()
+                                    }
+                                    mainViewModel.selectedSection = index;
+                                    mainViewModel.searchFilter = "";
                                 }
                                 .defaultMinSize(minWidth = 100.dp)
                                 .padding(0.dp, 6.dp, 0.dp, 6.dp)
@@ -533,7 +533,7 @@ fun SearchMenu(
                 .background(MaterialTheme.colorScheme.background)
                 .clickable {
                     keyboardController!!.hide();
-                    navController.navigate(Screen.QuranScreen.invokeRoute("${item.pageNum}"))
+                    navController.navigate(Screen.QuranScreen.invokeRoute(item.pageNum))
                 }
             ) {
                 Row(
@@ -544,7 +544,7 @@ fun SearchMenu(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${Helpers.convertToIndianNumbers(item.verseNum)} ${item.verseText}",
+                        text = "{${item.verseText} ${Helpers.convertToIndianNumbers(item.verseNum)}} - ${item.surahName}",
                         color = Color.Black,
                         style = MaterialTheme.typography.titleLarge
                     )

@@ -63,13 +63,13 @@ fun BottomNavigation(
             alternateIcon = null
         )
 
-        /*BottomNavigationOption(
+        BottomNavigationOption(
             optionText = "المعلم",
             isCurrent = Screen.TeacherScreen.route == currentRoute,
             onClick = { navController.navigate(Screen.TeacherScreen.route) },
             iconId = R.drawable.teacher,
             alternateIcon = null
-        )*/
+        )
 
         BottomNavigationOption(
             optionText = "المسبحة",

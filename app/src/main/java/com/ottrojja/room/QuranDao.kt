@@ -30,7 +30,7 @@ interface QuranDao {
     @Query("SELECT count(*) FROM QuranPage")
     fun getPagesCount(): Int
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertChapters(chapters: List<ChapterData>)
 
     @Query("SELECT * FROM ChapterData")
@@ -42,7 +42,7 @@ interface QuranDao {
     @Query("SELECT count(*) FROM ChapterData")
     fun getChaptersCount(): Int
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertParts(parts: List<PartData>)
 
     @Query("SELECT * FROM PartData")
@@ -51,7 +51,7 @@ interface QuranDao {
     @Query("SELECT count(*) FROM PartData")
     fun getPartsCount(): Int
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertE3rabData(e3rabData: List<E3rabData>)
 
     @Query("SELECT * FROM E3rabData")
@@ -63,7 +63,7 @@ interface QuranDao {
     @Query("SELECT count(*) FROM E3rabData")
     fun getE3rabsCount(): Int
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertTafseerData(chapters: List<TafseerData>)
 
     @Query("SELECT * FROM TafseerData")
@@ -75,7 +75,7 @@ interface QuranDao {
     @Query("SELECT count(*) FROM TafseerData")
     fun getTafseersCount(): Int
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAllAzkar(azkar: List<Azkar>)
 
 

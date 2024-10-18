@@ -1,9 +1,6 @@
 package com.ottrojja
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,7 +14,7 @@ import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.BottomNavigation
 import com.ottrojja.screens.BookmarksScreen.BookmarksScreen
-import com.ottrojja.screens.TeacherScreen.TeacherScreen
+import com.ottrojja.screens.teacherScreen.TeacherScreen
 import com.ottrojja.screens.azkarScreen.AzkarScreen
 import com.ottrojja.screens.chaptersScreen.ChaptersScreen
 import com.ottrojja.screens.loadingScreen.LoadingScreen

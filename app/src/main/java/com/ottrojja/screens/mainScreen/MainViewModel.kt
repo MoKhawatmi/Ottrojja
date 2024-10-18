@@ -73,7 +73,8 @@ class MainViewModel(private val repository: QuranRepository) : ViewModel() {
                                 page.pageNum,
                                 verse.surahNum,
                                 verse.verseNum,
-                                verse.verseText
+                                verse.verseText,
+                                chaptersList.find { "${it.surahId}" == verse.surahNum }!!.chapterName
                             )
                         );
                     }

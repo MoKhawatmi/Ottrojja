@@ -6,6 +6,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.sp
 import com.ottrojja.R
@@ -54,6 +55,15 @@ val Typography = Typography(
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp,
         textDirection = TextDirection.Rtl
+    ),
+    labelLarge = TextStyle(
+        fontFamily = uthmanic,
+        fontWeight = FontWeight.Normal,
+        fontSize = 28.sp,
+        lineHeight = 32.sp,
+        letterSpacing = 0.5.sp,
+        textDirection = TextDirection.Rtl,
+        textAlign = TextAlign.Center
     ),
     displayMedium = TextStyle(
         // fontFamily = qalam,
