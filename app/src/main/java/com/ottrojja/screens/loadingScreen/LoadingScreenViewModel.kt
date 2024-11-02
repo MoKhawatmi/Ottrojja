@@ -17,10 +17,10 @@ import com.google.firebase.storage.storage
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.screens.azkarScreen.AzkarStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class LoadingScreenViewModel(private val repository: QuranRepository, application: Application) :
@@ -50,116 +50,23 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     init {
         FirebaseApp.initializeApp(context)
 
-        /* val quranFile = File(context.filesDir, "quran.json")
-
-         if (!Helpers.checkNetworkConnectivity(context)) {
-             if (quranFile.exists()) {
-                 try {
-                     jsonParser.parseJsonArrayFileFromFilesDir(context, "quran.json")
-                         ?.let {
-                             if (it.size != 0) QuranStore.setQuranData(it) else throw Exception(
-                                 "Faulty File"
-                             )
-                         }
-                 } catch (e: Exception) {
-                     Log.d("E", "Faulty File");
-                     quranFile.delete()
-                     setQuranDataFromLocalFile()
-                 }
-             } else {
-                 setQuranDataFromLocalFile()
-             }
-             loadingFile = false
-         } else {
-             val storage = Firebase.storage
-             val storageRef = storage.reference.child("/quran.json")
-
-             loadingFile = true;
-             storageRef.metadata.addOnSuccessListener { metadata ->
-                 // File downloaded successfully, do something with it
-                 println("success meta")
-                 if (metadata.creationTimeMillis > quranFileCreateTime) {
-                     println("downloading file")
-                     val editor: SharedPreferences.Editor = sharedPreferences.edit()
-                     editor.putLong("quranFileCreateTime", metadata.creationTimeMillis)
-                     editor.apply()
-                     try {
-                         storageRef.getFile(quranFile)
-                             .addOnSuccessListener {
-                                 // File downloaded successfully, do something with it
-                                 jsonParser.parseJsonArrayFileFromFilesDir(
-                                     context,
-                                     "quran.json"
-                                 )
-                                     ?.let { QuranStore.setQuranData(it) }
-                                 println("success download")
-                                 loadingFile = false;
-                             }
-                             .addOnFailureListener { exception ->
-                                 // Handle any errors that occurred during the download
-                                 println("FirebaseDownload " + " Error downloading JSON file: $exception")
-                                 setQuranDataFromLocalFile()
-                                 loadingFile = false;
-                             }
-                     } catch (e: Exception) {
-                         e.printStackTrace()
-                         setQuranDataFromLocalFile()
-                     } finally {
-                         if (QuranStore.getQuranData().size == 0) {
-                             setQuranDataFromLocalFile()
-                         }
-                         loadingFile = false;
-                     }
-                 } else {
-                     println("using local file")
-                     try {
-                         jsonParser.parseJsonArrayFileFromFilesDir(context, "quran.json")
-                             ?.let { QuranStore.setQuranData(it) }
-                     } catch (e: Exception) {
-                         e.printStackTrace()
-                         println("local file failed")
-                         setQuranDataFromLocalFile()
-                     } finally {
-                         loadingFile = false;
-                     }
-                 }
-             }.addOnFailureListener { exception ->
-                 // Handle any errors that occurred during the download
-                 println("FirebaseMeta " + " Error downloading JSON file: $exception")
-                 setQuranDataFromLocalFile()
-                 loadingFile = false;
-             }
-         }*/
-
-        val quranFile = File(context.filesDir, "quran.json")
-
-        if (!Helpers.checkNetworkConnectivity(context)) {
-            handleLocalQuranFile(quranFile)
-        } else {
-            downloadAndUpdateQuranFile(quranFile)
-        }
-
-        /*
-                var quranJson: String? = null
-                try {
-                    val inputStream = context.assets.open("quran.json")
-                    val size = inputStream.available()
-                    val buffer = ByteArray(size)
-                    inputStream.read(buffer)
-                    inputStream.close()
-                    quranJson = String(buffer, Charset.defaultCharset())
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-                val gson = Gson()
-                val quranPages: List<QuranPage> =
-                    gson.fromJson(quranJson!!, object : TypeToken<List<QuranPage>>() {}.type)
-                */
-
         viewModelScope.launch(Dispatchers.IO) {
+
             var versions = hashMapOf<String, Int>()
-            runBlocking {
+
+            withContext(Dispatchers.IO){
+                // fetch json file versions
                 versions = jsonParser.getFilesVersions()
+
+                println("checking leftover temp files...")
+                // delete any left over temp files from variant download operations
+                val dir = context.getExternalFilesDir(null)
+                dir?.listFiles { file ->
+                    file.name.startsWith("temp_")
+                }?.forEach { tempFile ->
+                    println("deleting ${tempFile.path}")
+                    tempFile.delete()
+                }
             }
 
             if (repository.getChaptersCount() != 114 || versions.get("chapters")!! > chaptersJsonVersion) {
@@ -171,7 +78,8 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                             e.printStackTrace()
                         }
                     }
-                sharedPreferences.edit().putInt("chaptersJsonVersion", versions.get("chapters")!!).apply()
+                sharedPreferences.edit().putInt("chaptersJsonVersion", versions.get("chapters")!!)
+                    .apply()
             }
 
             if (repository.getPartsCount() != 30 || versions.get("parts")!! > partsJsonVersion) {
@@ -266,6 +174,17 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                     }
                 }
             }
+
+            runBlocking {
+                val quranFile = File(context.filesDir, "quran.json")
+
+                if (!Helpers.checkNetworkConnectivity(context)) {
+                    handleLocalQuranFile(quranFile)
+                } else {
+                    downloadAndUpdateQuranFile(quranFile)
+                }
+            }
+
         }
     }
 
@@ -298,19 +217,24 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
 
     private fun downloadAndUpdateQuranFile(quranFile: File) {
         val storage = Firebase.storage
+        storage.maxDownloadRetryTimeMillis = 2000
+        storage.maxUploadRetryTimeMillis = 2000
         val storageRef = storage.reference.child("/quran.json")
 
         loadingFile = true
         storageRef.metadata.addOnSuccessListener { metadata ->
             println("success meta")
             if (metadata.creationTimeMillis > quranFileCreateTime) {
+                println("updating file from online")
                 updateFileCreationTime(metadata.creationTimeMillis)
                 downloadFile(storageRef, quranFile)
             } else {
                 useLocalQuranFile(quranFile)
             }
         }.addOnFailureListener { exception ->
-            handleDownloadError(exception)
+            println("failed download")
+            println(exception)
+            handleDownloadError(quranFile, exception)
         }
     }
 
@@ -326,15 +250,18 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 loadingFile = false
             }
             .addOnFailureListener { exception ->
-                handleDownloadError(exception)
+                println("failed download")
+                println(exception)
+                handleDownloadError(quranFile, exception)
             }
     }
 
     private fun useLocalQuranFile(quranFile: File) {
+        println("using filesdir file")
         try {
             parseAndSetQuranData(quranFile)
         } catch (e: Exception) {
-            Log.d("E", "Error using local file: ${e.message}")
+            Log.d("E", "Error using filesdir file: ${e.message}")
             setQuranDataFromLocalFile()
         } finally {
             loadingFile = false
@@ -342,9 +269,9 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
         }
     }
 
-    private fun handleDownloadError(exception: Exception) {
+    private fun handleDownloadError(quranFile: File, exception: Exception) {
         Log.d("E", "Error downloading JSON file: $exception")
-        setQuranDataFromLocalFile()
+        useLocalQuranFile(quranFile)
         loadingFile = false
     }
 
@@ -389,3 +316,102 @@ class LoadingScreenViewModelFactory(
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
+
+
+/* val quranFile = File(context.filesDir, "quran.json")
+
+ if (!Helpers.checkNetworkConnectivity(context)) {
+     if (quranFile.exists()) {
+         try {
+             jsonParser.parseJsonArrayFileFromFilesDir(context, "quran.json")
+                 ?.let {
+                     if (it.size != 0) QuranStore.setQuranData(it) else throw Exception(
+                         "Faulty File"
+                     )
+                 }
+         } catch (e: Exception) {
+             Log.d("E", "Faulty File");
+             quranFile.delete()
+             setQuranDataFromLocalFile()
+         }
+     } else {
+         setQuranDataFromLocalFile()
+     }
+     loadingFile = false
+ } else {
+     val storage = Firebase.storage
+     val storageRef = storage.reference.child("/quran.json")
+
+     loadingFile = true;
+     storageRef.metadata.addOnSuccessListener { metadata ->
+         // File downloaded successfully, do something with it
+         println("success meta")
+         if (metadata.creationTimeMillis > quranFileCreateTime) {
+             println("downloading file")
+             val editor: SharedPreferences.Editor = sharedPreferences.edit()
+             editor.putLong("quranFileCreateTime", metadata.creationTimeMillis)
+             editor.apply()
+             try {
+                 storageRef.getFile(quranFile)
+                     .addOnSuccessListener {
+                         // File downloaded successfully, do something with it
+                         jsonParser.parseJsonArrayFileFromFilesDir(
+                             context,
+                             "quran.json"
+                         )
+                             ?.let { QuranStore.setQuranData(it) }
+                         println("success download")
+                         loadingFile = false;
+                     }
+                     .addOnFailureListener { exception ->
+                         // Handle any errors that occurred during the download
+                         println("FirebaseDownload " + " Error downloading JSON file: $exception")
+                         setQuranDataFromLocalFile()
+                         loadingFile = false;
+                     }
+             } catch (e: Exception) {
+                 e.printStackTrace()
+                 setQuranDataFromLocalFile()
+             } finally {
+                 if (QuranStore.getQuranData().size == 0) {
+                     setQuranDataFromLocalFile()
+                 }
+                 loadingFile = false;
+             }
+         } else {
+             println("using local file")
+             try {
+                 jsonParser.parseJsonArrayFileFromFilesDir(context, "quran.json")
+                     ?.let { QuranStore.setQuranData(it) }
+             } catch (e: Exception) {
+                 e.printStackTrace()
+                 println("local file failed")
+                 setQuranDataFromLocalFile()
+             } finally {
+                 loadingFile = false;
+             }
+         }
+     }.addOnFailureListener { exception ->
+         // Handle any errors that occurred during the download
+         println("FirebaseMeta " + " Error downloading JSON file: $exception")
+         setQuranDataFromLocalFile()
+         loadingFile = false;
+     }
+ }*/
+
+/*
+        var quranJson: String? = null
+        try {
+            val inputStream = context.assets.open("quran.json")
+            val size = inputStream.available()
+            val buffer = ByteArray(size)
+            inputStream.read(buffer)
+            inputStream.close()
+            quranJson = String(buffer, Charset.defaultCharset())
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        val gson = Gson()
+        val quranPages: List<QuranPage> =
+            gson.fromJson(quranJson!!, object : TypeToken<List<QuranPage>>() {}.type)
+        */

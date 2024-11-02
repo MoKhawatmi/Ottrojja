@@ -37,7 +37,7 @@ class JsonParser(private val context: Context) {
             content
         } catch (e: Exception) {
             e.printStackTrace()
-            null
+            throw Exception("File reading error")
         }
     }
 

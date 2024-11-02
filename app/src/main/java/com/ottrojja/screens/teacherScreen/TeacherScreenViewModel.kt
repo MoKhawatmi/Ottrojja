@@ -1,27 +1,42 @@
 package com.ottrojja.screens.teacherScreen
 
 import android.app.Application
+import android.content.Intent
+import android.media.MediaPlayer
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.MediaPlayerService
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import kotlin.random.Random
 
 class TeacherScreenViewModel(private val repository: QuranRepository, application: Application) :
-    AndroidViewModel(application) {
+    AndroidViewModel(application), LifecycleObserver {
+    val context = application.applicationContext;
 
     private val pagesList: List<String> = (1..604).map { "صفحة $it" };
 
@@ -65,6 +80,14 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             _currentVerseIndex.value = value
         }
 
+    private var _correctVersesAnswered = mutableStateOf(0)
+    var correctVersesAnswered: Int
+        get() = _correctVersesAnswered.value
+        set(value) {
+            _correctVersesAnswered.value = value
+        }
+
+
     private var _hasStarted = mutableStateOf(false)
     var hasStarted: Boolean
         get() = _hasStarted.value
@@ -97,6 +120,14 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             _reachedMaxTries.value = value
         }
 
+    private var _lastVerseReached = mutableStateOf(false)
+    var lastVerseReached: Boolean
+        get() = _lastVerseReached.value
+        set(value) {
+            _lastVerseReached.value = value
+        }
+
+
     private var _currentTry = mutableStateOf(0)
     var currentTry: Int
         get() = _currentTry.value
@@ -121,12 +152,14 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             println(_selectedPageVerses.value)
             _currentVerseIndex.value = 0
             _currentVerse.value = _selectedPageVerses.value[_currentVerseIndex.value]
+            checkLastVerseReached()
             _mode.value = TeacherMode.PAGE_TRAINING;
         }
     }
 
     fun startTeaching() {
         _hasStarted.value = true;
+        println("vm ${_lastVerseReached.value}")
         generateCutVerse();
     }
 
@@ -164,6 +197,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
                 }
             } else {
                 println("solution $key empty")
+                _inputSolutions.set(key, TeacherAnswer("", AnswerStatus.WRONG))
                 allRight = false;
             }
         }
@@ -171,8 +205,12 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         // need to get all solutions right to move on
         if (allRight) {
             _allRight.value = true;
-        } else if (!allRight && _reachedMaxTries.value) {
+            _correctVersesAnswered.value++;
+        } else if (!allRight) {
 
+            if (_reachedMaxTries.value) {
+
+            }
         }
 
         if (_currentTry.value == maxTries) {
@@ -181,16 +219,50 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
     }
 
     fun proceedVerse() {
-        solutionMap.clear()
-        _reachedMaxTries.value = false;
-        _currentTry.value = 0;
-        _allRight.value = false;
-        if (_currentVerseIndex.value + 1 <= _selectedPageVerses.value.size - 1) {
-            println("here")
+        if (!_lastVerseReached.value) {
+            resetMedia()
+            solutionMap.clear()
+            _reachedMaxTries.value = false;
+            _currentTry.value = 0;
+            _allRight.value = false;
             _currentVerseIndex.value++;
             _currentVerse.value = _selectedPageVerses.value[_currentVerseIndex.value]
             generateCutVerse()
         }
+        checkLastVerseReached()
+    }
+
+    fun checkLastVerseReached() {
+        if (_currentVerseIndex.value >= _selectedPageVerses.value.size - 1) {
+            _lastVerseReached.value = true;
+        }
+    }
+
+    fun backToPages() {
+        _mode.value = TeacherMode.PAGE_SELECTION
+        resetAll()
+    }
+
+    fun resetAll() {
+        _inputSolutions.clear();
+        solutionMap.clear()
+        _reachedMaxTries.value = false;
+        _currentTry.value = 0;
+        _allRight.value = false;
+        _currentVerseIndex.value = 0;
+        _selectedPage.value = QuranPage(
+            "",
+            "",
+            arrayOf(""),
+            arrayOf(""),
+            arrayOf(""),
+            arrayOf<PageContent>()
+        )
+        _selectedPageVerses.value = emptyList<PageContent>();
+        _hasStarted.value = false;
+        _correctVersesAnswered.value = 0;
+        _lastVerseReached.value = false;
+        resetMedia()
     }
 
     val solutionMap = hashMapOf<Int, List<String>>()
@@ -200,7 +272,9 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         val verseWordsNum = verseWordsPlain.size;
 
         val indices = (0 until verseWordsNum).toList().shuffled(Random)
-        val hiddenIndices = if (verseWordsNum == 1) indices else indices.take(verseWordsNum / 2)
+        val hiddenIndices = if (verseWordsNum == 1) indices else indices.take(
+            Math.ceil((verseWordsNum * 50) / 100.0).toInt()
+        )
         println(verseWordsNum)
         println(hiddenIndices)
         hiddenIndices.forEach { index ->
@@ -230,6 +304,150 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         set(value: SnapshotStateMap<Int, TeacherAnswer>) {
             _inputSolutions = value
         }
+
+    private val _isDownloading = mutableStateOf(false)
+    var isDownloading: Boolean
+        get() = _isDownloading.value
+        set(value) {
+            _isDownloading.value = value
+        }
+
+    private val _showInstructionsDialog = mutableStateOf(false)
+    var showInstructionsDialog: Boolean
+        get() = _showInstructionsDialog.value
+        set(value) {
+            _showInstructionsDialog.value = value
+        }
+
+    private val _isPlaying = mutableStateOf(false)
+    var isPlaying: Boolean
+        get() = _isPlaying.value
+        set(value) {
+            _isPlaying.value = value
+        }
+
+
+    private var _mediaPlayer = MediaPlayer()
+
+    fun downloadVerse(localFile: File) {
+        if (!Helpers.checkNetworkConnectivity(context)) {
+            Toast.makeText(context, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG).show()
+            return;
+        }
+        val tempFile = File.createTempFile("temp_", ".mp3", context.getExternalFilesDir(null))
+
+        _isDownloading.value = true;
+
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url("https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/${_selectedPage.value.pageNum}-${_currentVerse.value.surahNum}-${_currentVerse.value.verseNum}.mp3")
+            .build()
+
+
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    client.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+                        response.body?.let { responseBody ->
+                            FileOutputStream(tempFile).use { outputStream ->
+                                responseBody.byteStream().use { inputStream ->
+                                    inputStream.copyTo(outputStream)
+                                }
+                            }
+                        }
+
+                        tempFile.copyTo(localFile, overwrite = true)
+                        println("download successful")
+                        playVerse()
+                    }
+
+                } catch (e: Exception) {
+                    println("error in download")
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
+                    }
+                    localFile.delete()
+                } finally {
+                    if (tempFile.exists()) tempFile.delete()
+                    _isDownloading.value = false;
+                }
+            }
+        }
+    }
+
+    var length = 0;
+
+    fun playVerse() {
+        if (length > 0) {
+            _mediaPlayer.start()
+            _isPlaying.value = true;
+            return;
+        }
+        val path =
+            "${_selectedPage.value.pageNum}-${_currentVerse.value.surahNum}-${_currentVerse.value.verseNum}.mp3"
+        val localFile = File(
+            context.getExternalFilesDir(null),
+            path
+        )
+        if (!localFile.exists()) {
+            println("need to download verse first")
+            downloadVerse(localFile)
+            return
+        }
+        val sr = Helpers.isMyServiceRunning(MediaPlayerService::class.java, context);
+        println("service running $sr")
+        if (sr) {
+            val stopServiceIntent = Intent(context, MediaPlayerService::class.java)
+            stopServiceIntent.setAction("TERMINATE")
+            context.startService(stopServiceIntent)
+        }
+
+
+        _mediaPlayer.apply {
+            reset()
+            setDataSource(
+                File(
+                    context.getExternalFilesDir(null),
+                    path
+                ).absolutePath
+            )
+            setPlaybackParams(playbackParams)
+            prepareAsync()
+            setOnPreparedListener {
+                _isPlaying.value = true;
+                it.start()
+            }
+            setOnCompletionListener {
+                _isPlaying.value = false;
+                length = 0
+            }
+        }
+    }
+
+    fun pauseVerse() {
+        length = _mediaPlayer.getCurrentPosition();
+        _mediaPlayer.pause()
+        _isPlaying.value = false;
+    }
+
+    fun resetMedia() {
+        _mediaPlayer.reset()
+        _isPlaying.value = false;
+        length = 0
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    fun onEnterBackground() {
+        resetMedia();
+    }
+
+    init {
+        // Observe the app's lifecycle using ProcessLifecycleOwner
+        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+    }
 
 
     enum class TeacherMode {

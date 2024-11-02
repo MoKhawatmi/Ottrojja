@@ -8,6 +8,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.widget.Toast
+import kotlinx.coroutines.GlobalScope
 
 object Helpers {
     fun convertToIndianNumbers(arabicNumber: String): String {
@@ -24,6 +25,7 @@ object Helpers {
                 result += char
             }
         }
+        //println("$arabicNumber resulting number $result")
 
         return result
     }
@@ -59,7 +61,7 @@ object Helpers {
         }
     }
 
-    fun isMyServiceRunning(serviceClass: Class<*>, context:Context): Boolean {
+    fun isMyServiceRunning(serviceClass: Class<*>, context: Context): Boolean {
         val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         for (service in manager.getRunningServices(Int.MAX_VALUE)) {
             if (serviceClass.name == service.service.className) {
@@ -91,7 +93,9 @@ object Helpers {
         }
     }
 
+    fun duh() {
 
+    }
 
 
 }

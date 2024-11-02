@@ -1,7 +1,6 @@
 package com.ottrojja.screens.zikrScreen
 
 import android.app.Application
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -30,16 +29,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.outlined.DownloadForOffline
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,10 +53,13 @@ import androidx.navigation.NavController
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.composables.LegacySeekBar
+import com.ottrojja.composables.LoadingDialog
+import com.ottrojja.composables.MediaSeekBar
+import com.ottrojja.composables.MediaSlider
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.quranScreen.NoRippleInteractionSource
 import com.ottrojja.screens.quranScreen.YouTube
-import com.ottrojja.screens.quranScreen.checkNetworkConnectivity
 
 @Composable
 fun ZikrScreen(
@@ -74,9 +74,13 @@ fun ZikrScreen(
         factory = ZikrViewModelFactory(repository, application, zikrTitle)
     )
 
-    val zikr= zikrViewModel._zikr.collectAsState()
+    val zikr = zikrViewModel._zikr.collectAsState()
 
     val primaryColor = MaterialTheme.colorScheme.primary
+
+    if (zikrViewModel.isDownloading) {
+        LoadingDialog()
+    }
 
     Column() {
         Row(
@@ -87,53 +91,59 @@ fun ZikrScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ElevatedButton(
-                onClick = {
-                    copyToClipboard(
-                        context,
-                        zikr.value.azkarText,
-                        "تم تسخ الذكر بنجاح"
-                    );
-                    /*val sendIntent: Intent = Intent().apply {
-                         action = Intent.ACTION_SEND
-                         putExtra(Intent.EXTRA_SUBJECT, zikrViewModel.zikr.azkarTitle)
-                         putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
-                         putExtra(
-                             Intent.EXTRA_TEXT,
-                             zikrViewModel.zikr.azkarText
-                         )
-                         type = "text/plain"
-                     }
 
-                     val shareIntent = Intent.createChooser(sendIntent, "نسخ الذكر")
-                     ContextCompat.startActivity(context, shareIntent, null)*/
-                },
-                elevation = ButtonDefaults.elevatedButtonElevation(
-                    2.dp,
-                    2.dp,
-                    2.dp,
-                    2.dp,
-                    2.dp
-                ),
-                contentPadding = PaddingValues(0.dp),
-                shape = CircleShape,
-                modifier = Modifier
-                    .padding(4.dp, 0.dp)
-                    .clip(CircleShape)
-            ) {
-                Icon(
-                    Icons.Default.ContentCopy,
-                    contentDescription = "Copy",
-                    tint = MaterialTheme.colorScheme.primary,
-                )
+            Row {
+                ElevatedButton(
+                    onClick = {
+                        copyToClipboard(
+                            context,
+                            zikr.value.azkarText,
+                            "تم تسخ الذكر بنجاح"
+                        );
+                    },
+                    elevation = ButtonDefaults.elevatedButtonElevation(
+                        2.dp,
+                        2.dp,
+                        2.dp,
+                        2.dp,
+                        2.dp
+                    ),
+                    contentPadding = PaddingValues(0.dp),
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .padding(4.dp, 0.dp)
+                        .clip(CircleShape)
+                ) {
+                    Icon(
+                        Icons.Default.ContentCopy,
+                        contentDescription = "Copy",
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                if (!zikrViewModel.checkIfZikrDownloaded()) {
+                    ElevatedButton(
+                        onClick = { zikrViewModel.downloadZikr() },
+                        elevation = ButtonDefaults.elevatedButtonElevation(
+                            2.dp,
+                            2.dp,
+                            2.dp,
+                            2.dp,
+                            2.dp
+                        ),
+                        contentPadding = PaddingValues(0.dp),
+                        shape = CircleShape,
+                        modifier = Modifier
+                            .padding(4.dp, 0.dp)
+                            .clip(CircleShape)
+                    ) {
+                        Icon(
+                            Icons.Outlined.DownloadForOffline,
+                            contentDescription = "Download",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
             }
-
-            Text(
-                text = zikr.value.azkarTitle,
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center
-            )
 
 
             ElevatedButton(
@@ -193,14 +203,7 @@ fun ZikrScreen(
                 zikrViewModel.isZikrPlaying,
                 { dragAmount -> zikrViewModel.showController = dragAmount <= 0 },
                 { zikrViewModel.showController = !zikrViewModel.showController },
-                {
-                    if (checkNetworkConnectivity(context)) {
-                        zikrViewModel.playClicked()
-                    } else {
-                        Toast.makeText(context, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG)
-                            .show()
-                    }
-                },
+                { zikrViewModel.playClicked() },
                 { zikrViewModel.increasePlaybackSpeed() },
                 { zikrViewModel.decreasePlaybackSpeed() },
                 { zikrViewModel.pauseZikr() },
@@ -244,27 +247,44 @@ fun ZikrSection(
             interactionSource = NoRippleInteractionSource()
         ) { toggleController() }
     ) {
-        Column(
-            modifier = Modifier
-                .padding(12.dp)
-                .border(
-                    BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary),
-                    shape = RoundedCornerShape(12)
-                )
-                .clip(RoundedCornerShape(12))
-                .verticalScroll(rememberScrollState())
-                .background(MaterialTheme.colorScheme.primary)
-                .padding(8.dp, 20.dp, 8.dp, 8.dp)
-        ) {
-            Row(modifier = Modifier.fillMaxWidth()) {
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
                 Text(
-                    text = zikr.azkarText,
-                    style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.padding(2.dp, 8.dp)
+                    text = zikr.azkarTitle,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(2.dp)
                 )
             }
+
+            Column(
+                modifier = Modifier
+                    .padding(12.dp)
+                    .border(
+                        BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary),
+                        shape = RoundedCornerShape(12)
+                    )
+                    .clip(RoundedCornerShape(12))
+                    .verticalScroll(rememberScrollState())
+                    .background(MaterialTheme.colorScheme.primary)
+                    .padding(8.dp, 20.dp, 8.dp, 8.dp)
+            ) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = zikr.azkarText,
+                        style = MaterialTheme.typography.displayMedium,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.padding(2.dp, 8.dp)
+                    )
+                }
+            }
         }
+
+
         AnimatedVisibility(
             visible = showController,
             enter = slideInVertically(
@@ -284,7 +304,12 @@ fun ZikrSection(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (isPlaying && isZikrPlaying) {
-                    Row(
+                    MediaSlider(
+                        sliderPosition,
+                        { value -> setSliderPosition(value) },
+                        sliderMaxDuration
+                    )
+                    /*Row(
                         modifier = Modifier
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceAround,
@@ -307,9 +332,9 @@ fun ZikrSection(
                             },
                             valueRange = 0f..sliderMaxDuration,
                         )
-                    }
+                    }*/
                 }
-                if (isPlaying) {
+                if (isPlaying && isZikrPlaying) {
                     Row(
                         modifier = Modifier
                             .background(color = MaterialTheme.colorScheme.primaryContainer)

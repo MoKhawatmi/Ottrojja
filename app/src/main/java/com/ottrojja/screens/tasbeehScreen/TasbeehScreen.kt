@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -281,12 +282,7 @@ fun TasabeehList(tasabeeh: MutableList<Tasabeeh>, updateExpanded: (Tasabeeh) -> 
                 }
             }
 
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(Color.Black.copy(alpha = 0.1f))
-            )
+            HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
         }
     }
 }

@@ -104,6 +104,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 println(_currentPageObject)
                 _versesPlayList = _currentPageObject.pageContent
                 resetPlayer()
+                val editor: SharedPreferences.Editor = sharedPreferences.edit()
+                editor.putString("mostRecentPage", value)
+                editor.apply()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -355,6 +358,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         }
 
     var allVersesExist = false;
+
     fun checkVerseFilesExistance() {
         allVersesExist = false;
         //check if all verse files exist, if not then download must be initialized
@@ -386,21 +390,24 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             context.startService(stopServiceIntent)
         }
         _shouldAutoPlay.value = false;
-        setIsPlaying(true);
+
         if (length != 0) {
             mediaPlayer.seekTo(length);
             mediaPlayer.start();
         } else {
             if (!allVersesExist) {
-                initializeDownload()
+                if (Helpers.checkNetworkConnectivity(context)) {
+                    initializeDownload()
+                } else {
+                    Toast.makeText(context, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG)
+                        .show()
+                    return;
+                }
             } else if (allVersesExist) {
                 playAudio(_versesPlayList[currentPlayingIndex.value])
             }
-            /*
-            println("index ${currentPlayingIndex.value}")
-            println(_versesPlayList[currentPlayingIndex.value])
-          */
         }
+        setIsPlaying(true);
     }
 
     fun pausePlaying() {
@@ -503,12 +510,10 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     fun initializeDownload() {
         _isDownloading.value = true;
-        // val storage = FirebaseStorage.getInstance()
-        // val storageReference = storage.getReference()
-        downloadVerse(/*storageReference*/)
+        downloadVerse()
     }
 
-    fun downloadVerse(/*storageReference: StorageReference*/) {
+    fun downloadVerse() {
         val item = _versesPlayList[downloadIndex];
         var path: String;
         if (item.type == "surah") {
@@ -516,12 +521,13 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         } else {
             path = "${currentPageObject.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
         }
-        //   val fileReference = storageReference.child("/final/$path")
 
         val localFile = File(
             context.getExternalFilesDir(null),
             path
         )
+        val tempFile = File.createTempFile("temp_", ".mp3", context.getExternalFilesDir(null))
+
 
         val client = OkHttpClient()
         val request = Request.Builder()
@@ -536,20 +542,21 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
                         response.body?.let { responseBody ->
-                            FileOutputStream(localFile).use { outputStream ->
+                            FileOutputStream(tempFile).use { outputStream ->
                                 responseBody.byteStream().use { inputStream ->
                                     inputStream.copyTo(outputStream)
-
-                                    if (downloadIndex >= _versesPlayList.size - 1) {
-                                        isDownloading = false;
-                                        allVersesExist = true;
-                                        playAudio(_versesPlayList[currentPlayingIndex.value])
-                                    } else {
-                                        downloadIndex++;
-                                        downloadVerse(/*storageReference*/)
-                                    }
                                 }
                             }
+                        }
+
+                        tempFile.copyTo(localFile, overwrite = true)
+                        if (downloadIndex >= _versesPlayList.size - 1) {
+                            allVersesExist = true;
+                            _isDownloading.value = false;
+                            playAudio(_versesPlayList[currentPlayingIndex.value])
+                        } else {
+                            downloadIndex++;
+                            downloadVerse()
                         }
                     }
                 } catch (e: Exception) {
@@ -558,9 +565,12 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                     withContext(Dispatchers.Main) {
                         Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
                     }
-                    isDownloading = false;
+                    localFile.delete()
                     allVersesExist = false;
                     _isPlaying.value = false;
+                    _isDownloading.value = false;
+                } finally {
+                    if (tempFile.exists()) tempFile.delete()
                 }
             }
         }

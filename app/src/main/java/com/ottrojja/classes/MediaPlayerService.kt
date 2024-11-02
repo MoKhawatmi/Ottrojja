@@ -18,6 +18,7 @@ import com.ottrojja.MainActivity
 import com.ottrojja.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.io.File
 import java.util.Timer
 import java.util.TimerTask
 
@@ -172,6 +173,17 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         _isPaused.value = false;
     }
 
+    private fun resetAll() {
+        _isPlaying.value = false;
+        _isPaused.value = false;
+        _playingZikr.value = false;
+        _playingChapter.value = false;
+        _sliderPosition.value = 0F;
+        _selectedChapterId.value = "";
+        mediaPlayer?.value?.reset();
+
+    }
+
     private fun resumeTrack() {
         println("resuming")
         mediaPlayer?.value?.seekTo(length);
@@ -184,9 +196,33 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         prepareForNewTrack();
         currentlyPlaying = link;
         playbackParams.speed = _playbackSpeed.value
+        var mediaSrc: String;
+
+        //check offline playing possiblity
+        val path = link.split("/").last()
+        val localFile = File(this.getExternalFilesDir(null), path)
+        if (!localFile.exists() && !Helpers.checkNetworkConnectivity(this)) {
+            Toast
+                .makeText(
+                    this,
+                    "لا يوجد اتصال بالانترنت",
+                    Toast.LENGTH_LONG
+                )
+                .show()
+            resetAll();
+            return;
+        }
+        if (localFile.exists()) {
+            mediaSrc = localFile.absolutePath
+            println("file found ${localFile.path}")
+        } else {
+            mediaSrc = link
+        }
+
+
         mediaPlayer?.value?.apply {
             reset()
-            setDataSource(link)
+            setDataSource(mediaSrc)
             setPlaybackParams(playbackParams)
             prepareAsync()
             setOnPreparedListener {
@@ -195,9 +231,14 @@ class MediaPlayerService : Service(), AudioServiceInterface {
                 println("starting")
                 it.start();
                 timer = Timer();
-                timer.scheduleAtFixedRate(object : TimerTask() {
+                timer.schedule(object : TimerTask() {
                     override fun run() {
-                        _sliderPosition.value = mediaPlayer?.value?.currentPosition!!.toFloat();
+                        val currPosition = mediaPlayer?.value?.currentPosition!!.toFloat();
+                        // temp solution to the position decreasing for an ununderstandable reason on higher level apis,
+                        // switch to exoplayer later
+                        if (currPosition > _sliderPosition.value) {
+                            _sliderPosition.value = currPosition;
+                        }
                     }
                 }, 0, 400)
                 println("on prepared done")

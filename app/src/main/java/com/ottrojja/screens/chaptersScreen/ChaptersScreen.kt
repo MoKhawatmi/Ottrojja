@@ -2,11 +2,6 @@ package com.ottrojja.screens.chaptersScreen
 
 import android.app.Application
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,21 +13,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -46,14 +37,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
-import com.ottrojja.classes.Helpers
-import com.ottrojja.classes.Helpers.isMyServiceRunning
-import com.ottrojja.classes.MediaPlayerService
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.composables.Header
-import com.ottrojja.screens.quranScreen.QuranScreenViewModelFactory
-import com.ottrojja.screens.quranScreen.QuranViewModel
-import com.ottrojja.screens.quranScreen.checkNetworkConnectivity
+import com.ottrojja.composables.LoadingDialog
+import com.ottrojja.composables.MediaSlider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,7 +56,11 @@ fun ChaptersScreen(
         factory = ChaptersViewModelFactory(repository, application)
     )
 
-    val chaptersList=chaptersViewModel._chaptersList.collectAsState()
+    val chaptersList = chaptersViewModel._chaptersList.collectAsState()
+
+    if (chaptersViewModel.isDownloading) {
+        LoadingDialog()
+    }
 
     Column {
         Header()
@@ -86,17 +77,7 @@ fun ChaptersScreen(
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.background)
                         .clickable {
-                            if (checkNetworkConnectivity(context)) {
-                                chaptersViewModel.selectSurah(item)
-                            } else {
-                                Toast
-                                    .makeText(
-                                        context,
-                                        "لا يوجد اتصال بالانترنت",
-                                        Toast.LENGTH_LONG
-                                    )
-                                    .show()
-                            }
+                            chaptersViewModel.selectSurah(item)
                         }
                     ) {
                         Row(
@@ -123,7 +104,17 @@ fun ChaptersScreen(
                                                 .size(35.dp)
                                         )
                                     }
-                                    Text(
+                                    if (!chaptersViewModel.checkIfChapterDownloaded(item.surahId)) {
+                                        Image(painter = painterResource(R.drawable.download),
+                                            contentDescription = "download",
+                                            modifier = Modifier
+                                                .padding(10.dp, 0.dp)
+                                                .clickable { chaptersViewModel.downloadChapter(item.surahId) }
+                                                .size(35.dp),
+                                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                                        )
+                                    }
+                                    /*Text(
                                         text = "${Helpers.convertToIndianNumbers("${item.verseCount}")} اية",
                                         color = Color.Black,
                                         style = MaterialTheme.typography.bodyMedium,
@@ -142,16 +133,11 @@ fun ChaptersScreen(
                                         text = item.chapterType,
                                         color = Color.Black,
                                         style = MaterialTheme.typography.bodyMedium
-                                    )
+                                    )*/
                                 }
                             }
                         }
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .height(1.dp)
-                                .background(Color.Black.copy(alpha = 0.1f))
-                        )
+                        HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
                     }
                 }
                 item {
@@ -179,32 +165,13 @@ fun ChaptersScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                     if (chaptersViewModel.isPlaying && chaptersViewModel.isChapterPlaying) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceAround,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Slider(
-                                value = chaptersViewModel.sliderPosition,
-                                onValueChange = { chaptersViewModel.sliderChanged(it) },
-                                colors = SliderDefaults.colors(
-                                    thumbColor = MaterialTheme.colorScheme.primary,
-                                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                                    inactiveTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                                ),
-                                thumb = {
-                                    Image(
-                                        painterResource(id = R.drawable.thumb),
-                                        "thumb",
-                                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-                                    )
-                                },
-                                valueRange = 0f..chaptersViewModel.maxDuration,
-                            )
-                        }
+                        MediaSlider(
+                            sliderPosition = chaptersViewModel.sliderPosition,
+                            setSliderPosition = { value -> chaptersViewModel.sliderChanged(value) },
+                            sliderMaxDuration = chaptersViewModel.maxDuration
+                        )
                     }
-                    if (chaptersViewModel.isPlaying) {
+                    if (chaptersViewModel.isPlaying && chaptersViewModel.isChapterPlaying) {
                         Row(
                             modifier = Modifier
                                 .background(color = MaterialTheme.colorScheme.primaryContainer)
@@ -266,17 +233,7 @@ fun ChaptersScreen(
                                     contentDescription = "play",
                                     modifier = Modifier
                                         .clickable {
-                                            if (checkNetworkConnectivity(context)) {
-                                                chaptersViewModel.play()
-                                            } else {
-                                                Toast
-                                                    .makeText(
-                                                        context,
-                                                        "لا يوجد اتصال بالانترنت",
-                                                        Toast.LENGTH_LONG
-                                                    )
-                                                    .show()
-                                            }
+                                            chaptersViewModel.play()
                                         }
                                         .size(35.dp),
                                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)

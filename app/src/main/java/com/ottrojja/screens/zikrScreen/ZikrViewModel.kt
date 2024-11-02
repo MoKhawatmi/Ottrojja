@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -28,6 +29,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 class ZikrViewModel(
     private val repository: QuranRepository,
@@ -233,6 +239,84 @@ class ZikrViewModel(
         println("vm changing position to $value")
         _sliderPosition.value = value;
         audioService?.setSliderPosition(value)
+    }
+
+    private var _isDownloading = mutableStateOf(false)
+    var isDownloading: Boolean
+        get() = _isDownloading.value
+        set(value) {
+            _isDownloading.value = value
+        }
+
+    fun checkIfZikrDownloaded(): Boolean {
+        println("checking ${_zikr.value.firebaseAddress.split("/").last()}")
+        val localFile = File(context.getExternalFilesDir(null), _zikr.value.firebaseAddress.split("/").last())
+        return localFile.exists()
+    }
+
+    fun downloadZikr() {
+        if (!Helpers.checkNetworkConnectivity(context)) {
+            Toast
+                .makeText(
+                    context,
+                    "لا يوجد اتصال بالانترنت",
+                    Toast.LENGTH_LONG
+                )
+                .show()
+            return;
+        }
+
+        _isDownloading.value = true;
+
+        val localFile = File(
+            context.getExternalFilesDir(null),
+            _zikr.value.firebaseAddress.split("/").last()
+        )
+        val tempFile = File.createTempFile("temp_", ".mp3", context.getExternalFilesDir(null))
+
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url(_zikr.value.firebaseAddress)
+            .build()
+
+
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    client.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+                        response.body?.let { responseBody ->
+                            FileOutputStream(tempFile).use { outputStream ->
+                                responseBody.byteStream().use { inputStream ->
+                                    inputStream.copyTo(outputStream)
+                                }
+                            }
+                        }
+
+                        tempFile.copyTo(localFile, overwrite = true)
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                context,
+                                "تم التحميل بنجاح!",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+
+                    }
+                } catch (e: Exception) {
+                    println("error in download")
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
+                    }
+                    localFile.delete()
+                } finally {
+                    if (tempFile.exists()) tempFile.delete()
+                    _isDownloading.value = false;
+                }
+            }
+        }
     }
 
     init {

@@ -51,12 +51,14 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.BottomSheetDefaults
@@ -67,6 +69,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -131,7 +134,7 @@ fun QuranScreen(
         factory = QuranScreenViewModelFactory(repository, application)
     )
 
-    fun handleBackBehaviour(){
+    fun handleBackBehaviour() {
         if (quranViewModel.selectedTab != "page") {
             quranViewModel.selectedTab = "page"
         } else {
@@ -270,6 +273,23 @@ fun QuranScreen(
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }
+
+                ElevatedButton(
+                    onClick = { },
+                    elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
+                    contentPadding = PaddingValues(0.dp),
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .padding(0.dp)
+                        .clip(CircleShape)
+                ) {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = "Access Search",
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+
             }
 
             ElevatedButton(
@@ -325,13 +345,7 @@ fun QuranScreen(
                         quranViewModel.setCurrentPage(newPage)
                     },
                     {
-                        if (checkNetworkConnectivity(context)) {
-                            quranViewModel.startPlaying()
-                            //quranViewModel.initializeDownload();
-                        } else {
-                            Toast.makeText(context, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG)
-                                .show()
-                        }
+                        quranViewModel.startPlaying()
                     },
                     { quranViewModel.pausePlaying() },
                     { quranViewModel.showRepOptions = true },
@@ -1078,7 +1092,7 @@ fun Benefits(
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier
-                            .padding(0.dp, 10.dp, 4.dp, 0.dp)
+                            .padding(0.dp, 6.dp, 4.dp, 6.dp)
                             .fillMaxWidth(0.08f)
                     )
                     Text(
@@ -1318,11 +1332,11 @@ fun VersesSection(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "${Helpers.convertToIndianNumbers(item.pageContent.verseNum)}  ${item.pageContent.verseText}",
+                            text = "${Helpers.convertToIndianNumbers(item.pageContent.verseNum)} ${item.pageContent.verseText}",
                             color = Color.Black,
                             style = MaterialTheme.typography.titleLarge,
                             textAlign = TextAlign.Right,
-                            modifier = Modifier.fillMaxWidth(0.9f)
+                            modifier = Modifier.fillMaxWidth(0.9f),
                         )
                         Image(painter = painterResource(id = R.drawable.more_vert),
                             contentDescription = "",
@@ -1391,12 +1405,10 @@ fun VersesSection(
                     }
                 }
 
-                Box(
-                    Modifier
-                        .padding(14.dp)
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.Black.copy(alpha = 0.1f))
+                HorizontalDivider(
+                    modifier = Modifier.padding(14.dp),
+                    thickness = 1.dp,
+                    color = Color.Black.copy(alpha = 0.1f)
                 )
             }
         }

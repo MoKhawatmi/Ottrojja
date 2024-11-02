@@ -1,11 +1,15 @@
 package com.ottrojja.screens.mainScreen
 
+import android.app.Application
 import android.content.Intent
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,12 +32,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowCircleLeft
 import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.outlined.ArrowCircleLeft
+import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +68,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.core.content.ContextCompat.startActivity
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
@@ -71,13 +82,19 @@ fun MainScreen(
     repository: QuranRepository
 ) {
     val context = LocalContext.current;
+    val application = context.applicationContext as Application
+
     val mainViewModel: MainViewModel = viewModel(
-        factory = MainViewModelFactory(repository)
+        factory = MainViewModelFactory(repository, application)
     )
 
 
     val browsingOptions = arrayOf("الصفحات", "الاجزاء", "السور", "البحث")
     val primaryColor = MaterialTheme.colorScheme.primary;
+
+    LaunchedEffect(Unit) {
+        mainViewModel.invokeMostRecentPage()
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -96,13 +113,13 @@ fun MainScreen(
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
             context.startActivity(homeIntent)
-
         }
     }
 
+
     if (mainViewModel.showImageList) {
         Column(modifier = Modifier, verticalArrangement = Arrangement.Top) {
-            Header()
+            Header(isMain = true)
             Column(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -111,6 +128,34 @@ fun MainScreen(
                     .background(MaterialTheme.colorScheme.background)
                     .verticalScroll(rememberScrollState())
             ) {
+                if (mainViewModel.mostRecentPage.length > 0) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .padding(12.dp, 8.dp)
+                            .fillMaxWidth()
+                            .background(Color.Transparent)
+                            .border(
+                                BorderStroke(1.dp, color = MaterialTheme.colorScheme.primary),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .clip(RoundedCornerShape(10))
+                            .clickable { navController.navigate(Screen.QuranScreen.invokeRoute(mainViewModel.mostRecentPage)) }
+                            .padding(12.dp, 8.dp)
+                    ) {
+                        Text(
+                            text = "عودة الى اخر صفحة (${mainViewModel.mostRecentPage})",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Icon(
+                            Icons.Outlined.ArrowCircleLeft,
+                            contentDescription = "Quick Transition",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
@@ -229,7 +274,10 @@ fun MainScreen(
                         )
                         .fillMaxWidth()
                         .clickable {
-                            mainViewModel.selectedSection = 3; mainViewModel.showImageList = false;
+                            mainViewModel.selectedSection = 3;
+                            mainViewModel.invokeLatestSearchOperation();
+                            mainViewModel.showImageList =
+                                false;
                         }
                         .padding(12.dp)
                 ) {
@@ -307,11 +355,12 @@ fun MainScreen(
                                     }
                                 }
                                 .clickable {
-                                    if (mainViewModel.selectedSection == 3) {
-                                        mainViewModel.quranSearchResults.clear()
-                                    }
                                     mainViewModel.selectedSection = index;
                                     mainViewModel.searchFilter = "";
+                                    if (mainViewModel.selectedSection == 3) {
+                                        mainViewModel.quranSearchResults.clear()
+                                        mainViewModel.invokeLatestSearchOperation()
+                                    }
                                 }
                                 .defaultMinSize(minWidth = 100.dp)
                                 .padding(0.dp, 6.dp, 0.dp, 6.dp)
@@ -333,7 +382,10 @@ fun MainScreen(
                 }
 
                 3 -> {
-                    SearchMenu(mainViewModel.quranSearchResults, navController)
+                    SearchMenu(
+                        mainViewModel.quranSearchResults,
+                        navController,
+                        { value -> mainViewModel.shareVerse(context, value) })
                 }
             }
         }
@@ -367,12 +419,7 @@ fun BrowseMenu(
                 ) {
                     Text(text = item, color = Color.Black)
                 }
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.Black.copy(alpha = 0.1f))
-                )
+                HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
             }
         }
     }
@@ -405,12 +452,7 @@ fun PartsMenu(
                 ) {
                     Text(text = item.partName, color = Color.Black)
                 }
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.Black.copy(alpha = 0.1f))
-                )
+                HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
             }
         }
     }
@@ -434,7 +476,7 @@ fun ChaptersMenu(
                 .background(MaterialTheme.colorScheme.background)
                 .clickable {
                     keyboardController!!.hide();
-                    navController?.navigate(Screen.QuranScreen.invokeRoute(item.chapterStartPage))
+                    navController.navigate(Screen.QuranScreen.invokeRoute(item.chapterStartPage))
                 }
             ) {
                 Row(
@@ -475,22 +517,19 @@ fun ChaptersMenu(
                         }
                     }
                 }
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.Black.copy(alpha = 0.1f))
-                )
+                HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
             }
         }
     }
 }
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SearchMenu(
     items: List<SearchResult> = listOf<SearchResult>(),
-    navController: NavController
+    navController: NavController,
+    shareVerse: (SearchResult) -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current;
 
@@ -518,23 +557,24 @@ fun SearchMenu(
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.Black.copy(alpha = 0.1f))
-                )
+                HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
             }
         }
         items(items) { item ->
-            Column(modifier = Modifier
-                .padding(12.dp, 0.dp)
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
-                .clickable {
-                    keyboardController!!.hide();
-                    navController.navigate(Screen.QuranScreen.invokeRoute(item.pageNum))
-                }
+            Column(
+                modifier = Modifier
+                    .padding(12.dp, 0.dp)
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background)
+                    .combinedClickable(
+                        onClick = {
+                            keyboardController!!.hide();
+                            navController.navigate(Screen.QuranScreen.invokeRoute(item.pageNum))
+                        },
+                        onLongClick = {
+                            shareVerse(item)
+                        },
+                    )
             ) {
                 Row(
                     modifier = Modifier
@@ -549,12 +589,7 @@ fun SearchMenu(
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.Black.copy(alpha = 0.1f))
-                )
+                HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
             }
         }
         item {

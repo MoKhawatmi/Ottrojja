@@ -1,5 +1,7 @@
 package com.ottrojja.classes
 
+import android.content.Context
+import android.content.SharedPreferences
 import com.ottrojja.room.QuranDao
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData

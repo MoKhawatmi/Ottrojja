@@ -97,12 +97,13 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         try {
+            println("terminating service on destroy")
             val stopServiceIntent = Intent(this, MediaPlayerService::class.java)
             //stopServiceIntent.setAction("STOP")
             stopServiceIntent.setAction("TERMINATE")
             startService(stopServiceIntent)
         } catch (e: Exception) {
-            println(e)
+            e.printStackTrace()
         }
     }
 }

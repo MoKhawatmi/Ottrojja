@@ -1,7 +1,6 @@
 package com.ottrojja.screens.loadingScreen
 
 import android.app.Application
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
@@ -25,16 +24,13 @@ fun LoadingScreen(
     val context = LocalContext.current
     val application = context.applicationContext as Application
 
-
     val loadingScreenViewModel: LoadingScreenViewModel = viewModel(
         factory = LoadingScreenViewModelFactory(repository, application)
     )
 
-
     if (loadingScreenViewModel.loaded){
         navController.navigate(Screen.MainScreen.route)
     }
-
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         CircularProgressIndicator(

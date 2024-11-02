@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -14,15 +15,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.AudioServiceInterface
+import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.MediaPlayerService
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 class ChaptersViewModel(private val repository: QuranRepository, application: Application) :
     AndroidViewModel(application) {
@@ -32,13 +38,13 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
     private var _selectedSurah = mutableStateOf(ChapterData("", "", 0, "", 0))
     var selectedSurah: ChapterData
-        get() = this._selectedSurah.value
+        get() = _selectedSurah.value
         set(value) {
-            this._selectedSurah.value = value
+            _selectedSurah.value = value
         }
 
     fun selectSurah(surah: ChapterData) {
-        if (_selectedSurah.value.surahId == surah.surahId) {
+        if (_selectedSurah.value.surahId == surah.surahId && _isChapterPlaying.value) {
             return
         }
         _selectedSurah.value = surah;
@@ -49,18 +55,17 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
     private var _isPlaying = mutableStateOf(false)
     var isPlaying: Boolean
-        get() = this._isPlaying.value
+        get() = _isPlaying.value
         set(value) {
-            this._isPlaying.value = value
+            _isPlaying.value = value
         }
 
     private var _isChapterPlaying = mutableStateOf(false) //for service binding issues
     var isChapterPlaying: Boolean
-        get() = this._isChapterPlaying.value
+        get() = _isChapterPlaying.value
         set(value) {
-            this._isChapterPlaying.value = value
+            _isChapterPlaying.value = value
         }
-
 
     private var _isPaused = mutableStateOf(false)
     var isPaused: Boolean
@@ -118,16 +123,23 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
     private var _maxDuration = mutableStateOf(0f)
     var maxDuration: Float
-        get() = this._maxDuration.value
+        get() = _maxDuration.value
         set(value) {
-            this._maxDuration.value = value
+            _maxDuration.value = value
         }
 
     fun sliderChanged(value: Float) {
-        println("vm changing position to $value")
+      //  println("vm changing position to $value")
         _sliderPosition.value = value;
         audioService?.setSliderPosition(value)
     }
+
+    private var _isDownloading = mutableStateOf(false)
+    var isDownloading: Boolean
+        get() = _isDownloading.value
+        set(value) {
+            _isDownloading.value = value
+        }
 
 
     fun startAndBind() {
@@ -145,9 +157,7 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
                 viewModelScope.launch {
                     audioService?.getPlayingState("", true)?.collect { state ->
-                        withContext(Dispatchers.Main) {
-                            println("playing status $state")
-                        }
+                        println("playing status $state")
                         _isPlaying.value = state;
                     }
                 }
@@ -183,6 +193,7 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
                 viewModelScope.launch {
                     audioService?.getSliderPosition()?.collect { state ->
+                        // println("current slider position $state")
                         _sliderPosition.value = state;
                     }
                 }
@@ -238,6 +249,81 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
         _selectedSurah.value = ChapterData("", "", 0, "", 0);
         if (audioService != null) {
             context.unbindService(serviceConnection)
+        }
+    }
+
+    fun checkIfChapterDownloaded(surahId: Int): Boolean {
+        // println("checking download of chapter $surahId")
+        val localFile = File(context.getExternalFilesDir(null), "$surahId.mp3")
+        return localFile.exists()
+    }
+
+    fun downloadChapter(surahId: Int) {
+        if (!Helpers.checkNetworkConnectivity(context)) {
+            Toast
+                .makeText(
+                    context,
+                    "لا يوجد اتصال بالانترنت",
+                    Toast.LENGTH_LONG
+                )
+                .show()
+            return;
+        }
+
+        _isDownloading.value = true;
+
+        val localFile = File(
+            context.getExternalFilesDir(null),
+            "$surahId.mp3"
+        )
+        val tempFile = File.createTempFile("temp_", ".mp3", context.getExternalFilesDir(null))
+
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url("https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/$surahId.mp3")
+            .build()
+
+
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    client.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+                        response.body?.let { responseBody ->
+                            FileOutputStream(tempFile).use { outputStream ->
+                                responseBody.byteStream().use { inputStream ->
+                                    inputStream.copyTo(outputStream)
+                                }
+                            }
+                        }
+
+                        tempFile.copyTo(localFile, overwrite = true)
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                context,
+                                "تم التحميل بنجاح!",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+
+                    }
+                } catch (e: Exception) {
+                    println("error in download")
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
+                    }
+                    localFile.delete()
+                } finally {
+
+                    if (tempFile.exists()) {
+                        println("deleting temp")
+                        tempFile.delete()
+                    }
+                    _isDownloading.value = false;
+                }
+            }
         }
     }
 
