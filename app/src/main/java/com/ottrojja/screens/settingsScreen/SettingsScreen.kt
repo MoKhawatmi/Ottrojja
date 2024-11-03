@@ -1,15 +1,22 @@
 package com.ottrojja.screens.settingsScreen
 
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -17,12 +24,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ottrojja.R
+import com.ottrojja.classes.Helpers
 import com.ottrojja.composables.Header
 import com.ottrojja.composables.OttrojjaDialog
 
@@ -38,24 +50,127 @@ fun SettingsScreen(
         Header()
 
         if (settingsScreenViewModel.ShowAboutDialog) {
-            OttrojjaDialog(onDismissRequest = {
-                settingsScreenViewModel.ShowAboutDialog = false
-            }) {
+            OttrojjaDialog(contentModifier = Modifier
+                .padding(8.dp)
+                .fillMaxHeight(0.7f)
+                .background(MaterialTheme.colorScheme.secondary)
+                .padding(8.dp)
+                .clip(shape = RoundedCornerShape(12.dp)),
+                onDismissRequest = {
+                    settingsScreenViewModel.ShowAboutDialog = false
+                }) {
                 Column(
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.Start,
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Text(
-                        "تطبيق اترجة القرآني للقارئ الشيخ احمد الحراسيس",
+                        stringResource(R.string.about_app),
                         style = MaterialTheme.typography.displayMedium,
                         fontSize = 20.sp,
-                        textAlign = TextAlign.Start
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier
+                            .fillMaxHeight(0.9f)
+                            .verticalScroll(rememberScrollState())
                     )
                     Row(
-                        modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(),
+                        horizontalArrangement = Arrangement.End,
                     ) {
                         Button(onClick = { settingsScreenViewModel.ShowAboutDialog = false }) {
+                            Text(
+                                "إغلاق",
+                                style = MaterialTheme.typography.displayMedium,
+                                fontSize = 20.sp,
+                                textAlign = TextAlign.End
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        if (settingsScreenViewModel.ShowContactDialog) {
+            OttrojjaDialog(contentModifier = Modifier
+                .padding(8.dp)
+                .fillMaxHeight(0.7f)
+                .background(MaterialTheme.colorScheme.secondary)
+                .padding(8.dp)
+                .clip(shape = RoundedCornerShape(12.dp)),
+                onDismissRequest = {
+                    settingsScreenViewModel.ShowContactDialog = false
+                }) {
+                Column(
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.Start,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxHeight(0.9f)
+                    ) {
+                        Text(
+                            "لإقتراحاتكم وللإبلاغ عن اي مشاكل تقنية في التطبيق تواصلوا معنا على البريد الإلكتروني للمشروع",
+                            style = MaterialTheme.typography.displayMedium,
+                            fontSize = 20.sp,
+                            textAlign = TextAlign.Start,
+                        )
+                        Text(
+                            text = "ottrojjaapp@gmail.com",
+                            style = MaterialTheme.typography.displayMedium.copy(
+                                textDirection = TextDirection.Ltr,
+                                textAlign = TextAlign.Center
+                            ),
+                            fontSize = 22.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    Helpers.copyToClipboard(
+                                        context,
+                                        "ottrojjaapp@gmail.com",
+                                        "تم النسخ بنجاح!"
+                                    )
+                                }
+                                .padding(0.dp, 8.dp)
+                        )
+
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(0.dp, 8.dp)
+                        ) {
+                            Button(onClick = {
+                                sendMail(
+                                    context = context,
+                                    to = "ottrojjaapp@gmail.com",
+                                    subject = ""
+                                )
+                            }) {
+                                Text(
+                                    "ارسل بريدا",
+                                    style = MaterialTheme.typography.displayMedium,
+                                    fontSize = 20.sp,
+                                    textAlign = TextAlign.End
+                                )
+                            }
+
+                        }
+
+
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        Button(onClick = { settingsScreenViewModel.ShowContactDialog = false }) {
                             Text(
                                 "إغلاق",
                                 style = MaterialTheme.typography.displayMedium,
@@ -78,8 +193,8 @@ fun SettingsScreen(
             )
             shareIntent.setType("text/plain")
             context.startActivity(Intent.createChooser(shareIntent, "مشاركة التطبيق"))
-
         })
+        SettingsItem("تواصل معنا", { settingsScreenViewModel.ShowContactDialog = true })
         SettingsItem(
             "سياسة الخصوصية", {
                 val intent = Intent(
@@ -109,6 +224,20 @@ fun SettingsItem(content: String, onClick: () -> Unit) {
             Text(text = content, color = Color.Black)
         }
         HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
+    }
+}
+
+fun sendMail(context: Context, to: String, subject: String) {
+    try {
+        val intent = Intent(Intent.ACTION_SEND)
+        intent.type = "vnd.android.cursor.item/email"
+        intent.putExtra(Intent.EXTRA_EMAIL, arrayOf(to))
+        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+        context.startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(context, "خدمة البريد الالكتروني غير متوفرة", Toast.LENGTH_LONG).show()
+    } catch (t: Throwable) {
+        Toast.makeText(context, "حدث خطأ", Toast.LENGTH_LONG).show()
     }
 
 }

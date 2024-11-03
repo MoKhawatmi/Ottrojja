@@ -12,10 +12,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,20 +21,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowCircleLeft
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.outlined.ArrowCircleLeft
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,10 +37,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -57,23 +46,20 @@ import androidx.navigation.NavController
 import com.ottrojja.classes.Screen
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.core.content.ContextCompat.startActivity
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
 import com.ottrojja.composables.Header
+import com.ottrojja.composables.PillShapedTextFieldWithIcon
 
 @Composable
 fun MainScreen(
@@ -598,51 +584,6 @@ fun SearchMenu(
     }
 
 }
-
-
-@Composable
-fun PillShapedTextFieldWithIcon(
-    value: String,
-    onValueChange: (String) -> Unit,
-    leadingIcon: Painter,
-    modifier: Modifier = Modifier
-) {
-    var isFocused by remember { mutableStateOf(false) }
-
-    val textFieldModifier = modifier
-        .background(
-            Color.White,
-            shape = CircleShape
-        )
-        .border(1.dp, Color.Black.copy(alpha = 0.2f), shape = CircleShape)
-        .padding(horizontal = 16.dp, vertical = 8.dp)
-        .onFocusChanged { isFocused = it.isFocused }
-
-    Row(
-        modifier = textFieldModifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            leadingIcon,
-            contentDescription = null,
-            tint = Color.Black,
-            modifier = Modifier.size(12.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
-            textStyle = MaterialTheme.typography.bodySmall,
-            visualTransformation = VisualTransformation.None,
-            singleLine = true,
-            modifier = Modifier
-                .weight(0.9f)
-                .padding(vertical = 4.dp)
-                .onFocusChanged { isFocused = it.isFocused }
-        )
-    }
-}
-
 
 /*
 @OptIn(ExperimentalComposeUiApi::class)

@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.MediaPlayerService
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.QuranPage
@@ -136,10 +137,8 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         }
 
     fun getPagesList(): List<String> {
-        return pagesList.filter { data ->
-            data.indexOf(_searchFilter) != -1 || data.indexOf(
-                Helpers.convertToArabicNumbers(_searchFilter)
-            ) != -1
+        return pagesList.filter { page ->
+            page.contains(_searchFilter) || page.contains(convertToArabicNumbers(_searchFilter))
         };
     }
 

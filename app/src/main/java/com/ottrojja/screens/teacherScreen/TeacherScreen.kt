@@ -85,7 +85,7 @@ import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.composables.Header
 import com.ottrojja.composables.LoadingDialog
-import com.ottrojja.screens.mainScreen.PillShapedTextFieldWithIcon
+import com.ottrojja.composables.PillShapedTextFieldWithIcon
 
 @Composable
 fun TeacherScreen(

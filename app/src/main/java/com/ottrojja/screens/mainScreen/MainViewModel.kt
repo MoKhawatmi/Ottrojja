@@ -112,23 +112,26 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
     }
 
     fun getPagesList(): List<String> {
-        return pagesList.filter { data ->
-            data.indexOf(_searchFilter) != -1 || data.indexOf(
-                convertToArabicNumbers(_searchFilter)
-            ) != -1
+        return pagesList.filter { page ->
+            page.contains(_searchFilter) || page.contains(convertToArabicNumbers(_searchFilter))
         };
     }
 
     fun getPartsList(): List<PartData> {
-        return partsList.filter { data ->
-            data.partName.indexOf(_searchFilter) != -1 || data.partId.indexOf(
-                _searchFilter
-            ) != -1 || data.partId.indexOf(convertToArabicNumbers(_searchFilter)) != -1
+        return partsList.filter { part ->
+            part.partName.contains(_searchFilter) || part.partId.contains(_searchFilter) || part.partId.contains(
+                convertToArabicNumbers(_searchFilter)
+            )
         };
     }
 
     fun getChaptersList(): List<ChapterData> {
-        return chaptersList.filter { data -> data.chapterName.indexOf(_searchFilter) != -1 };
+        return chaptersList.filter { chapter ->
+            chapter.chapterName.contains(_searchFilter) || chapter.surahId.toString()
+                .contains(_searchFilter) || chapter.surahId.toString().contains(
+                convertToArabicNumbers(_searchFilter)
+            )
+        };
     }
 
     fun findPartStart(inputValue: String): String {
@@ -166,7 +169,7 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
         }
     }
 
-    fun invokeMostRecentPage(){
+    fun invokeMostRecentPage() {
         _mostRecentPage = sharedPreferences.getString("mostRecentPage", "")!!
         println("most recent page: ${_mostRecentPage}")
     }

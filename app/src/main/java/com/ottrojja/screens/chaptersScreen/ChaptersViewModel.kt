@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.AudioServiceInterface
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.MediaPlayerService
 import com.ottrojja.classes.QuranRepository
@@ -34,7 +35,7 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
     AndroidViewModel(application) {
     val context = application.applicationContext;
 
-    val _chaptersList = MutableStateFlow<List<ChapterData>>(listOf<ChapterData>())
+    lateinit private var chaptersList: List<ChapterData>;
 
     private var _selectedSurah = mutableStateOf(ChapterData("", "", 0, "", 0))
     var selectedSurah: ChapterData
@@ -178,7 +179,7 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
                 viewModelScope.launch {
                     audioService?.getSelectedChapterId()!!.collect { state ->
                         val tempChapter =
-                            _chaptersList.value.find { chapter -> "${chapter.surahId}" == state }
+                            chaptersList.find { chapter -> "${chapter.surahId}" == state }
                         if (tempChapter != null) {
                             _selectedSurah.value = tempChapter;
                         }
@@ -329,7 +330,7 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            _chaptersList.value = repository.getAllChapters();
+            chaptersList = repository.getAllChapters();
         }
 
         val sr = isMyServiceRunning(MediaPlayerService::class.java, context);
@@ -338,6 +339,23 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
             bindToService()
         }
     }
+
+    private var _searchFilter by mutableStateOf("")
+    var searchFilter: String
+        get() = _searchFilter
+        set(value) {
+            _searchFilter = value
+        }
+
+    fun getChaptersList(): List<ChapterData> {
+        return chaptersList.filter { chapter ->
+            chapter.chapterName.contains(_searchFilter) || chapter.surahId.toString()
+                .contains(_searchFilter) || chapter.surahId.toString().contains(
+                convertToArabicNumbers(_searchFilter)
+            )
+        };
+    }
+
 
 
 }

@@ -15,4 +15,11 @@ class SettingsScreenViewModel(application: Application) : AndroidViewModel(appli
             _ShowAboutDialog = value
         }
 
+    private var _ShowContactDialog by mutableStateOf(false)
+    var ShowContactDialog: Boolean
+        get() = _ShowContactDialog
+        set(value) {
+            _ShowContactDialog = value
+        }
+
 }

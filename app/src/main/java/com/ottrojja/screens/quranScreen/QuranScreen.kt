@@ -274,7 +274,7 @@ fun QuranScreen(
                     )
                 }
 
-                ElevatedButton(
+                /*ElevatedButton(
                     onClick = { },
                     elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
                     contentPadding = PaddingValues(0.dp),
@@ -288,7 +288,7 @@ fun QuranScreen(
                         contentDescription = "Access Search",
                         tint = MaterialTheme.colorScheme.primary,
                     )
-                }
+                }*/
 
             }
 
