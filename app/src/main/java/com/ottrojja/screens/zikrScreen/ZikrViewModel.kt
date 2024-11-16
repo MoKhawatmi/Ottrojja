@@ -45,19 +45,19 @@ class ZikrViewModel(
 
 
     var _zikr = MutableStateFlow<Azkar>(Azkar("", "", "", "", ""))
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             _zikr.value = repository.getAzkarByTitle(zikrTitle)
         }
     }
 
-    private var _selectedTab = mutableStateOf("الذكر")
-    var selectedTab: String
-        get() = this._selectedTab.value
+    private var _selectedTab = mutableStateOf(ZikrTab.الذكر)
+    var selectedTab: ZikrTab
+        get() = _selectedTab.value
         set(value) {
-            this._selectedTab.value = value
+            _selectedTab.value = value
         }
-    val zikrTabs = listOf("الذكر", "الفيديو")
 
     private var _showController = mutableStateOf(true)
     var showController: Boolean
@@ -250,7 +250,8 @@ class ZikrViewModel(
 
     fun checkIfZikrDownloaded(): Boolean {
         println("checking ${_zikr.value.firebaseAddress.split("/").last()}")
-        val localFile = File(context.getExternalFilesDir(null), _zikr.value.firebaseAddress.split("/").last())
+        val localFile =
+            File(context.getExternalFilesDir(null), _zikr.value.firebaseAddress.split("/").last())
         return localFile.exists()
     }
 
@@ -326,12 +327,17 @@ class ZikrViewModel(
             bindToService()
         }
     }
+
+    enum class ZikrTab {
+        الذكر,
+        الفيديو
+    }
 }
 
 class ZikrViewModelFactory(
     private val repository: QuranRepository,
     private val application: Application,
-    private val zikrTitle:String,
+    private val zikrTitle: String,
 ) : ViewModelProvider.AndroidViewModelFactory(application) {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ZikrViewModel::class.java)) {

@@ -1,6 +1,6 @@
 package com.ottrojja.screens.tasbeehScreen
 
-import JsonParser
+import com.ottrojja.classes.JsonParser
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
@@ -40,7 +40,7 @@ class TasbeehScreenViewModel(application: Application) : AndroidViewModel(applic
     init {
         _tasbeehCount.value = sharedPreferences.getInt("tasbeehCount", 0)
         try {
-            JsonParser(context).parseJsonArrayFileTasabeeh("tasabeeh.json")
+            JsonParser(context).parseJsonArrayFile<Tasabeeh>("tasabeeh.json")
                 ?.let { _tasabeeh.value = it.toMutableList() }
 
         } catch (e: Exception) {

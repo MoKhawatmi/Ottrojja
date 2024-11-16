@@ -14,8 +14,8 @@ android {
         applicationId = "com.ottrojja"
         minSdk = 24
         targetSdk = 34
-        versionCode = 20
-        versionName = "1.7.1"
+        versionCode = 22
+        versionName = "1.7.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

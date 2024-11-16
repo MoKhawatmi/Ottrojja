@@ -51,11 +51,11 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
             _searchFilter = value
         }
 
-    private var _selectedSection by mutableStateOf(0)
-    var selectedSection: Int
-        get() = this._selectedSection
+    private var _selectedSection by mutableStateOf(BrowsingOption.الصفحات)
+    var selectedSection: BrowsingOption
+        get() = _selectedSection
         set(value) {
-            this._selectedSection = value
+            _selectedSection = value
         }
 
     private var _showImageList by mutableStateOf(true)
@@ -127,10 +127,8 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
 
     fun getChaptersList(): List<ChapterData> {
         return chaptersList.filter { chapter ->
-            chapter.chapterName.contains(_searchFilter) || chapter.surahId.toString()
-                .contains(_searchFilter) || chapter.surahId.toString().contains(
-                convertToArabicNumbers(_searchFilter)
-            )
+            chapter.chapterName.contains(_searchFilter) || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
+                    || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
         };
     }
 
@@ -172,6 +170,10 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
     fun invokeMostRecentPage() {
         _mostRecentPage = sharedPreferences.getString("mostRecentPage", "")!!
         println("most recent page: ${_mostRecentPage}")
+    }
+
+    enum class BrowsingOption {
+        الصفحات, السور, الاجزاء, البحث
     }
 }
 

@@ -48,7 +48,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             arrayOf(""),
             arrayOf(""),
             arrayOf(""),
-            arrayOf<PageContent>()
+            arrayOf<PageContent>(),
         )
     )
     var selectedPage: QuranPage
@@ -255,7 +255,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             arrayOf(""),
             arrayOf(""),
             arrayOf(""),
-            arrayOf<PageContent>()
+            arrayOf<PageContent>(),
         )
         _selectedPageVerses.value = emptyList<PageContent>();
         _hasStarted.value = false;

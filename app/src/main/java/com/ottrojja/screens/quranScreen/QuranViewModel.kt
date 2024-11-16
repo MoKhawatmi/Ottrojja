@@ -1,6 +1,5 @@
 package com.ottrojja.screens.quranScreen
 
-import JsonParser
 import android.app.Application
 import android.content.Context
 import android.content.Intent
@@ -42,7 +41,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     val context = application.applicationContext;
     val sharedPreferences: SharedPreferences =
         application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
-    val jsonParser = JsonParser(application.applicationContext);
 
 
     private var _versesPlayList: Array<PageContent> by mutableStateOf(arrayOf<PageContent>());
@@ -88,8 +86,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             _tafseerSheetMode = value
         }
 
-    private var _selectedTab by mutableStateOf("page")
-    var selectedTab: String
+    private var _selectedTab by mutableStateOf(PageTab.الصفحة)
+    var selectedTab: PageTab
         get() = _selectedTab
         set(value) {
             _selectedTab = value
@@ -120,7 +118,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             arrayOf(""),
             arrayOf(""),
             arrayOf(""),
-            arrayOf<PageContent>()
+            arrayOf<PageContent>(),
         )
     )
 
@@ -220,14 +218,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 mediaPlayer.playbackParams = playbackParams;
             } catch (e: Exception) {
                 e.printStackTrace()
-                _playbackSpeed = 1.0f
-                val playbackParams = PlaybackParams()
-                playbackParams.speed = _playbackSpeed
-                mediaPlayer.playbackParams = playbackParams;
             }
         }
     }
-
 
     private var _showVersesSheet by mutableStateOf(false)
     var showVersesSheet: Boolean
@@ -245,6 +238,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 val surah = value.split("-")[0]
                 val verse = value.split("-")[1]
 
+                println(value)
                 println("tafseer for $surah-$verse at ${tafseerNamesMap.get(_selectedTafseer)}")
 
                 _verseTafseer = repository.getVerseTafseerData(
@@ -253,6 +247,14 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                     tafseerNamesMap.get(_selectedTafseer)!!
                 ).text
                 _verseE3rab = repository.getVerseE3rabData(surah, verse).text
+                val causesOfRevelation = repository.getCauseOfRevelation(surah, verse)
+                if (causesOfRevelation.size == 0) {
+                    _verseCauseOfRevelation = "لم يرد في المرجع سبب لنزول الآية"
+                } else {
+                    var concatCauses = ""
+                    causesOfRevelation.forEach { cause -> concatCauses += "${cause.text}\n\n" }
+                    _verseCauseOfRevelation = concatCauses
+                }
             }
         }
 
@@ -268,6 +270,13 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         get() = _verseE3rab
         set(value) {
             _verseE3rab = value
+        }
+
+    private var _verseCauseOfRevelation by mutableStateOf("")
+    var verseCauseOfRevelation: String
+        get() = _verseCauseOfRevelation
+        set(value) {
+            _verseCauseOfRevelation = value
         }
 
     private var _showTafseerSheet by mutableStateOf(false)
@@ -654,7 +663,24 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         isPageBookmarked();
     }
 
+    private var _nightReadingMode by mutableStateOf(false)
+    var nightReadingMode: Boolean
+        get() = _nightReadingMode
+        set(value) {
+            _nightReadingMode = value
+        }
 
+
+    fun getNightReadingMode(){
+        _nightReadingMode=sharedPreferences.getBoolean("nightReadingMode", false)
+    }
+
+    enum class PageTab {
+        الصفحة,
+        الفوائد,
+        الآيات,
+        الفيديو
+    }
 }
 
 class QuranScreenViewModelFactory(

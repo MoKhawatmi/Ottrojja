@@ -8,11 +8,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.os.Build
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -26,15 +22,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,14 +47,12 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.BottomSheetDefaults
@@ -87,9 +81,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -111,6 +105,7 @@ import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.classes.MediaPlayerService
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.composables.OttrojjaTabs
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
@@ -135,8 +130,8 @@ fun QuranScreen(
     )
 
     fun handleBackBehaviour() {
-        if (quranViewModel.selectedTab != "page") {
-            quranViewModel.selectedTab = "page"
+        if (quranViewModel.selectedTab != QuranViewModel.PageTab.الصفحة) {
+            quranViewModel.selectedTab = QuranViewModel.PageTab.الصفحة
         } else {
             navController.popBackStack()
         }
@@ -145,6 +140,7 @@ fun QuranScreen(
     LaunchedEffect(Unit) {
         try {
             quranViewModel.setCurrentPage(pageNum)
+            quranViewModel.getNightReadingMode()
         } catch (e: Exception) {
             Log.e("error", "Error getting current page in quran screen: $e")
         }
@@ -155,9 +151,9 @@ fun QuranScreen(
     }
 
     val isPlaying by quranViewModel.isPlaying.collectAsState(initial = false)
-    val pageTabsMap: HashMap<String, String> = hashMapOf(
+    /*val pageTabsMap: HashMap<String, String> = hashMapOf(
         "الصفحة" to "page", "الآيات" to "verses", "الفوائد" to "benefits", "الفيديو" to "yt"
-    )
+    )*/
     val primaryColor = MaterialTheme.colorScheme.primary
 
     quranViewModel.isPageBookmarked();
@@ -308,37 +304,15 @@ fun QuranScreen(
                 )
             }
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            pageTabsMap.keys.forEachIndexed { index, option ->
-                Column() {
-                    Text(text = option,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        color = if (quranViewModel.selectedTab == pageTabsMap.get(option)) MaterialTheme.colorScheme.onPrimary else primaryColor,
-                        modifier = Modifier
-                            .padding(2.dp, 0.dp)
-                            .clip(shape = RoundedCornerShape(50))
-                            .drawBehind {
-                                if (quranViewModel.selectedTab == pageTabsMap.get(option)) {
-                                    drawCircle(
-                                        color = primaryColor, radius = this.size.maxDimension
-                                    )
-                                }
-                            }
-                            .clickable { quranViewModel.selectedTab = pageTabsMap.get(option)!! }
-                            .defaultMinSize(minWidth = 100.dp)
-                            .padding(0.dp, 6.dp, 0.dp, 6.dp))
-                }
-            }
-        }
+
+        OttrojjaTabs(
+            items = QuranViewModel.PageTab.entries,
+            selectedItem = quranViewModel.selectedTab,
+            onClickTab = { item ->
+                quranViewModel.selectedTab = item
+            })
         when (quranViewModel.selectedTab) {
-            "page" -> Column(verticalArrangement = Arrangement.SpaceBetween) {
+            QuranViewModel.PageTab.الصفحة -> Column(verticalArrangement = Arrangement.SpaceBetween) {
                 PagesContainer(
                     quranViewModel.currentPageObject.pageNum,
                     { newPage ->
@@ -363,11 +337,12 @@ fun QuranScreen(
                     quranViewModel.continuousPlay,
                     { value -> quranViewModel.continuousPlay = value },
                     quranViewModel.shouldAutoPlay,
-                    quranViewModel.playbackSpeed
+                    quranViewModel.playbackSpeed,
+                    quranViewModel.nightReadingMode
                 )
             }
 
-            "verses" -> VersesSection(
+            QuranViewModel.PageTab.الآيات -> VersesSection(
                 quranViewModel.currentPageObject.pageContent.filter { item -> item.type == "verse" },
                 { targetVerse ->
                     quranViewModel.tafseerTargetVerse = targetVerse;
@@ -379,17 +354,26 @@ fun QuranScreen(
                     quranViewModel.tafseerSheetMode = "e3rab"
                     quranViewModel.showTafseerSheet = true
                 },
+                { targetVerse ->
+                    quranViewModel.tafseerTargetVerse = targetVerse;
+                    quranViewModel.tafseerSheetMode = "causeOfRevelation"
+                    quranViewModel.showTafseerSheet = true
+                },
                 repository
             )
 
-            "benefits" -> Benefits(
+            QuranViewModel.PageTab.الفوائد -> Benefits(
                 quranViewModel.currentPageObject.benefits,
                 quranViewModel.currentPageObject.appliance,
                 quranViewModel.currentPageObject.guidance,
                 quranViewModel.currentPageObject.pageNum
             )
 
-            "yt" -> YouTube(quranViewModel.currentPageObject.ytLink.split("v=").last())
+            QuranViewModel.PageTab.الفيديو -> YouTube(
+                quranViewModel.currentPageObject.ytLink.split(
+                    "v="
+                ).last()
+            )
         }
 
         VersesBottomSheet(quranViewModel.showVersesSheet,
@@ -407,6 +391,7 @@ fun QuranScreen(
             onDismiss = { quranViewModel.showTafseerSheet = false },
             quranViewModel.verseTafseer,
             quranViewModel.verseE3rab,
+            quranViewModel.verseCauseOfRevelation,
             quranViewModel.selectedTafseer,
             onClickTafseerOptions = { quranViewModel.showTafseerOptions = true },
             mode = quranViewModel.tafseerSheetMode
@@ -449,6 +434,7 @@ fun TafseerBottomSheet(
     onDismiss: () -> Unit,
     tafseer: String,
     e3rab: String,
+    causeOfRevelation: String,
     selectedTafseer: String,
     onClickTafseerOptions: () -> Unit,
     mode: String,
@@ -523,7 +509,7 @@ fun TafseerBottomSheet(
                         textAlign = TextAlign.Right,
                     )
                 }
-            } else {
+            } else if (mode == "e3rab") {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -552,6 +538,49 @@ fun TafseerBottomSheet(
                     }
                     Text(
                         text = e3rab,
+                        color = Color.Black,
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .verticalScroll(rememberScrollState()),
+                        style = MaterialTheme.typography.displayMedium,
+                        textAlign = TextAlign.Right,
+                    )
+                }
+            } else if (mode == "causeOfRevelation") {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.tertiary)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.Top,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        ElevatedButton(
+                            onClick = {
+                                copyToClipboard(
+                                    context,
+                                    causeOfRevelation,
+                                    "تم تسخ سبب النزول بنجاح"
+                                );
+                            },
+                            elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
+                            contentPadding = PaddingValues(0.dp),
+                            shape = CircleShape,
+                            modifier = Modifier
+                                .padding(4.dp, 0.dp)
+                                .clip(CircleShape)
+                        ) {
+                            Icon(
+                                Icons.Default.ContentCopy,
+                                contentDescription = "Copy",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                    Text(
+                        text = causeOfRevelation,
                         color = Color.Black,
                         modifier = Modifier
                             .padding(10.dp)
@@ -728,7 +757,8 @@ fun PagesContainer(
     continuousPlay: Boolean,
     setContPlay: (Boolean) -> Unit,
     shouldAutoPlay: Boolean,
-    playbackSpeed: Float
+    playbackSpeed: Float,
+    nightReadingMode: Boolean
 ) {
     val quranPagesNumbers = Array(604) { (it + 1).toString() }
 
@@ -745,22 +775,12 @@ fun PagesContainer(
         remember { mutableStateOf(false) } // To track if the page has changed at least once
 
 
-    /*val coroutineScope = rememberCoroutineScope()  // Use rememberCoroutineScope
-    Button(onClick = {
-        coroutineScope.launch {
-            pagerState.animateScrollToPage(2)  // Move to page 2 (zero-based index)
-        }
-    }) {
-        Text(text = "Go to Page 2")
-    }*/
-
     LaunchedEffect(pageNum) {
         if (shouldAutoPlay) {
             pagerState.animateScrollToPage(pageNum!!.toInt() - 1)
             onPlayClicked()
         } else {
             pagerState.scrollToPage(pageNum!!.toInt() - 1)
-
         }
     }
 
@@ -800,7 +820,7 @@ fun PagesContainer(
                 .clickable(
                     indication = null, interactionSource = NoRippleInteractionSource()
                 ) { showController = !showController }) { index ->
-            SinglePage(quranPagesNumbers[index])
+            SinglePage(quranPagesNumbers[index], nightReadingMode)
         }
 
         AnimatedVisibility(
@@ -859,7 +879,7 @@ fun PagesContainer(
                             onCheckedChange = { newCheckedState -> setContPlay(newCheckedState) }
                         )
                         Text(
-                            text = "تشغيل متتال",
+                            text = "تشغيل متتال للصفحات",
                             color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Right,
@@ -975,7 +995,7 @@ class NoRippleInteractionSource : MutableInteractionSource {
 
 
 @Composable
-fun SinglePage(pageNum: String) {
+fun SinglePage(pageNum: String, nightReadingMode:Boolean) {
     val pagePath = "p_$pageNum"
     val configuration = LocalConfiguration.current
     val context = LocalContext.current
@@ -997,8 +1017,20 @@ fun SinglePage(pageNum: String) {
             modifier = Modifier
                 .fillMaxWidth(if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 0.75f else 1.0f)
                 .fillMaxHeight(0.92f),
-            contentScale = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) ContentScale.Crop else ContentScale.Fit
+            contentScale = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) ContentScale.Crop else ContentScale.Fit,
+            colorFilter = if(!nightReadingMode) null else ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(
+                -1f, 0f, 0f, 0f, 255f,
+                0f, -1f, 0f, 0f, 255f,
+                0f, 0f, -1f, 0f, 255f,
+                0f, 0f, 0f, 1f, 0f
+            )))
         )
+        /*
+                        -0.33f, -0.33f, -0.33f, 0f, 255f, // Red channel inversion after grayscale
+                -0.33f, -0.33f, -0.33f, 0f, 255f, // Green channel inversion after grayscale
+                -0.33f, -0.33f, -0.33f, 0f, 255f, // Blue channel inversion after grayscale
+                0f,     0f,     0f,    1f,   0f  // Alpha channel (unchanged)
+ */
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -1239,7 +1271,7 @@ fun YouTube(link: String) {
             .background(MaterialTheme.colorScheme.primary)
             .padding(10.dp)
     ) {
-        if (!checkNetworkConnectivity(context)) {
+        if (!Helpers.checkNetworkConnectivity(context)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Text(
                     text = "تعذر عرض المقطع لعدم توفر اتصال بالانترنت",
@@ -1288,11 +1320,13 @@ fun YoutubeScreen(
     })
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VersesSection(
     items: List<PageContent>,
     onTafseerClick: (String) -> Unit,
     onE3rabClick: (String) -> Unit,
+    onCauseOfRevelationClick: (String) -> Unit,
     repository: QuranRepository
 ) {
     val context = LocalContext.current
@@ -1349,11 +1383,11 @@ fun VersesSection(
                     AnimatedVisibility(
                         visible = item.expanded,
                     ) {
-                        Row(
+                        FlowRow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(MaterialTheme.colorScheme.background)
-                                .padding(8.dp)
+                                .padding(8.dp), maxItemsInEachRow = 3
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center,
@@ -1401,6 +1435,38 @@ fun VersesSection(
                                     color = Color.Black
                                 )
                             }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .weight(1.0f)
+                                    .background(MaterialTheme.colorScheme.primary)
+                                    .clickable {
+                                        onCauseOfRevelationClick("${item.pageContent.surahNum}-${item.pageContent.verseNum}")
+                                    }
+                                    .padding(4.dp, 6.dp)
+                            ) {
+                                Text(
+                                    text = "سبب النزول",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .weight(1.0f)
+                                    .background(Color.Transparent)
+                                    .padding(4.dp, 6.dp)
+                            ) {}
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .weight(1.0f)
+                                    .background(Color.Transparent)
+                                    .padding(4.dp, 6.dp)
+                            ) {}
                         }
                     }
                 }
@@ -1468,32 +1534,4 @@ fun VersesBottomSheet(
             }
         }
     }
-}
-
-fun checkNetworkConnectivity(context: Context): Boolean {
-    val connectivityManager =
-        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        val networkCapabilities = connectivityManager.activeNetwork ?: return false
-        val activeNetwork =
-            connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
-
-        return when {
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-            // Other transports like Bluetooth, Ethernet, etc.
-            else -> false
-        }
-    } else {
-        // For devices with SDK < 23
-        val activeNetworkInfo = connectivityManager.activeNetworkInfo
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected
-    }
-}
-
-fun savePageNumAsLatest(num: Int, context: Context) {
-    val sharedPreferences = context.getSharedPreferences("", Context.MODE_PRIVATE);
-    sharedPreferences.edit().putInt("lastReadPage", num).apply();
-    Toast.makeText(context, "تم حفظ رقم الصفحة للعودة السريعة", Toast.LENGTH_LONG).show();
 }

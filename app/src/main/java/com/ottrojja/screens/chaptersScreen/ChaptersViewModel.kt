@@ -130,7 +130,7 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
         }
 
     fun sliderChanged(value: Float) {
-      //  println("vm changing position to $value")
+        //  println("vm changing position to $value")
         _sliderPosition.value = value;
         audioService?.setSliderPosition(value)
     }
@@ -248,8 +248,12 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
     fun unbindFromService() {
         _selectedSurah.value = ChapterData("", "", 0, "", 0);
-        if (audioService != null) {
-            context.unbindService(serviceConnection)
+        if (audioService != null && serviceConnection != null) {
+            try { //this just keeps causing crashes
+                context.unbindService(serviceConnection)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -349,13 +353,12 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
     fun getChaptersList(): List<ChapterData> {
         return chaptersList.filter { chapter ->
-            chapter.chapterName.contains(_searchFilter) || chapter.surahId.toString()
-                .contains(_searchFilter) || chapter.surahId.toString().contains(
-                convertToArabicNumbers(_searchFilter)
+            chapter.chapterName.contains(_searchFilter) || chapter.surahId.toString() == convertToArabicNumbers(
+                _searchFilter
             )
+                    || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
         };
     }
-
 
 
 }

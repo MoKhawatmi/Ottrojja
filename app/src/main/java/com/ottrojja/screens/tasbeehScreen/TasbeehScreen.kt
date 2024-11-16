@@ -57,6 +57,7 @@ import com.ottrojja.R
 import com.ottrojja.classes.Screen
 import com.ottrojja.classes.Tasabeeh
 import com.ottrojja.composables.Header
+import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.ui.theme.timeNormal
 
 @Composable
@@ -72,32 +73,13 @@ fun TasbeehScreen(
         Row(
             modifier = Modifier
                 .padding(0.dp, 6.dp, 0.dp, 6.dp)
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            TasbeehTab.entries.forEachIndexed { index, option ->
-                Column() {
-                    Text(text = option.toString(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        color = if (tasbeehScreenViewModel.selectedTab == option) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .padding(2.dp, 0.dp)
-                            .clip(shape = RoundedCornerShape(50))
-                            .drawBehind {
-                                if (tasbeehScreenViewModel.selectedTab == option) {
-                                    drawCircle(
-                                        color = primaryColor, radius = this.size.maxDimension
-                                    )
-                                }
-                            }
-                            .clickable { tasbeehScreenViewModel.selectedTab = option }
-                            .defaultMinSize(minWidth = 100.dp)
-                            .padding(0.dp, 6.dp, 0.dp, 6.dp))
-                }
-            }
+            OttrojjaTabs(
+                items = TasbeehTab.entries,
+                selectedItem = tasbeehScreenViewModel.selectedTab,
+                onClickTab = { item -> tasbeehScreenViewModel.selectedTab = item })
         }
 
         if (tasbeehScreenViewModel.selectedTab == TasbeehTab.المسبحة) {

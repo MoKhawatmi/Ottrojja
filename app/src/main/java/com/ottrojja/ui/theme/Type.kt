@@ -70,6 +70,17 @@ val Typography = Typography(
         localeList = LocaleList(Locale("ar"))
 
     ),
+    labelSmall = TextStyle(  // this is used with teacher
+        fontFamily = uthmanic,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp,
+        textDirection = TextDirection.Rtl,
+        textAlign = TextAlign.Start,
+        localeList = LocaleList(Locale("ar"))
+
+    ),
     displayMedium = TextStyle(
         // fontFamily = qalam,
         fontWeight = FontWeight.Normal,
@@ -81,7 +92,7 @@ val Typography = Typography(
     displayLarge = TextStyle(
         fontFamily = qalam,
         fontWeight = FontWeight.Normal,
-        fontSize = 26.sp,
+        fontSize = 24.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp,
         textDirection = TextDirection.Rtl

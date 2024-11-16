@@ -114,4 +114,21 @@ class QuranRepository(private val quranDao: QuranDao) {
     suspend fun getAzkarCount(): Int {
         return quranDao.getAzkarCount()
     }
+
+    suspend fun insertAllCausesOfRevelation(CausesOfRevelation: List<CauseOfRevelation>) {
+        return quranDao.insertCausesOfRevelationData(CausesOfRevelation)
+    }
+
+    suspend fun getAllCausesOfRevelation(): List<CauseOfRevelation> {
+        return quranDao.getAllCausesOfRevelationData()
+    }
+
+    suspend fun getCauseOfRevelation(surahNum: String, verseNum: String): List<CauseOfRevelation> {
+        return quranDao.getCauseOfRevelationData(surahNum, verseNum)
+    }
+
+    suspend fun getCauseOfRevelationCount(): Int {
+        return quranDao.getCausesOfRevelationCount()
+    }
+
 }

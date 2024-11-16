@@ -17,11 +17,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +40,7 @@ import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.composables.Header
 import com.ottrojja.composables.OttrojjaDialog
+import com.ottrojja.composables.SwitchWithIcon
 
 
 @Composable
@@ -45,6 +49,10 @@ fun SettingsScreen(
     settingsScreenViewModel: SettingsScreenViewModel = viewModel()
 ) {
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        settingsScreenViewModel.getSettings()
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Header()
@@ -95,7 +103,7 @@ fun SettingsScreen(
         if (settingsScreenViewModel.ShowContactDialog) {
             OttrojjaDialog(contentModifier = Modifier
                 .padding(8.dp)
-                .fillMaxHeight(0.7f)
+                .fillMaxHeight(0.5f)
                 .background(MaterialTheme.colorScheme.secondary)
                 .padding(8.dp)
                 .clip(shape = RoundedCornerShape(12.dp)),
@@ -109,7 +117,7 @@ fun SettingsScreen(
                 ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxHeight(0.9f)
+                            .fillMaxHeight(0.8f)
                     ) {
                         Text(
                             "لإقتراحاتكم وللإبلاغ عن اي مشاكل تقنية في التطبيق تواصلوا معنا على البريد الإلكتروني للمشروع",
@@ -158,12 +166,8 @@ fun SettingsScreen(
                                     textAlign = TextAlign.End
                                 )
                             }
-
                         }
-
-
                     }
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -183,6 +187,16 @@ fun SettingsScreen(
             }
         }
 
+        SettingsItem(
+            "نمط القراءة الليلية",
+            { settingsScreenViewModel.toggleNightReadingMode() },
+            content = {
+                SwitchWithIcon(
+                    checked = settingsScreenViewModel.nightReadingMode,
+                    onCheckedChange={ newCheckedState -> settingsScreenViewModel.toggleNightReadingMode() },
+                    icon = Icons.Default.Check
+                )
+            })
         SettingsItem("عن التطبيق", { settingsScreenViewModel.ShowAboutDialog = true })
         SettingsItem("مشاركة التطبيق", {
             val shareIntent = Intent()
@@ -204,12 +218,10 @@ fun SettingsScreen(
                 context.startActivity(intent)
             })
     }
-
-
 }
 
 @Composable
-fun SettingsItem(content: String, onClick: () -> Unit) {
+fun SettingsItem(textContent: String, onClick: () -> Unit, content: @Composable() () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -218,10 +230,14 @@ fun SettingsItem(content: String, onClick: () -> Unit) {
             .padding(12.dp, 2.dp)
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .padding(6.dp, 12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = content, color = Color.Black)
+            Text(text = textContent, color = Color.Black)
+            content()
         }
         HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
     }

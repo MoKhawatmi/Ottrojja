@@ -1,6 +1,6 @@
 package com.ottrojja.screens.loadingScreen
 
-import JsonParser
+import com.ottrojja.classes.JsonParser
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
@@ -14,9 +14,15 @@ import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.storage
+import com.ottrojja.classes.CauseOfRevelation
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.screens.azkarScreen.Azkar
+import com.ottrojja.screens.mainScreen.ChapterData
+import com.ottrojja.screens.mainScreen.PartData
+import com.ottrojja.screens.quranScreen.E3rabData
+import com.ottrojja.screens.quranScreen.TafseerData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -29,7 +35,6 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     var loadingFile = true;
     val jsonParser = JsonParser(context)
 
-
     val sharedPreferences: SharedPreferences =
         application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
     val quranFileCreateTime = sharedPreferences.getLong("quranFileCreateTime", 0L)
@@ -37,7 +42,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     val chaptersJsonVersion = sharedPreferences.getInt("chaptersJsonVersion", 0)
     val partsJsonVersion = sharedPreferences.getInt("partsJsonVersion", 0)
     val e3rabJsonVersion = sharedPreferences.getInt("e3rabJsonVersion", 0)
-
+    val causesOfRevelationJsonVersion = sharedPreferences.getInt("causesOfRevelationJsonVersion", 0)
 
     private var _loaded = mutableStateOf(false)
     var loaded: Boolean
@@ -54,7 +59,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
 
             var versions = hashMapOf<String, Int>()
 
-            withContext(Dispatchers.IO){
+            withContext(Dispatchers.IO) {
                 // fetch json file versions
                 versions = jsonParser.getFilesVersions()
 
@@ -70,7 +75,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             }
 
             if (repository.getChaptersCount() != 114 || versions.get("chapters")!! > chaptersJsonVersion) {
-                jsonParser.parseJsonArrayFileChapters("chaptersList.json")
+                jsonParser.parseJsonArrayFile<ChapterData>("chaptersList.json")
                     ?.let {
                         try {
                             repository.insertAllChapters(it)
@@ -83,7 +88,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             }
 
             if (repository.getPartsCount() != 30 || versions.get("parts")!! > partsJsonVersion) {
-                jsonParser.parseJsonArrayFileParts("partsList.json")
+                jsonParser.parseJsonArrayFile<PartData>("parts.json")
                     ?.let {
                         try {
                             repository.insertAllParts(it)
@@ -95,7 +100,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             }
 
             if (repository.getE3rabsCount() != 6236 || versions.get("e3rab")!! > e3rabJsonVersion) {
-                jsonParser.parseJsonArrayFileE3rab("e3rab.json")?.let {
+                jsonParser.parseJsonArrayFile<E3rabData>("e3rab.json")?.let {
                     try {
                         repository.insertAllE3rabData(it)
                     } catch (e: Exception) {
@@ -106,7 +111,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             }
 
             if (repository.getAzkarCount() == 0 || versions.get("azkar")!! > azkarJsonVersion) {
-                jsonParser.parseJsonArrayFileAzkar("azkar.json")?.let {
+                jsonParser.parseJsonArrayFile<Azkar>("azkar.json")?.let {
                     try {
                         repository.insertAllAzkar(it)
                     } catch (e: Exception) {
@@ -116,9 +121,44 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 sharedPreferences.edit().putInt("azkarJsonVersion", versions.get("azkar")!!).apply()
             }
 
+            if (repository.getCauseOfRevelationCount() == 0 || versions.get("causesOfRevelation")!! > causesOfRevelationJsonVersion) {
+                jsonParser.parseJsonArrayFile<CauseOfRevelation>("causesOfRevelation.json")?.let {
+                    try {
+                        repository.insertAllCausesOfRevelation(it)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+                sharedPreferences.edit()
+                    .putInt("causesOfRevelationJsonVersion", versions.get("causesOfRevelation")!!)
+                    .apply()
+            }
+
+
             if (repository.getTafseersCount() != 6236 * 7) {
                 //insert the available tafseer files to db
-                jsonParser.parseJsonArrayFileTafseer("saadi.json")?.let {
+                val tafaseerList = listOf(
+                    "saadi.json",
+                    "baghawy.json",
+                    "muyassar.json",
+                    "katheer.json",
+                    "waseet.json",
+                    "jalalayn.json",
+                    "qortoby.json"
+                )
+
+                tafaseerList.forEach { tafseerFile ->
+                    jsonParser.parseJsonArrayFile<TafseerData>(tafseerFile)?.let {
+                        try {
+                            repository.insertAllTafseerData(it)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+
+
+                /*jsonParser.parseJsonArrayFile<TafseerData>("baghawy.json")?.let {
                     try {
                         repository.insertAllTafseerData(it)
                     } catch (e: Exception) {
@@ -126,7 +166,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                     }
                 }
 
-                jsonParser.parseJsonArrayFileTafseer("baghawy.json")?.let {
+                jsonParser.parseJsonArrayFile<TafseerData>("muyassar.json")?.let {
                     try {
                         repository.insertAllTafseerData(it)
                     } catch (e: Exception) {
@@ -134,7 +174,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                     }
                 }
 
-                jsonParser.parseJsonArrayFileTafseer("muyassar.json")?.let {
+                jsonParser.parseJsonArrayFile<TafseerData>("katheer.json")?.let {
                     try {
                         repository.insertAllTafseerData(it)
                     } catch (e: Exception) {
@@ -142,7 +182,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                     }
                 }
 
-                jsonParser.parseJsonArrayFileTafseer("katheer.json")?.let {
+                jsonParser.parseJsonArrayFile<TafseerData>("waseet.json")?.let {
                     try {
                         repository.insertAllTafseerData(it)
                     } catch (e: Exception) {
@@ -150,7 +190,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                     }
                 }
 
-                jsonParser.parseJsonArrayFileTafseer("waseet.json")?.let {
+                jsonParser.parseJsonArrayFile<TafseerData>("jalalayn.json")?.let {
                     try {
                         repository.insertAllTafseerData(it)
                     } catch (e: Exception) {
@@ -158,21 +198,13 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                     }
                 }
 
-                jsonParser.parseJsonArrayFileTafseer("jalalayn.json")?.let {
+                jsonParser.parseJsonArrayFile<TafseerData>("qortoby.json")?.let {
                     try {
                         repository.insertAllTafseerData(it)
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
-                }
-
-                jsonParser.parseJsonArrayFileTafseer("qortoby.json")?.let {
-                    try {
-                        repository.insertAllTafseerData(it)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
+                }*/
             }
 
             runBlocking {
@@ -206,7 +238,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     }
 
     private fun parseAndSetQuranData(file: File, updatingData: Boolean = false) {
-        jsonParser.parseJsonArrayFileFromFilesDir(context, file.name)?.let {
+        jsonParser.parseJsonArrayFileFromFilesDir(file.name)?.let {
             if (it.isNotEmpty()) {
                 insertQuranDataInDb(it, updatingData)
             } else {
@@ -279,7 +311,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
         println("use assets file")
         try {
             val jsonParser = JsonParser(context)
-            jsonParser.parseJsonArrayFile("quran.json")
+            jsonParser.parseJsonArrayFile<QuranPage>("quran.json")
                 ?.let { insertQuranDataInDb(it, false) }
         } catch (e: Exception) {
             println("assets file failed")

@@ -57,6 +57,7 @@ import com.ottrojja.composables.LegacySeekBar
 import com.ottrojja.composables.LoadingDialog
 import com.ottrojja.composables.MediaSeekBar
 import com.ottrojja.composables.MediaSlider
+import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.quranScreen.NoRippleInteractionSource
 import com.ottrojja.screens.quranScreen.YouTube
@@ -162,41 +163,14 @@ fun ZikrScreen(
                 )
             }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            zikrViewModel.zikrTabs.forEach { option ->
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = option,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        color = if (zikrViewModel.selectedTab == option) MaterialTheme.colorScheme.onPrimary else primaryColor,
-                        modifier = Modifier
-                            .padding(4.dp, 0.dp)
-                            .clip(shape = RoundedCornerShape(50))
-                            .drawBehind {
-                                if (zikrViewModel.selectedTab == option) {
-                                    drawCircle(
-                                        color = primaryColor,
-                                        radius = this.size.maxDimension
-                                    )
-                                }
-                            }
-                            .clickable { zikrViewModel.selectedTab = option }
-                            .defaultMinSize(minWidth = 100.dp)
-                            .padding(16.dp, 6.dp, 16.dp, 6.dp)
-                    )
-                }
-            }
-        }
+
+        OttrojjaTabs(
+            items = ZikrViewModel.ZikrTab.entries,
+            selectedItem = zikrViewModel.selectedTab,
+            onClickTab = { item -> zikrViewModel.selectedTab = item })
+
         when (zikrViewModel.selectedTab) {
-            "الذكر" -> ZikrSection(
+            ZikrViewModel.ZikrTab.الذكر -> ZikrSection(
                 zikr = zikr.value,
                 zikrViewModel.showController,
                 zikrViewModel.isPlaying,
@@ -212,12 +186,11 @@ fun ZikrScreen(
                 { value -> zikrViewModel.sliderChanged(value) },
                 zikrViewModel.playbackSpeed
             );
-            "الفيديو" -> YouTube(link = zikr.value.ytLink.split("v=").last())
+            ZikrViewModel.ZikrTab.الفيديو -> YouTube(link = zikr.value.ytLink.split("v=").last())
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ZikrSection(
     zikr: Azkar,

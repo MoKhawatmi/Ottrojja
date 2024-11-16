@@ -46,19 +46,23 @@ import androidx.navigation.NavController
 import com.ottrojja.classes.Screen
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextAlign
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
 import com.ottrojja.composables.Header
+import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 
 @Composable
@@ -69,13 +73,13 @@ fun MainScreen(
 ) {
     val context = LocalContext.current;
     val application = context.applicationContext as Application
+    val focusManager: FocusManager = LocalFocusManager.current
+
 
     val mainViewModel: MainViewModel = viewModel(
         factory = MainViewModelFactory(repository, application)
     )
 
-
-    val browsingOptions = arrayOf("الصفحات", "الاجزاء", "السور", "البحث")
     val primaryColor = MaterialTheme.colorScheme.primary;
 
     LaunchedEffect(Unit) {
@@ -127,7 +131,13 @@ fun MainScreen(
                                 shape = RoundedCornerShape(10.dp)
                             )
                             .clip(RoundedCornerShape(10))
-                            .clickable { navController.navigate(Screen.QuranScreen.invokeRoute(mainViewModel.mostRecentPage)) }
+                            .clickable {
+                                navController.navigate(
+                                    Screen.QuranScreen.invokeRoute(
+                                        mainViewModel.mostRecentPage
+                                    )
+                                )
+                            }
                             .padding(12.dp, 8.dp)
                     ) {
                         Text(
@@ -158,7 +168,8 @@ fun MainScreen(
                         )
                         .fillMaxWidth()
                         .clickable {
-                            mainViewModel.selectedSection = 0; mainViewModel.showImageList = false;
+                            mainViewModel.selectedSection = MainViewModel.BrowsingOption.الصفحات;
+                            mainViewModel.showImageList = false;
                         }
                         .padding(12.dp)
                 ) {
@@ -192,7 +203,9 @@ fun MainScreen(
                         )
                         .fillMaxWidth()
                         .clickable {
-                            mainViewModel.selectedSection = 2; mainViewModel.showImageList = false;
+                            mainViewModel.selectedSection =
+                                MainViewModel.BrowsingOption.السور; mainViewModel.showImageList =
+                            false;
                         }
                         .padding(12.dp)
                 ) {
@@ -226,7 +239,9 @@ fun MainScreen(
                         )
                         .fillMaxWidth()
                         .clickable {
-                            mainViewModel.selectedSection = 1; mainViewModel.showImageList = false;
+                            mainViewModel.selectedSection =
+                                MainViewModel.BrowsingOption.الاجزاء; mainViewModel.showImageList =
+                            false;
                         }
                         .padding(12.dp)
                 ) {
@@ -260,7 +275,7 @@ fun MainScreen(
                         )
                         .fillMaxWidth()
                         .clickable {
-                            mainViewModel.selectedSection = 3;
+                            mainViewModel.selectedSection = MainViewModel.BrowsingOption.البحث;
                             mainViewModel.invokeLatestSearchOperation();
                             mainViewModel.showImageList =
                                 false;
@@ -306,7 +321,7 @@ fun MainScreen(
                     value = mainViewModel.searchFilter,
                     onValueChange = { newText ->
                         mainViewModel.searchFilter = newText
-                        if (mainViewModel.selectedSection == 3) {
+                        if (mainViewModel.selectedSection == MainViewModel.BrowsingOption.البحث) {
                             mainViewModel.searchInQuran(newText)
                         }
                     },
@@ -315,59 +330,33 @@ fun MainScreen(
                 )
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                browsingOptions.forEachIndexed { index, option ->
-                    Column() {
-                        Text(
-                            text = option,
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center,
-                            color = if (mainViewModel.selectedSection == index) MaterialTheme.colorScheme.onPrimary else primaryColor,
-                            modifier = Modifier
-                                .padding(2.dp, 0.dp)
-                                .clip(shape = RoundedCornerShape(50))
-                                .drawBehind {
-                                    if (mainViewModel.selectedSection == index) {
-                                        drawCircle(
-                                            color = primaryColor,
-                                            radius = this.size.maxDimension
-                                        )
-                                    }
-                                }
-                                .clickable {
-                                    mainViewModel.selectedSection = index;
-                                    mainViewModel.searchFilter = "";
-                                    if (mainViewModel.selectedSection == 3) {
-                                        mainViewModel.quranSearchResults.clear()
-                                        mainViewModel.invokeLatestSearchOperation()
-                                    }
-                                }
-                                .defaultMinSize(minWidth = 100.dp)
-                                .padding(0.dp, 6.dp, 0.dp, 6.dp)
-                        )
+            OttrojjaTabs(
+                items = MainViewModel.BrowsingOption.entries,
+                selectedItem = mainViewModel.selectedSection,
+                onClickTab = { option ->
+                    mainViewModel.selectedSection = option;
+                    mainViewModel.searchFilter = "";
+                    focusManager.clearFocus();
+                    if (mainViewModel.selectedSection == MainViewModel.BrowsingOption.البحث) {
+                        mainViewModel.quranSearchResults.clear()
+                        mainViewModel.invokeLatestSearchOperation()
                     }
-                }
-            }
+                })
+
             when (mainViewModel.selectedSection) {
-                0 -> {
+                MainViewModel.BrowsingOption.الصفحات -> {
                     BrowseMenu(mainViewModel.getPagesList(), navController)
                 }
 
-                1 -> {
-                    PartsMenu(mainViewModel.getPartsList(), navController)
-                }
-
-                2 -> {
+                MainViewModel.BrowsingOption.السور -> {
                     ChaptersMenu(mainViewModel.getChaptersList(), navController)
                 }
 
-                3 -> {
+                MainViewModel.BrowsingOption.الاجزاء -> {
+                    PartsMenu(mainViewModel.getPartsList(), navController)
+                }
+
+                MainViewModel.BrowsingOption.البحث -> {
                     SearchMenu(
                         mainViewModel.quranSearchResults,
                         navController,
@@ -400,7 +389,7 @@ fun BrowseMenu(
                     navController.navigate(Screen.QuranScreen.invokeRoute(item.split(" ")[1]))
                 }
             ) {
-                Row(
+                Row( //Materialtheme.typography.bodylarge
                     modifier = Modifier.padding(12.dp)
                 ) {
                     Text(text = item, color = Color.Black)
@@ -434,10 +423,23 @@ fun PartsMenu(
                 }
             ) {
                 Row(
-                    modifier = Modifier.padding(12.dp)
+                    modifier = Modifier.padding(12.dp, 12.dp, 12.dp, 0.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(text = item.partName, color = Color.Black)
                 }
+                Row(
+                    modifier = Modifier.padding(12.dp, 0.dp, 0.dp, 0.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = "{${item.firstWords}}",
+                        color = Color.Black,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+
+
                 HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
             }
         }

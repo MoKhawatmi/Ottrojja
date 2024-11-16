@@ -1,15 +1,16 @@
 package com.ottrojja.composables
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,7 +32,6 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PillShapedTextFieldWithIcon(
     value: String,
@@ -48,7 +48,7 @@ fun PillShapedTextFieldWithIcon(
             shape = CircleShape
         )
         .border(1.dp, Color.Black.copy(alpha = 0.2f), shape = CircleShape)
-        .padding(horizontal = 16.dp, vertical = 8.dp)
+        .padding(horizontal = 16.dp, vertical = 10.dp)
         .onFocusChanged { isFocused = it.isFocused }
 
     Row(
@@ -59,16 +59,10 @@ fun PillShapedTextFieldWithIcon(
             leadingIcon,
             contentDescription = null,
             tint = Color.Black,
-            modifier = Modifier.size(12.dp)
+            modifier = Modifier.size(14.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
-        /*if (value.isEmpty()) {
-            Text(
-                text = placeHolder,
-                modifier = Modifier.fillMaxWidth().background(Color.Transparent),
-                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.outlineVariant),
-            )
-        }*/
+
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
@@ -77,8 +71,9 @@ fun PillShapedTextFieldWithIcon(
             singleLine = true,
             modifier = Modifier
                 .weight(0.9f)
-                .padding(vertical = 4.dp)
-                .onFocusChanged { isFocused = it.isFocused },
+                .height(28.dp)
+                .wrapContentHeight(align = Alignment.CenterVertically)
+                .onFocusChanged { isFocused = it.isFocused }
         )
     }
 }

@@ -8,7 +8,6 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.widget.Toast
-import kotlinx.coroutines.GlobalScope
 
 object Helpers {
     fun convertToIndianNumbers(arabicNumber: String): String {
@@ -54,7 +53,6 @@ object Helpers {
                 context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clipData = ClipData.newPlainText("text", text)
             clipboardManager.setPrimaryClip(clipData)
-            Toast.makeText(context, successToast, Toast.LENGTH_LONG).show();
         } catch (e: Exception) {
             println(e);
             Toast.makeText(context, "تعذر النسخ", Toast.LENGTH_LONG).show();
@@ -91,10 +89,6 @@ object Helpers {
             val activeNetworkInfo = connectivityManager.activeNetworkInfo
             return activeNetworkInfo != null && activeNetworkInfo.isConnected
         }
-    }
-
-    fun duh() {
-
     }
 
 

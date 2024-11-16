@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.ottrojja.classes.CauseOfRevelation
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
@@ -64,7 +65,7 @@ interface QuranDao {
     fun getE3rabsCount(): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertTafseerData(chapters: List<TafseerData>)
+    fun insertTafseerData(tafseers: List<TafseerData>)
 
     @Query("SELECT * FROM TafseerData")
     fun getAllTafseerData(): List<TafseerData>
@@ -88,6 +89,16 @@ interface QuranDao {
     @Query("SELECT count(*) FROM Azkar")
     fun getAzkarCount(): Int
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertCausesOfRevelationData(causesOfRevelation: List<CauseOfRevelation>)
 
+    @Query("SELECT * FROM CauseOfRevelation")
+    fun getAllCausesOfRevelationData(): List<CauseOfRevelation>
+
+    @Query("SELECT * FROM CauseOfRevelation WHERE sura=:surahNum AND (verses LIKE '%' || :verseNum || ',%' OR verses = :verseNum)")
+    fun getCauseOfRevelationData(surahNum: String, verseNum: String): List<CauseOfRevelation>
+
+    @Query("SELECT count(*) FROM CauseOfRevelation")
+    fun getCausesOfRevelationCount(): Int
 
 }
