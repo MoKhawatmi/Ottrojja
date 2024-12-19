@@ -146,6 +146,12 @@ fun QuranScreen(
         }
     }
 
+    DisposableEffect(Unit) {
+        onDispose {
+            quranViewModel.releasePlayer()
+        }
+    }
+
     BackHandler {
         handleBackBehaviour()
     }

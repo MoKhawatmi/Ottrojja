@@ -5,8 +5,11 @@ import android.app.Service
 import android.content.Intent
 import android.media.MediaPlayer
 import android.media.PlaybackParams
+import android.net.Uri
 import android.os.Binder
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.widget.RemoteViews
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
@@ -14,11 +17,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.app.NotificationCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.MainActivity
 import com.ottrojja.R
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 import java.io.File
+import java.net.URI
 import java.util.Timer
 import java.util.TimerTask
 
@@ -47,12 +58,13 @@ interface AudioServiceInterface {
 
 
 class MediaPlayerService : Service(), AudioServiceInterface {
-    var mediaPlayer: MutableState<MediaPlayer>? = null
-    var length = 0;
+    //var mediaPlayer: MutableState<MediaPlayer>? = null
+    var length: Long = 0;
     var currentlyPlaying = "";
     val playbackParams = PlaybackParams()
     private var _playbackSpeed = MutableStateFlow<Float>(1.0f)
-    lateinit var timer: Timer
+
+    //lateinit var timer: Timer
     private val _isPlaying = MutableStateFlow<Boolean>(false)
     private val _isPaused = MutableStateFlow<Boolean>(false)
     private val _sliderPosition = MutableStateFlow<Float>(0f)
@@ -62,12 +74,86 @@ class MediaPlayerService : Service(), AudioServiceInterface {
     private val _playingZikr = MutableStateFlow<Boolean>(false)
     private val _destroyed = MutableStateFlow<Boolean>(false)
     private val resumeFlag = MutableStateFlow<Int>(0)
+    lateinit var exoPlayer: ExoPlayer;
+
+    private val handler = Handler(Looper.getMainLooper())
 
 
     inner class YourBinder : Binder() {
         fun getService(): AudioServiceInterface {
             return this@MediaPlayerService;
         }
+    }
+
+    fun initializePlayer() {
+        val context = this
+        exoPlayer = ExoPlayer.Builder(this).build();
+
+        exoPlayer.addListener(
+            object : Player.Listener {
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    println("Listener is Playing $isPlaying")
+                }
+
+
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    super.onPlaybackStateChanged(playbackState)
+
+                    if (playbackState == Player.STATE_READY) {
+                        println("ExoPlayer State Ready")
+
+                        _maxDuration.value = exoPlayer.duration.toFloat()
+                        println("track duration ${_maxDuration.value}")
+                        /*timer = Timer();
+                        timer.schedule(object : TimerTask() {
+                            override fun run() {
+                                val currPosition = exoPlayer.currentPosition.toFloat() //mediaPlayer?.value?.currentPosition!!.toFloat();
+                                // temp solution to the position decreasing for an ununderstandable reason on higher level apis,
+                                // switch to exoplayer later
+                                if (currPosition > _sliderPosition.value) {
+                                    _sliderPosition.value = currPosition;
+                                }
+                            }
+                        }, 0, 400)*/
+                        val updateProgressAction = object : Runnable {
+                            override fun run() {
+                                val currPosition = exoPlayer.currentPosition.toFloat()
+                                println("i run $currPosition")
+                                _sliderPosition.value = currPosition;
+                                handler.postDelayed(this, 400)
+                            }
+                        }
+                        handler.postDelayed(updateProgressAction, 400) // Repeat every 400ms
+                    }
+
+                    if (playbackState == Player.STATE_ENDED) {
+                        println("ExoPlayer State Ended")
+                        length = 0;
+                        resetPlayer()
+                        _isPlaying.value = false;
+                        /*if (::timer.isInitialized) {
+                            timer.cancel();
+                            timer.purge();
+                        }*/
+                        handler.removeCallbacksAndMessages(null)
+                        if (_playingChapter.value) {
+                            if (_selectedChapterId.value != "114") {
+                                playNextChapter();
+                            } else {
+                                prepareForNewTrack()
+                            }
+                        }
+                    }
+                }
+
+                override fun onPlayerError(error: PlaybackException) {
+                    super.onPlayerError(error)
+                    println(error.printStackTrace())
+                    Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
+                        .show()
+                }
+            }
+        )
     }
 
     override fun getSelectedChapterId(): StateFlow<String> {
@@ -111,9 +197,10 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
     override fun setSliderPosition(value: Float) {
         _sliderPosition.value = value;
-        mediaPlayer?.value?.pause()
+        /*mediaPlayer?.value?.pause()
         mediaPlayer?.value?.seekTo(value.toInt());
-        mediaPlayer?.value?.start();
+        mediaPlayer?.value?.start();*/
+        exoPlayer.seekTo(value.toLong())
     }
 
     override fun isServiceRunning(): Boolean {
@@ -121,8 +208,9 @@ class MediaPlayerService : Service(), AudioServiceInterface {
     }
 
     override fun getPlayingState(link: String, playingChapter: Boolean): StateFlow<Boolean> {
-        println("media player playing ${mediaPlayer?.value?.isPlaying}")
-        if (mediaPlayer?.value?.isPlaying == true) {
+        //println("media player playing ${mediaPlayer?.value?.isPlaying}")
+        println("exo player playing ${exoPlayer.isPlaying}")
+        if (/*mediaPlayer?.value?.isPlaying*/ exoPlayer.isPlaying == true) {
             _isPlaying.value =
                 (!currentlyPlaying.contains("azkar") && playingChapter) || (currentlyPlaying == link)
         } else {
@@ -141,7 +229,7 @@ class MediaPlayerService : Service(), AudioServiceInterface {
             _playingZikr.value = false;
             _playingChapter.value = true;
             playNewTrack(link)
-        } else if (_playingChapter.value && _isPaused.value && length != 0 && currentlyPlaying == link) {
+        } else if (_playingChapter.value && _isPaused.value && length != 0L && currentlyPlaying == link) {
             resumeTrack();
         } else {
             _playingZikr.value = false;
@@ -161,7 +249,7 @@ class MediaPlayerService : Service(), AudioServiceInterface {
             _playingZikr.value = true;
             _playingChapter.value = false;
             playNewTrack(link)
-        } else if (_playingZikr.value && _isPaused.value && length != 0 && currentlyPlaying == link) {
+        } else if (_playingZikr.value && _isPaused.value && length != 0L && currentlyPlaying == link) {
             resumeTrack();
         } else {
             _playingZikr.value = true;
@@ -180,14 +268,15 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         _playingChapter.value = false;
         _sliderPosition.value = 0F;
         _selectedChapterId.value = "";
-        mediaPlayer?.value?.reset();
-
+        //mediaPlayer?.value?.reset();
+        resetPlayer()
     }
 
     private fun resumeTrack() {
         println("resuming")
-        mediaPlayer?.value?.seekTo(length);
-        mediaPlayer?.value?.start();
+        /*mediaPlayer?.value?.seekTo(length);
+        mediaPlayer?.value?.start();*/
+        exoPlayer.play()
     }
 
     private fun playNewTrack(link: String) {
@@ -195,8 +284,9 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         println(link)
         prepareForNewTrack();
         currentlyPlaying = link;
-        playbackParams.speed = _playbackSpeed.value
-        var mediaSrc: String;
+        //playbackParams.speed = _playbackSpeed.value
+        updatePlaybackSpeed()
+        var mediaSrc: Uri;
 
         //check offline playing possiblity
         val path = link.split("/").last()
@@ -213,14 +303,22 @@ class MediaPlayerService : Service(), AudioServiceInterface {
             return;
         }
         if (localFile.exists()) {
-            mediaSrc = localFile.absolutePath
+            //mediaSrc = localFile.absolutePath
+            mediaSrc = Uri.fromFile(localFile)
             println("file found ${localFile.path}")
         } else {
-            mediaSrc = link
+            mediaSrc = Uri.parse(link)
+        }
+
+        exoPlayer.apply {
+            val mediaItem = MediaItem.fromUri(mediaSrc)
+            setMediaItem(mediaItem)
+            prepare()
+            play()
         }
 
 
-        mediaPlayer?.value?.apply {
+        /*mediaPlayer?.value?.apply {
             reset()
             setDataSource(mediaSrc)
             setPlaybackParams(playbackParams)
@@ -259,26 +357,30 @@ class MediaPlayerService : Service(), AudioServiceInterface {
                     }
                 }
             }
-        }
+        }*/
     }
 
     private fun prepareForNewTrack() {
-        if (::timer.isInitialized) {
+        /*if (::timer.isInitialized) {
             timer.cancel();
             timer.purge();
-        }
+        }*/
+        handler.removeCallbacksAndMessages(null)
         length = 0;
         _maxDuration.value = 0f;
         _sliderPosition.value = 0f;
         _playbackSpeed.value = 1.0f
-        mediaPlayer?.value?.reset();
+        //mediaPlayer?.value?.reset();
+        resetPlayer()
     }
 
     override fun pause() {
-        length = mediaPlayer?.value?.currentPosition!!;
+        //length = mediaPlayer?.value?.currentPosition!!;
+        length = exoPlayer.currentPosition
         _isPlaying.value = false;
         _isPaused.value = true;
-        mediaPlayer?.value?.pause()
+        exoPlayer.pause()
+        //mediaPlayer?.value?.pause()
     }
 
     override fun increaseSpeed() {
@@ -301,7 +403,7 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
 
     fun updatePlaybackSpeed() {
-        try {
+        /*try {
             val playbackParams = PlaybackParams()
             playbackParams.speed = _playbackSpeed.value
             mediaPlayer?.value?.playbackParams = playbackParams;
@@ -311,7 +413,8 @@ class MediaPlayerService : Service(), AudioServiceInterface {
             val playbackParams = PlaybackParams()
             playbackParams.speed = 1.0F
             mediaPlayer?.value?.playbackParams = playbackParams;
-        }
+        }*/
+        exoPlayer.playbackParameters = PlaybackParameters(_playbackSpeed.value)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -325,11 +428,13 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
                     Actions.STOP.toString() -> {
                         println("stopping media inside app")
-                        if (::timer.isInitialized) {
+                        /*if (::timer.isInitialized) {
                             timer.cancel();
                             timer.purge();
-                        }
-                        mediaPlayer?.value?.reset();
+                        }*/
+                        handler.removeCallbacksAndMessages(null)
+                        //mediaPlayer?.value?.reset();
+                        resetPlayer()
                         _isPlaying.value = false;
                         _isPaused.value = false;
                         _playingChapter.value = false;
@@ -339,15 +444,19 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
                     Actions.TERMINATE.toString() -> {
                         println("stopping self")
-                        if (::timer.isInitialized) {
+                        /*if (::timer.isInitialized) {
                             timer.cancel();
                             timer.purge();
-                        }
-                        if (mediaPlayer != null) {
+                        }*/
+                        handler.removeCallbacksAndMessages(null)
+                        /*if (mediaPlayer != null) {
                             mediaPlayer?.value?.reset();
                             mediaPlayer?.value?.release();
                         }
-                        mediaPlayer = null;
+                        mediaPlayer = null;*/
+                        if (::exoPlayer.isInitialized) {
+                            releasePlayer()
+                        }
                         _isPlaying.value = false;
                         _isPaused.value = false;
                         _playingChapter.value = false;
@@ -362,12 +471,11 @@ class MediaPlayerService : Service(), AudioServiceInterface {
                         if (!_isPlaying.value) {
                             resumeTrack()
                             resumeFlag.value++;
-                            // getPlayingState(currentlyPlaying, _playingChapter.value)
                         }
                     }
 
                     Actions.NOTI_PAUSE.toString() -> {
-                        if (mediaPlayer?.value?.isPlaying == true) {
+                        if (exoPlayer.isPlaying == true) {
                             pause()
                         }
                     }
@@ -377,31 +485,28 @@ class MediaPlayerService : Service(), AudioServiceInterface {
             }
         }
 
-        //return super.onStartCommand(intent, flags, startId)
         return android.app.Service.START_REDELIVER_INTENT
     }
 
     fun startService() {
         println("starting service")
-        if (mediaPlayer != null) {
+        /*if (mediaPlayer != null) {
             mediaPlayer?.value?.reset();
             mediaPlayer?.value?.release();
         }
-        mediaPlayer = mutableStateOf(MediaPlayer())
+        mediaPlayer = mutableStateOf(MediaPlayer())*/
+
+        if (::exoPlayer.isInitialized) {
+            releasePlayer()
+        }
+        initializePlayer()
 
         val notificationLayout = buildNotificationLayout()
-
-        /*val pendingIntent: PendingIntent =
-            Intent(this, MainActivity::class.java).let { notificationIntent ->
-                PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
-            }*/
-
 
         val notification = NotificationCompat.Builder(this, "PLAYER_CHANNEL")
             .setSmallIcon(R.drawable.logo)
             .setContentTitle("تطبيق اترجة")
             .setContentText("")
-            // .setContentIntent(pendingIntent)
             .setCustomContentView(notificationLayout)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setSilent(true)
@@ -458,6 +563,18 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
     override fun resumeClicked(): StateFlow<Int> {
         return resumeFlag;
+    }
+
+    fun resetPlayer() {
+        exoPlayer.stop()
+        exoPlayer.seekTo(0)
+        exoPlayer.clearMediaItems()
+    }
+
+    fun releasePlayer() {
+        exoPlayer.stop()
+        exoPlayer.clearMediaItems()
+        exoPlayer.release()
     }
 
 }

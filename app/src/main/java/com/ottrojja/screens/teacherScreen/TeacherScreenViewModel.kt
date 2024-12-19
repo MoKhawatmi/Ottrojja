@@ -3,6 +3,7 @@ package com.ottrojja.screens.teacherScreen
 import android.app.Application
 import android.content.Intent
 import android.media.MediaPlayer
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -17,6 +18,10 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
@@ -326,7 +331,9 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         }
 
 
-    private var _mediaPlayer = MediaPlayer()
+    //private var _mediaPlayer = MediaPlayer()
+
+    var exoPlayer: ExoPlayer;
 
     fun downloadVerse(localFile: File) {
         if (!Helpers.checkNetworkConnectivity(context)) {
@@ -359,7 +366,9 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
 
                         tempFile.copyTo(localFile, overwrite = true)
                         println("download successful")
-                        playVerse()
+                        withContext(Dispatchers.Main) {
+                            playVerse()
+                        }
                     }
 
                 } catch (e: Exception) {
@@ -377,12 +386,12 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         }
     }
 
-    var length = 0;
+    var length: Long = 0;
 
     fun playVerse() {
         if (length > 0) {
-            _mediaPlayer.start()
-            _isPlaying.value = true;
+            exoPlayer.play()
+            //_isPlaying.value = true;
             return;
         }
         val path =
@@ -404,8 +413,16 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             context.startService(stopServiceIntent)
         }
 
+        exoPlayer.apply {
+            val mediaItem =
+                MediaItem.fromUri(Uri.fromFile(File(context.getExternalFilesDir(null), path)))
+            setMediaItem(mediaItem)
+            prepare()
+            play()
+        }
 
-        _mediaPlayer.apply {
+
+        /*_mediaPlayer.apply {
             reset()
             setDataSource(
                 File(
@@ -423,17 +440,21 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
                 _isPlaying.value = false;
                 length = 0
             }
-        }
+        }*/
     }
 
     fun pauseVerse() {
-        length = _mediaPlayer.getCurrentPosition();
-        _mediaPlayer.pause()
-        _isPlaying.value = false;
+        length = exoPlayer.currentPosition;
+        println(length)
+        //_mediaPlayer.pause()
+        exoPlayer.pause()
+        // _isPlaying.value = false;
     }
 
     fun resetMedia() {
-        _mediaPlayer.reset()
+        //_mediaPlayer.reset()
+        exoPlayer.stop()
+        exoPlayer.clearMediaItems()
         _isPlaying.value = false;
         length = 0
     }
@@ -443,11 +464,46 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         resetMedia();
     }
 
+    fun releasePlayer(){
+        exoPlayer.release()
+    }
+
     init {
         // Observe the app's lifecycle using ProcessLifecycleOwner
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
-    }
 
+        exoPlayer = ExoPlayer.Builder(context).build()
+
+        exoPlayer.addListener(
+            object : Player.Listener {
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    _isPlaying.value = isPlaying;
+                    /*if (isPlaying) {
+                        // Active playback.
+                    } else {
+                        // Not playing because playback is paused, ended, suppressed, or the player
+                        // is buffering, stopped or failed. Check player.playWhenReady,
+                        // player.playbackState, player.playbackSuppressionReason and
+                        // player.playerError for details.
+                    }*/
+                }
+
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    super.onPlaybackStateChanged(playbackState)
+                    if (playbackState == Player.STATE_ENDED) {
+                        length = 0;
+                    }
+                }
+
+                override fun onPlayerError(error: PlaybackException) {
+                    super.onPlayerError(error)
+                    println(error.printStackTrace())
+                    Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
+                        .show()
+                }
+            }
+        )
+    }
 
     enum class TeacherMode {
         PAGE_SELECTION, PAGE_TRAINING

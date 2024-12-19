@@ -95,7 +95,7 @@ interface QuranDao {
     @Query("SELECT * FROM CauseOfRevelation")
     fun getAllCausesOfRevelationData(): List<CauseOfRevelation>
 
-    @Query("SELECT * FROM CauseOfRevelation WHERE sura=:surahNum AND (verses LIKE '%' || :verseNum || ',%' OR verses = :verseNum)")
+    @Query("SELECT * FROM CauseOfRevelation WHERE sura=:surahNum AND (verses LIKE '%' || :verseNum || ',%' OR verses LIKE '%,' || :verseNum || '%' OR verses = :verseNum)")
     fun getCauseOfRevelationData(surahNum: String, verseNum: String): List<CauseOfRevelation>
 
     @Query("SELECT count(*) FROM CauseOfRevelation")

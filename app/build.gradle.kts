@@ -14,8 +14,8 @@ android {
         applicationId = "com.ottrojja"
         minSdk = 24
         targetSdk = 34
-        versionCode = 22
-        versionName = "1.7.3"
+        versionCode = 23
+        versionName = "1.7.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -95,5 +95,8 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
+    implementation ("androidx.media3:media3-exoplayer:1.4.0")
+
 
 }

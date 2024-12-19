@@ -98,6 +98,12 @@ fun TeacherScreen(
         factory = TeacherScreenViewModelFactory(repository, application)
     )
 
+    DisposableEffect(Unit) {
+        onDispose {
+            teacherScreenViewModel.releasePlayer();
+        }
+    }
+
     Column(modifier = Modifier.fillMaxHeight(0.9f)) {
         when (teacherScreenViewModel.mode) {
             TeacherScreenViewModel.TeacherMode.PAGE_SELECTION -> PageSelection(
@@ -137,7 +143,7 @@ fun TeacherScreen(
                 playVerse = { teacherScreenViewModel.playVerse() },
                 isPlaying = teacherScreenViewModel.isPlaying,
                 onPauseClicked = { teacherScreenViewModel.pauseVerse() },
-                onDispose = { teacherScreenViewModel.resetMedia() },
+                onDispose = { teacherScreenViewModel.resetMedia(); },
                 showInstructions = teacherScreenViewModel.showInstructionsDialog,
                 infoClicked = { teacherScreenViewModel.showInstructionsDialog = true },
                 hideInstructions = { teacherScreenViewModel.showInstructionsDialog = false }
