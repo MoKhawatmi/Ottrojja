@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -60,6 +61,17 @@ fun MediaSlider(
                 )
             },
             valueRange = 0f..sliderMaxDuration,
+            track = { sliderState ->
+                SliderDefaults.Track(
+                    sliderState = sliderState,
+                    thumbTrackGapSize = 0.dp,
+                    drawStopIndicator = {},
+                    modifier = Modifier
+                        .padding(0.dp)
+                        .scale(scaleX = 1f, scaleY = 0.3f),
+                )
+            },
+            modifier = Modifier.padding(0.dp)
         )
     }
 }

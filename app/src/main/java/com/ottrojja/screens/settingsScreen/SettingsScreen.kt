@@ -74,7 +74,7 @@ fun SettingsScreen(
                 ) {
                     Text(
                         stringResource(R.string.about_app),
-                        style = MaterialTheme.typography.displayMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontSize = 20.sp,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
@@ -90,7 +90,7 @@ fun SettingsScreen(
                         Button(onClick = { settingsScreenViewModel.ShowAboutDialog = false }) {
                             Text(
                                 "إغلاق",
-                                style = MaterialTheme.typography.displayMedium,
+                                style = MaterialTheme.typography.bodyMedium,
                                 fontSize = 20.sp,
                                 textAlign = TextAlign.End
                             )
@@ -121,13 +121,13 @@ fun SettingsScreen(
                     ) {
                         Text(
                             "لإقتراحاتكم وللإبلاغ عن اي مشاكل تقنية في التطبيق تواصلوا معنا على البريد الإلكتروني للمشروع",
-                            style = MaterialTheme.typography.displayMedium,
+                            style = MaterialTheme.typography.bodyMedium,
                             fontSize = 20.sp,
                             textAlign = TextAlign.Start,
                         )
                         Text(
                             text = "ottrojjaapp@gmail.com",
-                            style = MaterialTheme.typography.displayMedium.copy(
+                            style = MaterialTheme.typography.bodyMedium.copy(
                                 textDirection = TextDirection.Ltr,
                                 textAlign = TextAlign.Center
                             ),
@@ -161,7 +161,7 @@ fun SettingsScreen(
                             }) {
                                 Text(
                                     "ارسل بريدا",
-                                    style = MaterialTheme.typography.displayMedium,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     fontSize = 20.sp,
                                     textAlign = TextAlign.End
                                 )
@@ -177,7 +177,7 @@ fun SettingsScreen(
                         Button(onClick = { settingsScreenViewModel.ShowContactDialog = false }) {
                             Text(
                                 "إغلاق",
-                                style = MaterialTheme.typography.displayMedium,
+                                style = MaterialTheme.typography.bodyMedium,
                                 fontSize = 20.sp,
                                 textAlign = TextAlign.End
                             )

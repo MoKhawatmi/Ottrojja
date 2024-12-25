@@ -17,7 +17,7 @@ data class QuranPage(
 ) {}
 @Serializable
 data class PageContent(
-    val type: String = "",
+    val type: PageContentItemType = PageContentItemType.EMPTY,
     val surahName: String = "",
     val surahNum: String = "",
     val surahTotal: String = "",
@@ -26,6 +26,10 @@ data class PageContent(
     val verseText: String = "",
     val verseTextPlain: String = "",
 ) {}
+
+enum class PageContentItemType{
+    verse, surah, EMPTY
+}
 
 /*@Entity
 @Serializable

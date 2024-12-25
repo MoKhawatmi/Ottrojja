@@ -249,7 +249,7 @@ fun ZikrSection(
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = zikr.azkarText,
-                        style = MaterialTheme.typography.displayMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.padding(2.dp, 8.dp)
                     )

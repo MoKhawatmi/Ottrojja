@@ -6,8 +6,6 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -29,7 +27,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,23 +42,19 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.ButtonDefaults.elevatedButtonElevation
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -96,25 +89,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat.startActivity
-import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
-import com.ottrojja.classes.Helpers.copyToClipboard
-import com.ottrojja.classes.MediaPlayerService
+import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.PageContent
+import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
+import com.ottrojja.composables.SelectedVerseContentSection
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 
 
 @SuppressLint("UnrememberedMutableState", "DiscouragedApi")
@@ -157,13 +148,8 @@ fun QuranScreen(
     }
 
     val isPlaying by quranViewModel.isPlaying.collectAsState(initial = false)
-    /*val pageTabsMap: HashMap<String, String> = hashMapOf(
-        "الصفحة" to "page", "الآيات" to "verses", "الفوائد" to "benefits", "الفيديو" to "yt"
-    )*/
-    val primaryColor = MaterialTheme.colorScheme.primary
 
     quranViewModel.isPageBookmarked();
-
 
     fun confirmRemoveBookmark() {
         val alertDialogBuilder = AlertDialog.Builder(context)
@@ -194,121 +180,21 @@ fun QuranScreen(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ElevatedButton(
+                OttrojjaElevatedButton(
                     onClick = { if (!quranViewModel.isBookmarked) quranViewModel.togglePageBookmark() else confirmRemoveBookmark() },
-                    elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    shape = CircleShape,
-                    modifier = Modifier
-                        .padding(4.dp, 0.dp)
-                        .clip(CircleShape)
-                ) {
-                    Icon(
-                        if (quranViewModel.isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                        contentDescription = "Save",
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                ElevatedButton(
-                    onClick = {
-                        val varName = "p_${quranViewModel.currentPageObject.pageNum}"
-                        val resourceId: Int = context.getResources()
-                            .getIdentifier(varName, "drawable", context.packageName)
+                    icon = if (quranViewModel.isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder
+                )
 
-                        val bitmap = BitmapFactory.decodeResource(context.resources, resourceId)
-                        val fileName = "image.png"
-                        val fileOutputStream: FileOutputStream
-                        try {
-                            fileOutputStream =
-                                context.openFileOutput(fileName, Context.MODE_PRIVATE)
-                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
-                            fileOutputStream.close()
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                        }
-
-                        val internalFilePath = File(context.filesDir, fileName).absolutePath
-
-                        val shareIntent = Intent(Intent.ACTION_SEND)
-                        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        shareIntent.type = "image/*"
-                        val imageUri = FileProvider.getUriForFile(
-                            context,
-                            context.getPackageName() + ".fileprovider",
-                            File(internalFilePath)
-                        )
-                        shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
-
-                        shareIntent.putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
-                        shareIntent.putExtra(
-                            Intent.EXTRA_TEXT,
-                            "الصفحة رقم ${quranViewModel.currentPageObject.pageNum}"
-                        )
-
-                        val chooserIntent = Intent.createChooser(shareIntent, "تطبيق اترجة")
-                        chooserIntent.putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
-                        chooserIntent.putExtra(
-                            Intent.EXTRA_TEXT,
-                            "الصفحة رقم ${quranViewModel.currentPageObject.pageNum}"
-                        )
-                        chooserIntent.putExtra(Intent.EXTRA_CONTENT_QUERY, "image/png")
-
-                        context.startActivity(
-                            Intent.createChooser(
-                                shareIntent, "مشاركة الصفحة"
-                            )
-                        );
-
-                        File(internalFilePath).deleteOnExit();
-                    },
-                    elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    shape = CircleShape,
-                    modifier = Modifier
-                        .padding(4.dp, 0.dp)
-                        .clip(CircleShape)
-                ) {
-                    Icon(
-                        Icons.Default.Share,
-                        contentDescription = "Share",
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
-
-                /*ElevatedButton(
-                    onClick = { },
-                    elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    shape = CircleShape,
-                    modifier = Modifier
-                        .padding(0.dp)
-                        .clip(CircleShape)
-                ) {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = "Access Search",
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }*/
-
-            }
-
-            ElevatedButton(
-                onClick = { handleBackBehaviour() },
-                elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
-                contentPadding = PaddingValues(0.dp),
-                shape = CircleShape,
-                modifier = Modifier
-                    .padding(0.dp)
-                    .clip(CircleShape)
-            ) {
-                Icon(
-                    Icons.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.primary,
+                OttrojjaElevatedButton(
+                    onClick = { quranViewModel.sharePage() },
+                    icon = Icons.Default.Share
                 )
             }
+
+            OttrojjaElevatedButton(
+                onClick = { handleBackBehaviour() },
+                icon = Icons.Filled.ArrowBack
+            )
         }
 
         OttrojjaTabs(
@@ -349,7 +235,7 @@ fun QuranScreen(
             }
 
             QuranViewModel.PageTab.الآيات -> VersesSection(
-                quranViewModel.currentPageObject.pageContent.filter { item -> item.type == "verse" },
+                quranViewModel.currentPageObject.pageContent.filter { item -> item.type == PageContentItemType.verse },
                 { targetVerse ->
                     quranViewModel.tafseerTargetVerse = targetVerse;
                     quranViewModel.tafseerSheetMode = "tafseer"
@@ -389,7 +275,7 @@ fun QuranScreen(
                 quranViewModel.showVersesSheet = false;
                 quranViewModel.showTafseerSheet = true
             },
-            quranViewModel.currentPageObject.pageContent.filter { item -> item.type == "verse" });
+            quranViewModel.currentPageObject.pageContent.filter { item -> item.type == PageContentItemType.verse });
 
         TafseerBottomSheet(
             context,
@@ -400,7 +286,11 @@ fun QuranScreen(
             quranViewModel.verseCauseOfRevelation,
             quranViewModel.selectedTafseer,
             onClickTafseerOptions = { quranViewModel.showTafseerOptions = true },
-            mode = quranViewModel.tafseerSheetMode
+            mode = quranViewModel.tafseerSheetMode,
+            atFirstVerse = quranViewModel.atFirstVerse(),
+            atLastVerse = quranViewModel.atLastVerse(),
+            targetNextVerse = { quranViewModel.targetNextVerse() },
+            targetPreviousVerse = { quranViewModel.targetPreviousVerse() }
         )
 
         if (quranViewModel.showRepOptions) {
@@ -424,10 +314,13 @@ fun QuranScreen(
 
 
     if (quranViewModel.showTafseerOptions) {
-        SelectTafseerDialog({ quranViewModel.showTafseerOptions = false }, { selectedTafseer ->
-            quranViewModel.updateSelectedTafseer(selectedTafseer);
-            quranViewModel.showTafseerOptions = false
-        }, quranViewModel.tafseerNamesMap
+        SelectTafseerDialog(
+            { quranViewModel.showTafseerOptions = false },
+            { selectedTafseer ->
+                quranViewModel.updateSelectedTafseer(selectedTafseer);
+                quranViewModel.showTafseerOptions = false
+            },
+            quranViewModel.tafseerNamesMap
         )
     }
 }
@@ -444,6 +337,10 @@ fun TafseerBottomSheet(
     selectedTafseer: String,
     onClickTafseerOptions: () -> Unit,
     mode: String,
+    atFirstVerse: Boolean,
+    atLastVerse: Boolean,
+    targetNextVerse: () -> Unit,
+    targetPreviousVerse: () -> Unit
 ) {
     val modalBottomSheetState = rememberModalBottomSheetState()
 
@@ -453,12 +350,27 @@ fun TafseerBottomSheet(
             sheetState = modalBottomSheetState,
             dragHandle = { BottomSheetDefaults.DragHandle() },
         ) {
-            if (mode == "tafseer") {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.tertiary)
-                ) {
+
+            SelectedVerseContentSection(
+                context = context,
+                text = when (mode) {
+                    "tafseer" -> tafseer
+                    "e3rab" -> e3rab
+                    "causeOfRevelation" -> causeOfRevelation
+                    else -> ""
+                },
+                copiedMessage = when (mode) {
+                    "tafseer" -> "تم تسخ التفسير بنجاح"
+                    "e3rab" -> "تم تسخ الإعراب بنجاح"
+                    "causeOfRevelation" -> "تم تسخ سبب النزول بنجاح"
+                    else -> ""
+                },
+                atFirstVerse = atFirstVerse,
+                atLastVerse = atLastVerse,
+                targetNextVerse = { targetNextVerse() },
+                targetPreviousVerse = { targetPreviousVerse() }
+            ) {
+                if (mode == "tafseer") {
                     Row(horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -478,122 +390,6 @@ fun TafseerBottomSheet(
                             tint = MaterialTheme.colorScheme.onSecondary
                         )
                     }
-                    Row(
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.Top,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        ElevatedButton(
-                            onClick = {
-                                copyToClipboard(
-                                    context,
-                                    tafseer,
-                                    "تم تسخ التفسير بنجاح"
-                                );
-                            },
-                            elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
-                            contentPadding = PaddingValues(0.dp),
-                            shape = CircleShape,
-                            modifier = Modifier
-                                .padding(4.dp, 0.dp)
-                                .clip(CircleShape)
-                        ) {
-                            Icon(
-                                Icons.Default.ContentCopy,
-                                contentDescription = "Copy",
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    }
-                    Text(
-                        text = tafseer,
-                        color = Color.Black,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .verticalScroll(rememberScrollState()),
-                        style = MaterialTheme.typography.displayMedium,
-                        textAlign = TextAlign.Right,
-                    )
-                }
-            } else if (mode == "e3rab") {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.tertiary)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.Top,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        ElevatedButton(
-                            onClick = { copyToClipboard(context, e3rab, "تم تسخ الاعراب بنجاح"); },
-                            elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
-                            contentPadding = PaddingValues(0.dp),
-                            shape = CircleShape,
-                            modifier = Modifier
-                                .padding(4.dp, 0.dp)
-                                .clip(CircleShape)
-                        ) {
-                            Icon(
-                                Icons.Default.ContentCopy,
-                                contentDescription = "Copy",
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    }
-                    Text(
-                        text = e3rab,
-                        color = Color.Black,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .verticalScroll(rememberScrollState()),
-                        style = MaterialTheme.typography.displayMedium,
-                        textAlign = TextAlign.Right,
-                    )
-                }
-            } else if (mode == "causeOfRevelation") {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.tertiary)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.Top,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        ElevatedButton(
-                            onClick = {
-                                copyToClipboard(
-                                    context,
-                                    causeOfRevelation,
-                                    "تم تسخ سبب النزول بنجاح"
-                                );
-                            },
-                            elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
-                            contentPadding = PaddingValues(0.dp),
-                            shape = CircleShape,
-                            modifier = Modifier
-                                .padding(4.dp, 0.dp)
-                                .clip(CircleShape)
-                        ) {
-                            Icon(
-                                Icons.Default.ContentCopy,
-                                contentDescription = "Copy",
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    }
-                    Text(
-                        text = causeOfRevelation,
-                        color = Color.Black,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .verticalScroll(rememberScrollState()),
-                        style = MaterialTheme.typography.displayMedium,
-                        textAlign = TextAlign.Right,
-                    )
                 }
             }
         }
@@ -705,7 +501,7 @@ fun SelectVerseDialog(
             ) {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                     versesList.forEach { option ->
-                        if (option.type == "verse") {
+                        if (option.type == PageContentItemType.verse) {
                             Row(modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { onOptionClick(option) }
@@ -715,7 +511,7 @@ fun SelectVerseDialog(
                                     modifier = Modifier.fillMaxWidth(),
                                     textAlign = TextAlign.Right,
                                     color = MaterialTheme.colorScheme.onSecondary,
-                                    style = MaterialTheme.typography.displayMedium,
+                                    style = MaterialTheme.typography.bodyMedium,
                                 )
                             }
                         } else {
@@ -730,7 +526,7 @@ fun SelectVerseDialog(
                                     modifier = Modifier.fillMaxWidth(),
                                     textAlign = TextAlign.Right,
                                     color = MaterialTheme.colorScheme.onPrimary,
-                                    style = MaterialTheme.typography.displayMedium,
+                                    style = MaterialTheme.typography.bodyMedium,
                                 )
                             }
                         }
@@ -1001,7 +797,7 @@ class NoRippleInteractionSource : MutableInteractionSource {
 
 
 @Composable
-fun SinglePage(pageNum: String, nightReadingMode:Boolean) {
+fun SinglePage(pageNum: String, nightReadingMode: Boolean) {
     val pagePath = "p_$pageNum"
     val configuration = LocalConfiguration.current
     val context = LocalContext.current
@@ -1024,12 +820,16 @@ fun SinglePage(pageNum: String, nightReadingMode:Boolean) {
                 .fillMaxWidth(if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 0.75f else 1.0f)
                 .fillMaxHeight(0.92f),
             contentScale = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) ContentScale.Crop else ContentScale.Fit,
-            colorFilter = if(!nightReadingMode) null else ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(
-                -1f, 0f, 0f, 0f, 255f,
-                0f, -1f, 0f, 0f, 255f,
-                0f, 0f, -1f, 0f, 255f,
-                0f, 0f, 0f, 1f, 0f
-            )))
+            colorFilter = if (!nightReadingMode) null else ColorFilter.colorMatrix(
+                ColorMatrix(
+                    floatArrayOf(
+                        -1f, 0f, 0f, 0f, 255f,
+                        0f, -1f, 0f, 0f, 255f,
+                        0f, 0f, -1f, 0f, 255f,
+                        0f, 0f, 0f, 1f, 0f
+                    )
+                )
+            )
         )
         /*
                         -0.33f, -0.33f, -0.33f, 0f, 255f, // Red channel inversion after grayscale
@@ -1090,7 +890,7 @@ fun Benefits(
                     Text(
                         text = "فوائد الصفحة",
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.displayMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -1136,7 +936,7 @@ fun Benefits(
                     Text(
                         text = benefit,
                         color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.displayMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier
                             .padding(0.dp, 6.dp)
                             .fillMaxWidth(0.92f)
@@ -1149,7 +949,7 @@ fun Benefits(
                     Text(
                         text = "توجيهات الصفحة",
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.displayMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -1196,7 +996,7 @@ fun Benefits(
                     Text(
                         text = guidanceItem,
                         color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.displayMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier
                             .padding(0.dp, 6.dp)
                             .fillMaxWidth(0.92f)
@@ -1209,7 +1009,7 @@ fun Benefits(
                     Text(
                         text = "الجانب التطبيقي",
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.displayMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -1256,7 +1056,7 @@ fun Benefits(
                     Text(
                         text = applianceItem,
                         color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.displayMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier
                             .padding(0.dp, 6.dp)
                             .fillMaxWidth(0.92f)

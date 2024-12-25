@@ -80,6 +80,7 @@ import com.ottrojja.R
 import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.PageContent
+import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
@@ -312,7 +313,8 @@ fun PageTraining(
                 progress = { animatedProgress },
                 modifier = Modifier
                     .fillMaxWidth(),
-                strokeCap = StrokeCap.Square
+                strokeCap = StrokeCap.Square,
+                gapSize = 0.dp
             )
         }
     }
@@ -570,7 +572,7 @@ fun PageTraining(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "${correctVersesAnswered} ايات صحيحة من اصل ${currentPage.pageContent.filter { it.type == "verse" }.size}",
+                    text = "${correctVersesAnswered} ايات صحيحة من اصل ${currentPage.pageContent.filter { it.type == PageContentItemType.verse }.size}",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )

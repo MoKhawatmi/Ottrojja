@@ -14,15 +14,14 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.ottrojja.classes.AudioServiceInterface
+import com.ottrojja.services.AudioServiceInterface
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
-import com.ottrojja.classes.MediaPlayerService
+import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.screens.mainScreen.ChapterData
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient

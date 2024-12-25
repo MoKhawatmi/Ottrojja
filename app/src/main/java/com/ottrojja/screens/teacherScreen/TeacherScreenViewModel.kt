@@ -2,7 +2,6 @@ package com.ottrojja.screens.teacherScreen
 
 import android.app.Application
 import android.content.Intent
-import android.media.MediaPlayer
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.runtime.getValue
@@ -25,8 +24,9 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
-import com.ottrojja.classes.MediaPlayerService
+import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.PageContent
+import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
@@ -151,7 +151,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         viewModelScope.launch(Dispatchers.IO) {
             _selectedPage.value = repository.getPage(pageNum)
             _selectedPageVerses.value =
-                _selectedPage.value.pageContent.filter { it.type == "verse" }.toList()
+                _selectedPage.value.pageContent.filter { it.type == PageContentItemType.verse }.toList()
             println(_selectedPage.value)
             println(_selectedPageVerses.value)
             _currentVerseIndex.value = 0

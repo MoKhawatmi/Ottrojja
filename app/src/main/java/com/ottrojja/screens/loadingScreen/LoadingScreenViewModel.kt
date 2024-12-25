@@ -43,6 +43,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     val partsJsonVersion = sharedPreferences.getInt("partsJsonVersion", 0)
     val e3rabJsonVersion = sharedPreferences.getInt("e3rabJsonVersion", 0)
     val causesOfRevelationJsonVersion = sharedPreferences.getInt("causesOfRevelationJsonVersion", 0)
+    val tafaseerJsonVersion = sharedPreferences.getInt("tafaseerJsonVersion", 0)
 
     private var _loaded = mutableStateOf(false)
     var loaded: Boolean
@@ -134,8 +135,10 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                     .apply()
             }
 
-
-            if (repository.getTafseersCount() != 6236 * 7) {
+            if (repository.getTafseersCount() != 6236 * 7 || versions.get("tafaseer")!! > tafaseerJsonVersion) {
+                println("here!!!!!")
+                println(versions.get("tafaseer"))
+                println(tafaseerJsonVersion)
                 //insert the available tafseer files to db
                 val tafaseerList = listOf(
                     "saadi.json",
@@ -156,6 +159,11 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                         }
                     }
                 }
+
+                sharedPreferences.edit()
+                    .putInt("tafaseerJsonVersion", versions.get("tafaseer")!!)
+                    .apply()
+
 
 
                 /*jsonParser.parseJsonArrayFile<TafseerData>("baghawy.json")?.let {

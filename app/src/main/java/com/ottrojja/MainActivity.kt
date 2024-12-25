@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
-import com.ottrojja.classes.MediaPlayerService
+import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.room.MIGRATION_1_2
 import com.ottrojja.room.MIGRATION_2_3

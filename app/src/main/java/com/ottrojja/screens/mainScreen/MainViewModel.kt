@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
+import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
 import kotlinx.coroutines.Dispatchers
@@ -87,7 +88,7 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
         viewModelScope.launch(Dispatchers.IO) {
             repository.getAllPages().forEach { page ->
                 page.pageContent.forEach { verse ->
-                    if (verse.type == "verse" && (verse.verseText.contains(searchText) || verse.verseTextPlain.contains(
+                    if (verse.type == PageContentItemType.verse && (verse.verseText.contains(searchText) || verse.verseTextPlain.contains(
                             searchText
                         ))
                     ) {

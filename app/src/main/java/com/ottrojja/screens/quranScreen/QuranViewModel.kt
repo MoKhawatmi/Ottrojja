@@ -4,13 +4,14 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.media.MediaPlayer
-import android.media.PlaybackParams
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
@@ -24,10 +25,11 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import com.ottrojja.classes.MediaPlayerService
+import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,6 +52,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
 
     private var _versesPlayList: Array<PageContent> by mutableStateOf(arrayOf<PageContent>());
+
     //var mediaPlayer = MediaPlayer()
     var exoPlayer: ExoPlayer;
 
@@ -74,8 +77,11 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                     if (playbackState == Player.STATE_ENDED) {
                         length = 0;
 
-                        if (!_isPlaying.value) { }
-                        else if (_versesPlayList[currentPlayingIndex.value].type == "verse" && repeatedTimes < repetitionOptionsMap.get(_selectedRepetition)!!) {
+                        if (!_isPlaying.value) {
+                        } else if (_versesPlayList[currentPlayingIndex.value].type == PageContentItemType.verse && repeatedTimes < repetitionOptionsMap.get(
+                                _selectedRepetition
+                            )!!
+                        ) {
                             playAudio(_versesPlayList[currentPlayingIndex.value])
                             repeatedTimes++;
                         } else if (currentPlayingIndex.value < _versesPlayList.size - 1) {
@@ -152,7 +158,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 _currentPageObject = repository.getPage(value)
                 println(_currentPageObject)
                 _versesPlayList = _currentPageObject.pageContent
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     resetPlayer()
                 }
                 val editor: SharedPreferences.Editor = sharedPreferences.edit()
@@ -174,7 +180,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             arrayOf<PageContent>(),
         )
     )
-
     var currentPageObject: QuranPage
         get() = this._currentPageObject
         set(value) {
@@ -215,7 +220,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     private var _selectedVerse by mutableStateOf<PageContent>(
         PageContent(
-            "",
+            PageContentItemType.EMPTY,
             "",
             "",
             "",
@@ -270,7 +275,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 /*val playbackParams = PlaybackParams()
                 playbackParams.speed = _playbackSpeed
                 mediaPlayer.playbackParams = playbackParams;*/
-                exoPlayer.playbackParameters= PlaybackParameters(_playbackSpeed)
+                exoPlayer.playbackParameters = PlaybackParameters(_playbackSpeed)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -286,7 +291,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     private var _tafseerTargetVerse by mutableStateOf("0-0")
     var tafseerTargetVerse: String
-        get() = this._tafseerTargetVerse
+        get() = _tafseerTargetVerse
         set(value) {
             viewModelScope.launch(Dispatchers.IO) {
                 _tafseerTargetVerse = value
@@ -405,7 +410,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 //        mediaPlayer.reset();
         currentPlayingIndex.value = 0;
         _selectedVerse =
-            PageContent("", "", "", "", "", "", "", "");
+            PageContent(PageContentItemType.EMPTY, "", "", "", "", "", "", "");
         setIsPlaying(false);
         length = 0;
         repeatedTimes = 0;
@@ -413,7 +418,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         checkVerseFilesExistance();
     }
 
-    fun releasePlayer(){
+    fun releasePlayer() {
         exoPlayer.release()
     }
 
@@ -436,7 +441,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         println("checking verses of page ${currentPageObject.pageNum}");
         for (item in _versesPlayList) {
             var path: String;
-            if (item.type == "surah") {
+            if (item.type == PageContentItemType.surah) {
                 path = "1-1-1.mp3"
             } else {
                 path = "${currentPageObject.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
@@ -513,14 +518,14 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         playbackParams.speed = this._playbackSpeed*/
 
         var urlParam: String;
-        if (item.type == "surah") {
+        if (item.type == PageContentItemType.surah) {
             urlParam = "1-1-1.mp3"
         } else {
             urlParam = "${currentPageObject.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
         }
         // println(item.toString())
 
-        if (item.type == "surah" && (item.surahNum == "1" || item.surahNum == "9")) {
+        if (item.type == PageContentItemType.surah && (item.surahNum == "1" || item.surahNum == "9")) {
             //skip basmallah for surah 1 and 9
             currentPlayingIndex.value++;
             playAudio(
@@ -529,7 +534,14 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         } else {
             exoPlayer.apply {
                 val mediaItem =
-                    MediaItem.fromUri(Uri.fromFile(File(context.getExternalFilesDir(null), urlParam)))
+                    MediaItem.fromUri(
+                        Uri.fromFile(
+                            File(
+                                context.getExternalFilesDir(null),
+                                urlParam
+                            )
+                        )
+                    )
                 setMediaItem(mediaItem)
                 prepare()
                 play()
@@ -588,7 +600,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     fun downloadVerse() {
         val item = _versesPlayList[downloadIndex];
         var path: String;
-        if (item.type == "surah") {
+        if (item.type == PageContentItemType.surah) {
             path = "1-1-1.mp3"
         } else {
             path = "${currentPageObject.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
@@ -625,7 +637,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                         if (downloadIndex >= _versesPlayList.size - 1) {
                             allVersesExist = true;
                             _isDownloading.value = false;
-                            withContext(Dispatchers.Main){
+                            withContext(Dispatchers.Main) {
                                 playAudio(_versesPlayList[currentPlayingIndex.value])
                             }
                         } else {
@@ -734,8 +746,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         }
 
 
-    fun getNightReadingMode(){
-        _nightReadingMode=sharedPreferences.getBoolean("nightReadingMode", false)
+    fun getNightReadingMode() {
+        _nightReadingMode = sharedPreferences.getBoolean("nightReadingMode", false)
     }
 
     enum class PageTab {
@@ -743,6 +755,102 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         الفوائد,
         الآيات,
         الفيديو
+    }
+
+    fun sharePage() {
+        val varName = "p_${_currentPageObject.pageNum}"
+        val resourceId: Int = context.getResources()
+            .getIdentifier(varName, "drawable", context.packageName)
+
+        val bitmap = BitmapFactory.decodeResource(context.resources, resourceId)
+        val fileName = "image.png"
+        val fileOutputStream: FileOutputStream
+        try {
+            fileOutputStream =
+                context.openFileOutput(fileName, Context.MODE_PRIVATE)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+            fileOutputStream.close()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        val internalFilePath = File(context.filesDir, fileName).absolutePath
+
+        val shareIntent = Intent(Intent.ACTION_SEND)
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        shareIntent.type = "image/*"
+        val imageUri = FileProvider.getUriForFile(
+            context,
+            context.getPackageName() + ".fileprovider",
+            File(internalFilePath)
+        )
+        shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
+
+        shareIntent.putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
+        shareIntent.putExtra(
+            Intent.EXTRA_TEXT,
+            "الصفحة رقم ${_currentPageObject.pageNum}"
+        )
+
+        val chooserIntent = Intent.createChooser(shareIntent, "تطبيق اترجة")
+        chooserIntent.putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
+        chooserIntent.putExtra(
+            Intent.EXTRA_TEXT,
+            "الصفحة رقم ${_currentPageObject.pageNum}"
+        )
+        chooserIntent.putExtra(Intent.EXTRA_CONTENT_QUERY, "image/png")
+
+        context.startActivity(
+            Intent.createChooser(
+                shareIntent, "مشاركة الصفحة"
+            )
+        );
+        File(internalFilePath).deleteOnExit();
+    }
+
+    fun atFirstVerse(): Boolean {
+        val surahNum = _tafseerTargetVerse.split("-").get(0)
+        val verseNum = _tafseerTargetVerse.split("-").get(1)
+
+        val verses = _currentPageObject.pageContent.filter { it.type == PageContentItemType.verse }
+
+        return verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } == 0
+    }
+
+    fun atLastVerse(): Boolean {
+        val surahNum = _tafseerTargetVerse.split("-").get(0)
+        val verseNum = _tafseerTargetVerse.split("-").get(1)
+
+        val verses = _currentPageObject.pageContent.filter { it.type == PageContentItemType.verse }
+
+        return verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } == verses.size - 1
+    }
+
+    fun targetNextVerse() {
+        val surahNum = _tafseerTargetVerse.split("-").get(0)
+        val verseNum = _tafseerTargetVerse.split("-").get(1)
+
+        val verses = _currentPageObject.pageContent.filter { it.type == PageContentItemType.verse }
+
+        if (verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } + 1 != verses.size) {
+            val nextVerse =
+                verses.get(verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } + 1)
+            tafseerTargetVerse = "${nextVerse.surahNum}-${nextVerse.verseNum}"
+        }
+    }
+
+    fun targetPreviousVerse() {
+        val surahNum = _tafseerTargetVerse.split("-").get(0)
+        val verseNum = _tafseerTargetVerse.split("-").get(1)
+
+        val verses = _currentPageObject.pageContent.filter { it.type == PageContentItemType.verse }
+
+        if (verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } - 1 >= 0) {
+            val previousVerse =
+                verses.get(verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } - 1)
+            tafseerTargetVerse = "${previousVerse.surahNum}-${previousVerse.verseNum}"
+        }
     }
 }
 

@@ -46,6 +46,38 @@ class JsonParser(private val context: Context) {
             null
         }
     }
+    fun getFilesVersions(): HashMap<String, Int> {
+        val json: String? = loadJsonFromAsset("files_versions.json")
+        val jsonObject = JSONObject(json)
+
+        return hashMapOf<String, Int>(
+            "azkar" to jsonObject.getInt("azkar"),
+            "chapters" to jsonObject.getInt("chapters"),
+            "parts" to jsonObject.getInt("parts"),
+            "e3rab" to jsonObject.getInt("e3rab"),
+            "causesOfRevelation" to jsonObject.getInt("causesOfRevelation"),
+            "tafaseer" to jsonObject.getInt("tafaseer"),
+        )
+    }
+
+
+    fun loadJsonFromAsset(fileName: String): String? {
+        var json: String? = null
+        try {
+            val inputStream = context.assets.open(fileName)
+            val size = inputStream.available()
+            val buffer = ByteArray(size)
+            inputStream.read(buffer)
+            inputStream.close()
+            json = String(buffer, Charset.defaultCharset())
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return json
+    }
+}
+
+
 
 /*
     fun parseJsonArrayFileChapters(fileName: String): List<ChapterData>? {
@@ -126,32 +158,3 @@ class JsonParser(private val context: Context) {
     }
 */
 
-    fun getFilesVersions(): HashMap<String, Int> {
-        val json: String? = loadJsonFromAsset("files_versions.json")
-        val jsonObject = JSONObject(json)
-
-        return hashMapOf<String, Int>(
-            "azkar" to jsonObject.getInt("azkar"),
-            "chapters" to jsonObject.getInt("chapters"),
-            "parts" to jsonObject.getInt("parts"),
-            "e3rab" to jsonObject.getInt("e3rab"),
-            "causesOfRevelation" to jsonObject.getInt("causesOfRevelation"),
-        )
-    }
-
-
-    fun loadJsonFromAsset(fileName: String): String? {
-        var json: String? = null
-        try {
-            val inputStream = context.assets.open(fileName)
-            val size = inputStream.available()
-            val buffer = ByteArray(size)
-            inputStream.read(buffer)
-            inputStream.close()
-            json = String(buffer, Charset.defaultCharset())
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-        return json
-    }
-}
