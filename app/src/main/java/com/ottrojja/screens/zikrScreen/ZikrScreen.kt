@@ -282,32 +282,8 @@ fun ZikrSection(
                         { value -> setSliderPosition(value) },
                         sliderMaxDuration
                     )
-                    /*Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Slider(
-                            value = sliderPosition,
-                            onValueChange = { setSliderPosition(it) },
-                            colors = SliderDefaults.colors(
-                                thumbColor = MaterialTheme.colorScheme.primary,
-                                activeTrackColor = MaterialTheme.colorScheme.primary,
-                                inactiveTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                            ),
-                            thumb = {
-                                Image(
-                                    painterResource(id = R.drawable.thumb),
-                                    "thumb",
-                                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-                                )
-                            },
-                            valueRange = 0f..sliderMaxDuration,
-                        )
-                    }*/
                 }
-                if (isPlaying && isZikrPlaying) {
+                /*if (isPlaying && isZikrPlaying) {
                     Row(
                         modifier = Modifier
                             .background(color = MaterialTheme.colorScheme.primaryContainer)
@@ -328,17 +304,32 @@ fun ZikrSection(
                             )
                         }
                     }
-                }
+                }*/
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    if (isPlaying && isZikrPlaying) {
+                        Row(
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth(0.15f)
+                        ) {
+                            Text(
+                                text = "${playbackSpeed}x",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Right,
+                            )
+                        }
+                    }
+
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1.0f)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         if (isPlaying && isZikrPlaying) {
                             Image(painter = painterResource(R.drawable.faster),

@@ -48,13 +48,11 @@ interface AudioServiceInterface {
 
 
 class MediaPlayerService : Service(), AudioServiceInterface {
-    //var mediaPlayer: MutableState<MediaPlayer>? = null
     var length: Long = 0;
     var currentlyPlaying = "";
     val playbackParams = PlaybackParams()
     private var _playbackSpeed = MutableStateFlow<Float>(1.0f)
 
-    //lateinit var timer: Timer
     private val _isPlaying = MutableStateFlow<Boolean>(false)
     private val _isPaused = MutableStateFlow<Boolean>(false)
     private val _sliderPosition = MutableStateFlow<Float>(0f)
@@ -94,17 +92,6 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
                         _maxDuration.value = exoPlayer.duration.toFloat()
                         println("track duration ${_maxDuration.value}")
-                        /*timer = Timer();
-                        timer.schedule(object : TimerTask() {
-                            override fun run() {
-                                val currPosition = exoPlayer.currentPosition.toFloat() //mediaPlayer?.value?.currentPosition!!.toFloat();
-                                // temp solution to the position decreasing for an ununderstandable reason on higher level apis,
-                                // switch to exoplayer later
-                                if (currPosition > _sliderPosition.value) {
-                                    _sliderPosition.value = currPosition;
-                                }
-                            }
-                        }, 0, 400)*/
                         val updateProgressAction = object : Runnable {
                             override fun run() {
                                 val currPosition = exoPlayer.currentPosition.toFloat()
@@ -121,10 +108,6 @@ class MediaPlayerService : Service(), AudioServiceInterface {
                         length = 0;
                         resetPlayer()
                         _isPlaying.value = false;
-                        /*if (::timer.isInitialized) {
-                            timer.cancel();
-                            timer.purge();
-                        }*/
                         handler.removeCallbacksAndMessages(null)
                         if (_playingChapter.value) {
                             if (_selectedChapterId.value != "114") {
@@ -187,9 +170,6 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
     override fun setSliderPosition(value: Float) {
         _sliderPosition.value = value;
-        /*mediaPlayer?.value?.pause()
-        mediaPlayer?.value?.seekTo(value.toInt());
-        mediaPlayer?.value?.start();*/
         exoPlayer.seekTo(value.toLong())
     }
 
@@ -258,14 +238,11 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         _playingChapter.value = false;
         _sliderPosition.value = 0F;
         _selectedChapterId.value = "";
-        //mediaPlayer?.value?.reset();
         resetPlayer()
     }
 
     private fun resumeTrack() {
         println("resuming")
-        /*mediaPlayer?.value?.seekTo(length);
-        mediaPlayer?.value?.start();*/
         exoPlayer.play()
     }
 
@@ -274,7 +251,6 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         println(link)
         prepareForNewTrack();
         currentlyPlaying = link;
-        //playbackParams.speed = _playbackSpeed.value
         updatePlaybackSpeed()
         var mediaSrc: Uri;
 
@@ -306,71 +282,22 @@ class MediaPlayerService : Service(), AudioServiceInterface {
             prepare()
             play()
         }
-
-
-        /*mediaPlayer?.value?.apply {
-            reset()
-            setDataSource(mediaSrc)
-            setPlaybackParams(playbackParams)
-            prepareAsync()
-            setOnPreparedListener {
-                println("on prepared")
-                _maxDuration.value = duration.toFloat()
-                println("starting")
-                it.start();
-                timer = Timer();
-                timer.schedule(object : TimerTask() {
-                    override fun run() {
-                        val currPosition = mediaPlayer?.value?.currentPosition!!.toFloat();
-                        // temp solution to the position decreasing for an ununderstandable reason on higher level apis,
-                        // switch to exoplayer later
-                        if (currPosition > _sliderPosition.value) {
-                            _sliderPosition.value = currPosition;
-                        }
-                    }
-                }, 0, 400)
-                println("on prepared done")
-            }
-            setOnCompletionListener {
-                reset();
-                length = 0;
-                _isPlaying.value = false;
-                if (::timer.isInitialized) {
-                    timer.cancel();
-                    timer.purge();
-                }
-                if (_playingChapter.value) {
-                    if (_selectedChapterId.value != "114") {
-                        playNextChapter();
-                    } else {
-                        prepareForNewTrack()
-                    }
-                }
-            }
-        }*/
     }
 
     private fun prepareForNewTrack() {
-        /*if (::timer.isInitialized) {
-            timer.cancel();
-            timer.purge();
-        }*/
         handler.removeCallbacksAndMessages(null)
         length = 0;
         _maxDuration.value = 0f;
         _sliderPosition.value = 0f;
         _playbackSpeed.value = 1.0f
-        //mediaPlayer?.value?.reset();
         resetPlayer()
     }
 
     override fun pause() {
-        //length = mediaPlayer?.value?.currentPosition!!;
         length = exoPlayer.currentPosition
         _isPlaying.value = false;
         _isPaused.value = true;
         exoPlayer.pause()
-        //mediaPlayer?.value?.pause()
     }
 
     override fun increaseSpeed() {
@@ -393,17 +320,6 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
 
     fun updatePlaybackSpeed() {
-        /*try {
-            val playbackParams = PlaybackParams()
-            playbackParams.speed = _playbackSpeed.value
-            mediaPlayer?.value?.playbackParams = playbackParams;
-        } catch (e: Exception) {
-            e.printStackTrace()
-            _playbackSpeed.value = 1.0F
-            val playbackParams = PlaybackParams()
-            playbackParams.speed = 1.0F
-            mediaPlayer?.value?.playbackParams = playbackParams;
-        }*/
         exoPlayer.playbackParameters = PlaybackParameters(_playbackSpeed.value)
     }
 
@@ -434,16 +350,7 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
                     Actions.TERMINATE.toString() -> {
                         println("stopping self")
-                        /*if (::timer.isInitialized) {
-                            timer.cancel();
-                            timer.purge();
-                        }*/
                         handler.removeCallbacksAndMessages(null)
-                        /*if (mediaPlayer != null) {
-                            mediaPlayer?.value?.reset();
-                            mediaPlayer?.value?.release();
-                        }
-                        mediaPlayer = null;*/
                         if (::exoPlayer.isInitialized) {
                             releasePlayer()
                         }
@@ -480,11 +387,6 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
     fun startService() {
         println("starting service")
-        /*if (mediaPlayer != null) {
-            mediaPlayer?.value?.reset();
-            mediaPlayer?.value?.release();
-        }
-        mediaPlayer = mutableStateOf(MediaPlayer())*/
 
         if (::exoPlayer.isInitialized) {
             releasePlayer()

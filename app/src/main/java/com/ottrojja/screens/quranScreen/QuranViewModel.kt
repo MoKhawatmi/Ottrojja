@@ -53,7 +53,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     private var _versesPlayList: Array<PageContent> by mutableStateOf(arrayOf<PageContent>());
 
-    //var mediaPlayer = MediaPlayer()
     var exoPlayer: ExoPlayer;
 
     var currentPlayingIndex = mutableStateOf(0)
@@ -61,6 +60,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     init {
         // Observe the app's lifecycle using ProcessLifecycleOwner
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+
 
         exoPlayer = ExoPlayer.Builder(context).build()
 
@@ -76,26 +76,69 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                     super.onPlaybackStateChanged(playbackState)
                     if (playbackState == Player.STATE_ENDED) {
                         length = 0;
+                        val selectedMappedRepetitions = repetitionOptionsMap.get(_selectedRepetition)!!;
+                        val repeatActive = selectedMappedRepetitions > 0;
+                        println("repeated times $repeatedTimes")
 
-                        if (!_isPlaying.value) {
-                        } else if (_versesPlayList[currentPlayingIndex.value].type == PageContentItemType.verse && repeatedTimes < repetitionOptionsMap.get(
-                                _selectedRepetition
-                            )!!
-                        ) {
-                            playAudio(_versesPlayList[currentPlayingIndex.value])
-                            repeatedTimes++;
-                        } else if (currentPlayingIndex.value < _versesPlayList.size - 1) {
-                            currentPlayingIndex.value++
-                            repeatedTimes = 0;
-                            playAudio(_versesPlayList[currentPlayingIndex.value])
-                        } else {
-                            resetPlayer()
-                            if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
-                                playNextPage()
+                        if (_isPlaying.value) {
+                            // Repetition logic
+
+                            if (repeatActive && _versesPlayList[currentPlayingIndex.value].type == PageContentItemType.verse) {
+                                if (_selectedRepetitionTab.value == RepetitionTab.الاية) {
+                                    if (repeatedTimes < selectedMappedRepetitions) {
+                                        repeatedTimes++;
+                                        playAudio(_versesPlayList[currentPlayingIndex.value])
+                                    } else if (currentPlayingIndex.value < _versesPlayList.size - 1) {
+                                        if (currentPlayingIndex.value != endPlayingIndex) {
+                                            repeatedTimes = 0;
+                                            goNextVerse();
+                                        } else {
+                                            resetPlayer();
+                                        }
+                                    } else {
+                                        // done playing, done looping
+                                        resetPlayer()
+                                        if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
+                                            playNextPage()
+                                        }
+                                    }
+                                } else if (_selectedRepetitionTab.value == RepetitionTab.المقطع) {
+                                    if (currentPlayingIndex.value != endPlayingIndex) {
+                                        if (currentPlayingIndex.value < _versesPlayList.size - 1) {
+                                            goNextVerse();
+                                        } else {
+                                            resetPlayer()
+                                            if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
+                                                playNextPage()
+                                            }
+                                        }
+                                    } else if (repeatedTimes < selectedMappedRepetitions) {
+                                        repeatedTimes++;
+                                        currentPlayingIndex.value = startPlayingIndex ?: 0;
+                                        playAudio(_versesPlayList[currentPlayingIndex.value])
+                                        println("repeat times increased $repeatedTimes")
+                                    } else {
+                                        // done playing, done looping
+                                        resetPlayer()
+                                    }
+                                }
+                            }
+                            // Play next verse
+                            else if (currentPlayingIndex.value < _versesPlayList.size - 1) {
+                                if (currentPlayingIndex.value != endPlayingIndex) {
+                                    goNextVerse();
+                                } else {
+                                    resetPlayer();
+                                }
+                            }
+                            // End page media logic
+                            else {
+                                resetPlayer()
+                                if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
+                                    playNextPage()
+                                }
                             }
                         }
-
-
                     }
                 }
 
@@ -152,7 +195,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     fun setCurrentPage(value: String) {
         println("setting current page to $value")
-        _selectedRepetition = "0"
+        //_selectedRepetition = "0"
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _currentPageObject = repository.getPage(value)
@@ -161,6 +204,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 withContext(Dispatchers.Main) {
                     resetPlayer()
                 }
+                isPageBookmarked()
                 val editor: SharedPreferences.Editor = sharedPreferences.edit()
                 editor.putString("mostRecentPage", value)
                 editor.apply()
@@ -204,7 +248,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     private var _selectedRepetition by mutableStateOf("0")
     var selectedRepetition: String
-        get() = this._selectedRepetition
+        get() = _selectedRepetition
         set(value) {
             _selectedRepetition = value
         }
@@ -218,34 +262,73 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         }
     }
 
-    private var _selectedVerse by mutableStateOf<PageContent>(
-        PageContent(
-            PageContentItemType.EMPTY,
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-        )
+    val emptyPageObject: PageContent = PageContent(
+        PageContentItemType.EMPTY,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
     )
+
+
+    var startPlayingIndex: Int? = null;
+    var endPlayingIndex: Int? = null;
+
+    private var _selectedVerse by mutableStateOf<PageContent>(emptyPageObject)
     var selectedVerse: PageContent
-        get() = this._selectedVerse
+        get() = _selectedVerse
         set(value) {
+            val pageVerses: Array<PageContent> = getCurrentPageVerses();
+            val index = pageVerses.indexOf(pageVerses.find { item -> item.surahNum == value.surahNum && item.verseNum == value.verseNum });
+            if (index > (endPlayingIndex ?: (pageVerses.size - 1))) {
+                Toast.makeText(context, "موضع اية البداية يجب ان لا يكون بعد موضع اية النهاية", Toast.LENGTH_LONG).show()
+                return;
+            }
             _selectedVerse = value;
-            //mediaPlayer.reset();
             exoPlayer.stop()
             setIsPlaying(false)
             _selectedRepetition = "0"
             length = 0; //seek a better way for this length issue
-            val index =
-                getCurrentPageVerses().indexOf(getCurrentPageVerses().find { item -> item.surahNum == value.surahNum && item.verseNum == value.verseNum });
             if (index == -1) {
                 currentPlayingIndex.value = 0;
+                startPlayingIndex = 0;
             } else {
                 currentPlayingIndex.value = index;
+                startPlayingIndex = index;
             }
+        }
+
+    private var _selectedEndVerse by mutableStateOf<PageContent>(emptyPageObject)
+    var selectedEndVerse: PageContent
+        get() = _selectedEndVerse
+        set(value) {
+            val pageVerses: Array<PageContent> = getCurrentPageVerses();
+            val index = pageVerses.indexOf(pageVerses.find { item -> item.surahNum == value.surahNum && item.verseNum == value.verseNum });
+            if (index < (startPlayingIndex ?: 0)) {
+                Toast.makeText(context, "موضع اية النهاية يجب ان لا يكون قبل موضع اية البداية", Toast.LENGTH_LONG).show()
+                return;
+            }
+            _selectedEndVerse = value;
+            exoPlayer.stop()
+            setIsPlaying(false)
+            _selectedRepetition = "0"
+            length = 0; //seek a better way for this length issue
+            if (index == -1) {
+                Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+                endPlayingIndex = null;
+            } else {
+                endPlayingIndex = index;
+            }
+        }
+
+    private var _selectingEndVerse by mutableStateOf(false)
+    var selectingEndVerse: Boolean
+        get() = _selectingEndVerse
+        set(value) {
+            _selectingEndVerse = value
         }
 
     private var _playbackSpeed by mutableStateOf(1.0f)
@@ -272,9 +355,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     fun updatePlaybackSpeed() {
         if (_isPlaying.value) {
             try {
-                /*val playbackParams = PlaybackParams()
-                playbackParams.speed = _playbackSpeed
-                mediaPlayer.playbackParams = playbackParams;*/
                 exoPlayer.playbackParameters = PlaybackParameters(_playbackSpeed)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -284,9 +364,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     private var _showVersesSheet by mutableStateOf(false)
     var showVersesSheet: Boolean
-        get() = this._showVersesSheet
+        get() = _showVersesSheet
         set(value) {
-            this._showVersesSheet = value
+            _showVersesSheet = value
         }
 
     private var _tafseerTargetVerse by mutableStateOf("0-0")
@@ -406,11 +486,12 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     fun resetPlayer() {
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
-
-//        mediaPlayer.reset();
         currentPlayingIndex.value = 0;
-        _selectedVerse =
-            PageContent(PageContentItemType.EMPTY, "", "", "", "", "", "", "");
+        _selectedVerse = emptyPageObject.copy()
+        _selectedEndVerse = emptyPageObject.copy()
+        endPlayingIndex = null;
+        startPlayingIndex = 0;
+        //_selectedRepetition = "0"
         setIsPlaying(false);
         length = 0;
         repeatedTimes = 0;
@@ -468,8 +549,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         _shouldAutoPlay.value = false;
 
         if (length > 0) {
-            /*mediaPlayer.seekTo(length);
-            mediaPlayer.start();*/
             exoPlayer.play()
         } else {
             if (!allVersesExist) {
@@ -484,13 +563,11 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 playAudio(_versesPlayList[currentPlayingIndex.value])
             }
         }
-        //setIsPlaying(true);
     }
 
     fun pausePlaying() {
         length = exoPlayer.currentPosition;
         exoPlayer.pause()
-        //mediaPlayer.pause()
         setIsPlaying(false);
     }
 
@@ -498,7 +575,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         if (currentPlayingIndex.value == _versesPlayList.size - 1) {
             return;
         }
-        //mediaPlayer.reset()
         currentPlayingIndex.value++;
         playAudio(_versesPlayList[currentPlayingIndex.value])
     }
@@ -507,23 +583,18 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         if (currentPlayingIndex.value == 0) {
             return;
         }
-        //mediaPlayer.reset()
         currentPlayingIndex.value--;
         playAudio(_versesPlayList[currentPlayingIndex.value])
     }
 
 
     private fun playAudio(item: PageContent) {
-        /*val playbackParams = PlaybackParams()
-        playbackParams.speed = this._playbackSpeed*/
-
         var urlParam: String;
         if (item.type == PageContentItemType.surah) {
             urlParam = "1-1-1.mp3"
         } else {
             urlParam = "${currentPageObject.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
         }
-        // println(item.toString())
 
         if (item.type == PageContentItemType.surah && (item.surahNum == "1" || item.surahNum == "9")) {
             //skip basmallah for surah 1 and 9
@@ -546,42 +617,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 prepare()
                 play()
             }
-
-
-            /*mediaPlayer.apply {
-                reset()
-                setDataSource(
-                    File(
-                        context.getExternalFilesDir(null),
-                        urlParam
-                    ).absolutePath
-                )
-                setPlaybackParams(playbackParams)
-                prepareAsync()
-                setOnPreparedListener {
-                    if (_isPlaying.value) {
-                        println("current ${currentPlayingIndex.value}")
-                        it.start()
-                    }
-                }
-                setOnCompletionListener {
-                    if (!_isPlaying.value) {
-                    } else if (item.type == "verse" && repeatedTimes < repetitionOptionsMap.get(_selectedRepetition)!!
-                    ) {
-                        playAudio(_versesPlayList[currentPlayingIndex.value])
-                        repeatedTimes++;
-                    } else if (currentPlayingIndex.value < _versesPlayList.size - 1) {
-                        currentPlayingIndex.value++
-                        repeatedTimes = 0;
-                        playAudio(_versesPlayList[currentPlayingIndex.value])
-                    } else {
-                        resetPlayer()
-                        if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
-                            playNextPage()
-                        }
-                    }
-                }
-            }*/
         }
     }
 
@@ -660,39 +695,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 }
             }
         }
-        /* fileReference.getFile(localFile)
-             .addOnSuccessListener {
-                 // File downloaded successfully
-                 // You can now play the file using MediaPlayer
-                 //(localFile.absolutePath)
-                 if (downloadIndex >= _versesPlayList.size - 1) {
-                     isDownloading = false;
-                     allVersesExist = true;
-                     playAudio(_versesPlayList[currentPlayingIndex.value])
-                 } else {
-                     downloadIndex++;
-                     downloadVerse(storageReference)
-                 }
-                 /*println(it.toString())
-                 val mediaPlayer = MediaPlayer()
-                 println("playing ${localFile.absolutePath}")
-                 try {
-                     mediaPlayer.setDataSource(localFile.absolutePath)
-                     mediaPlayer.prepare()
-                     mediaPlayer.start()
-                 } catch (e: IOException) {
-                     e.printStackTrace()
-                 }*/
-
-                 //playPage();
-             }
-             .addOnFailureListener {
-                 // Handle failure
-                 println("/final/${currentPage.value}-${item.surahNum}-${item.verseNum}.mp3")
-                 println("error in download")
-                 isDownloading = false;
-                 allVersesExist = false;
-             }*/
     }
 
     private val _isBookmarked = mutableStateOf(false)
@@ -790,22 +792,20 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         shareIntent.putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
         shareIntent.putExtra(
             Intent.EXTRA_TEXT,
-            "الصفحة رقم ${_currentPageObject.pageNum}"
+            "الصفحة رقم ${_currentPageObject.pageNum}\nتطبيق اترجة القرآني للقارئ الشيخ أحمد الحراسيس: https://play.google.com/store/apps/details?id=com.ottrojja"
         )
 
         val chooserIntent = Intent.createChooser(shareIntent, "تطبيق اترجة")
         chooserIntent.putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
         chooserIntent.putExtra(
             Intent.EXTRA_TEXT,
-            "الصفحة رقم ${_currentPageObject.pageNum}"
+            "الصفحة رقم ${_currentPageObject.pageNum}\nتطبيق اترجة القرآني للقارئ الشيخ أحمد الحراسيس: https://play.google.com/store/apps/details?id=com.ottrojja"
         )
         chooserIntent.putExtra(Intent.EXTRA_CONTENT_QUERY, "image/png")
+        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
-        context.startActivity(
-            Intent.createChooser(
-                shareIntent, "مشاركة الصفحة"
-            )
-        );
+        context.startActivity(chooserIntent);
+
         File(internalFilePath).deleteOnExit();
     }
 
@@ -852,6 +852,27 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             tafseerTargetVerse = "${previousVerse.surahNum}-${previousVerse.verseNum}"
         }
     }
+
+    private var _showListeningOptionsDialog = mutableStateOf(false)
+    var showListeningOptionsDialog: Boolean
+        get() = _showListeningOptionsDialog.value
+        set(value) {
+            _showListeningOptionsDialog.value = value
+        }
+
+    private var _selectedRepetitionTab = mutableStateOf(RepetitionTab.الاية)
+    var selectedRepetitionTab: RepetitionTab
+        get() = _selectedRepetitionTab.value
+        set(value) {
+            _selectedRepetitionTab.value = value
+        }
+
+
+}
+
+enum class RepetitionTab {
+    الاية,
+    المقطع
 }
 
 class QuranScreenViewModelFactory(

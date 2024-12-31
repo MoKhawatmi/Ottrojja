@@ -21,7 +21,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun <T : Enum<T>> OttrojjaTabs(items: List<T>, selectedItem: T, onClickTab: (T) -> Unit) {
+fun <T : Enum<T>> OttrojjaTabs(
+    items: List<T>,
+    selectedItem: T,
+    onClickTab: (T) -> Unit,
+    tabPrefix: String = ""
+) {
     val primaryColor = MaterialTheme.colorScheme.primary
     Row(
         modifier = Modifier
@@ -33,7 +38,7 @@ fun <T : Enum<T>> OttrojjaTabs(items: List<T>, selectedItem: T, onClickTab: (T) 
         items.forEachIndexed { index, option ->
             Column() {
                 Text(
-                    text = "$option",
+                    text = "$tabPrefix$option",
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     color = if (selectedItem == option) MaterialTheme.colorScheme.onPrimary else primaryColor,

@@ -179,7 +179,7 @@ fun ChaptersScreen(
                             sliderMaxDuration = chaptersViewModel.maxDuration
                         )
                     }
-                    if (chaptersViewModel.isPlaying && chaptersViewModel.isChapterPlaying) {
+                    /*if (chaptersViewModel.isPlaying && chaptersViewModel.isChapterPlaying) {
                         Row(
                             modifier = Modifier
                                 .background(color = MaterialTheme.colorScheme.primaryContainer)
@@ -200,17 +200,32 @@ fun ChaptersScreen(
                                 )
                             }
                         }
-                    }
+                    }*/
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        if (chaptersViewModel.isPlaying && chaptersViewModel.isChapterPlaying) {
+                            Row(
+                                horizontalArrangement = Arrangement.Start,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth(0.15f)
+                            ) {
+                                Text(
+                                    text = "${chaptersViewModel.playbackSpeed}x",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    textAlign = TextAlign.Right,
+                                )
+                            }
+                        }
+
                         Row(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.weight(1.0f)
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             if (chaptersViewModel.isPlaying && chaptersViewModel.isChapterPlaying) {
                                 Image(painter = painterResource(R.drawable.faster),

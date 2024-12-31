@@ -330,9 +330,6 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             _isPlaying.value = value
         }
 
-
-    //private var _mediaPlayer = MediaPlayer()
-
     var exoPlayer: ExoPlayer;
 
     fun downloadVerse(localFile: File) {
@@ -420,27 +417,6 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             prepare()
             play()
         }
-
-
-        /*_mediaPlayer.apply {
-            reset()
-            setDataSource(
-                File(
-                    context.getExternalFilesDir(null),
-                    path
-                ).absolutePath
-            )
-            setPlaybackParams(playbackParams)
-            prepareAsync()
-            setOnPreparedListener {
-                _isPlaying.value = true;
-                it.start()
-            }
-            setOnCompletionListener {
-                _isPlaying.value = false;
-                length = 0
-            }
-        }*/
     }
 
     fun pauseVerse() {
@@ -478,14 +454,6 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     _isPlaying.value = isPlaying;
-                    /*if (isPlaying) {
-                        // Active playback.
-                    } else {
-                        // Not playing because playback is paused, ended, suppressed, or the player
-                        // is buffering, stopped or failed. Check player.playWhenReady,
-                        // player.playbackState, player.playbackSuppressionReason and
-                        // player.playerError for details.
-                    }*/
                 }
 
                 override fun onPlaybackStateChanged(playbackState: Int) {

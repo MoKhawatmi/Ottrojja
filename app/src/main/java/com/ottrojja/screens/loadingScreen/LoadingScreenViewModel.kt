@@ -136,9 +136,6 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             }
 
             if (repository.getTafseersCount() != 6236 * 7 || versions.get("tafaseer")!! > tafaseerJsonVersion) {
-                println("here!!!!!")
-                println(versions.get("tafaseer"))
-                println(tafaseerJsonVersion)
                 //insert the available tafseer files to db
                 val tafaseerList = listOf(
                     "saadi.json",

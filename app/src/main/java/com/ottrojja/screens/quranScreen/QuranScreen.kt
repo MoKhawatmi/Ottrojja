@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +37,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -51,6 +53,7 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -97,6 +100,7 @@ import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.SelectedVerseContentSection
@@ -149,7 +153,7 @@ fun QuranScreen(
 
     val isPlaying by quranViewModel.isPlaying.collectAsState(initial = false)
 
-    quranViewModel.isPageBookmarked();
+    //quranViewModel.isPageBookmarked();
 
     fun confirmRemoveBookmark() {
         val alertDialogBuilder = AlertDialog.Builder(context)
@@ -230,7 +234,8 @@ fun QuranScreen(
                     { value -> quranViewModel.continuousPlay = value },
                     quranViewModel.shouldAutoPlay,
                     quranViewModel.playbackSpeed,
-                    quranViewModel.nightReadingMode
+                    quranViewModel.nightReadingMode,
+                    { quranViewModel.showListeningOptionsDialog = true }
                 )
             }
 
@@ -292,26 +297,54 @@ fun QuranScreen(
             targetNextVerse = { quranViewModel.targetNextVerse() },
             targetPreviousVerse = { quranViewModel.targetPreviousVerse() }
         )
-
-        if (quranViewModel.showRepOptions) {
-            SelectRepDialog(
-                quranViewModel.repetitionOptionsMap.keys.toTypedArray(),
-                { quranViewModel.showRepOptions = false },
-                { selectedRep ->
-                    quranViewModel.selectedRepetition = selectedRep;
-                    quranViewModel.showRepOptions = false
-                })
-        }
     }
 
-    if (quranViewModel.showVerseOptions) {
-        SelectVerseDialog({ quranViewModel.showVerseOptions = false }, { selectedVerse ->
-            quranViewModel.selectedVerse = selectedVerse;
-            quranViewModel.showVerseOptions = false
-        }, quranViewModel.getCurrentPageVerses()
+    if (quranViewModel.showListeningOptionsDialog) {
+        ListeningOptionsDialog(
+            onDismissRequest = { quranViewModel.showListeningOptionsDialog = false },
+            selectedVerse = quranViewModel.selectedVerse,
+            selectedEndVerse = quranViewModel.selectedEndVerse,
+            onSelectVerseClicked = { quranViewModel.showVerseOptions = true },
+            onSelectEndVerseClicked = {
+                quranViewModel.selectingEndVerse = true;
+                quranViewModel.showVerseOptions = true;
+            },
+            continuousPlay = quranViewModel.continuousPlay,
+            selectedRepetition = quranViewModel.selectedRepetition,
+            onSelectRepetitionClicked = { quranViewModel.showRepOptions = true },
+            setContPlay = { value -> quranViewModel.continuousPlay = value },
+            repetitionTabs = RepetitionTab.entries,
+            selectedRepetitionTab = quranViewModel.selectedRepetitionTab,
+            onSelectRepetitionTab = { value -> quranViewModel.selectedRepetitionTab = value }
         )
     }
 
+    if (quranViewModel.showRepOptions) {
+        SelectRepDialog(
+            quranViewModel.repetitionOptionsMap.keys.toTypedArray(),
+            { quranViewModel.showRepOptions = false },
+            { selectedRep ->
+                quranViewModel.selectedRepetition = selectedRep;
+                quranViewModel.showRepOptions = false
+            })
+    }
+
+    if (quranViewModel.showVerseOptions) {
+        SelectVerseDialog(
+            { quranViewModel.showVerseOptions = false },
+            { selectedVerse ->
+                if (quranViewModel.selectingEndVerse) {
+                    quranViewModel.selectedEndVerse = selectedVerse;
+                    quranViewModel.selectingEndVerse = false;
+                    quranViewModel.showVerseOptions = false;
+                } else {
+                    quranViewModel.selectedVerse = selectedVerse;
+                    quranViewModel.showVerseOptions = false;
+                }
+            },
+            quranViewModel.getCurrentPageVerses()
+        )
+    }
 
     if (quranViewModel.showTafseerOptions) {
         SelectTafseerDialog(
@@ -537,7 +570,164 @@ fun SelectVerseDialog(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ListeningOptionsDialog(
+    onDismissRequest: () -> Unit,
+    selectedVerse: PageContent,
+    selectedEndVerse: PageContent,
+    onSelectVerseClicked: () -> Unit,
+    onSelectEndVerseClicked: () -> Unit,
+    selectedRepetition: String,
+    onSelectRepetitionClicked: () -> Unit,
+    continuousPlay: Boolean,
+    setContPlay: (Boolean) -> Unit,
+    repetitionTabs: List<RepetitionTab>,
+    selectedRepetitionTab: RepetitionTab,
+    onSelectRepetitionTab: (RepetitionTab) -> Unit
+) {
+    OttrojjaDialog(
+        contentModifier = Modifier
+            .padding(8.dp)
+            .wrapContentHeight()
+            .fillMaxWidth(0.9f)
+            .background(MaterialTheme.colorScheme.secondary)
+            .padding(8.dp)
+            .clip(shape = RoundedCornerShape(12.dp)),
+        onDismissRequest = onDismissRequest,
+        useDefaultWidth = false,
+    ) {
+        Column(modifier = Modifier.wrapContentHeight()) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                Text(text = "خيارات التشغيل", textAlign = TextAlign.Center)
+            }
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 6.dp),
+                color = MaterialTheme.colorScheme.onTertiary
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onSelectVerseClicked() },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("من اية", style = MaterialTheme.typography.bodyMedium)
+                Row(
+                    modifier = Modifier
+                        .padding(0.dp, 6.dp, 6.dp, 5.dp)
+                        .fillMaxWidth(0.5f)
+                        .clip(shape = RoundedCornerShape(4.dp))
+                        .background(MaterialTheme.colorScheme.primary)
+                ) {
+                    Text(
+                        text = if (selectedVerse.verseNum != null && selectedVerse.verseNum.length > 0) "اية: ${selectedVerse.verseNum}" else "الاية",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Right,
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .fillMaxWidth()
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onSelectEndVerseClicked() },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("الى اية", style = MaterialTheme.typography.bodyMedium)
+                Row(
+                    modifier = Modifier
+                        .padding(0.dp, 6.dp, 6.dp, 5.dp)
+                        .fillMaxWidth(0.5f)
+                        .clip(shape = RoundedCornerShape(4.dp))
+                        .background(MaterialTheme.colorScheme.primary)
+                ) {
+                    Text(
+                        text = if (selectedEndVerse.verseNum != null && selectedEndVerse.verseNum.length > 0) "اية: ${selectedEndVerse.verseNum}" else "الاية",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Right,
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .fillMaxWidth()
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onSelectRepetitionClicked() },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("مرات التكرار", style = MaterialTheme.typography.bodyMedium)
+                Row(
+                    modifier = Modifier
+                        .padding(0.dp, 6.dp, 6.dp, 5.dp)
+                        .fillMaxWidth(0.5f)
+                        .clip(shape = RoundedCornerShape(4.dp))
+                        .background(MaterialTheme.colorScheme.primary)
+                ) {
+                    Text(
+                        text = selectedRepetition,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Right,
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .fillMaxWidth()
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onSelectEndVerseClicked() },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                OttrojjaTabs(
+                    items = repetitionTabs,
+                    selectedItem = selectedRepetitionTab,
+                    onClickTab = { value -> onSelectRepetitionTab(value) },
+                    tabPrefix = "تكرار "
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { setContPlay(!continuousPlay) },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("تشغيل متتال للصفحات", style = MaterialTheme.typography.bodyMedium)
+                Checkbox(
+                    checked = continuousPlay,
+                    onCheckedChange = { newCheckedState -> setContPlay(newCheckedState) }
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(onClick = { onDismissRequest() }) {
+                    Text(
+                        text = "إغلاق",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+
+        }
+    }
+}
+
 @Composable
 fun PagesContainer(
     pageNum: String?,
@@ -560,7 +750,8 @@ fun PagesContainer(
     setContPlay: (Boolean) -> Unit,
     shouldAutoPlay: Boolean,
     playbackSpeed: Float,
-    nightReadingMode: Boolean
+    nightReadingMode: Boolean,
+    listeningOptionsClicked: () -> Unit
 ) {
     val quranPagesNumbers = Array(604) { (it + 1).toString() }
 
@@ -641,7 +832,18 @@ fun PagesContainer(
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(painter = painterResource(id = R.drawable.more_vert),
+                        contentDescription = "More Options",
+                        modifier = Modifier.clickable { listeningOptionsClicked() })
+                }
+
+                /*Row(
                     modifier = Modifier
                         .padding(0.dp, 0.dp, 0.dp, 5.dp)
                         .fillMaxWidth()
@@ -663,8 +865,8 @@ fun PagesContainer(
                         contentDescription = "",
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
-                }
-                Row(
+                }*/
+                /*Row(
                     modifier = Modifier
                         .background(color = MaterialTheme.colorScheme.primaryContainer)
                         .fillMaxWidth(),
@@ -700,13 +902,13 @@ fun PagesContainer(
                             )
                         }
                     }
-                }
+                }*/
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(modifier = Modifier
+                    /*Row(modifier = Modifier
                         .padding(0.dp, 6.dp, 6.dp, 5.dp)
                         .fillMaxWidth(0.3f)
                         .clip(shape = RoundedCornerShape(4.dp))
@@ -721,12 +923,26 @@ fun PagesContainer(
                                 .padding(8.dp)
                                 .fillMaxWidth()
                         )
+                    }*/
+                    if (isPlaying) {
+                        Row(
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth(0.15f)
+                        ) {
+                            Text(
+                                text = "${playbackSpeed}x",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Right,
+                            )
+                        }
                     }
 
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1.0f)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         if (isPlaying && !isDownloading) {
                             Image(painter = painterResource(R.drawable.faster),
@@ -912,7 +1128,7 @@ fun Benefits(
                                     putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
                                     putExtra(
                                         Intent.EXTRA_TEXT,
-                                        "من الفوائد القرآنية للصفحة $pageNum \n $benefit"
+                                        "من الفوائد القرآنية للصفحة $pageNum \n $benefit\nتطبيق اترجة القرآني للقارئ الشيخ أحمد الحراسيس: https://play.google.com/store/apps/details?id=com.ottrojja"
                                     )
                                     type = "text/plain"
                                 }
@@ -972,7 +1188,7 @@ fun Benefits(
                                     putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
                                     putExtra(
                                         Intent.EXTRA_TEXT,
-                                        "من التوجيهات القرآنية للصفحة $pageNum \n $guidanceItem"
+                                        "من التوجيهات القرآنية للصفحة $pageNum \n $guidanceItem\nتطبيق اترجة القرآني للقارئ الشيخ أحمد الحراسيس: https://play.google.com/store/apps/details?id=com.ottrojja"
                                     )
                                     type = "text/plain"
                                 }
@@ -1032,7 +1248,7 @@ fun Benefits(
                                     putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
                                     putExtra(
                                         Intent.EXTRA_TEXT,
-                                        "من التطبيقات القرآنية للصفحة $pageNum \n $applianceItem"
+                                        "من التطبيقات القرآنية للصفحة $pageNum \n $applianceItem\nتطبيق اترجة القرآني للقارئ الشيخ أحمد الحراسيس: https://play.google.com/store/apps/details?id=com.ottrojja"
                                     )
                                     type = "text/plain"
                                 }
