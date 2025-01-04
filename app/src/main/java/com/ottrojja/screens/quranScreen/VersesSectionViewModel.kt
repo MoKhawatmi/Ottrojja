@@ -8,6 +8,7 @@ import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.ottrojja.R
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.QuranRepository
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +47,7 @@ class VersesSectionViewModel(private val repository: QuranRepository, applicatio
                 putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
                 putExtra(
                     Intent.EXTRA_TEXT,
-                    "{${verseItem.verseText}} \n سورة ${chapterName} - ${verseItem.verseNum}"
+                    "{${verseItem.verseText}} \n سورة ${chapterName} - ${verseItem.verseNum}\n${context.resources.getString(R.string.share_app)}"
                 )
                 type = "text/plain"
             }

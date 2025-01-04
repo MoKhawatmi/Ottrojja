@@ -7,7 +7,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,11 +16,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,7 +29,6 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.outlined.DownloadForOffline
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,21 +37,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.ottrojja.R
 import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.composables.LegacySeekBar
 import com.ottrojja.composables.LoadingDialog
-import com.ottrojja.composables.MediaSeekBar
+import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.screens.azkarScreen.Azkar
@@ -76,8 +66,6 @@ fun ZikrScreen(
     )
 
     val zikr = zikrViewModel._zikr.collectAsState()
-
-    val primaryColor = MaterialTheme.colorScheme.primary
 
     if (zikrViewModel.isDownloading) {
         LoadingDialog()
@@ -257,7 +245,6 @@ fun ZikrSection(
             }
         }
 
-
         AnimatedVisibility(
             visible = showController,
             enter = slideInVertically(
@@ -268,6 +255,26 @@ fun ZikrSection(
             exit = slideOutVertically() + shrinkVertically(),
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
+            MediaController(
+                isPlaying = isPlaying && isZikrPlaying,
+                playbackSpeed = playbackSpeed,
+                isDownloading = false,
+                onFasterClicked = { onFasterClicked() },
+                onPauseClicked = { onPauseClicked() },
+                onPlayClicked = { onPlayClicked() },
+                onSlowerClicked = { onSlowerClicked() },
+                hasNextPreviousControl = false,
+            ) {
+                if (isPlaying && isZikrPlaying) {
+                    MediaSlider(
+                        sliderPosition,
+                        { value -> setSliderPosition(value) },
+                        sliderMaxDuration
+                    )
+                }
+            }
+
+            /*
             Column(
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
@@ -283,28 +290,6 @@ fun ZikrSection(
                         sliderMaxDuration
                     )
                 }
-                /*if (isPlaying && isZikrPlaying) {
-                    Row(
-                        modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.primaryContainer)
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "${playbackSpeed}x",
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Left,
-                            )
-                        }
-                    }
-                }*/
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -367,7 +352,7 @@ fun ZikrSection(
                         }
                     }
                 }
-            }
+            }*/
         }
     }
 }

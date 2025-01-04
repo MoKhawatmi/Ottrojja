@@ -14,11 +14,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -27,7 +25,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -85,13 +82,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
-import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.R
@@ -100,6 +97,9 @@ import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.composables.BenefitItem
+import com.ottrojja.composables.BenefitSectionTitle
+import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
@@ -152,8 +152,6 @@ fun QuranScreen(
     }
 
     val isPlaying by quranViewModel.isPlaying.collectAsState(initial = false)
-
-    //quranViewModel.isPageBookmarked();
 
     fun confirmRemoveBookmark() {
         val alertDialogBuilder = AlertDialog.Builder(context)
@@ -824,7 +822,32 @@ fun PagesContainer(
             exit = slideOutVertically() + shrinkVertically(),
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
-            Column(
+            MediaController(
+                isPlaying = isPlaying,
+                playbackSpeed = playbackSpeed,
+                isDownloading = isDownloading,
+                onFasterClicked = onFasterClicked,
+                onNextClicked = onNextClicked,
+                onPauseClicked = onPauseClicked,
+                onPlayClicked = onPlayClicked,
+                onPreviousClicked = onPreviousClicked,
+                onSlowerClicked = onSlowerClicked,
+                hasNextPreviousControl = true,
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(painter = painterResource(id = R.drawable.settings),
+                        contentDescription = "More Options",
+                        modifier = Modifier.clickable { listeningOptionsClicked() },
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                    )
+                }
+            }
+
+            /*Column(
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
                     .fillMaxWidth()
@@ -996,7 +1019,7 @@ fun PagesContainer(
                         }
                     }
                 }
-            }
+            }*/
         }
     }
 }
@@ -1047,12 +1070,6 @@ fun SinglePage(pageNum: String, nightReadingMode: Boolean) {
                 )
             )
         )
-        /*
-                        -0.33f, -0.33f, -0.33f, 0f, 255f, // Red channel inversion after grayscale
-                -0.33f, -0.33f, -0.33f, 0f, 255f, // Green channel inversion after grayscale
-                -0.33f, -0.33f, -0.33f, 0f, 255f, // Blue channel inversion after grayscale
-                0f,     0f,     0f,    1f,   0f  // Alpha channel (unchanged)
- */
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -1082,7 +1099,6 @@ fun SinglePage(pageNum: String, nightReadingMode: Boolean) {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Benefits(
     benefits: Array<String>,
@@ -1090,7 +1106,6 @@ fun Benefits(
     guidance: Array<String>,
     pageNum: String
 ) {
-    val context = LocalContext.current;
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -1103,181 +1118,44 @@ fun Benefits(
         LazyColumn() {
             if (benefits.size != 0) {
                 item {
-                    Text(
-                        text = "فوائد الصفحة",
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    BenefitSectionTitle("فوائد الصفحة")
                 }
             }
             items(benefits) { benefit ->
-                Row(
-                    modifier = Modifier
-                        .padding(5.dp)
-                        .fillMaxWidth()
-                        .clip(shape = RoundedCornerShape(10.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                        .combinedClickable(
-                            onClick = {},
-                            onLongClick = {
-                                val sendIntent: Intent = Intent().apply {
-                                    action = Intent.ACTION_SEND
-                                    putExtra(Intent.EXTRA_SUBJECT, "فائدة قرآنية")
-                                    putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
-                                    putExtra(
-                                        Intent.EXTRA_TEXT,
-                                        "من الفوائد القرآنية للصفحة $pageNum \n $benefit\nتطبيق اترجة القرآني للقارئ الشيخ أحمد الحراسيس: https://play.google.com/store/apps/details?id=com.ottrojja"
-                                    )
-                                    type = "text/plain"
-                                }
-
-                                val shareIntent = Intent.createChooser(sendIntent, "مشاركة الفائدة")
-                                startActivity(context, shareIntent, null)
-                            },
-                        )
-                        .padding(5.dp),
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Icon(
-                        painterResource(id = R.drawable.lightbulb),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier
-                            .padding(0.dp, 6.dp, 4.dp, 6.dp)
-                            .fillMaxWidth(0.08f)
-                    )
-                    Text(
-                        text = benefit,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier
-                            .padding(0.dp, 6.dp)
-                            .fillMaxWidth(0.92f)
-                    )
-                }
+                BenefitItem(
+                    benefitContent = benefit,
+                    shareSubject = "فائدة قرآنية",
+                    shareTitle = "مشاركة الفائدة",
+                    shareContent = "من الفوائد القرآنية للصفحة $pageNum \n $benefit\n${stringResource(R.string.share_app)}"
+                )
             }
 
             if (guidance.size != 0) {
                 item {
-                    Text(
-                        text = "توجيهات الصفحة",
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    BenefitSectionTitle("توجيهات الصفحة");
                 }
             }
-
             items(guidance) { guidanceItem ->
-                Row(
-                    modifier = Modifier
-                        .padding(5.dp)
-                        .fillMaxWidth()
-                        .clip(shape = RoundedCornerShape(10.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                        .combinedClickable(
-                            onClick = {},
-                            onLongClick = {
-                                val sendIntent: Intent = Intent().apply {
-                                    action = Intent.ACTION_SEND
-                                    putExtra(Intent.EXTRA_SUBJECT, "توجيه قرآني")
-                                    putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
-                                    putExtra(
-                                        Intent.EXTRA_TEXT,
-                                        "من التوجيهات القرآنية للصفحة $pageNum \n $guidanceItem\nتطبيق اترجة القرآني للقارئ الشيخ أحمد الحراسيس: https://play.google.com/store/apps/details?id=com.ottrojja"
-                                    )
-                                    type = "text/plain"
-                                }
-
-                                val shareIntent = Intent.createChooser(sendIntent, "مشاركة التوجيه")
-                                startActivity(context, shareIntent, null)
-                            },
-                        )
-                        .padding(5.dp),
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Icon(
-                        painterResource(id = R.drawable.lightbulb),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier
-                            .padding(0.dp, 10.dp, 4.dp, 0.dp)
-                            .fillMaxWidth(0.08f)
-                    )
-                    Text(
-                        text = guidanceItem,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier
-                            .padding(0.dp, 6.dp)
-                            .fillMaxWidth(0.92f)
-                    )
-                }
+                BenefitItem(
+                    benefitContent = guidanceItem,
+                    shareSubject = "توجيه قرآني",
+                    shareTitle = "مشاركة التوجيه",
+                    shareContent = "من التوجيهات القرآنية للصفحة $pageNum \n $guidanceItem\n${stringResource(R.string.share_app)}"
+                )
             }
 
             if (appliance.size != 0) {
                 item {
-                    Text(
-                        text = "الجانب التطبيقي",
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    BenefitSectionTitle("الجانب التطبيقي")
                 }
             }
-
             items(appliance) { applianceItem ->
-                Row(
-                    modifier = Modifier
-                        .padding(5.dp)
-                        .fillMaxWidth()
-                        .clip(shape = RoundedCornerShape(10.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                        .combinedClickable(
-                            onClick = {},
-                            onLongClick = {
-                                val sendIntent: Intent = Intent().apply {
-                                    action = Intent.ACTION_SEND
-                                    putExtra(Intent.EXTRA_SUBJECT, "تطبيق قرآني")
-                                    putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
-                                    putExtra(
-                                        Intent.EXTRA_TEXT,
-                                        "من التطبيقات القرآنية للصفحة $pageNum \n $applianceItem\nتطبيق اترجة القرآني للقارئ الشيخ أحمد الحراسيس: https://play.google.com/store/apps/details?id=com.ottrojja"
-                                    )
-                                    type = "text/plain"
-                                }
-
-                                val shareIntent = Intent.createChooser(sendIntent, "مشاركة التطبيق")
-                                startActivity(context, shareIntent, null)
-                            },
-                        )
-                        .padding(5.dp),
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Icon(
-                        painterResource(id = R.drawable.lightbulb),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier
-                            .padding(0.dp, 10.dp, 4.dp, 0.dp)
-                            .fillMaxWidth(0.08f)
-                    )
-                    Text(
-                        text = applianceItem,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier
-                            .padding(0.dp, 6.dp)
-                            .fillMaxWidth(0.92f)
-                    )
-                }
+                BenefitItem(
+                    benefitContent = applianceItem,
+                    shareSubject = "تطبيق قرآني",
+                    shareTitle = "مشاركة التطبيق",
+                    shareContent = "من التطبيقات القرآنية للصفحة $pageNum \n $applianceItem\n${stringResource(R.string.share_app)}"
+                )
             }
         }
     }
@@ -1296,7 +1174,7 @@ fun YouTube(link: String) {
         if (!Helpers.checkNetworkConnectivity(context)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Text(
-                    text = "تعذر عرض المقطع لعدم توفر اتصال بالانترنت",
+                    text = "تعذر عرض المقطع لعدم توفر اتصال بالشبكة",
                     color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center

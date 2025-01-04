@@ -25,6 +25,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.ottrojja.R
 import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.QuranPage
@@ -177,7 +178,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         set(value: Boolean) {
             _shouldAutoPlay.value = value
         }
-
 
     private var _tafseerSheetMode by mutableStateOf("tafseer")
     var tafseerSheetMode: String
@@ -428,23 +428,23 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     private var _showTafseerOptions by mutableStateOf(false)
     var showTafseerOptions: Boolean
-        get() = this._showTafseerOptions
+        get() = _showTafseerOptions
         set(value) {
-            this._showTafseerOptions = value
+            _showTafseerOptions = value
         }
 
     private var _showRepOptions by mutableStateOf(false)
     var showRepOptions: Boolean
-        get() = this._showRepOptions
+        get() = _showRepOptions
         set(value) {
-            this._showRepOptions = value
+            _showRepOptions = value
         }
 
     private var _showVerseOptions by mutableStateOf(false)
     var showVerseOptions: Boolean
-        get() = this._showVerseOptions
+        get() = _showVerseOptions
         set(value) {
-            this._showVerseOptions = value
+            _showVerseOptions = value
         }
 
     val tafseerNamesMap = hashMapOf<String, String>(
@@ -792,14 +792,14 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         shareIntent.putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
         shareIntent.putExtra(
             Intent.EXTRA_TEXT,
-            "الصفحة رقم ${_currentPageObject.pageNum}\nتطبيق اترجة القرآني للقارئ الشيخ أحمد الحراسيس: https://play.google.com/store/apps/details?id=com.ottrojja"
+            "الصفحة رقم ${_currentPageObject.pageNum} من القرآن الكريم\n${context.resources.getString(R.string.share_app)}"
         )
 
         val chooserIntent = Intent.createChooser(shareIntent, "تطبيق اترجة")
         chooserIntent.putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
         chooserIntent.putExtra(
             Intent.EXTRA_TEXT,
-            "الصفحة رقم ${_currentPageObject.pageNum}\nتطبيق اترجة القرآني للقارئ الشيخ أحمد الحراسيس: https://play.google.com/store/apps/details?id=com.ottrojja"
+            "الصفحة رقم ${_currentPageObject.pageNum} من القرآن الكريم\n${context.resources.getString(R.string.share_app)}"
         )
         chooserIntent.putExtra(Intent.EXTRA_CONTENT_QUERY, "image/png")
         chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

@@ -193,7 +193,7 @@ fun SettingsScreen(
             content = {
                 SwitchWithIcon(
                     checked = settingsScreenViewModel.nightReadingMode,
-                    onCheckedChange={ newCheckedState -> settingsScreenViewModel.toggleNightReadingMode() },
+                    onCheckedChange = { newCheckedState -> settingsScreenViewModel.toggleNightReadingMode() },
                     icon = Icons.Default.Check
                 )
             })
@@ -203,7 +203,7 @@ fun SettingsScreen(
             shareIntent.setAction(Intent.ACTION_SEND)
             shareIntent.putExtra(
                 Intent.EXTRA_TEXT,
-                "تطبيق اترجة القرآني للقارئ الشيخ أحمد الحراسيس: https://play.google.com/store/apps/details?id=com.ottrojja"
+                context.resources.getString(R.string.share_app)
             )
             shareIntent.setType("text/plain")
             context.startActivity(Intent.createChooser(shareIntent, "مشاركة التطبيق"))

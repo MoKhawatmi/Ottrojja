@@ -27,13 +27,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.composables.Header
 import com.ottrojja.composables.LoadingDialog
+import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 
@@ -122,26 +122,6 @@ fun ChaptersScreen(
                                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                                         )
                                     }
-                                    /*Text(
-                                        text = "${Helpers.convertToIndianNumbers("${item.verseCount}")} اية",
-                                        color = Color.Black,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight(700)
-                                    )
-                                    Icon(
-                                        Icons.Filled.Circle,
-                                        contentDescription = "",
-                                        tint = MaterialTheme.colorScheme.secondary,
-                                        modifier = Modifier
-                                            .padding(6.dp, 0.dp)
-                                            .size(10.dp)
-                                            .offset(y = 4.dp)
-                                    )
-                                    Text(
-                                        text = item.chapterType,
-                                        color = Color.Black,
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )*/
                                 }
                             }
                         }
@@ -154,7 +134,42 @@ fun ChaptersScreen(
             }
 
             if (((chaptersViewModel.isPlaying && chaptersViewModel.isChapterPlaying) || chaptersViewModel.isPaused) && chaptersViewModel.selectedSurah.surahId != 0) {
-                Column(
+                MediaController(
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.background)
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null
+                        ) { /*without this, when the column is clicked the element behind it will be clicked*/ }
+                        .padding(10.dp),
+                    isPlaying = chaptersViewModel.isPlaying && chaptersViewModel.isChapterPlaying,
+                    playbackSpeed = chaptersViewModel.playbackSpeed,
+                    isDownloading = false,
+                    onFasterClicked = { chaptersViewModel.increasePlaybackSpeed() },
+                    onNextClicked = { chaptersViewModel.goNextChapter() },
+                    onPauseClicked = { chaptersViewModel.pause() },
+                    onPlayClicked = { chaptersViewModel.play() },
+                    onPreviousClicked = { chaptersViewModel.goPreviousChapter() },
+                    onSlowerClicked = { chaptersViewModel.decreasePlaybackSpeed() },
+                    hasNextPreviousControl = true,
+                ) {
+                    Text(
+                        text = chaptersViewModel.selectedSurah.chapterName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    if (chaptersViewModel.isPlaying && chaptersViewModel.isChapterPlaying) {
+                        MediaSlider(
+                            sliderPosition = chaptersViewModel.sliderPosition,
+                            setSliderPosition = { value -> chaptersViewModel.sliderChanged(value) },
+                            sliderMaxDuration = chaptersViewModel.maxDuration
+                        )
+                    }
+                }
+
+                /*Column(
                     modifier = Modifier
                         .background(MaterialTheme.colorScheme.background)
                         .fillMaxWidth()
@@ -179,28 +194,6 @@ fun ChaptersScreen(
                             sliderMaxDuration = chaptersViewModel.maxDuration
                         )
                     }
-                    /*if (chaptersViewModel.isPlaying && chaptersViewModel.isChapterPlaying) {
-                        Row(
-                            modifier = Modifier
-                                .background(color = MaterialTheme.colorScheme.primaryContainer)
-                                .fillMaxWidth()
-                                .padding(8.dp),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "${chaptersViewModel.playbackSpeed}x",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    textAlign = TextAlign.Left,
-                                )
-                            }
-                        }
-                    }*/
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -280,7 +273,7 @@ fun ChaptersScreen(
                             }
                         }
                     }
-                }
+                }*/
             }
         }
     }
