@@ -19,11 +19,13 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
+import com.ottrojja.classes.Helpers
 import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.room.MIGRATION_1_2
 import com.ottrojja.room.MIGRATION_2_3
 import com.ottrojja.room.QuranDatabase
+import com.ottrojja.services.PagePlayerService
 import com.ottrojja.ui.theme.TestAppTheme
 import java.util.Locale
 
@@ -72,8 +74,8 @@ class MainActivity : ComponentActivity() {
             application,
             QuranDatabase::class.java, "QuranDB"
         ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-         .fallbackToDestructiveMigration()
-         .build()
+            .fallbackToDestructiveMigration()
+            .build()
         val quranRepository = QuranRepository(db.quranDao())
 
         setContent {
@@ -98,11 +100,14 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         try {
-            println("terminating service on destroy")
-            val stopServiceIntent = Intent(this, MediaPlayerService::class.java)
-            //stopServiceIntent.setAction("STOP")
-            stopServiceIntent.setAction("TERMINATE")
-            startService(stopServiceIntent)
+            println("terminating services on destroy")
+            Helpers.terminateAllServices(this)
+            /*val servicesList = listOf(MediaPlayerService::class.java, PagePlayerService::class.java)
+            servicesList.forEach {
+                val stopServiceIntent = Intent(this, it)
+                stopServiceIntent.setAction("TERMINATE")
+                startService(stopServiceIntent)
+            }*/
         } catch (e: Exception) {
             e.printStackTrace()
         }

@@ -32,8 +32,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -47,6 +45,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.BottomSheetDefaults
@@ -104,6 +103,7 @@ import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.SelectedVerseContentSection
+import com.ottrojja.services.PagePlayerService
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
@@ -141,17 +141,11 @@ fun QuranScreen(
         }
     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            quranViewModel.releasePlayer()
-        }
-    }
-
     BackHandler {
         handleBackBehaviour()
     }
 
-    val isPlaying by quranViewModel.isPlaying.collectAsState(initial = false)
+    val isPlaying = quranViewModel.isPlaying && quranViewModel.isCurrentPagePlaying;
 
     fun confirmRemoveBookmark() {
         val alertDialogBuilder = AlertDialog.Builder(context)
@@ -212,19 +206,18 @@ fun QuranScreen(
                     { newPage ->
                         quranViewModel.setCurrentPage(newPage)
                     },
-                    {
-                        quranViewModel.startPlaying()
+                    onPlayClicked = {
+                        quranViewModel.prepareForPlaying()
                     },
                     { quranViewModel.pausePlaying() },
                     { quranViewModel.showRepOptions = true },
-                    { quranViewModel.updateSelectedRep() },
+                    { /*quranViewModel.updateSelectedRep()*/ },
                     quranViewModel.selectedRepetition,
                     { quranViewModel.showVerseOptions = true },
                     quranViewModel.selectedVerse,
                     isPlaying,
                     { quranViewModel.decreasePlaybackSpeed() },
                     { quranViewModel.increasePlaybackSpeed() },
-                    { quranViewModel.resetPlayer() },
                     quranViewModel.isDownloading,
                     { quranViewModel.goNextVerse() },
                     { quranViewModel.goPreviousVerse() },
@@ -740,7 +733,6 @@ fun PagesContainer(
     isPlaying: Boolean,
     onSlowerClicked: () -> Unit,
     onFasterClicked: () -> Unit,
-    disposeFunction: () -> Unit,
     isDownloading: Boolean,
     onNextClicked: () -> Unit,
     onPreviousClicked: () -> Unit,
@@ -786,17 +778,8 @@ fun PagesContainer(
         }
     }
 
-    DisposableEffect(Unit) {
-        // This block will be executed when the composable is first composed
-        onDispose {
-            disposeFunction()
-        }
-    }
-
-
     var offsetY by remember { mutableStateOf(0f) }
     val offsetYAnimatable = remember { Animatable(0f) }
-
 
     Box(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(state = pagerState,
@@ -839,11 +822,12 @@ fun PagesContainer(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(painter = painterResource(id = R.drawable.settings),
+                    Icon(
+                        Icons.Default.Settings,
                         contentDescription = "More Options",
                         modifier = Modifier.clickable { listeningOptionsClicked() },
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-                    )
+                        tint = MaterialTheme.colorScheme.primary
+                        )
                 }
             }
 
@@ -1126,7 +1110,11 @@ fun Benefits(
                     benefitContent = benefit,
                     shareSubject = "فائدة قرآنية",
                     shareTitle = "مشاركة الفائدة",
-                    shareContent = "من الفوائد القرآنية للصفحة $pageNum \n $benefit\n${stringResource(R.string.share_app)}"
+                    shareContent = "من الفوائد القرآنية للصفحة $pageNum \n $benefit\n${
+                        stringResource(
+                            R.string.share_app
+                        )
+                    }"
                 )
             }
 
@@ -1140,7 +1128,11 @@ fun Benefits(
                     benefitContent = guidanceItem,
                     shareSubject = "توجيه قرآني",
                     shareTitle = "مشاركة التوجيه",
-                    shareContent = "من التوجيهات القرآنية للصفحة $pageNum \n $guidanceItem\n${stringResource(R.string.share_app)}"
+                    shareContent = "من التوجيهات القرآنية للصفحة $pageNum \n $guidanceItem\n${
+                        stringResource(
+                            R.string.share_app
+                        )
+                    }"
                 )
             }
 
@@ -1154,7 +1146,11 @@ fun Benefits(
                     benefitContent = applianceItem,
                     shareSubject = "تطبيق قرآني",
                     shareTitle = "مشاركة التطبيق",
-                    shareContent = "من التطبيقات القرآنية للصفحة $pageNum \n $applianceItem\n${stringResource(R.string.share_app)}"
+                    shareContent = "من التطبيقات القرآنية للصفحة $pageNum \n $applianceItem\n${
+                        stringResource(
+                            R.string.share_app
+                        )
+                    }"
                 )
             }
         }
@@ -1205,13 +1201,7 @@ fun YoutubeScreen(
             ) {
                 super.onStateChange(youTubePlayer, state)
                 if (state.toString() == "PLAYING") {
-                    val sr = Helpers.isMyServiceRunning(MediaPlayerService::class.java, context);
-                    println("service running $sr")
-                    if (sr) {
-                        val stopServiceIntent = Intent(context, MediaPlayerService::class.java)
-                        stopServiceIntent.setAction("TERMINATE")
-                        context.startService(stopServiceIntent)
-                    }
+                    Helpers.terminateAllServices(context)
                 }
                 println(state)
             }

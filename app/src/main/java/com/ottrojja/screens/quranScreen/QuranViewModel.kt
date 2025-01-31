@@ -1,41 +1,34 @@
 package com.ottrojja.screens.quranScreen
 
 import android.app.Application
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
+import android.os.IBinder
 import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.OnLifecycleEvent
-import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
-import androidx.media3.common.PlaybackParameters
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.R
 import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.services.PagePlayerService
+import com.ottrojja.services.PageServiceInterface
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -46,130 +39,35 @@ import java.io.IOException
 
 
 class QuranViewModel(private val repository: QuranRepository, application: Application) :
-    AndroidViewModel(application), LifecycleObserver {
+    AndroidViewModel(application) {
     val context = application.applicationContext;
-    val sharedPreferences: SharedPreferences =
-        application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
+    val sharedPreferences: SharedPreferences = application.getSharedPreferences(
+        "ottrojja",
+        Context.MODE_PRIVATE
+    )
 
+    private var _versesPlayList: Array<PageContent> = emptyArray();
 
-    private var _versesPlayList: Array<PageContent> by mutableStateOf(arrayOf<PageContent>());
+    private var _isPlaying = mutableStateOf(false)
+    var isPlaying: Boolean
+        get() = _isPlaying.value
+        set(value: Boolean) {
+            _isPlaying.value = value
+        }
 
-    var exoPlayer: ExoPlayer;
-
-    var currentPlayingIndex = mutableStateOf(0)
-
-    init {
-        // Observe the app's lifecycle using ProcessLifecycleOwner
-        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
-
-
-        exoPlayer = ExoPlayer.Builder(context).build()
-
-        exoPlayer.addListener(
-            object : Player.Listener {
-                override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    if (isPlaying) {
-                        setIsPlaying(isPlaying)
-                    }
-                }
-
-                override fun onPlaybackStateChanged(playbackState: Int) {
-                    super.onPlaybackStateChanged(playbackState)
-                    if (playbackState == Player.STATE_ENDED) {
-                        length = 0;
-                        val selectedMappedRepetitions = repetitionOptionsMap.get(_selectedRepetition)!!;
-                        val repeatActive = selectedMappedRepetitions > 0;
-                        println("repeated times $repeatedTimes")
-
-                        if (_isPlaying.value) {
-                            // Repetition logic
-
-                            if (repeatActive && _versesPlayList[currentPlayingIndex.value].type == PageContentItemType.verse) {
-                                if (_selectedRepetitionTab.value == RepetitionTab.الاية) {
-                                    if (repeatedTimes < selectedMappedRepetitions) {
-                                        repeatedTimes++;
-                                        playAudio(_versesPlayList[currentPlayingIndex.value])
-                                    } else if (currentPlayingIndex.value < _versesPlayList.size - 1) {
-                                        if (currentPlayingIndex.value != endPlayingIndex) {
-                                            repeatedTimes = 0;
-                                            goNextVerse();
-                                        } else {
-                                            resetPlayer();
-                                        }
-                                    } else {
-                                        // done playing, done looping
-                                        resetPlayer()
-                                        if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
-                                            playNextPage()
-                                        }
-                                    }
-                                } else if (_selectedRepetitionTab.value == RepetitionTab.المقطع) {
-                                    if (currentPlayingIndex.value != endPlayingIndex) {
-                                        if (currentPlayingIndex.value < _versesPlayList.size - 1) {
-                                            goNextVerse();
-                                        } else {
-                                            resetPlayer()
-                                            if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
-                                                playNextPage()
-                                            }
-                                        }
-                                    } else if (repeatedTimes < selectedMappedRepetitions) {
-                                        repeatedTimes++;
-                                        currentPlayingIndex.value = startPlayingIndex ?: 0;
-                                        playAudio(_versesPlayList[currentPlayingIndex.value])
-                                        println("repeat times increased $repeatedTimes")
-                                    } else {
-                                        // done playing, done looping
-                                        resetPlayer()
-                                    }
-                                }
-                            }
-                            // Play next verse
-                            else if (currentPlayingIndex.value < _versesPlayList.size - 1) {
-                                if (currentPlayingIndex.value != endPlayingIndex) {
-                                    goNextVerse();
-                                } else {
-                                    resetPlayer();
-                                }
-                            }
-                            // End page media logic
-                            else {
-                                resetPlayer()
-                                if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
-                                    playNextPage()
-                                }
-                            }
-                        }
-                    }
-                }
-
-                override fun onPlayerError(error: PlaybackException) {
-                    super.onPlayerError(error)
-                    println(error.printStackTrace())
-                    Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
-                        .show()
-                }
-            }
-        )
-    }
-
-    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-    fun onEnterBackground() {
-        resetPlayer();
-    }
-
-    private val _isPlaying = MutableStateFlow(false)
-    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
-
-    fun setIsPlaying(value: Boolean) {
-        _isPlaying.value = value;
-    }
+    private var _isCurrentPagePlaying = mutableStateOf(true)
+    var isCurrentPagePlaying: Boolean
+        get() = _isCurrentPagePlaying.value
+        set(value: Boolean) {
+            _isCurrentPagePlaying.value = value
+        }
 
     private var _continuousPlay = mutableStateOf(false)
     var continuousPlay: Boolean
         get() = _continuousPlay.value
         set(value: Boolean) {
             _continuousPlay.value = value
+            updateServicePlayingParameters()
         }
 
     private var _shouldAutoPlay = mutableStateOf(false)
@@ -195,15 +93,22 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     fun setCurrentPage(value: String) {
         println("setting current page to $value")
-        //_selectedRepetition = "0"
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _currentPageObject = repository.getPage(value)
                 println(_currentPageObject)
                 _versesPlayList = _currentPageObject.pageContent
-                withContext(Dispatchers.Main) {
+                /*withContext(Dispatchers.Main) {
                     resetPlayer()
+                }*/
+                //the following couple of lines are made to accomodate the service changes
+                if (isMyServiceRunning(PagePlayerService::class.java, context)) {
+                    //   println("${audioService?.getPlayingPageNum()} =? $value")
+                    // updateServicePageValues()
+                    updateIsCurrentPagePlaying()
                 }
+                checkVerseFilesExistance()
+                //done accomodate
                 isPageBookmarked()
                 val editor: SharedPreferences.Editor = sharedPreferences.edit()
                 editor.putString("mostRecentPage", value)
@@ -225,9 +130,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         )
     )
     var currentPageObject: QuranPage
-        get() = this._currentPageObject
+        get() = _currentPageObject
         set(value) {
-            this._currentPageObject = value
+            _currentPageObject = value
         }
 
     val repetitionOptionsMap = linkedMapOf<String, Int>(
@@ -251,16 +156,17 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         get() = _selectedRepetition
         set(value) {
             _selectedRepetition = value
+            updateServicePlayingParameters()
         }
 
-    fun updateSelectedRep() {
+    /*fun updateSelectedRep() {
         val repValue: Int = repetitionOptionsMap.get(_selectedRepetition)!!
         if (repValue >= 0 && repValue < 10) {
             _selectedRepetition = "${repValue + 1}";
         } else {
             _selectedRepetition = "0"
         }
-    }
+    }*/
 
     val emptyPageObject: PageContent = PageContent(
         PageContentItemType.EMPTY,
@@ -273,10 +179,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         "",
     )
 
-
     var startPlayingIndex: Int? = null;
     var endPlayingIndex: Int? = null;
-
     private var _selectedVerse by mutableStateOf<PageContent>(emptyPageObject)
     var selectedVerse: PageContent
         get() = _selectedVerse
@@ -284,20 +188,28 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             val pageVerses: Array<PageContent> = getCurrentPageVerses();
             val index = pageVerses.indexOf(pageVerses.find { item -> item.surahNum == value.surahNum && item.verseNum == value.verseNum });
             if (index > (endPlayingIndex ?: (pageVerses.size - 1))) {
-                Toast.makeText(context, "موضع اية البداية يجب ان لا يكون بعد موضع اية النهاية", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context,
+                    "موضع اية البداية يجب ان لا يكون بعد موضع اية النهاية",
+                    Toast.LENGTH_LONG
+                ).show()
                 return;
             }
             _selectedVerse = value;
-            exoPlayer.stop()
-            setIsPlaying(false)
             _selectedRepetition = "0"
-            length = 0; //seek a better way for this length issue
+            audioService?.verseHasBeenSelected();
             if (index == -1) {
-                currentPlayingIndex.value = 0;
                 startPlayingIndex = 0;
+                updateServicePlayingParameters()
+                /*audioService?.setPlayingIndex(0)
+                audioService?.setStartPlayingIndex(0)*/
             } else {
-                currentPlayingIndex.value = index;
                 startPlayingIndex = index;
+                updateServicePlayingParameters()
+
+                /*audioService?.setPlayingIndex(index)
+                audioService?.setStartPlayingIndex(index)
+                audioService?.setStartPlayingItem(value)*/
             }
         }
 
@@ -308,19 +220,26 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             val pageVerses: Array<PageContent> = getCurrentPageVerses();
             val index = pageVerses.indexOf(pageVerses.find { item -> item.surahNum == value.surahNum && item.verseNum == value.verseNum });
             if (index < (startPlayingIndex ?: 0)) {
-                Toast.makeText(context, "موضع اية النهاية يجب ان لا يكون قبل موضع اية البداية", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context,
+                    "موضع اية النهاية يجب ان لا يكون قبل موضع اية البداية",
+                    Toast.LENGTH_LONG
+                ).show()
                 return;
             }
             _selectedEndVerse = value;
-            exoPlayer.stop()
-            setIsPlaying(false)
             _selectedRepetition = "0"
-            length = 0; //seek a better way for this length issue
+            audioService?.verseHasBeenSelected();
             if (index == -1) {
                 Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 endPlayingIndex = null;
+                updateServicePlayingParameters();
+                //audioService?.setEndPlayingIndex(null)
             } else {
                 endPlayingIndex = index;
+                updateServicePlayingParameters();
+                /*audioService?.setEndPlayingIndex(index)
+                audioService?.setEndPlayingItem(value)*/
             }
         }
 
@@ -339,27 +258,11 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         }
 
     fun increasePlaybackSpeed() {
-        if (_playbackSpeed < 2.0f) {
-            _playbackSpeed += 0.25f;
-            updatePlaybackSpeed()
-        }
+        audioService?.increaseSpeed();
     }
 
     fun decreasePlaybackSpeed() {
-        if (_playbackSpeed > 0.25f) {
-            _playbackSpeed -= 0.25f;
-            updatePlaybackSpeed()
-        }
-    }
-
-    fun updatePlaybackSpeed() {
-        if (_isPlaying.value) {
-            try {
-                exoPlayer.playbackParameters = PlaybackParameters(_playbackSpeed)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        audioService?.decreaseSpeed();
     }
 
     private var _showVersesSheet by mutableStateOf(false)
@@ -367,70 +270,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         get() = _showVersesSheet
         set(value) {
             _showVersesSheet = value
-        }
-
-    private var _tafseerTargetVerse by mutableStateOf("0-0")
-    var tafseerTargetVerse: String
-        get() = _tafseerTargetVerse
-        set(value) {
-            viewModelScope.launch(Dispatchers.IO) {
-                _tafseerTargetVerse = value
-                val surah = value.split("-")[0]
-                val verse = value.split("-")[1]
-
-                println(value)
-                println("tafseer for $surah-$verse at ${tafseerNamesMap.get(_selectedTafseer)}")
-
-                _verseTafseer = repository.getVerseTafseerData(
-                    surah,
-                    verse,
-                    tafseerNamesMap.get(_selectedTafseer)!!
-                ).text
-                _verseE3rab = repository.getVerseE3rabData(surah, verse).text
-                val causesOfRevelation = repository.getCauseOfRevelation(surah, verse)
-                if (causesOfRevelation.size == 0) {
-                    _verseCauseOfRevelation = "لم يرد في المرجع سبب لنزول الآية"
-                } else {
-                    var concatCauses = ""
-                    causesOfRevelation.forEach { cause -> concatCauses += "${cause.text}\n\n" }
-                    _verseCauseOfRevelation = concatCauses
-                }
-            }
-        }
-
-    private var _verseTafseer by mutableStateOf("")
-    var verseTafseer: String
-        get() = _verseTafseer
-        set(value) {
-            _verseTafseer = value
-        }
-
-    private var _verseE3rab by mutableStateOf("")
-    var verseE3rab: String
-        get() = _verseE3rab
-        set(value) {
-            _verseE3rab = value
-        }
-
-    private var _verseCauseOfRevelation by mutableStateOf("")
-    var verseCauseOfRevelation: String
-        get() = _verseCauseOfRevelation
-        set(value) {
-            _verseCauseOfRevelation = value
-        }
-
-    private var _showTafseerSheet by mutableStateOf(false)
-    var showTafseerSheet: Boolean
-        get() = _showTafseerSheet
-        set(value) {
-            _showTafseerSheet = value
-        }
-
-    private var _showTafseerOptions by mutableStateOf(false)
-    var showTafseerOptions: Boolean
-        get() = _showTafseerOptions
-        set(value) {
-            _showTafseerOptions = value
         }
 
     private var _showRepOptions by mutableStateOf(false)
@@ -459,9 +298,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     private var _selectedTafseer by mutableStateOf("تفسير السعدي")
     var selectedTafseer: String
-        get() = this._selectedTafseer
+        get() = _selectedTafseer
         set(value) {
-            this._selectedTafseer = value
+            _selectedTafseer = value
         }
 
     fun updateSelectedTafseer(value: String) {
@@ -484,34 +323,20 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     fun resetPlayer() {
-        exoPlayer.stop()
-        exoPlayer.clearMediaItems()
-        currentPlayingIndex.value = 0;
+        audioService?.resetPlayer();
+
         _selectedVerse = emptyPageObject.copy()
         _selectedEndVerse = emptyPageObject.copy()
-        endPlayingIndex = null;
-        startPlayingIndex = 0;
-        //_selectedRepetition = "0"
-        setIsPlaying(false);
-        length = 0;
-        repeatedTimes = 0;
+
         downloadIndex = 0;
         checkVerseFilesExistance();
     }
 
-    fun releasePlayer() {
-        exoPlayer.release()
-    }
-
-
-    var length: Long = 0;
-    var repeatedTimes = 0;
-
     private val _isDownloading = mutableStateOf(false)
     var isDownloading: Boolean
-        get() = this._isDownloading.value
+        get() = _isDownloading.value
         set(value) {
-            this._isDownloading.value = value
+            _isDownloading.value = value
         }
 
     var allVersesExist = false;
@@ -538,8 +363,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         allVersesExist = true;
     }
 
-    fun startPlaying() {
-        val sr = Helpers.isMyServiceRunning(MediaPlayerService::class.java, context);
+    fun prepareForPlaying() {
+        // stop the other media player service
+        val sr = isMyServiceRunning(MediaPlayerService::class.java, context);
         println("service running $sr")
         if (sr) {
             val stopServiceIntent = Intent(context, MediaPlayerService::class.java)
@@ -548,76 +374,47 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         }
         _shouldAutoPlay.value = false;
 
-        if (length > 0) {
-            exoPlayer.play()
-        } else {
-            if (!allVersesExist) {
-                if (Helpers.checkNetworkConnectivity(context)) {
-                    initializeDownload()
-                } else {
-                    Toast.makeText(context, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG)
-                        .show()
-                    return;
-                }
-            } else if (allVersesExist) {
-                playAudio(_versesPlayList[currentPlayingIndex.value])
+        if (!allVersesExist) {
+            if (Helpers.checkNetworkConnectivity(context)) {
+                initializeDownload()
+            } else {
+                Toast.makeText(context, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG)
+                    .show()
+                return;
             }
+        } else if (allVersesExist) {
+            if (isMyServiceRunning(PagePlayerService::class.java, context)) {
+                updateServicePageValues()
+            }
+            startPlaying()
+        }
+    }
+
+    var clickedPlay = false;
+    fun startPlaying() {
+        if (isMyServiceRunning(PagePlayerService::class.java, context)) {
+            if (_isCurrentPagePlaying.value) {
+                audioService?.playAudio();
+            } else {
+                audioService?.resetPlayer();
+                audioService?.playAudio();
+            }
+        } else {
+            clickedPlay = true;
+            startAndBind();
         }
     }
 
     fun pausePlaying() {
-        length = exoPlayer.currentPosition;
-        exoPlayer.pause()
-        setIsPlaying(false);
+        audioService?.pause();
     }
 
     fun goNextVerse() {
-        if (currentPlayingIndex.value == _versesPlayList.size - 1) {
-            return;
-        }
-        currentPlayingIndex.value++;
-        playAudio(_versesPlayList[currentPlayingIndex.value])
+        audioService?.playNextVerse();
     }
 
     fun goPreviousVerse() {
-        if (currentPlayingIndex.value == 0) {
-            return;
-        }
-        currentPlayingIndex.value--;
-        playAudio(_versesPlayList[currentPlayingIndex.value])
-    }
-
-
-    private fun playAudio(item: PageContent) {
-        var urlParam: String;
-        if (item.type == PageContentItemType.surah) {
-            urlParam = "1-1-1.mp3"
-        } else {
-            urlParam = "${currentPageObject.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
-        }
-
-        if (item.type == PageContentItemType.surah && (item.surahNum == "1" || item.surahNum == "9")) {
-            //skip basmallah for surah 1 and 9
-            currentPlayingIndex.value++;
-            playAudio(
-                _versesPlayList[currentPlayingIndex.value]
-            )
-        } else {
-            exoPlayer.apply {
-                val mediaItem =
-                    MediaItem.fromUri(
-                        Uri.fromFile(
-                            File(
-                                context.getExternalFilesDir(null),
-                                urlParam
-                            )
-                        )
-                    )
-                setMediaItem(mediaItem)
-                prepare()
-                play()
-            }
-        }
+        audioService?.playPreviousVerse();
     }
 
     private fun playNextPage() {
@@ -630,6 +427,12 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     fun initializeDownload() {
         _isDownloading.value = true;
         downloadVerse()
+    }
+
+    fun updateIsCurrentPagePlaying(){
+        println("${audioService?.getPlayingPageNum()} =? ${_currentPageObject.pageNum}")
+        _isCurrentPagePlaying.value = audioService?.getPlayingPageNum() == _currentPageObject.pageNum
+
     }
 
     fun downloadVerse() {
@@ -673,7 +476,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                             allVersesExist = true;
                             _isDownloading.value = false;
                             withContext(Dispatchers.Main) {
-                                playAudio(_versesPlayList[currentPlayingIndex.value])
+                                startPlaying()
                             }
                         } else {
                             downloadIndex++;
@@ -761,53 +564,124 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     fun sharePage() {
         val varName = "p_${_currentPageObject.pageNum}"
-        val resourceId: Int = context.getResources()
-            .getIdentifier(varName, "drawable", context.packageName)
-
+        val resourceId = context.resources.getIdentifier(varName, "drawable", context.packageName)
         val bitmap = BitmapFactory.decodeResource(context.resources, resourceId)
         val fileName = "image.png"
-        val fileOutputStream: FileOutputStream
+        val file = File(context.filesDir, fileName)
         try {
-            fileOutputStream =
-                context.openFileOutput(fileName, Context.MODE_PRIVATE)
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
-            fileOutputStream.close()
+            FileOutputStream(file).use { fileOutputStream ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+            }
         } catch (e: IOException) {
             e.printStackTrace()
+            return
         }
-
-        val internalFilePath = File(context.filesDir, fileName).absolutePath
-
-        val shareIntent = Intent(Intent.ACTION_SEND)
-        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        shareIntent.type = "image/*"
         val imageUri = FileProvider.getUriForFile(
             context,
-            context.getPackageName() + ".fileprovider",
-            File(internalFilePath)
+            "${context.packageName}.fileprovider",
+            file
         )
-        shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
-
-        shareIntent.putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
-        shareIntent.putExtra(
-            Intent.EXTRA_TEXT,
-            "الصفحة رقم ${_currentPageObject.pageNum} من القرآن الكريم\n${context.resources.getString(R.string.share_app)}"
-        )
-
-        val chooserIntent = Intent.createChooser(shareIntent, "تطبيق اترجة")
-        chooserIntent.putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
-        chooserIntent.putExtra(
-            Intent.EXTRA_TEXT,
-            "الصفحة رقم ${_currentPageObject.pageNum} من القرآن الكريم\n${context.resources.getString(R.string.share_app)}"
-        )
-        chooserIntent.putExtra(Intent.EXTRA_CONTENT_QUERY, "image/png")
-        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-        context.startActivity(chooserIntent);
-
-        File(internalFilePath).deleteOnExit();
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            type = "image/*"
+            putExtra(Intent.EXTRA_STREAM, imageUri)
+            putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
+            putExtra(
+                Intent.EXTRA_TEXT,
+                "الصفحة رقم ${_currentPageObject.pageNum} من القرآن الكريم\n${
+                    context.resources.getString(R.string.share_app)
+                }"
+            )
+        }
+        val chooserIntent = Intent.createChooser(shareIntent, "تطبيق اترجة").apply {
+            putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(chooserIntent)
+        file.deleteOnExit()
     }
+
+
+    private var _showListeningOptionsDialog = mutableStateOf(false)
+    var showListeningOptionsDialog: Boolean
+        get() = _showListeningOptionsDialog.value
+        set(value) {
+            _showListeningOptionsDialog.value = value
+        }
+
+    private var _selectedRepetitionTab = mutableStateOf(RepetitionTab.الاية)
+    var selectedRepetitionTab: RepetitionTab
+        get() = _selectedRepetitionTab.value
+        set(value) {
+            _selectedRepetitionTab.value = value
+            updateServicePlayingParameters()
+        }
+
+    /*****************************TAFSEER MODAL CONTROL***********************************/
+
+    private var _tafseerTargetVerse by mutableStateOf("0-0")
+    var tafseerTargetVerse: String
+        get() = _tafseerTargetVerse
+        set(value) {
+            viewModelScope.launch(Dispatchers.IO) {
+                _tafseerTargetVerse = value
+                val surah = value.split("-")[0]
+                val verse = value.split("-")[1]
+
+                println(value)
+                println("tafseer for $surah-$verse at ${tafseerNamesMap.get(_selectedTafseer)}")
+
+                _verseTafseer = repository.getVerseTafseerData(
+                    surah,
+                    verse,
+                    tafseerNamesMap.get(_selectedTafseer)!!
+                ).text
+                _verseE3rab = repository.getVerseE3rabData(surah, verse).text
+                val causesOfRevelation = repository.getCauseOfRevelation(surah, verse)
+                if (causesOfRevelation.size == 0) {
+                    _verseCauseOfRevelation = "لم يرد في المرجع سبب لنزول الآية"
+                } else {
+                    var concatCauses = ""
+                    causesOfRevelation.forEach { cause -> concatCauses += "${cause.text}\n\n" }
+                    _verseCauseOfRevelation = concatCauses
+                }
+            }
+        }
+
+    private var _verseTafseer by mutableStateOf("")
+    var verseTafseer: String
+        get() = _verseTafseer
+        set(value) {
+            _verseTafseer = value
+        }
+
+    private var _verseE3rab by mutableStateOf("")
+    var verseE3rab: String
+        get() = _verseE3rab
+        set(value) {
+            _verseE3rab = value
+        }
+
+    private var _verseCauseOfRevelation by mutableStateOf("")
+    var verseCauseOfRevelation: String
+        get() = _verseCauseOfRevelation
+        set(value) {
+            _verseCauseOfRevelation = value
+        }
+
+    private var _showTafseerSheet by mutableStateOf(false)
+    var showTafseerSheet: Boolean
+        get() = _showTafseerSheet
+        set(value) {
+            _showTafseerSheet = value
+        }
+
+    private var _showTafseerOptions by mutableStateOf(false)
+    var showTafseerOptions: Boolean
+        get() = _showTafseerOptions
+        set(value) {
+            _showTafseerOptions = value
+        }
 
     fun atFirstVerse(): Boolean {
         val surahNum = _tafseerTargetVerse.split("-").get(0)
@@ -853,21 +727,162 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         }
     }
 
-    private var _showListeningOptionsDialog = mutableStateOf(false)
-    var showListeningOptionsDialog: Boolean
-        get() = _showListeningOptionsDialog.value
-        set(value) {
-            _showListeningOptionsDialog.value = value
+    /*****************************SERVICE COMMUNICATION***********************************/
+
+    fun startAndBind() {
+        val serviceIntent = Intent(context, PagePlayerService::class.java)
+        serviceIntent.setAction("START")
+        serviceIntent.putExtra("playingPageNum", _currentPageObject.pageNum)
+        context.startService(serviceIntent)
+        bindToService()
+    }
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            try {
+                val binder = service as PagePlayerService.PageServiceBinder
+                audioService = binder.getService()
+
+                updateIsCurrentPagePlaying()
+                if (_isCurrentPagePlaying.value) {
+                    audioService?.setVersesPlayList(_currentPageObject.pageContent)
+                    updateServicePlayingParameters()
+                }
+
+                viewModelScope.launch {
+                    audioService?.getPlaying()?.collect { state ->
+                        println("playing status $state")
+                        _isPlaying.value = state;
+                        updateIsCurrentPagePlaying()
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getStartPlayingIndex()?.collect { state ->
+                        startPlayingIndex = state;
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getStartPlayingItem()?.collect { state ->
+                        if (state != null) {
+                            _selectedVerse = state;
+                        }
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getEndPlayingIndex()?.collect { state ->
+                        endPlayingIndex = state;
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getEndPlayingItem()?.collect { state ->
+                        if (state != null) {
+                            _selectedEndVerse = state;
+                        }
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getPlaybackSpeed()?.collect { state ->
+                        _playbackSpeed = state;
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getSelectedRepetitionTab()?.collect { state ->
+                        _selectedRepetitionTab.value = state;
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getSelectedRepetition()?.collect { state ->
+                        _selectedRepetition = state;
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getContinuousPlay()?.collect { state ->
+                        _continuousPlay.value = state;
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getDestroyed()?.collect { state ->
+                        if (state) {
+                            unbindFromService()
+                        }
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getPlayNextPage()?.collect { state ->
+                        if (state) {
+                            playNextPage()
+                            audioService?.setPlayNextPage(false);
+                        }
+                    }
+                }
+
+                println("should play $clickedPlay")
+                if (clickedPlay) {
+                    audioService?.playAudio();
+                    clickedPlay = false;
+                }
+
+            } catch (e: Exception) {
+                println(e)
+            }
         }
 
-    private var _selectedRepetitionTab = mutableStateOf(RepetitionTab.الاية)
-    var selectedRepetitionTab: RepetitionTab
-        get() = _selectedRepetitionTab.value
-        set(value) {
-            _selectedRepetitionTab.value = value
+        override fun onServiceDisconnected(name: ComponentName?) {
+            unbindFromService();
         }
+    }
 
+    private var audioService: PageServiceInterface? = null
 
+    fun bindToService() {
+        val intent = Intent(context, PagePlayerService::class.java)
+        context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+    }
+
+    fun unbindFromService() {
+        if (audioService != null && serviceConnection != null) {
+            try { //this just keeps causing crashes
+                context.unbindService(serviceConnection)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun updateServicePageValues() {
+        audioService?.setVersesPlayList(_currentPageObject.pageContent)
+        audioService?.setPlayingPageNum(_currentPageObject.pageNum)
+    }
+
+    fun updateServicePlayingParameters() {
+        audioService?.setContinuousPlay(_continuousPlay.value)
+        audioService?.setSelectedRepetition(_selectedRepetition)
+        audioService?.setSelectedMappedRepetition(repetitionOptionsMap.get(_selectedRepetition)!!)
+        audioService?.setSelectedRepetitionTab(_selectedRepetitionTab.value)
+        audioService?.setPlayingIndex(startPlayingIndex ?: 0)
+        audioService?.setStartPlayingIndex(startPlayingIndex ?: 0)
+        audioService?.setStartPlayingItem(_selectedVerse)
+        audioService?.setEndPlayingIndex(endPlayingIndex)
+        audioService?.setEndPlayingItem(_selectedEndVerse)
+    }
+
+    init {
+        val sr = isMyServiceRunning(PagePlayerService::class.java, context);
+        println("PagePlayerService running $sr")
+        if (sr) {
+            bindToService()
+        }
+    }
 }
 
 enum class RepetitionTab {
@@ -886,3 +901,96 @@ class QuranScreenViewModelFactory(
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
+
+
+// was in init
+/*
+exoPlayer = ExoPlayer.Builder(context).build()
+
+exoPlayer.addListener(
+    object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            if (isPlaying) {
+                setIsPlaying(isPlaying)
+            }
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            super.onPlaybackStateChanged(playbackState)
+            if (playbackState == Player.STATE_ENDED) {
+                length = 0;
+                val selectedMappedRepetitions = repetitionOptionsMap.get(_selectedRepetition)!!;
+                val repeatActive = selectedMappedRepetitions > 0;
+                println("repeated times $repeatedTimes")
+
+                if (_isPlaying.value) {
+                    // Repetition logic
+
+                    if (repeatActive && _versesPlayList[currentPlayingIndex.value].type == PageContentItemType.verse) {
+                        if (_selectedRepetitionTab.value == RepetitionTab.الاية) {
+                            if (repeatedTimes < selectedMappedRepetitions) {
+                                repeatedTimes++;
+                                playAudio(_versesPlayList[currentPlayingIndex.value])
+                            } else if (currentPlayingIndex.value < _versesPlayList.size - 1) {
+                                if (currentPlayingIndex.value != endPlayingIndex) {
+                                    repeatedTimes = 0;
+                                    goNextVerse();
+                                } else {
+                                    resetPlayer();
+                                }
+                            } else {
+                                // done playing, done looping
+                                resetPlayer()
+                                if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
+                                    playNextPage()
+                                }
+                            }
+                        } else if (_selectedRepetitionTab.value == RepetitionTab.المقطع) {
+                            if (currentPlayingIndex.value != endPlayingIndex) {
+                                if (currentPlayingIndex.value < _versesPlayList.size - 1) {
+                                    goNextVerse();
+                                } else {
+                                    resetPlayer()
+                                    if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
+                                        playNextPage()
+                                    }
+                                }
+                            } else if (repeatedTimes < selectedMappedRepetitions) {
+                                repeatedTimes++;
+                                currentPlayingIndex.value = startPlayingIndex ?: 0;
+                                playAudio(_versesPlayList[currentPlayingIndex.value])
+                                println("repeat times increased $repeatedTimes")
+                            } else {
+                                // done playing, done looping
+                                resetPlayer()
+                            }
+                        }
+                    }
+                    // Play next verse
+                    else if (currentPlayingIndex.value < _versesPlayList.size - 1) {
+                        if (currentPlayingIndex.value != endPlayingIndex) {
+                            goNextVerse();
+                        } else {
+                            resetPlayer();
+                        }
+                    }
+                    // End page media logic
+                    else {
+                        resetPlayer()
+                        if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
+                            playNextPage()
+                        }
+                    }
+                }
+            }
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+            super.onPlayerError(error)
+            println(error.printStackTrace())
+            Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
+                .show()
+        }
+    }
+)
+*/

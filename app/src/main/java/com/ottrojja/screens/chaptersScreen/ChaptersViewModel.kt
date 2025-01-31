@@ -21,6 +21,7 @@ import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.screens.mainScreen.ChapterData
+import com.ottrojja.services.PagePlayerService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -89,6 +90,15 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
     var clickedPlay = false;
     fun play() {
+        // stop the other page player service
+        val sr = isMyServiceRunning(PagePlayerService::class.java, context);
+        println("service running $sr")
+        if (sr) {
+            val stopServiceIntent = Intent(context, PagePlayerService::class.java)
+            stopServiceIntent.setAction("TERMINATE")
+            context.startService(stopServiceIntent)
+        }
+
         if (isMyServiceRunning(MediaPlayerService::class.java, context)) {
             audioService?.playChapter(
                 "https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/${_selectedSurah.value.surahId}.mp3"
@@ -141,7 +151,6 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
             _isDownloading.value = value
         }
 
-
     fun startAndBind() {
         val serviceIntent = Intent(context, MediaPlayerService::class.java)
         serviceIntent.setAction("START")
@@ -154,6 +163,8 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
             try {
                 val binder = service as MediaPlayerService.YourBinder
                 audioService = binder.getService()
+
+                audioService?.setCurrentPlayingTitle("سورة ${_selectedSurah.value.chapterName}")
 
                 viewModelScope.launch {
                     audioService?.getPlayingState("", true)?.collect { state ->
@@ -352,9 +363,7 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
     fun getChaptersList(): List<ChapterData> {
         return chaptersList.filter { chapter ->
-            chapter.chapterName.contains(_searchFilter) || chapter.surahId.toString() == convertToArabicNumbers(
-                _searchFilter
-            )
+            chapter.chapterName.contains(_searchFilter) || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
                     || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
         };
     }

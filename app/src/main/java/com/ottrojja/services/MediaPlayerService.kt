@@ -1,9 +1,10 @@
 package com.ottrojja.services
 
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
-import android.media.PlaybackParams
 import android.net.Uri
 import android.os.Binder
 import android.os.Handler
@@ -24,7 +25,6 @@ import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 
 interface AudioServiceInterface {
-    fun isServiceRunning(): Boolean
     fun getPlayingState(link: String = "", playingChapter: Boolean = false): StateFlow<Boolean>
     fun playChapter(link: String)
     fun playZiker(link: String)
@@ -44,13 +44,13 @@ interface AudioServiceInterface {
     fun playPreviousChapter()
     fun resumeClicked(): StateFlow<Int> //to serve as a notification to viewmodels that the resume was clicked, nothing more
     fun getPlaybackSpeed(): StateFlow<Float>
+    fun setCurrentPlayingTitle(value: String)
 }
 
 
 class MediaPlayerService : Service(), AudioServiceInterface {
     var length: Long = 0;
     var currentlyPlaying = "";
-    val playbackParams = PlaybackParams()
     private var _playbackSpeed = MutableStateFlow<Float>(1.0f)
 
     private val _isPlaying = MutableStateFlow<Boolean>(false)
@@ -62,7 +62,10 @@ class MediaPlayerService : Service(), AudioServiceInterface {
     private val _playingZikr = MutableStateFlow<Boolean>(false)
     private val _destroyed = MutableStateFlow<Boolean>(false)
     private val resumeFlag = MutableStateFlow<Int>(0)
+    private var _currentPlayingTitle: String = "";
     lateinit var exoPlayer: ExoPlayer;
+
+    private lateinit var notificationManager: NotificationManager
 
     private val handler = Handler(Looper.getMainLooper())
 
@@ -83,7 +86,6 @@ class MediaPlayerService : Service(), AudioServiceInterface {
                     println("Listener is Playing $isPlaying")
                 }
 
-
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     super.onPlaybackStateChanged(playbackState)
 
@@ -95,7 +97,7 @@ class MediaPlayerService : Service(), AudioServiceInterface {
                         val updateProgressAction = object : Runnable {
                             override fun run() {
                                 val currPosition = exoPlayer.currentPosition.toFloat()
-                               // println("i run $currPosition")
+                                // println("i run $currPosition")
                                 _sliderPosition.value = currPosition;
                                 handler.postDelayed(this, 400)
                             }
@@ -173,8 +175,9 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         exoPlayer.seekTo(value.toLong())
     }
 
-    override fun isServiceRunning(): Boolean {
-        return false
+    override fun setCurrentPlayingTitle(value: String) {
+        _currentPlayingTitle = value;
+        updateNotification()
     }
 
     override fun getPlayingState(link: String, playingChapter: Boolean): StateFlow<Boolean> {
@@ -269,7 +272,6 @@ class MediaPlayerService : Service(), AudioServiceInterface {
             return;
         }
         if (localFile.exists()) {
-            //mediaSrc = localFile.absolutePath
             mediaSrc = Uri.fromFile(localFile)
             println("file found ${localFile.path}")
         } else {
@@ -314,13 +316,13 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         }
     }
 
-    override fun onBind(p0: Intent?): IBinder? {
-        return YourBinder();
+    fun updatePlaybackSpeed() {
+        exoPlayer.playbackParameters = PlaybackParameters(_playbackSpeed.value)
     }
 
 
-    fun updatePlaybackSpeed() {
-        exoPlayer.playbackParameters = PlaybackParameters(_playbackSpeed.value)
+    override fun onBind(p0: Intent?): IBinder? {
+        return YourBinder();
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -334,12 +336,7 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
                     Actions.STOP.toString() -> {
                         println("stopping media inside app")
-                        /*if (::timer.isInitialized) {
-                            timer.cancel();
-                            timer.purge();
-                        }*/
                         handler.removeCallbacksAndMessages(null)
-                        //mediaPlayer?.value?.reset();
                         resetPlayer()
                         _isPlaying.value = false;
                         _isPaused.value = false;
@@ -388,12 +385,16 @@ class MediaPlayerService : Service(), AudioServiceInterface {
     fun startService() {
         println("starting service")
 
+        if (!::notificationManager.isInitialized) {
+            notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        }
+
         if (::exoPlayer.isInitialized) {
             releasePlayer()
         }
         initializePlayer()
 
-        val notificationLayout = buildNotificationLayout()
+        val notificationLayout = buildNotificationLayout(_currentPlayingTitle)
 
         val notification = NotificationCompat.Builder(this, "PLAYER_CHANNEL")
             .setSmallIcon(R.drawable.logo)
@@ -406,6 +407,26 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
         startForeground(1, notification);
     }
+
+    fun updateNotification() {
+        val notificationLayout = buildNotificationLayout(_currentPlayingTitle)
+
+        val notification = NotificationCompat.Builder(this, "PLAYER_CHANNEL")
+            .setSmallIcon(R.drawable.logo)
+            .setContentTitle("تطبيق اترجة")
+            .setContentText("")
+            .setCustomContentView(notificationLayout)
+            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+            .setSilent(true)
+            .build()
+
+        println("noti manager ${::notificationManager.isInitialized}")
+
+        if (::notificationManager.isInitialized) {
+            notificationManager.notify(1, notification)
+        }
+    }
+
 
     override fun playNextChapter() {
         if (_selectedChapterId.value != "114") {
@@ -433,7 +454,7 @@ class MediaPlayerService : Service(), AudioServiceInterface {
     }
 
 
-    private fun buildNotificationLayout(): RemoteViews {
+    private fun buildNotificationLayout(title: String): RemoteViews {
         val remoteViews = RemoteViews(packageName, R.layout.notification_layout)
 
         // Set up onClick listeners for media control buttons
@@ -449,6 +470,10 @@ class MediaPlayerService : Service(), AudioServiceInterface {
             R.id.close_button,
             getPendingIntentForAction("TERMINATE")
         )
+
+        remoteViews.apply {
+            setTextViewText(R.id.playing_title, title)
+        }
 
         return remoteViews
     }

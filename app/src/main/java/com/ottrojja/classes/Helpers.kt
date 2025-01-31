@@ -4,10 +4,13 @@ import android.app.ActivityManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.widget.Toast
+import com.ottrojja.services.MediaPlayerService
+import com.ottrojja.services.PagePlayerService
 
 object Helpers {
     fun convertToIndianNumbers(arabicNumber: String): String {
@@ -91,5 +94,13 @@ object Helpers {
         }
     }
 
-
+    fun terminateAllServices(context:Context){
+        val servicesList = listOf(MediaPlayerService::class.java, PagePlayerService::class.java)
+        servicesList.forEach {
+            val sr = Helpers.isMyServiceRunning(it, context);
+            val stopServiceIntent = Intent(context, it)
+            stopServiceIntent.setAction("TERMINATE")
+            context.startService(stopServiceIntent)
+        }
+    }
 }
