@@ -20,6 +20,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +38,7 @@ import com.ottrojja.composables.LoadingDialog
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
+import com.ottrojja.screens.mainScreen.ChapterData
 
 @Composable
 fun ChaptersScreen(
@@ -52,6 +55,10 @@ fun ChaptersScreen(
 
     if (chaptersViewModel.isDownloading) {
         LoadingDialog()
+    }
+
+    val chaptersList by produceState(initialValue = emptyList<ChapterData>()) {
+        value = chaptersViewModel.getChaptersList()
     }
 
     Column {
@@ -79,7 +86,7 @@ fun ChaptersScreen(
                     .background(MaterialTheme.colorScheme.background)
                     .align(Alignment.TopCenter)
             ) {
-                items(chaptersViewModel.getChaptersList()) { item ->
+                items(chaptersList) { item ->
                     Column(modifier = Modifier
                         .padding(12.dp, 2.dp)
                         .fillMaxWidth()
@@ -156,7 +163,7 @@ fun ChaptersScreen(
                     hasNextPreviousControl = true,
                 ) {
                     Text(
-                        text = chaptersViewModel.selectedSurah.chapterName,
+                        text = "\uFD3F \u06E9 ${chaptersViewModel.selectedSurah.chapterName} \u06E9 \uFD3E",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary
                     )

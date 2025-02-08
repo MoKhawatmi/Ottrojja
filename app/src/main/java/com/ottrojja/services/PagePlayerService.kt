@@ -8,16 +8,14 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
+import android.util.Log
 import android.widget.RemoteViews
 import android.widget.Toast
-import androidx.annotation.OptIn
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
-import androidx.media3.common.util.NotificationUtil.createNotificationChannel
-import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.R
 import com.ottrojja.classes.PageContent
@@ -51,7 +49,7 @@ interface PageServiceInterface {
     fun resetUIStates()
     fun resetPlayer()
     fun releasePlayer()
-    fun verseHasBeenSelected()
+    fun playingParameterUpdated()
     fun setPlayingIndex(index: Int)
     fun setStartPlayingIndex(index: Int)
     fun setStartPlayingItem(item: PageContent?)
@@ -158,7 +156,7 @@ class PagePlayerService : Service(), PageServiceInterface {
                                         repeatedTimes++;
                                         _currentPlayingIndex.value = _startPlayingIndex.value ?: 0;
                                         playAudio()
-                                        println("repeat times increased $repeatedTimes")
+                                        logDebug("repeat times increased $repeatedTimes")
                                     } else {
                                         // done playing, done looping
                                         resetPlayer()
@@ -190,7 +188,7 @@ class PagePlayerService : Service(), PageServiceInterface {
 
                 override fun onPlayerError(error: PlaybackException) {
                     super.onPlayerError(error)
-                    println("Error in player; PagePlayerService")
+                    logDebug("Error in player; PagePlayerService")
                     error.printStackTrace()
                     Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
                         .show()
@@ -236,7 +234,8 @@ class PagePlayerService : Service(), PageServiceInterface {
         }
     }
 
-    override fun verseHasBeenSelected() {
+    override fun playingParameterUpdated() {
+        logDebug("a playing parameter has been updated")
         _exoPlayer.stop();
         _isPlaying.value = false;
         length = 0;
@@ -247,6 +246,7 @@ class PagePlayerService : Service(), PageServiceInterface {
     }
 
     override fun setPlayingIndex(index: Int) {
+        logDebug("setting service current playing index to $index")
         _currentPlayingIndex.value = index;
     }
 
@@ -255,6 +255,7 @@ class PagePlayerService : Service(), PageServiceInterface {
     }
 
     override fun setStartPlayingIndex(index: Int) {
+        logDebug("setting service start playing index to $index")
         _startPlayingIndex.value = index;
     }
 
@@ -287,13 +288,13 @@ class PagePlayerService : Service(), PageServiceInterface {
     }
 
     override fun setVersesPlayList(versesPlayList: Array<PageContent>) {
-        println("updating verses playlist")
+        logDebug("updating verses playlist")
         _versesPlayList = versesPlayList;
-        println("new size ${_versesPlayList.size}")
+        logDebug("new size ${_versesPlayList.size}")
     }
 
     override fun setPlayingPageNum(value: String) {
-        println("service playing page num $value")
+        logDebug("service playing page num $value")
         currentPlayingPageNum = value;
         updateNotification()
     }
@@ -335,7 +336,7 @@ class PagePlayerService : Service(), PageServiceInterface {
     }
 
     override fun playAudio() {
-        println("play audio")
+        logDebug("play audio")
         if (_isPaused.value && length > 0) {
             resumeTrack()
         } else {
@@ -382,7 +383,7 @@ class PagePlayerService : Service(), PageServiceInterface {
     }
 
     private fun resumeTrack() {
-        println("resuming")
+        logDebug("resuming")
         _exoPlayer.play()
         _isPlaying.value = true;
         _isPaused.value = false;
@@ -403,7 +404,7 @@ class PagePlayerService : Service(), PageServiceInterface {
                     }
 
                     Actions.STOP.toString() -> {
-                        println("stopping media inside app")
+                        logDebug("stopping media inside app")
                         resetPlayer()
                         resetUIStates()
                         _isPlaying.value = false;
@@ -411,7 +412,7 @@ class PagePlayerService : Service(), PageServiceInterface {
                     }
 
                     Actions.TERMINATE.toString() -> {
-                        println("stopping self")
+                        logDebug("stopping self")
                         if (::_exoPlayer.isInitialized) {
                             releasePlayer()
                         }
@@ -444,8 +445,8 @@ class PagePlayerService : Service(), PageServiceInterface {
     }
 
     fun startService() {
-        println("starting service")
-        if(!::notificationManager.isInitialized){
+        logDebug("starting service")
+        if (!::notificationManager.isInitialized) {
             notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         }
 
@@ -469,7 +470,7 @@ class PagePlayerService : Service(), PageServiceInterface {
         startForeground(1, notification);
     }
 
-    fun updateNotification(){
+    fun updateNotification() {
         val notificationLayout = buildNotificationLayout("الصفحة $currentPlayingPageNum من القرآن الكريم")
 
 
@@ -482,7 +483,7 @@ class PagePlayerService : Service(), PageServiceInterface {
             .setSilent(true)
             .build()
 
-        if(::notificationManager.isInitialized){
+        if (::notificationManager.isInitialized) {
             notificationManager.notify(1, notification)
         }
     }
@@ -510,8 +511,8 @@ class PagePlayerService : Service(), PageServiceInterface {
         _startPlayingIndex.value = 0;
         _startPlayingItem.value = emptyPageObject;
         _endPlayingItem.value = emptyPageObject;
-        _selectedRepetition.value = "0";
-        selectedMappedRepetitions = 0;
+        /*_selectedRepetition.value = "0";
+        selectedMappedRepetitions = 0;*/
         repeatedTimes = 0;
         length = 0;
     }
@@ -577,6 +578,9 @@ class PagePlayerService : Service(), PageServiceInterface {
         "",
     )
 
+    fun logDebug(msg: String) {
+        Log.d("PagePlayerService", msg)
+    }
 
     override fun onBind(p0: Intent?): IBinder {
         return PageServiceBinder();

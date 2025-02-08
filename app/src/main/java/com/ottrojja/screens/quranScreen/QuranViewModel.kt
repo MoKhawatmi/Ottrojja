@@ -98,17 +98,17 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 _currentPageObject = repository.getPage(value)
                 println(_currentPageObject)
                 _versesPlayList = _currentPageObject.pageContent
-                /*withContext(Dispatchers.Main) {
-                    resetPlayer()
-                }*/
-                //the following couple of lines are made to accomodate the service changes
+                //the following couple of lines are made to accommodate the service changes
                 if (isMyServiceRunning(PagePlayerService::class.java, context)) {
-                    //   println("${audioService?.getPlayingPageNum()} =? $value")
-                    // updateServicePageValues()
                     updateIsCurrentPagePlaying()
+                    if (_isCurrentPagePlaying.value) {
+                        fetchPlayingUIParams()
+                    } else {
+                        resetPlayingUIParams()
+                    }
                 }
                 checkVerseFilesExistance()
-                //done accomodate
+                //done accommodate
                 isPageBookmarked()
                 val editor: SharedPreferences.Editor = sharedPreferences.edit()
                 editor.putString("mostRecentPage", value)
@@ -196,16 +196,17 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 return;
             }
             _selectedVerse = value;
-            _selectedRepetition = "0"
-            audioService?.verseHasBeenSelected();
+            if (_isCurrentPagePlaying.value) {
+                audioService?.playingParameterUpdated();
+            }
             if (index == -1) {
                 startPlayingIndex = 0;
-                updateServicePlayingParameters()
+                updateServicePlayingIndex()
                 /*audioService?.setPlayingIndex(0)
                 audioService?.setStartPlayingIndex(0)*/
             } else {
                 startPlayingIndex = index;
-                updateServicePlayingParameters()
+                updateServicePlayingIndex()
 
                 /*audioService?.setPlayingIndex(index)
                 audioService?.setStartPlayingIndex(index)
@@ -228,8 +229,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 return;
             }
             _selectedEndVerse = value;
-            _selectedRepetition = "0"
-            audioService?.verseHasBeenSelected();
+            if (_isCurrentPagePlaying.value) {
+                audioService?.playingParameterUpdated();
+            }
             if (index == -1) {
                 Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 endPlayingIndex = null;
@@ -313,7 +315,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 verse,
                 tafseerNamesMap.get(value)!!
             ).text
-
         }
     }
 
@@ -322,7 +323,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         return versesList;
     }
 
-    fun resetPlayer() {
+    /*fun resetPlayer() {
         audioService?.resetPlayer();
 
         _selectedVerse = emptyPageObject.copy()
@@ -330,7 +331,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
         downloadIndex = 0;
         checkVerseFilesExistance();
-    }
+    }*/
 
     private val _isDownloading = mutableStateOf(false)
     var isDownloading: Boolean
@@ -376,6 +377,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
         if (!allVersesExist) {
             if (Helpers.checkNetworkConnectivity(context)) {
+                downloadIndex = 0;
                 initializeDownload()
             } else {
                 Toast.makeText(context, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG)
@@ -384,6 +386,14 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             }
         } else if (allVersesExist) {
             if (isMyServiceRunning(PagePlayerService::class.java, context)) {
+                if (!_isCurrentPagePlaying.value) {
+                    println("preparing for a new page")
+                    audioService?.resetPlayer();
+                    audioService?.setPlayingPageNum(_currentPageObject.pageNum)
+                    updateIsCurrentPagePlaying();
+                    updateServicePlayingParameters();
+                    updateServicePlayingIndex();
+                }
                 updateServicePageValues()
             }
             startPlaying()
@@ -393,12 +403,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     var clickedPlay = false;
     fun startPlaying() {
         if (isMyServiceRunning(PagePlayerService::class.java, context)) {
-            if (_isCurrentPagePlaying.value) {
-                audioService?.playAudio();
-            } else {
-                audioService?.resetPlayer();
-                audioService?.playAudio();
-            }
+            audioService?.playAudio();
         } else {
             clickedPlay = true;
             startAndBind();
@@ -417,9 +422,20 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         audioService?.playPreviousVerse();
     }
 
+    private var _vmChangedPage = mutableStateOf(false)
+    var vmChangedPage: Boolean
+        get() = _vmChangedPage.value;
+        set(value: Boolean) {
+            _vmChangedPage.value = value;
+        }
+
     private fun playNextPage() {
         _shouldAutoPlay.value = true;
-        setCurrentPage("${currentPageObject.pageNum.toInt() + 1}")
+        val nextPageToPlay = audioService?.getPlayingPageNum()?.toInt()?.plus(1)
+        println("playNextPage $nextPageToPlay")
+        _vmChangedPage.value = true;
+        setCurrentPage("$nextPageToPlay")
+        //setCurrentPage("${currentPageObject.pageNum.toInt() + 1}")
     }
 
     var downloadIndex = 0;
@@ -429,10 +445,10 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         downloadVerse()
     }
 
-    fun updateIsCurrentPagePlaying(){
+    fun updateIsCurrentPagePlaying() {
         println("${audioService?.getPlayingPageNum()} =? ${_currentPageObject.pageNum}")
         _isCurrentPagePlaying.value = audioService?.getPlayingPageNum() == _currentPageObject.pageNum
-
+        println("_isCurrentPagePlaying ${_isCurrentPagePlaying.value}")
     }
 
     fun downloadVerse() {
@@ -449,7 +465,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             path
         )
         val tempFile = File.createTempFile("temp_", ".mp3", context.getExternalFilesDir(null))
-
 
         val client = OkHttpClient()
         val request = Request.Builder()
@@ -745,8 +760,10 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
                 updateIsCurrentPagePlaying()
                 if (_isCurrentPagePlaying.value) {
+                    println("current page playing, should update ui params")
                     audioService?.setVersesPlayList(_currentPageObject.pageContent)
                     updateServicePlayingParameters()
+                    updateServicePlayingIndex()
                 }
 
                 viewModelScope.launch {
@@ -759,13 +776,15 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
                 viewModelScope.launch {
                     audioService?.getStartPlayingIndex()?.collect { state ->
-                        startPlayingIndex = state;
+                        if (_isCurrentPagePlaying.value) {
+                            startPlayingIndex = state;
+                        }
                     }
                 }
 
                 viewModelScope.launch {
                     audioService?.getStartPlayingItem()?.collect { state ->
-                        if (state != null) {
+                        if (state != null && _isCurrentPagePlaying.value) {
                             _selectedVerse = state;
                         }
                     }
@@ -773,13 +792,15 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
                 viewModelScope.launch {
                     audioService?.getEndPlayingIndex()?.collect { state ->
-                        endPlayingIndex = state;
+                        if (_isCurrentPagePlaying.value) {
+                            endPlayingIndex = state;
+                        }
                     }
                 }
 
                 viewModelScope.launch {
                     audioService?.getEndPlayingItem()?.collect { state ->
-                        if (state != null) {
+                        if (state != null && _isCurrentPagePlaying.value) {
                             _selectedEndVerse = state;
                         }
                     }
@@ -793,7 +814,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
                 viewModelScope.launch {
                     audioService?.getSelectedRepetitionTab()?.collect { state ->
-                        _selectedRepetitionTab.value = state;
+                        if (_isCurrentPagePlaying.value) {
+                            _selectedRepetitionTab.value = state;
+                        }
                     }
                 }
 
@@ -826,6 +849,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                     }
                 }
 
+                /* when we click on the play button while the service is not running, we must start and bind the service first
+                 and then here at the connection we check for the button click to play*/
                 println("should play $clickedPlay")
                 if (clickedPlay) {
                     audioService?.playAudio();
@@ -862,18 +887,54 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     fun updateServicePageValues() {
         audioService?.setVersesPlayList(_currentPageObject.pageContent)
         audioService?.setPlayingPageNum(_currentPageObject.pageNum)
+        updateIsCurrentPagePlaying()
     }
 
     fun updateServicePlayingParameters() {
+        // update service params only when the page that is being played is updating them
+        if (!_isCurrentPagePlaying.value) {
+            return;
+        }
+        println("updating ui params")
         audioService?.setContinuousPlay(_continuousPlay.value)
         audioService?.setSelectedRepetition(_selectedRepetition)
         audioService?.setSelectedMappedRepetition(repetitionOptionsMap.get(_selectedRepetition)!!)
         audioService?.setSelectedRepetitionTab(_selectedRepetitionTab.value)
-        audioService?.setPlayingIndex(startPlayingIndex ?: 0)
-        audioService?.setStartPlayingIndex(startPlayingIndex ?: 0)
         audioService?.setStartPlayingItem(_selectedVerse)
         audioService?.setEndPlayingIndex(endPlayingIndex)
         audioService?.setEndPlayingItem(_selectedEndVerse)
+    }
+
+    fun updateServicePlayingIndex() {
+        // update service playing index only when the page that is being played is updating them
+        if (!_isCurrentPagePlaying.value) {
+            return;
+        }
+        println("updating service playing index")
+        audioService?.setPlayingIndex(startPlayingIndex ?: 0)
+        audioService?.setStartPlayingIndex(startPlayingIndex ?: 0)
+    }
+
+    // reset params like first and end verses and repetitions etc only in viewmodel while preserving them in service
+    fun resetPlayingUIParams() {
+        println("resetting ui params")
+        _selectedRepetitionTab.value = RepetitionTab.الاية
+        startPlayingIndex = 0
+        _selectedVerse = emptyPageObject
+        endPlayingIndex = null
+        _selectedEndVerse = emptyPageObject
+    }
+
+    // fetch params like first and end verses and repetitions from service
+    fun fetchPlayingUIParams() {
+        println("fetching ui params")
+        _selectedRepetition = audioService?.getSelectedRepetition()?.value ?: "0"
+        _selectedRepetitionTab.value = audioService?.getSelectedRepetitionTab()?.value
+            ?: RepetitionTab.الاية
+        startPlayingIndex = audioService?.getStartPlayingIndex()?.value ?: 0
+        _selectedVerse = audioService?.getStartPlayingItem()?.value ?: emptyPageObject
+        endPlayingIndex = audioService?.getEndPlayingIndex()?.value
+        _selectedEndVerse = audioService?.getEndPlayingItem()?.value ?: emptyPageObject
     }
 
     init {

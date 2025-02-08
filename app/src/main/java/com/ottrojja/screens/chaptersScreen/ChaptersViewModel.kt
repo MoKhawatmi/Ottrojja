@@ -22,6 +22,7 @@ import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.services.PagePlayerService
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,7 +36,8 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
     AndroidViewModel(application) {
     val context = application.applicationContext;
 
-    lateinit private var chaptersList: List<ChapterData>;
+    private val chaptersList = CompletableDeferred<List<ChapterData>>()
+
 
     private var _selectedSurah = mutableStateOf(ChapterData("", "", 0, "", 0))
     var selectedSurah: ChapterData
@@ -163,9 +165,6 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
             try {
                 val binder = service as MediaPlayerService.YourBinder
                 audioService = binder.getService()
-
-                audioService?.setCurrentPlayingTitle("سورة ${_selectedSurah.value.chapterName}")
-
                 viewModelScope.launch {
                     audioService?.getPlayingState("", true)?.collect { state ->
                         println("playing status $state")
@@ -189,9 +188,10 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
                 viewModelScope.launch {
                     audioService?.getSelectedChapterId()!!.collect { state ->
                         val tempChapter =
-                            chaptersList.find { chapter -> "${chapter.surahId}" == state }
+                            chaptersList.await().find { chapter -> "${chapter.surahId}" == state }
                         if (tempChapter != null) {
                             _selectedSurah.value = tempChapter;
+                            audioService?.setCurrentPlayingTitle("سورة ${_selectedSurah.value.chapterName}")
                         }
                     }
                 }
@@ -344,7 +344,8 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            chaptersList = repository.getAllChapters();
+            val chapters = repository.getAllChapters()
+            chaptersList.complete(chapters)
         }
 
         val sr = isMyServiceRunning(MediaPlayerService::class.java, context);
@@ -361,9 +362,11 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
             _searchFilter = value
         }
 
-    fun getChaptersList(): List<ChapterData> {
-        return chaptersList.filter { chapter ->
-            chapter.chapterName.contains(_searchFilter) || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
+    suspend fun getChaptersList(): List<ChapterData> {
+        return chaptersList.await().filter { chapter ->
+            chapter.chapterName.contains(_searchFilter) || chapter.surahId.toString() == convertToArabicNumbers(
+                _searchFilter
+            )
                     || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
         };
     }

@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
-import android.content.Intent
 import android.content.res.Configuration
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -53,7 +52,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -62,12 +60,12 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -92,7 +90,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
-import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranRepository
@@ -103,7 +100,6 @@ import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.SelectedVerseContentSection
-import com.ottrojja.services.PagePlayerService
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
@@ -203,7 +199,7 @@ fun QuranScreen(
             QuranViewModel.PageTab.الصفحة -> Column(verticalArrangement = Arrangement.SpaceBetween) {
                 PagesContainer(
                     quranViewModel.currentPageObject.pageNum,
-                    { newPage ->
+                    onPageChanged = { newPage ->
                         quranViewModel.setCurrentPage(newPage)
                     },
                     onPlayClicked = {
@@ -226,7 +222,9 @@ fun QuranScreen(
                     quranViewModel.shouldAutoPlay,
                     quranViewModel.playbackSpeed,
                     quranViewModel.nightReadingMode,
-                    { quranViewModel.showListeningOptionsDialog = true }
+                    { quranViewModel.showListeningOptionsDialog = true },
+                    vmChangedPage = quranViewModel.vmChangedPage,
+                    setVmChangedPage = { value -> quranViewModel.vmChangedPage = value }
                 )
             }
 
@@ -741,7 +739,9 @@ fun PagesContainer(
     shouldAutoPlay: Boolean,
     playbackSpeed: Float,
     nightReadingMode: Boolean,
-    listeningOptionsClicked: () -> Unit
+    listeningOptionsClicked: () -> Unit,
+    vmChangedPage: Boolean,
+    setVmChangedPage: (Boolean) -> Unit
 ) {
     val quranPagesNumbers = Array(604) { (it + 1).toString() }
 
@@ -760,26 +760,29 @@ fun PagesContainer(
 
     LaunchedEffect(pageNum) {
         if (shouldAutoPlay) {
+            println("should auto play ${pageNum!!.toInt()}")
             pagerState.animateScrollToPage(pageNum!!.toInt() - 1)
             onPlayClicked()
         } else {
             pagerState.scrollToPage(pageNum!!.toInt() - 1)
         }
     }
-
+    val vmForceChangePage by rememberUpdatedState(vmChangedPage)
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
-            if (hasPageChanged.value) {
-                Log.d("Page change", "Page changed to $page")
-                onPageChanged("${page + 1}")
+            println("vmChangedPage $vmForceChangePage")
+            if (!vmForceChangePage) {
+                if (hasPageChanged.value) {
+                    Log.d("Page change", "Page changed to $page")
+                    onPageChanged("${page + 1}")
+                } else {
+                    hasPageChanged.value = true // Skip the first value
+                }
             } else {
-                hasPageChanged.value = true // Skip the first value
+                setVmChangedPage(false)
             }
         }
     }
-
-    var offsetY by remember { mutableStateOf(0f) }
-    val offsetYAnimatable = remember { Animatable(0f) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(state = pagerState,
@@ -827,183 +830,9 @@ fun PagesContainer(
                         contentDescription = "More Options",
                         modifier = Modifier.clickable { listeningOptionsClicked() },
                         tint = MaterialTheme.colorScheme.primary
-                        )
+                    )
                 }
             }
-
-            /*Column(
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
-                    .fillMaxWidth()
-                    .padding(10.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(painter = painterResource(id = R.drawable.more_vert),
-                        contentDescription = "More Options",
-                        modifier = Modifier.clickable { listeningOptionsClicked() })
-                }
-
-                /*Row(
-                    modifier = Modifier
-                        .padding(0.dp, 0.dp, 0.dp, 5.dp)
-                        .fillMaxWidth()
-                        .clip(shape = RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                        .clickable { onClickRepOptions() },
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "مرات التكرار: $selectedRep",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier.padding(12.dp)
-                    )
-                    Icon(
-                        Icons.Default.ArrowDropDown,
-                        contentDescription = "",
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                }*/
-                /*Row(
-                    modifier = Modifier
-                        .background(color = MaterialTheme.colorScheme.primaryContainer)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.Start,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { setContPlay(!continuousPlay) }
-                    ) {
-                        Checkbox(
-                            checked = continuousPlay,
-                            onCheckedChange = { newCheckedState -> setContPlay(newCheckedState) }
-                        )
-                        Text(
-                            text = "تشغيل متتال للصفحات",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Right,
-                        )
-                    }
-                    if (isPlaying) {
-                        Row(
-                            horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "${playbackSpeed}x",
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Left,
-                            )
-                        }
-                    }
-                }*/
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    /*Row(modifier = Modifier
-                        .padding(0.dp, 6.dp, 6.dp, 5.dp)
-                        .fillMaxWidth(0.3f)
-                        .clip(shape = RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                        .clickable { if (!isDownloading) onClickVerseOptions() }) {
-                        Text(
-                            text = if (selectedVerse.verseNum != null && selectedVerse.verseNum.length > 0) "اية: ${selectedVerse.verseNum}" else "الاية",
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Right,
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .fillMaxWidth()
-                        )
-                    }*/
-                    if (isPlaying) {
-                        Row(
-                            horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth(0.15f)
-                        ) {
-                            Text(
-                                text = "${playbackSpeed}x",
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodySmall,
-                                textAlign = TextAlign.Right,
-                            )
-                        }
-                    }
-
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        if (isPlaying && !isDownloading) {
-                            Image(painter = painterResource(R.drawable.faster),
-                                contentDescription = "faster",
-                                modifier = Modifier
-                                    .clickable { onFasterClicked() }
-                                    .size(25.dp))
-                            Image(painter = painterResource(R.drawable.next),
-                                contentDescription = "next",
-                                modifier = Modifier
-                                    .clickable { onNextClicked() }
-                                    .size(25.dp),
-                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-                            )
-                        }
-                        if (isDownloading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.width(32.dp),
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            )
-                        } else if (isPlaying) {
-                            Image(painter = painterResource(R.drawable.playing),
-                                contentDescription = "pause",
-                                modifier = Modifier
-                                    .padding(10.dp, 0.dp)
-                                    .clickable { onPauseClicked() }
-                                    .size(35.dp))
-                            //  ReplayIcon(selectedRep, onClickUpdateRep)
-                        } else {
-                            Image(painter = painterResource(R.drawable.play),
-                                contentDescription = "play",
-                                modifier = Modifier
-                                    .clickable { onPlayClicked() }
-                                    .size(35.dp),
-                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary))
-                        }
-                        if (isPlaying && !isDownloading) {
-                            Image(painter = painterResource(R.drawable.previous),
-                                contentDescription = "prev",
-                                modifier = Modifier
-                                    .clickable { onPreviousClicked() }
-                                    .size(25.dp),
-                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-                            )
-                            Image(painter = painterResource(R.drawable.slower),
-                                contentDescription = "slower",
-                                modifier = Modifier
-                                    .clickable { onSlowerClicked() }
-                                    .size(25.dp))
-                        }
-                    }
-                }
-            }*/
         }
     }
 }

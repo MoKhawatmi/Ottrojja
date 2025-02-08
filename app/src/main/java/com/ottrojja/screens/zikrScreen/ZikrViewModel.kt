@@ -164,6 +164,10 @@ class ZikrViewModel(
                     audioService?.getPlayingState(_zikr.value.firebaseAddress)?.collect { state ->
                         println("is same zikr playing: $state")
                         _isPlaying.value = state;
+                        if(state){
+                            //TODO placed here this statement will also be called unnecessarily, find a better solution
+                            audioService?.setCurrentPlayingTitle(_zikr.value.azkarTitle);
+                        }
                     }
                 }
 

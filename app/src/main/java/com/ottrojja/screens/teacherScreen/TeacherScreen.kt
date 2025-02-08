@@ -47,6 +47,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +57,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -232,6 +235,7 @@ fun PageTraining(
     val hiddenIndecies = solutionMap.keys;
     val focusManager: FocusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current;
+    var clearFocusTrigger by remember { mutableStateOf(false) }
 
     if (isDownloading) {
         LoadingDialog()
@@ -397,6 +401,7 @@ fun PageTraining(
                                     )
                                 },
                                 desiredWidth = with(density) { textSize.width.toDp() },
+                                clearFocusTrigger = clearFocusTrigger
                             )
                         } else {
                             Text(
@@ -533,7 +538,11 @@ fun PageTraining(
                             .padding(16.dp)
                             .fillMaxWidth()
                     ) {
-                        Button(onClick = { proceedVerse(); focusManager.clearFocus() }) {
+                        Button(onClick = {
+                            clearFocusTrigger = true;
+                            proceedVerse();
+                            focusManager.clearFocus();
+                        }) {
                             Text(
                                 text = "الاية التالية",
                                 style = MaterialTheme.typography.bodyLarge,
@@ -620,10 +629,17 @@ fun SolutionInputTextField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     desiredWidth: Dp,
+    clearFocusTrigger: Boolean
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
+    LaunchedEffect(clearFocusTrigger) {
+        if (clearFocusTrigger) {
+            println("clear focus")
+            focusManager.clearFocus(force = true) // Clear and prevent re-focusing
+        }
+    }
 
     val textFieldModifier = modifier
         .padding(horizontal = 2.dp, vertical = 1.dp)

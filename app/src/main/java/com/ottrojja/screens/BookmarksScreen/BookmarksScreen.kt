@@ -63,7 +63,7 @@ fun BookmarksScreen(
                     }
                 }
             }
-            items(bookmarksViewModel.bookmarks) { item ->
+            items(bookmarksViewModel.bookmarks, key={"bookmark_page_${it.pageNum}"}) { item ->
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
