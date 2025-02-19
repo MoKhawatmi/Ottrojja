@@ -121,7 +121,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     private var _currentPageObject by mutableStateOf(
         QuranPage(
-            "1",
+            "0",
             "",
             arrayOf(""),
             arrayOf(""),
@@ -377,7 +377,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
         if (!allVersesExist) {
             if (Helpers.checkNetworkConnectivity(context)) {
-                downloadIndex = 0;
                 initializeDownload()
             } else {
                 Toast.makeText(context, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG)
@@ -385,17 +384,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 return;
             }
         } else if (allVersesExist) {
-            if (isMyServiceRunning(PagePlayerService::class.java, context)) {
-                if (!_isCurrentPagePlaying.value) {
-                    println("preparing for a new page")
-                    audioService?.resetPlayer();
-                    audioService?.setPlayingPageNum(_currentPageObject.pageNum)
-                    updateIsCurrentPagePlaying();
-                    updateServicePlayingParameters();
-                    updateServicePlayingIndex();
-                }
-                updateServicePageValues()
-            }
             startPlaying()
         }
     }
@@ -403,6 +391,15 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     var clickedPlay = false;
     fun startPlaying() {
         if (isMyServiceRunning(PagePlayerService::class.java, context)) {
+            if (!_isCurrentPagePlaying.value) {
+                println("preparing for a new page")
+                audioService?.resetPlayer();
+                audioService?.setPlayingPageNum(_currentPageObject.pageNum)
+                updateIsCurrentPagePlaying();
+                updateServicePlayingParameters();
+                updateServicePlayingIndex();
+            }
+            updateServicePageValues()
             audioService?.playAudio();
         } else {
             clickedPlay = true;
@@ -441,6 +438,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     var downloadIndex = 0;
 
     fun initializeDownload() {
+        downloadIndex = 0;
         _isDownloading.value = true;
         downloadVerse()
     }
@@ -761,6 +759,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 updateIsCurrentPagePlaying()
                 if (_isCurrentPagePlaying.value) {
                     println("current page playing, should update ui params")
+                    println(_currentPageObject)
                     audioService?.setVersesPlayList(_currentPageObject.pageContent)
                     updateServicePlayingParameters()
                     updateServicePlayingIndex()

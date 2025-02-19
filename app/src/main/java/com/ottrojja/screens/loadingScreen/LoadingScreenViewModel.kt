@@ -10,10 +10,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.Firebase
-import com.google.firebase.FirebaseApp
-import com.google.firebase.storage.StorageReference
-import com.google.firebase.storage.storage
 import com.ottrojja.classes.CauseOfRevelation
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranPage
@@ -27,13 +23,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 class LoadingScreenViewModel(private val repository: QuranRepository, application: Application) :
     AndroidViewModel(application) {
     val context = application.applicationContext;
     var loadingFile = true;
     val jsonParser = JsonParser(context)
+    val QURAN_FILE_URL= "https://ottrojja.fra1.cdn.digitaloceanspaces.com/quran.json";
 
     val sharedPreferences: SharedPreferences =
         application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
@@ -54,8 +57,6 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
 
 
     init {
-        FirebaseApp.initializeApp(context)
-
         viewModelScope.launch(Dispatchers.IO) {
 
             var versions = hashMapOf<String, Int>()
@@ -160,56 +161,6 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 sharedPreferences.edit()
                     .putInt("tafaseerJsonVersion", versions.get("tafaseer")!!)
                     .apply()
-
-
-
-                /*jsonParser.parseJsonArrayFile<TafseerData>("baghawy.json")?.let {
-                    try {
-                        repository.insertAllTafseerData(it)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-
-                jsonParser.parseJsonArrayFile<TafseerData>("muyassar.json")?.let {
-                    try {
-                        repository.insertAllTafseerData(it)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-
-                jsonParser.parseJsonArrayFile<TafseerData>("katheer.json")?.let {
-                    try {
-                        repository.insertAllTafseerData(it)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-
-                jsonParser.parseJsonArrayFile<TafseerData>("waseet.json")?.let {
-                    try {
-                        repository.insertAllTafseerData(it)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-
-                jsonParser.parseJsonArrayFile<TafseerData>("jalalayn.json")?.let {
-                    try {
-                        repository.insertAllTafseerData(it)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-
-                jsonParser.parseJsonArrayFile<TafseerData>("qortoby.json")?.let {
-                    try {
-                        repository.insertAllTafseerData(it)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }*/
             }
 
             runBlocking {
@@ -253,25 +204,33 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     }
 
     private fun downloadAndUpdateQuranFile(quranFile: File) {
-        val storage = Firebase.storage
-        storage.maxDownloadRetryTimeMillis = 2000
-        storage.maxUploadRetryTimeMillis = 2000
-        val storageRef = storage.reference.child("/quran.json")
-
-        loadingFile = true
-        storageRef.metadata.addOnSuccessListener { metadata ->
-            println("success meta")
-            if (metadata.creationTimeMillis > quranFileCreateTime) {
-                println("updating file from online")
-                updateFileCreationTime(metadata.creationTimeMillis)
-                downloadFile(storageRef, quranFile)
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url(QURAN_FILE_URL)
+            .head()  // HEAD request to get metadata
+            .build()
+        try {
+            loadingFile = true
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                println("success meta")
+                println(response.headers)
+                val fileLastModified = response.header("x-amz-meta-uploaded-at")?.toLong()?:0L
+                println("file last modified $fileLastModified")
+                if (fileLastModified > quranFileCreateTime) {
+                    println("updating file from online")
+                    updateFileCreationTime(fileLastModified)
+                    downloadFile(quranFile)
+                } else {
+                    useLocalQuranFile(quranFile)
+                }
             } else {
+                println("Failed to fetch metadata: ${response.code}")
                 useLocalQuranFile(quranFile)
             }
-        }.addOnFailureListener { exception ->
-            println("failed download")
-            println(exception)
-            handleDownloadError(quranFile, exception)
+        } catch (e: IOException) {
+            e.printStackTrace()
+            handleDownloadError(quranFile, e)
         }
     }
 
@@ -279,18 +238,30 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
         sharedPreferences.edit().putLong("quranFileCreateTime", timeMillis).apply()
     }
 
-    private fun downloadFile(storageRef: StorageReference, quranFile: File) {
-        storageRef.getFile(quranFile)
-            .addOnSuccessListener {
-                println("success download")
-                parseAndSetQuranData(quranFile, true)
+    private fun downloadFile(quranFile: File) {
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url(QURAN_FILE_URL)
+            .build()
+        try {
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                response.body?.string()?.let { jsonData ->
+                    quranFile.writeText(jsonData)
+                    println("success download")
+                    parseAndSetQuranData(quranFile, true)
+                    loadingFile = false
+                } ?: println("Failed to get JSON content.")
+            } else {
+                println("Failed to download file: HTTP ${response.code}")
+                useLocalQuranFile(quranFile)
                 loadingFile = false
             }
-            .addOnFailureListener { exception ->
-                println("failed download")
-                println(exception)
-                handleDownloadError(quranFile, exception)
-            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+            println("failed download: ${e.message}")
+            handleDownloadError(quranFile, e)
+        }
     }
 
     private fun useLocalQuranFile(quranFile: File) {
@@ -340,6 +311,19 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             }
         }
     }
+
+    fun lastModifiedToMillis(lastModified: String?): Long {
+        if (lastModified.isNullOrEmpty()) return 0L
+        return try {
+            val dateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH)
+            dateFormat.timeZone = TimeZone.getTimeZone("GMT")
+            val date = dateFormat.parse(lastModified)
+            date.time
+        } catch (e: Exception) {
+            e.printStackTrace()
+            0L
+        }
+    }
 }
 
 class LoadingScreenViewModelFactory(
@@ -353,102 +337,3 @@ class LoadingScreenViewModelFactory(
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
-
-
-/* val quranFile = File(context.filesDir, "quran.json")
-
- if (!Helpers.checkNetworkConnectivity(context)) {
-     if (quranFile.exists()) {
-         try {
-             jsonParser.parseJsonArrayFileFromFilesDir(context, "quran.json")
-                 ?.let {
-                     if (it.size != 0) QuranStore.setQuranData(it) else throw Exception(
-                         "Faulty File"
-                     )
-                 }
-         } catch (e: Exception) {
-             Log.d("E", "Faulty File");
-             quranFile.delete()
-             setQuranDataFromLocalFile()
-         }
-     } else {
-         setQuranDataFromLocalFile()
-     }
-     loadingFile = false
- } else {
-     val storage = Firebase.storage
-     val storageRef = storage.reference.child("/quran.json")
-
-     loadingFile = true;
-     storageRef.metadata.addOnSuccessListener { metadata ->
-         // File downloaded successfully, do something with it
-         println("success meta")
-         if (metadata.creationTimeMillis > quranFileCreateTime) {
-             println("downloading file")
-             val editor: SharedPreferences.Editor = sharedPreferences.edit()
-             editor.putLong("quranFileCreateTime", metadata.creationTimeMillis)
-             editor.apply()
-             try {
-                 storageRef.getFile(quranFile)
-                     .addOnSuccessListener {
-                         // File downloaded successfully, do something with it
-                         jsonParser.parseJsonArrayFileFromFilesDir(
-                             context,
-                             "quran.json"
-                         )
-                             ?.let { QuranStore.setQuranData(it) }
-                         println("success download")
-                         loadingFile = false;
-                     }
-                     .addOnFailureListener { exception ->
-                         // Handle any errors that occurred during the download
-                         println("FirebaseDownload " + " Error downloading JSON file: $exception")
-                         setQuranDataFromLocalFile()
-                         loadingFile = false;
-                     }
-             } catch (e: Exception) {
-                 e.printStackTrace()
-                 setQuranDataFromLocalFile()
-             } finally {
-                 if (QuranStore.getQuranData().size == 0) {
-                     setQuranDataFromLocalFile()
-                 }
-                 loadingFile = false;
-             }
-         } else {
-             println("using local file")
-             try {
-                 jsonParser.parseJsonArrayFileFromFilesDir(context, "quran.json")
-                     ?.let { QuranStore.setQuranData(it) }
-             } catch (e: Exception) {
-                 e.printStackTrace()
-                 println("local file failed")
-                 setQuranDataFromLocalFile()
-             } finally {
-                 loadingFile = false;
-             }
-         }
-     }.addOnFailureListener { exception ->
-         // Handle any errors that occurred during the download
-         println("FirebaseMeta " + " Error downloading JSON file: $exception")
-         setQuranDataFromLocalFile()
-         loadingFile = false;
-     }
- }*/
-
-/*
-        var quranJson: String? = null
-        try {
-            val inputStream = context.assets.open("quran.json")
-            val size = inputStream.available()
-            val buffer = ByteArray(size)
-            inputStream.read(buffer)
-            inputStream.close()
-            quranJson = String(buffer, Charset.defaultCharset())
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-        val gson = Gson()
-        val quranPages: List<QuranPage> =
-            gson.fromJson(quranJson!!, object : TypeToken<List<QuranPage>>() {}.type)
-        */

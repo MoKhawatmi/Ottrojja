@@ -292,12 +292,10 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
             "$surahId.mp3"
         )
         val tempFile = File.createTempFile("temp_", ".mp3", context.getExternalFilesDir(null))
-
         val client = OkHttpClient()
         val request = Request.Builder()
             .url("https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/$surahId.mp3")
             .build()
-
 
         viewModelScope.launch {
             withContext(Dispatchers.IO) {

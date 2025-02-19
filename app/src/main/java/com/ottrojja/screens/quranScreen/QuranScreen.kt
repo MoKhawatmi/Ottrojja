@@ -8,7 +8,6 @@ import android.content.res.Configuration
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
@@ -159,133 +158,137 @@ fun QuranScreen(
         alertDialog.show()
     }
 
-    Column {
-        Row(
-            modifier = Modifier
-                .padding(6.dp)
-                .background(MaterialTheme.colorScheme.background)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    if (quranViewModel.currentPageObject.pageNum.toInt() !in 1..604) {
+        Text(text = "جاري التحميل")
+    } else {
+        Column {
             Row(
-                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier
+                    .padding(6.dp)
+                    .background(MaterialTheme.colorScheme.background)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OttrojjaElevatedButton(
-                    onClick = { if (!quranViewModel.isBookmarked) quranViewModel.togglePageBookmark() else confirmRemoveBookmark() },
-                    icon = if (quranViewModel.isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder
-                )
+                Row(
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OttrojjaElevatedButton(
+                        onClick = { if (!quranViewModel.isBookmarked) quranViewModel.togglePageBookmark() else confirmRemoveBookmark() },
+                        icon = if (quranViewModel.isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder
+                    )
+
+                    OttrojjaElevatedButton(
+                        onClick = { quranViewModel.sharePage() },
+                        icon = Icons.Default.Share
+                    )
+                }
 
                 OttrojjaElevatedButton(
-                    onClick = { quranViewModel.sharePage() },
-                    icon = Icons.Default.Share
+                    onClick = { handleBackBehaviour() },
+                    icon = Icons.Filled.ArrowBack
                 )
             }
 
-            OttrojjaElevatedButton(
-                onClick = { handleBackBehaviour() },
-                icon = Icons.Filled.ArrowBack
-            )
-        }
+            OttrojjaTabs(
+                items = QuranViewModel.PageTab.entries,
+                selectedItem = quranViewModel.selectedTab,
+                onClickTab = { item ->
+                    quranViewModel.selectedTab = item
+                })
+            when (quranViewModel.selectedTab) {
+                QuranViewModel.PageTab.الصفحة -> Column(verticalArrangement = Arrangement.SpaceBetween) {
+                    PagesContainer(
+                        quranViewModel.currentPageObject.pageNum,
+                        onPageChanged = { newPage ->
+                            quranViewModel.setCurrentPage(newPage)
+                        },
+                        onPlayClicked = {
+                            quranViewModel.prepareForPlaying()
+                        },
+                        { quranViewModel.pausePlaying() },
+                        { quranViewModel.showRepOptions = true },
+                        { /*quranViewModel.updateSelectedRep()*/ },
+                        quranViewModel.selectedRepetition,
+                        { quranViewModel.showVerseOptions = true },
+                        quranViewModel.selectedVerse,
+                        isPlaying,
+                        { quranViewModel.decreasePlaybackSpeed() },
+                        { quranViewModel.increasePlaybackSpeed() },
+                        quranViewModel.isDownloading,
+                        { quranViewModel.goNextVerse() },
+                        { quranViewModel.goPreviousVerse() },
+                        quranViewModel.continuousPlay,
+                        { value -> quranViewModel.continuousPlay = value },
+                        quranViewModel.shouldAutoPlay,
+                        quranViewModel.playbackSpeed,
+                        quranViewModel.nightReadingMode,
+                        { quranViewModel.showListeningOptionsDialog = true },
+                        vmChangedPage = quranViewModel.vmChangedPage,
+                        setVmChangedPage = { value -> quranViewModel.vmChangedPage = value }
+                    )
+                }
 
-        OttrojjaTabs(
-            items = QuranViewModel.PageTab.entries,
-            selectedItem = quranViewModel.selectedTab,
-            onClickTab = { item ->
-                quranViewModel.selectedTab = item
-            })
-        when (quranViewModel.selectedTab) {
-            QuranViewModel.PageTab.الصفحة -> Column(verticalArrangement = Arrangement.SpaceBetween) {
-                PagesContainer(
-                    quranViewModel.currentPageObject.pageNum,
-                    onPageChanged = { newPage ->
-                        quranViewModel.setCurrentPage(newPage)
+                QuranViewModel.PageTab.الآيات -> VersesSection(
+                    quranViewModel.currentPageObject.pageContent.filter { item -> item.type == PageContentItemType.verse },
+                    { targetVerse ->
+                        quranViewModel.tafseerTargetVerse = targetVerse;
+                        quranViewModel.tafseerSheetMode = "tafseer"
+                        quranViewModel.showTafseerSheet = true
                     },
-                    onPlayClicked = {
-                        quranViewModel.prepareForPlaying()
+                    { targetVerse ->
+                        quranViewModel.tafseerTargetVerse = targetVerse;
+                        quranViewModel.tafseerSheetMode = "e3rab"
+                        quranViewModel.showTafseerSheet = true
                     },
-                    { quranViewModel.pausePlaying() },
-                    { quranViewModel.showRepOptions = true },
-                    { /*quranViewModel.updateSelectedRep()*/ },
-                    quranViewModel.selectedRepetition,
-                    { quranViewModel.showVerseOptions = true },
-                    quranViewModel.selectedVerse,
-                    isPlaying,
-                    { quranViewModel.decreasePlaybackSpeed() },
-                    { quranViewModel.increasePlaybackSpeed() },
-                    quranViewModel.isDownloading,
-                    { quranViewModel.goNextVerse() },
-                    { quranViewModel.goPreviousVerse() },
-                    quranViewModel.continuousPlay,
-                    { value -> quranViewModel.continuousPlay = value },
-                    quranViewModel.shouldAutoPlay,
-                    quranViewModel.playbackSpeed,
-                    quranViewModel.nightReadingMode,
-                    { quranViewModel.showListeningOptionsDialog = true },
-                    vmChangedPage = quranViewModel.vmChangedPage,
-                    setVmChangedPage = { value -> quranViewModel.vmChangedPage = value }
+                    { targetVerse ->
+                        quranViewModel.tafseerTargetVerse = targetVerse;
+                        quranViewModel.tafseerSheetMode = "causeOfRevelation"
+                        quranViewModel.showTafseerSheet = true
+                    },
+                    repository
+                )
+
+                QuranViewModel.PageTab.الفوائد -> Benefits(
+                    quranViewModel.currentPageObject.benefits,
+                    quranViewModel.currentPageObject.appliance,
+                    quranViewModel.currentPageObject.guidance,
+                    quranViewModel.currentPageObject.pageNum
+                )
+
+                QuranViewModel.PageTab.الفيديو -> YouTube(
+                    quranViewModel.currentPageObject.ytLink.split(
+                        "v="
+                    ).last()
                 )
             }
 
-            QuranViewModel.PageTab.الآيات -> VersesSection(
-                quranViewModel.currentPageObject.pageContent.filter { item -> item.type == PageContentItemType.verse },
+            VersesBottomSheet(quranViewModel.showVersesSheet,
+                { quranViewModel.showVersesSheet = false },
                 { targetVerse ->
                     quranViewModel.tafseerTargetVerse = targetVerse;
-                    quranViewModel.tafseerSheetMode = "tafseer"
+                    quranViewModel.showVersesSheet = false;
                     quranViewModel.showTafseerSheet = true
                 },
-                { targetVerse ->
-                    quranViewModel.tafseerTargetVerse = targetVerse;
-                    quranViewModel.tafseerSheetMode = "e3rab"
-                    quranViewModel.showTafseerSheet = true
-                },
-                { targetVerse ->
-                    quranViewModel.tafseerTargetVerse = targetVerse;
-                    quranViewModel.tafseerSheetMode = "causeOfRevelation"
-                    quranViewModel.showTafseerSheet = true
-                },
-                repository
-            )
+                quranViewModel.currentPageObject.pageContent.filter { item -> item.type == PageContentItemType.verse });
 
-            QuranViewModel.PageTab.الفوائد -> Benefits(
-                quranViewModel.currentPageObject.benefits,
-                quranViewModel.currentPageObject.appliance,
-                quranViewModel.currentPageObject.guidance,
-                quranViewModel.currentPageObject.pageNum
-            )
-
-            QuranViewModel.PageTab.الفيديو -> YouTube(
-                quranViewModel.currentPageObject.ytLink.split(
-                    "v="
-                ).last()
+            TafseerBottomSheet(
+                context,
+                showTafseerSheet = quranViewModel.showTafseerSheet,
+                onDismiss = { quranViewModel.showTafseerSheet = false },
+                quranViewModel.verseTafseer,
+                quranViewModel.verseE3rab,
+                quranViewModel.verseCauseOfRevelation,
+                quranViewModel.selectedTafseer,
+                onClickTafseerOptions = { quranViewModel.showTafseerOptions = true },
+                mode = quranViewModel.tafseerSheetMode,
+                atFirstVerse = quranViewModel.atFirstVerse(),
+                atLastVerse = quranViewModel.atLastVerse(),
+                targetNextVerse = { quranViewModel.targetNextVerse() },
+                targetPreviousVerse = { quranViewModel.targetPreviousVerse() }
             )
         }
-
-        VersesBottomSheet(quranViewModel.showVersesSheet,
-            { quranViewModel.showVersesSheet = false },
-            { targetVerse ->
-                quranViewModel.tafseerTargetVerse = targetVerse;
-                quranViewModel.showVersesSheet = false;
-                quranViewModel.showTafseerSheet = true
-            },
-            quranViewModel.currentPageObject.pageContent.filter { item -> item.type == PageContentItemType.verse });
-
-        TafseerBottomSheet(
-            context,
-            showTafseerSheet = quranViewModel.showTafseerSheet,
-            onDismiss = { quranViewModel.showTafseerSheet = false },
-            quranViewModel.verseTafseer,
-            quranViewModel.verseE3rab,
-            quranViewModel.verseCauseOfRevelation,
-            quranViewModel.selectedTafseer,
-            onClickTafseerOptions = { quranViewModel.showTafseerOptions = true },
-            mode = quranViewModel.tafseerSheetMode,
-            atFirstVerse = quranViewModel.atFirstVerse(),
-            atLastVerse = quranViewModel.atLastVerse(),
-            targetNextVerse = { quranViewModel.targetNextVerse() },
-            targetPreviousVerse = { quranViewModel.targetPreviousVerse() }
-        )
     }
 
     if (quranViewModel.showListeningOptionsDialog) {
@@ -688,12 +691,16 @@ fun ListeningOptionsDialog(
 
             Row(
                 modifier = Modifier
+                    .padding(vertical = 6.dp)
                     .fillMaxWidth()
                     .clickable { setContPlay(!continuousPlay) },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("تشغيل متتال للصفحات", style = MaterialTheme.typography.bodyMedium)
+                Column {
+                    Text("تشغيل متتال للصفحات", style = MaterialTheme.typography.bodyMedium)
+                    Text("(غير متوفر في الخلفية حاليا)", style = MaterialTheme.typography.bodySmall)
+                }
                 Checkbox(
                     checked = continuousPlay,
                     onCheckedChange = { newCheckedState -> setContPlay(newCheckedState) }
