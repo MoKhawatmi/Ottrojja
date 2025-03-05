@@ -17,6 +17,7 @@ import com.ottrojja.composables.BottomNavigation
 import com.ottrojja.screens.BookmarksScreen.BookmarksScreen
 import com.ottrojja.screens.teacherScreen.TeacherScreen
 import com.ottrojja.screens.azkarScreen.AzkarScreen
+import com.ottrojja.screens.blessingsScreen.BlessingsScreen
 import com.ottrojja.screens.chaptersScreen.ChaptersScreen
 import com.ottrojja.screens.loadingScreen.LoadingScreen
 import com.ottrojja.screens.mainScreen.MainScreen
@@ -125,6 +126,18 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
                 )
             }
         }
+
+        composable(route = Screen.BlessingsScreen.route) {
+            Box() {
+                BlessingsScreen(modifier = Modifier.align(Alignment.TopCenter))
+                BottomNavigation(
+                    navController,
+                    Screen.BlessingsScreen.route,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
+            }
+        }
+
         composable(route = Screen.QuranScreen.route, arguments = listOf(navArgument("pageNum") {
             type = NavType.StringType
         })) {

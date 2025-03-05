@@ -64,6 +64,14 @@ fun BottomNavigation(
         )
 
         BottomNavigationOption(
+            optionText = "إشراقات",
+            isCurrent = Screen.BlessingsScreen.route == currentRoute,
+            onClick = { navController.navigate(Screen.BlessingsScreen.route) },
+            iconId = R.drawable.twilight,
+            alternateIcon = null
+        )
+
+        BottomNavigationOption(
             optionText = "المعلم",
             isCurrent = Screen.TeacherScreen.route == currentRoute,
             onClick = { navController.navigate(Screen.TeacherScreen.route) },

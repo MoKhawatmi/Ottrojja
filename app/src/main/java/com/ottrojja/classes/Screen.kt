@@ -10,6 +10,7 @@ sealed class Screen(val route: String) {
     object TasbeehScreen : Screen(route = "tasbeeh_screen")
     object PrayerScreen : Screen(route = "prayer_screen")
     object SettingsScreen : Screen(route = "settings_screen")
+    object BlessingsScreen : Screen(route = "blessings_screen")
     object QuranScreen : Screen(route = "quran_screen/{pageNum}") {
         fun invokeRoute(pageNum: String): String {
             return this.route.replace("{pageNum}", pageNum)
