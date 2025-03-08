@@ -73,7 +73,7 @@ class MainActivity : ComponentActivity() {
         ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .fallbackToDestructiveMigration()
             .build()
-        val quranRepository = QuranRepository(db.quranDao())
+        val quranRepository = QuranRepository(db.quranDao(), db.khitmahDao())
 
         setContent {
             TestAppTheme {

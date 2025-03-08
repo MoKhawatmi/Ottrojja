@@ -8,9 +8,9 @@ sealed class Screen(val route: String) {
     object TeacherScreen : Screen(route = "teacher_screen")
     object ChaptersScreen : Screen(route = "chapters_screen")
     object TasbeehScreen : Screen(route = "tasbeeh_screen")
-    object PrayerScreen : Screen(route = "prayer_screen")
     object SettingsScreen : Screen(route = "settings_screen")
     object BlessingsScreen : Screen(route = "blessings_screen")
+    object KhitmahListScreen : Screen(route = "khitmah_list_screen")
     object QuranScreen : Screen(route = "quran_screen/{pageNum}") {
         fun invokeRoute(pageNum: String): String {
             return this.route.replace("{pageNum}", pageNum)
@@ -23,3 +23,5 @@ sealed class Screen(val route: String) {
         }
     }
 }
+
+//object PrayerScreen : Screen(route = "prayer_screen")

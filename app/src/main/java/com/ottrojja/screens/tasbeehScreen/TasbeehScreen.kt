@@ -35,7 +35,6 @@ import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,10 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -54,15 +50,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
-import com.ottrojja.classes.Screen
 import com.ottrojja.classes.Tasabeeh
 import com.ottrojja.composables.Header
+import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.ui.theme.timeNormal
 
 @Composable
 fun TasbeehScreen(
-    modifier: Modifier = Modifier,
     tasbeehScreenViewModel: TasbeehScreenViewModel = viewModel()
 ) {
 
@@ -263,8 +258,7 @@ fun TasabeehList(tasabeeh: MutableList<Tasabeeh>, updateExpanded: (Tasabeeh) -> 
                     }
                 }
             }
-
-            HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
+            ListHorizontalDivider()
         }
     }
 }

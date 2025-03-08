@@ -43,7 +43,6 @@ import com.ottrojja.composables.Header
 @Composable
 fun AzkarScreen(
     navController: NavController,
-    modifier: Modifier = Modifier,
     repository: QuranRepository
 ) {
     val context = LocalContext.current;

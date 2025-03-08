@@ -20,7 +20,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,13 +38,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.composables.Header
+import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.SwitchWithIcon
 
 
 @Composable
 fun SettingsScreen(
-    modifier: Modifier = Modifier,
     settingsScreenViewModel: SettingsScreenViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -239,7 +238,7 @@ fun SettingsItem(textContent: String, onClick: () -> Unit, content: @Composable(
             Text(text = textContent, color = Color.Black)
             content()
         }
-        HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
+        ListHorizontalDivider()
     }
 }
 

@@ -39,7 +39,6 @@ import androidx.compose.material3.ButtonDefaults.elevatedButtonElevation
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalTextStyle
@@ -88,12 +87,13 @@ import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.composables.Header
+import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.LoadingDialog
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 
 @Composable
 fun TeacherScreen(
-    modifier: Modifier, repository: QuranRepository
+    repository: QuranRepository
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
@@ -617,7 +617,7 @@ fun BrowseMenu(
                 ) {
                     Text(text = item, color = Color.Black)
                 }
-                HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
+                ListHorizontalDivider()
             }
         }
     }

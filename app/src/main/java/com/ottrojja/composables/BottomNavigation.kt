@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -94,6 +96,14 @@ fun BottomNavigation(
             iconId = R.drawable.prayer_times,
             alternateIcon = null
         )*/
+
+        BottomNavigationOption(
+            optionText = "الختمات",
+            isCurrent = Screen.KhitmahListScreen.route == currentRoute,
+            onClick = { navController.navigate(Screen.KhitmahListScreen.route) },
+            iconId = R.drawable.bookmarks,
+            alternateIcon = null
+        )
 
         BottomNavigationOption(
             optionText = "المرجعيات",

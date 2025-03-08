@@ -1,22 +1,20 @@
 package com.ottrojja.classes
 
-import android.content.Context
-import android.content.SharedPreferences
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
 import com.ottrojja.room.BookmarkEntity
+import com.ottrojja.room.Khitmah
+import com.ottrojja.room.KhitmahDao
+import com.ottrojja.room.KhitmahMark
+import com.ottrojja.room.KhitmahWithMarks
 import com.ottrojja.room.QuranDao
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.screens.quranScreen.E3rabData
 import com.ottrojja.screens.quranScreen.TafseerData
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
-class QuranRepository(private val quranDao: QuranDao) {
-    // Exposing the Flow directly from the DAO
-    //   val allUsers: Flow<List<User>> = userDao.getAllUsers()
+class QuranRepository(private val quranDao: QuranDao, private val khitmahDao: KhitmahDao) {
 
     suspend fun getAllPages(): List<QuranPage> {
         return quranDao.getAllPages()
@@ -152,5 +150,34 @@ class QuranRepository(private val quranDao: QuranDao) {
         quranDao.deleteBookmark(bookmark)
     }
 
+    /**********Khitmah Access**********/
+
+    suspend fun insertKhitmah(khitmah: Khitmah) {
+        khitmahDao.insertKhitmah(khitmah)
+    }
+
+    suspend fun insertKhitmahMark(khitmahMark: KhitmahMark) {
+        khitmahDao.insertKhitmahMark(khitmahMark)
+    }
+
+    suspend fun getAllKhitmah(): Flow<List<Khitmah>> {
+        return khitmahDao.getAllKhitmah()
+    }
+
+    suspend fun getKhitmah(id: Int): KhitmahWithMarks {
+        return khitmahDao.getKhitmah(id)
+    }
+
+    suspend fun deleteKhitmah(khitmah: Khitmah) {
+        khitmahDao.deleteKhitmah(khitmah)
+    }
+
+    suspend fun deleteKhitmahMark(khitmahMark: KhitmahMark) {
+        khitmahDao.deleteKhitmahMark(khitmahMark)
+    }
+
+    suspend fun updateKhitmah(khitmah: Khitmah) {
+        khitmahDao.updateKhitmah(khitmah)
+    }
 
 }

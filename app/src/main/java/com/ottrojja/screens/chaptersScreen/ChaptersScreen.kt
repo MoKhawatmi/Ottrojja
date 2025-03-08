@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.composables.Header
+import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.LoadingDialog
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
@@ -42,7 +42,6 @@ import com.ottrojja.screens.mainScreen.ChapterData
 
 @Composable
 fun ChaptersScreen(
-    modifier: Modifier = Modifier,
     repository: QuranRepository
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -132,7 +131,7 @@ fun ChaptersScreen(
                                 }
                             }
                         }
-                        HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
+                        ListHorizontalDivider()
                     }
                 }
                 item {

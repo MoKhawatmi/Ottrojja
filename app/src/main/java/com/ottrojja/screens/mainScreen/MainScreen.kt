@@ -30,7 +30,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.outlined.ArrowCircleLeft
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -62,13 +61,13 @@ import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
 import com.ottrojja.composables.Header
+import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 
 @Composable
 fun MainScreen(
     navController: NavController,
-    modifier: Modifier = Modifier,
     repository: QuranRepository
 ) {
     val context = LocalContext.current;
@@ -394,7 +393,7 @@ fun BrowseMenu(
                 ) {
                     Text(text = item, color = Color.Black)
                 }
-                HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
+                ListHorizontalDivider()
             }
         }
     }
@@ -438,9 +437,7 @@ fun PartsMenu(
                         style = MaterialTheme.typography.labelSmall,
                     )
                 }
-
-
-                HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
+                ListHorizontalDivider()
             }
         }
     }
@@ -505,7 +502,7 @@ fun ChaptersMenu(
                         }
                     }
                 }
-                HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
+                ListHorizontalDivider()
             }
         }
     }
@@ -545,7 +542,7 @@ fun SearchMenu(
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
-                HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
+                ListHorizontalDivider()
             }
         }
         items(items) { item ->
@@ -577,7 +574,7 @@ fun SearchMenu(
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
-                HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
+                ListHorizontalDivider()
             }
         }
         item {

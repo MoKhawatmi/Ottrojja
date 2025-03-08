@@ -1,11 +1,9 @@
 package com.ottrojja
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,9 +17,9 @@ import com.ottrojja.screens.teacherScreen.TeacherScreen
 import com.ottrojja.screens.azkarScreen.AzkarScreen
 import com.ottrojja.screens.blessingsScreen.BlessingsScreen
 import com.ottrojja.screens.chaptersScreen.ChaptersScreen
+import com.ottrojja.screens.khitmahListScreen.KhitmahList
 import com.ottrojja.screens.loadingScreen.LoadingScreen
 import com.ottrojja.screens.mainScreen.MainScreen
-import com.ottrojja.screens.prayerScreen.PrayerScreen
 import com.ottrojja.screens.quranScreen.QuranScreen
 import com.ottrojja.screens.settingsScreen.SettingsScreen
 import com.ottrojja.screens.tasbeehScreen.TasbeehScreen
@@ -38,7 +36,6 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
             Box() {
                 MainScreen(
                     navController = navController,
-                    modifier = Modifier.align(Alignment.TopCenter),
                     repository = repository
                 )
                 BottomNavigation(
@@ -49,15 +46,10 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
             }
         }
 
-        composable(route = Screen.LoadingScreen.route) {
-            LoadingScreen(navController, repository)
-        }
-
         composable(route = Screen.AzkarScreen.route) {
             Box() {
                 AzkarScreen(
                     navController,
-                    modifier = Modifier.align(Alignment.TopCenter),
                     repository
                 )
                 BottomNavigation(
@@ -70,7 +62,7 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
 
         composable(route = Screen.TeacherScreen.route) {
             Box() {
-                TeacherScreen(modifier = Modifier.align(Alignment.TopCenter), repository)
+                TeacherScreen(repository)
                 BottomNavigation(
                     navController,
                     Screen.TeacherScreen.route,
@@ -80,7 +72,7 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
         }
         composable(route = Screen.ChaptersScreen.route) {
             Box() {
-                ChaptersScreen(modifier = Modifier.align(Alignment.TopCenter), repository)
+                ChaptersScreen(repository)
                 BottomNavigation(
                     navController,
                     Screen.ChaptersScreen.route,
@@ -90,20 +82,10 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
         }
         composable(route = Screen.TasbeehScreen.route) {
             Box() {
-                TasbeehScreen(modifier = Modifier.align(Alignment.TopCenter))
+                TasbeehScreen()
                 BottomNavigation(
                     navController,
                     Screen.TasbeehScreen.route,
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
-            }
-        }
-        composable(route = Screen.PrayerScreen.route) {
-            Box() {
-                PrayerScreen(modifier = Modifier.align(Alignment.TopCenter))
-                BottomNavigation(
-                    navController,
-                    Screen.PrayerScreen.route,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
@@ -113,7 +95,6 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
             Box() {
                 BookmarksScreen(
                     navController,
-                    modifier = Modifier.align(Alignment.TopCenter),
                     repository = repository
                 )
                 BottomNavigation(
@@ -124,9 +105,24 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
             }
         }
 
+        composable(route = Screen.KhitmahListScreen.route) {
+            Box() {
+                KhitmahList(
+                    navController,
+                    repository = repository
+                )
+                BottomNavigation(
+                    navController,
+                    Screen.KhitmahListScreen.route,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
+            }
+        }
+
+
         composable(route = Screen.SettingsScreen.route) {
             Box() {
-                SettingsScreen(modifier = Modifier.align(Alignment.TopCenter))
+                SettingsScreen()
                 BottomNavigation(
                     navController,
                     Screen.SettingsScreen.route,
@@ -137,13 +133,17 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
 
         composable(route = Screen.BlessingsScreen.route) {
             Box() {
-                BlessingsScreen(modifier = Modifier.align(Alignment.TopCenter))
+                BlessingsScreen()
                 BottomNavigation(
                     navController,
                     Screen.BlessingsScreen.route,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
+        }
+
+        composable(route = Screen.LoadingScreen.route) {
+            LoadingScreen(navController, repository)
         }
 
         composable(route = Screen.QuranScreen.route, arguments = listOf(navArgument("pageNum") {
@@ -160,3 +160,15 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
         }
     }
 }
+
+
+/*composable(route = Screen.PrayerScreen.route) {
+    Box() {
+        PrayerScreen(modifier = Modifier.align(Alignment.TopCenter))
+        BottomNavigation(
+            navController,
+            Screen.PrayerScreen.route,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
+}*/

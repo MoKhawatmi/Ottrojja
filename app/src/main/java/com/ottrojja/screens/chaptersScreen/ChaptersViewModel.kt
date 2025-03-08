@@ -121,16 +121,16 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
     private var _sliderPosition = mutableStateOf(0f)
     var sliderPosition: Float
-        get() = this._sliderPosition.value
+        get() = _sliderPosition.value
         set(value) {
-            this._sliderPosition.value = value
+            _sliderPosition.value = value
         }
 
     private var _playbackSpeed by mutableStateOf(1.0f)
     var playbackSpeed: Float
-        get() = this._playbackSpeed
+        get() = _playbackSpeed
         set(value) {
-            this._playbackSpeed = value
+            _playbackSpeed = value
         }
 
     private var _maxDuration = mutableStateOf(0f)

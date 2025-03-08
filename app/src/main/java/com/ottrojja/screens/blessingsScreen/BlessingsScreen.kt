@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,9 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.composables.FillerItem
 import com.ottrojja.composables.Header
+import com.ottrojja.composables.ListHorizontalDivider
 
 @Composable
-fun BlessingsScreen(modifier: Modifier, blessingsViewModel: BlessingsViewModel = viewModel()) {
+fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
 
     val blessings by blessingsViewModel.blessingsList.collectAsState()
     val listState = rememberLazyListState()
@@ -87,7 +87,7 @@ fun BlessingsScreen(modifier: Modifier, blessingsViewModel: BlessingsViewModel =
                             modifier = Modifier.padding(6.dp, 8.dp)
                         )
                     }
-                    HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
+                    ListHorizontalDivider()
                 }
             }
 

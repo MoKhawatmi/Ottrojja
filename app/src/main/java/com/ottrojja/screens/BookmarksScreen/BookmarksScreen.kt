@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,6 +32,7 @@ import com.ottrojja.R
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.Header
+import com.ottrojja.composables.ListHorizontalDivider
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -40,7 +40,6 @@ import java.util.Locale
 @Composable
 fun BookmarksScreen(
     navController: NavController,
-    modifier: Modifier = Modifier,
     repository: QuranRepository,
 ) {
     val context = LocalContext.current
@@ -167,7 +166,7 @@ fun BookmarksScreen(
                         }
                     }
                 }
-                HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
+                ListHorizontalDivider()
             }
         }
     }

@@ -16,11 +16,15 @@ import com.ottrojja.screens.quranScreen.TafseerData
 
 @TypeConverters(Converters::class)
 @Database(
-    entities = [QuranPage::class, ChapterData::class, PartData::class, TafseerData::class, E3rabData::class, Azkar::class, CauseOfRevelation::class, BookmarkEntity::class],
+    entities = [QuranPage::class, ChapterData::class, PartData::class,
+        TafseerData::class, E3rabData::class, Azkar::class,
+        CauseOfRevelation::class, BookmarkEntity::class, Khitmah::class,
+        KhitmahMark::class],
     version = 4
 )
 abstract class QuranDatabase : RoomDatabase() {
     abstract fun quranDao(): QuranDao
+    abstract fun khitmahDao(): KhitmahDao
 }
 
 // Migration from version 3 to version 4
@@ -31,6 +35,29 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
             CREATE TABLE IF NOT EXISTS `BookmarkEntity` (
                 `pageNum` TEXT PRIMARY KEY NOT NULL,
                 `timeStamp` INTEGER NOT NULL,
+            )
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `Khitmah` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `title` TEXT NOT NULL,
+                `latestPage` TEXT NOT NULL,
+                `isComplete` INTEGER NOT NULL DEFAULT 0,
+            )
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `KhitmahMark` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            `khitmahId` INTEGER NOT NULL,
+            `timeStamp` INTEGER NOT NULL,
+            `pageNum` TEXT NOT NULL,
+            FOREIGN KEY (`khitmahId`) REFERENCES `Khitmah`(`id`) ON DELETE CASCADE
             )
             """.trimIndent()
         )

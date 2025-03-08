@@ -12,7 +12,6 @@ import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.screens.quranScreen.E3rabData
 import com.ottrojja.screens.quranScreen.TafseerData
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface QuranDao {
