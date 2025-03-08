@@ -982,11 +982,7 @@ fun Benefits(
                     benefitContent = applianceItem,
                     shareSubject = "تطبيق قرآني",
                     shareTitle = "مشاركة التطبيق",
-                    shareContent = "من التطبيقات القرآنية للصفحة $pageNum \n $applianceItem\n${
-                        stringResource(
-                            R.string.share_app
-                        )
-                    }"
+                    shareContent = "من التطبيقات القرآنية للصفحة $pageNum \n $applianceItem\n${stringResource(R.string.share_app)}"
                 )
             }
         }

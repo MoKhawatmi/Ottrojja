@@ -26,6 +26,7 @@ import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.BookmarkEntity
 import com.ottrojja.services.PagePlayerService
 import com.ottrojja.services.PageServiceInterface
 import kotlinx.coroutines.Dispatchers
@@ -515,45 +516,44 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     private val _isBookmarked = mutableStateOf(false)
     var isBookmarked: Boolean
-        get() = this._isBookmarked.value
+        get() = _isBookmarked.value
         set(value) {
-            this._isBookmarked.value = value
+            _isBookmarked.value = value
         }
 
     fun isPageBookmarked() {
-        val bookmarks = sharedPreferences.getString("bookmarks", "");
-        val bookmarksList = bookmarks?.split(",");
-        println("checking bookmarks")
-        println(bookmarksList)
-        println("for ${currentPageObject.pageNum}")
-        if (bookmarksList?.size == 0) {
-            this._isBookmarked.value = false;
-        } else {
-            this._isBookmarked.value = bookmarksList?.indexOf(currentPageObject.pageNum) != -1;
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                println("checking bookmarks for ${currentPageObject.pageNum}")
+                _isBookmarked.value = repository.isBookmarked(currentPageObject.pageNum)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
     fun togglePageBookmark() {
-        val bookmarks = sharedPreferences.getString("bookmarks", "");
-        val bookmarksList = bookmarks?.split(",")?.toMutableList();
-        if (bookmarksList?.size == 0) {
-            bookmarksList.add(currentPageObject.pageNum)
-        } else {
-            if (bookmarksList?.indexOf(currentPageObject.pageNum) == -1) {
-                bookmarksList.add(currentPageObject.pageNum)
-            } else {
-                bookmarksList?.remove(currentPageObject.pageNum)
+        val bookmark = BookmarkEntity(pageNum = currentPageObject.pageNum);
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if (!_isBookmarked.value) {
+                    repository.insertBookmark(bookmark)
+                } else {
+                    repository.deleteBookmark(bookmark)
+                }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, " تم تحديث المرجعيات بنجاح", Toast.LENGTH_LONG).show()
+                }
+                //just to update ui
+                isPageBookmarked();
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+                }
             }
+
         }
-
-        val editor: SharedPreferences.Editor = sharedPreferences.edit()
-        editor.putString("bookmarks", bookmarksList?.joinToString(","))
-        editor.apply()
-
-        Toast.makeText(context, " تم تحديث المرجعيات بنجاح", Toast.LENGTH_LONG).show()
-
-        //just to update ui
-        isPageBookmarked();
     }
 
     private var _nightReadingMode by mutableStateOf(false)

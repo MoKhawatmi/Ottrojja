@@ -1,6 +1,7 @@
 package com.ottrojja.room
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -100,5 +101,18 @@ interface QuranDao {
 
     @Query("SELECT count(*) FROM CauseOfRevelation")
     fun getCausesOfRevelationCount(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertBookmark(bookmark: BookmarkEntity)
+
+    @Query("SELECT * FROM BookmarkEntity")
+    fun getBookmarks(): List<BookmarkEntity>
+
+    @Query("SELECT EXISTS (SELECT 1 FROM BookmarkEntity WHERE pageNum=:pageNum)")
+    fun isBookmarked(pageNum: String): Boolean
+
+    @Delete
+    fun deleteBookmark(bookmark: BookmarkEntity)
+
 
 }

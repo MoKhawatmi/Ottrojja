@@ -7,39 +7,56 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ottrojja.composables.FillerItem
 import com.ottrojja.composables.Header
-import com.ottrojja.composables.LoadingDialog
 
 @Composable
 fun BlessingsScreen(modifier: Modifier, blessingsViewModel: BlessingsViewModel = viewModel()) {
 
+    val blessings by blessingsViewModel.blessingsList.collectAsState()
+    val listState = rememberLazyListState()
+
     LaunchedEffect(Unit) {
-        blessingsViewModel.initAndFetch()
+        blessingsViewModel.fetchBlessings()
     }
 
-    if (blessingsViewModel.loading) {
-        LoadingDialog()
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
+            .collect { visibleItems ->
+                if (visibleItems.isNotEmpty() &&
+                    visibleItems.last().index == blessings.lastIndex
+                ) {
+                    blessingsViewModel.fetchBlessings()
+                }
+            }
     }
+
 
     Column(modifier = Modifier.fillMaxSize()) {
         Header()
-        LazyColumn(modifier = Modifier.padding(horizontal = 6.dp)) {
-            items(blessingsViewModel.blessingsList) { item ->
+        LazyColumn(state = listState, modifier = Modifier.padding(horizontal = 6.dp)) {
+            items(blessings) { item ->
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -63,7 +80,7 @@ fun BlessingsScreen(modifier: Modifier, blessingsViewModel: BlessingsViewModel =
                             .fillMaxWidth()
                     ) {
                         Text(
-                            text = item.text,
+                            text ="${item.id} ${item.text}",
                             color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Right,
@@ -72,6 +89,25 @@ fun BlessingsScreen(modifier: Modifier, blessingsViewModel: BlessingsViewModel =
                     }
                     HorizontalDivider(thickness = 1.dp, color = Color.Black.copy(alpha = 0.1f))
                 }
+            }
+
+            if (blessingsViewModel.loading) {
+                item {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.width(32.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 4.dp
+                        )
+                    }
+                }
+            }
+            item {
+                FillerItem()
             }
 
         }

@@ -16,17 +16,31 @@ import com.ottrojja.screens.quranScreen.TafseerData
 
 @TypeConverters(Converters::class)
 @Database(
-    entities = [QuranPage::class, ChapterData::class, PartData::class, TafseerData::class, E3rabData::class, Azkar::class, CauseOfRevelation::class],
-    version = 3
+    entities = [QuranPage::class, ChapterData::class, PartData::class, TafseerData::class, E3rabData::class, Azkar::class, CauseOfRevelation::class, BookmarkEntity::class],
+    version = 4
 )
 abstract class QuranDatabase : RoomDatabase() {
     abstract fun quranDao(): QuranDao
 }
 
-// Migration from version 2 to version 3
+// Migration from version 3 to version 4
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `BookmarkEntity` (
+                `pageNum` TEXT PRIMARY KEY NOT NULL,
+                `timeStamp` INTEGER NOT NULL,
+            )
+            """.trimIndent()
+        )
+
+    }
+}
+
+
 val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        // Add the new column 'firstWords' to the 'PartData' table
         database.execSQL("ALTER TABLE PartData ADD COLUMN firstWords TEXT NOT NULL DEFAULT ''".trimIndent())
         database.execSQL(
             """
@@ -43,7 +57,6 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
 
 val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        // Add a new column to the "YourTable" table
         database.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `Azkar` (

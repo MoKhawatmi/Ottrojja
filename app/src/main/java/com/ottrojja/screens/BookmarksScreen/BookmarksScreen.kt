@@ -1,42 +1,59 @@
 package com.ottrojja.screens.BookmarksScreen
 
-import androidx.compose.animation.AnimatedVisibility
+import android.app.Application
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.R
+import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.Header
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun BookmarksScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
-    bookmarksViewModel: BookmarksViewModel = viewModel()
+    repository: QuranRepository,
 ) {
-    bookmarksViewModel.getBookmarks();
+    val context = LocalContext.current
+    val application = context.applicationContext as Application
+
+    val bookmarksViewModel: BookmarksViewModel = viewModel(
+        factory = BookmarksViewModelFactory(repository, application)
+    )
+
+    LaunchedEffect(Unit) {
+        bookmarksViewModel.getBookmarks()
+    }
+
     Column {
         Header()
         LazyColumn(
@@ -63,7 +80,7 @@ fun BookmarksScreen(
                     }
                 }
             }
-            items(bookmarksViewModel.bookmarks, key={"bookmark_page_${it.pageNum}"}) { item ->
+            items(bookmarksViewModel.bookmarks, key = { "bookmark_page_${it.pageNum}" }) { item ->
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -79,13 +96,37 @@ fun BookmarksScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "صفحة ${item.pageNum}",
-                            color = Color.Black,
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Right,
-                            modifier = Modifier.fillMaxWidth(0.9f)
+                        Icon(
+                            Icons.Default.Book,
+                            contentDescription = "Bookmark",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 4.dp)
                         )
+
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.Start,
+                            modifier = Modifier.fillMaxWidth(0.9f)
+                        ) {
+                            Text(
+                                text = "صفحة ${item.pageNum}",
+                                color = Color.Black,
+                                style = MaterialTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Right,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            Text(
+                                text = SimpleDateFormat("HH:mm dd.MM.yyyy", Locale.US).format(Date(item.timeStamp)),
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Right,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 2.dp)
+                            )
+                        }
+
 
                         Image(
                             painter = painterResource(id = R.drawable.more_vert),
@@ -113,7 +154,7 @@ fun BookmarksScreen(
                                     .weight(1.0f)
                                     .background(MaterialTheme.colorScheme.primary)
                                     .clickable {
-                                        bookmarksViewModel.removeBookmark(item.pageNum)
+                                        bookmarksViewModel.removeBookmark(item)
                                     }
                                     .padding(4.dp, 6.dp)
                             ) {

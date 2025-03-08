@@ -55,7 +55,11 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
 
         composable(route = Screen.AzkarScreen.route) {
             Box() {
-                AzkarScreen(navController, modifier = Modifier.align(Alignment.TopCenter), repository)
+                AzkarScreen(
+                    navController,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    repository
+                )
                 BottomNavigation(
                     navController,
                     Screen.AzkarScreen.route,
@@ -107,7 +111,11 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
 
         composable(route = Screen.BookmarksScreen.route) {
             Box() {
-                BookmarksScreen(navController, modifier = Modifier.align(Alignment.TopCenter))
+                BookmarksScreen(
+                    navController,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    repository = repository
+                )
                 BottomNavigation(
                     navController,
                     Screen.BookmarksScreen.route,

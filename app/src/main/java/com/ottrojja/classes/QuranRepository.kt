@@ -2,6 +2,11 @@ package com.ottrojja.classes
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import com.ottrojja.room.BookmarkEntity
 import com.ottrojja.room.QuranDao
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
@@ -130,5 +135,22 @@ class QuranRepository(private val quranDao: QuranDao) {
     suspend fun getCauseOfRevelationCount(): Int {
         return quranDao.getCausesOfRevelationCount()
     }
+
+    suspend fun insertBookmark(bookmark: BookmarkEntity) {
+        quranDao.insertBookmark(bookmark)
+    }
+
+    suspend fun getBookmarks(): List<BookmarkEntity> {
+        return quranDao.getBookmarks()
+    }
+
+    suspend fun isBookmarked(pageNum: String): Boolean {
+        return quranDao.isBookmarked(pageNum)
+    }
+
+    suspend fun deleteBookmark(bookmark: BookmarkEntity) {
+        quranDao.deleteBookmark(bookmark)
+    }
+
 
 }
