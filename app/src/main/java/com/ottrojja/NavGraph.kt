@@ -18,6 +18,7 @@ import com.ottrojja.screens.azkarScreen.AzkarScreen
 import com.ottrojja.screens.blessingsScreen.BlessingsScreen
 import com.ottrojja.screens.chaptersScreen.ChaptersScreen
 import com.ottrojja.screens.khitmahListScreen.KhitmahList
+import com.ottrojja.screens.khitmahScreen.KhitmahScreen
 import com.ottrojja.screens.loadingScreen.LoadingScreen
 import com.ottrojja.screens.mainScreen.MainScreen
 import com.ottrojja.screens.quranScreen.QuranScreen
@@ -32,11 +33,18 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
         startDestination = Screen.LoadingScreen.route
     )
     {
-        composable(route = Screen.MainScreen.route) {
+
+        composable(route = Screen.MainScreen.route, arguments = listOf(navArgument("section") {
+            type = NavType.StringType
+            nullable = true
+            defaultValue = null
+        })) {
+            val section = it.arguments?.getString("section")
             Box() {
                 MainScreen(
                     navController = navController,
-                    repository = repository
+                    repository = repository,
+                    section = section ?: ""
                 )
                 BottomNavigation(
                     navController,
@@ -157,6 +165,13 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
         })) {
             val zikrTitle = requireNotNull(it.arguments).getString("zikerTitle")
             ZikrScreen(zikrTitle!!, navController, repository)
+        }
+
+        composable(route = Screen.KhitmahScreen.route, arguments = listOf(navArgument("id") {
+            type = NavType.IntType
+        })) {
+            val id = requireNotNull(it.arguments).getInt("id")
+            KhitmahScreen(navController, repository, id)
         }
     }
 }

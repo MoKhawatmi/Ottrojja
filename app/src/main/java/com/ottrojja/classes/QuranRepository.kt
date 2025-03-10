@@ -152,8 +152,8 @@ class QuranRepository(private val quranDao: QuranDao, private val khitmahDao: Kh
 
     /**********Khitmah Access**********/
 
-    suspend fun insertKhitmah(khitmah: Khitmah) {
-        khitmahDao.insertKhitmah(khitmah)
+    suspend fun insertKhitmah(khitmah: Khitmah): Long {
+        return khitmahDao.insertKhitmah(khitmah)
     }
 
     suspend fun insertKhitmahMark(khitmahMark: KhitmahMark) {
@@ -178,6 +178,10 @@ class QuranRepository(private val quranDao: QuranDao, private val khitmahDao: Kh
 
     suspend fun updateKhitmah(khitmah: Khitmah) {
         khitmahDao.updateKhitmah(khitmah)
+    }
+
+    suspend fun deleteKhitmahMarkById(id: Int) {
+        khitmahDao.deleteKhitmahMarkById(id)
     }
 
 }

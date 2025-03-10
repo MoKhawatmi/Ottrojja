@@ -61,9 +61,7 @@ fun TasbeehScreen(
     tasbeehScreenViewModel: TasbeehScreenViewModel = viewModel()
 ) {
 
-    val primaryColor = MaterialTheme.colorScheme.primary
-
-    Column {
+    Column() {
         Header()
         Row(
             modifier = Modifier

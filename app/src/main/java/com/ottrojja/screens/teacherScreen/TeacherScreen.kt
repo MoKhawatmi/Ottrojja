@@ -108,7 +108,7 @@ fun TeacherScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxHeight(0.9f)) {
+    Column() {
         when (teacherScreenViewModel.mode) {
             TeacherScreenViewModel.TeacherMode.PAGE_SELECTION -> PageSelection(
                 searchFilter = teacherScreenViewModel.searchFilter,
@@ -327,7 +327,8 @@ fun PageTraining(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
+            .fillMaxHeight(0.9f)
             .verticalScroll(rememberScrollState())
             .padding(12.dp, 2.dp, 12.dp, 8.dp)
     ) {
@@ -599,7 +600,7 @@ fun BrowseMenu(
 
     LazyColumn(
         Modifier
-            .fillMaxHeight()
+            .fillMaxHeight(0.9f)
             .background(MaterialTheme.colorScheme.background)
     ) {
         items(items) { item ->

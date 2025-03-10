@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 interface KhitmahDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertKhitmah(khitmah: Khitmah)
+    fun insertKhitmah(khitmah: Khitmah): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertKhitmahMark(khitmahMark: KhitmahMark)
@@ -31,5 +31,9 @@ interface KhitmahDao {
 
     @Update
     fun updateKhitmah(khitmah: Khitmah)
+
+    @Query("DELETE FROM KhitmahMark WHERE id = :id")
+    fun deleteKhitmahMarkById(id: Int)
+
 
 }

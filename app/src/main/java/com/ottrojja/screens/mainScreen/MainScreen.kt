@@ -10,11 +10,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -44,8 +42,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.classes.Screen
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
@@ -54,8 +50,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.BaselineShift
-import androidx.compose.ui.text.style.TextAlign
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
@@ -68,11 +62,14 @@ import com.ottrojja.composables.PillShapedTextFieldWithIcon
 @Composable
 fun MainScreen(
     navController: NavController,
-    repository: QuranRepository
+    repository: QuranRepository,
+    section: String
 ) {
     val context = LocalContext.current;
     val application = context.applicationContext as Application
-    val focusManager: FocusManager = LocalFocusManager.current
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
 
 
     val mainViewModel: MainViewModel = viewModel(
@@ -83,6 +80,11 @@ fun MainScreen(
 
     LaunchedEffect(Unit) {
         mainViewModel.invokeMostRecentPage()
+        if (section.length > 0) {
+            println("section $section")
+            mainViewModel.showImageList = false;
+            mainViewModel.clickBrowsingOption(BrowsingOption.valueOf(section))
+        }
     }
 
     DisposableEffect(Unit) {
@@ -92,6 +94,7 @@ fun MainScreen(
             mainViewModel.quranSearchResults.clear()
         }
     }
+
 
     BackHandler() {
         if (!mainViewModel.showImageList) {
@@ -167,7 +170,7 @@ fun MainScreen(
                         )
                         .fillMaxWidth()
                         .clickable {
-                            mainViewModel.selectedSection = MainViewModel.BrowsingOption.الصفحات;
+                            mainViewModel.selectedSection = BrowsingOption.الصفحات;
                             mainViewModel.showImageList = false;
                         }
                         .padding(12.dp)
@@ -202,9 +205,8 @@ fun MainScreen(
                         )
                         .fillMaxWidth()
                         .clickable {
-                            mainViewModel.selectedSection =
-                                MainViewModel.BrowsingOption.السور; mainViewModel.showImageList =
-                            false;
+                            mainViewModel.selectedSection = BrowsingOption.السور;
+                            mainViewModel.showImageList = false;
                         }
                         .padding(12.dp)
                 ) {
@@ -238,9 +240,8 @@ fun MainScreen(
                         )
                         .fillMaxWidth()
                         .clickable {
-                            mainViewModel.selectedSection =
-                                MainViewModel.BrowsingOption.الاجزاء; mainViewModel.showImageList =
-                            false;
+                            mainViewModel.selectedSection = BrowsingOption.الاجزاء;
+                            mainViewModel.showImageList = false;
                         }
                         .padding(12.dp)
                 ) {
@@ -274,7 +275,7 @@ fun MainScreen(
                         )
                         .fillMaxWidth()
                         .clickable {
-                            mainViewModel.selectedSection = MainViewModel.BrowsingOption.البحث;
+                            mainViewModel.selectedSection = BrowsingOption.البحث;
                             mainViewModel.invokeLatestSearchOperation();
                             mainViewModel.showImageList =
                                 false;
@@ -299,7 +300,8 @@ fun MainScreen(
                 Row(modifier = Modifier.height(75.dp)) {}
             }
         }
-    } else {
+    }
+    else {
         Column {
             Row(
                 modifier = Modifier
@@ -320,7 +322,7 @@ fun MainScreen(
                     value = mainViewModel.searchFilter,
                     onValueChange = { newText ->
                         mainViewModel.searchFilter = newText
-                        if (mainViewModel.selectedSection == MainViewModel.BrowsingOption.البحث) {
+                        if (mainViewModel.selectedSection == BrowsingOption.البحث) {
                             mainViewModel.searchInQuran(newText)
                         }
                     },
@@ -330,32 +332,28 @@ fun MainScreen(
             }
 
             OttrojjaTabs(
-                items = MainViewModel.BrowsingOption.entries,
+                items = BrowsingOption.entries,
                 selectedItem = mainViewModel.selectedSection,
                 onClickTab = { option ->
-                    mainViewModel.selectedSection = option;
-                    mainViewModel.searchFilter = "";
-                    focusManager.clearFocus();
-                    if (mainViewModel.selectedSection == MainViewModel.BrowsingOption.البحث) {
-                        mainViewModel.quranSearchResults.clear()
-                        mainViewModel.invokeLatestSearchOperation()
-                    }
+                    mainViewModel.clickBrowsingOption(option);
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
                 })
 
             when (mainViewModel.selectedSection) {
-                MainViewModel.BrowsingOption.الصفحات -> {
+                BrowsingOption.الصفحات -> {
                     BrowseMenu(mainViewModel.getPagesList(), navController)
                 }
 
-                MainViewModel.BrowsingOption.السور -> {
+                BrowsingOption.السور -> {
                     ChaptersMenu(mainViewModel.getChaptersList(), navController)
                 }
 
-                MainViewModel.BrowsingOption.الاجزاء -> {
+                BrowsingOption.الاجزاء -> {
                     PartsMenu(mainViewModel.getPartsList(), navController)
                 }
 
-                MainViewModel.BrowsingOption.البحث -> {
+                BrowsingOption.البحث -> {
                     SearchMenu(
                         mainViewModel.quranSearchResults,
                         navController,

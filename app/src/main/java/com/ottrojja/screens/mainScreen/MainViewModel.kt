@@ -88,7 +88,9 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
         viewModelScope.launch(Dispatchers.IO) {
             repository.getAllPages().forEach { page ->
                 page.pageContent.forEach { verse ->
-                    if (verse.type == PageContentItemType.verse && (verse.verseText.contains(searchText) || verse.verseTextPlain.contains(
+                    if (verse.type == PageContentItemType.verse && (verse.verseText.contains(
+                            searchText
+                        ) || verse.verseTextPlain.contains(
                             searchText
                         ))
                     ) {
@@ -128,7 +130,9 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
 
     fun getChaptersList(): List<ChapterData> {
         return chaptersList.filter { chapter ->
-            chapter.chapterName.contains(_searchFilter) || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
+            chapter.chapterName.contains(_searchFilter) || chapter.surahId.toString() == convertToArabicNumbers(
+                _searchFilter
+            )
                     || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
         };
     }
@@ -173,9 +177,19 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
         println("most recent page: ${_mostRecentPage}")
     }
 
-    enum class BrowsingOption {
-        الصفحات, السور, الاجزاء, البحث
+    fun clickBrowsingOption(option: BrowsingOption){
+        _selectedSection = option;
+        searchFilter = "";
+        if (_selectedSection == BrowsingOption.البحث) {
+            quranSearchResults.clear()
+            invokeLatestSearchOperation()
+        }
+
     }
+}
+
+enum class BrowsingOption {
+    الصفحات, السور, الاجزاء, البحث
 }
 
 class MainViewModelFactory(

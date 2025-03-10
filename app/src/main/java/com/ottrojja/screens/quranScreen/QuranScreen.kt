@@ -40,9 +40,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.BookmarkBorder
@@ -51,6 +54,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -92,13 +97,17 @@ import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.classes.Screen
 import com.ottrojja.composables.BenefitItem
 import com.ottrojja.composables.BenefitSectionTitle
+import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.SelectedVerseContentSection
+import com.ottrojja.room.Khitmah
+import com.ottrojja.screens.mainScreen.BrowsingOption
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
@@ -131,6 +140,7 @@ fun QuranScreen(
         try {
             quranViewModel.setCurrentPage(pageNum)
             quranViewModel.getNightReadingMode()
+            quranViewModel.fetchKhitmahList()
         } catch (e: Exception) {
             Log.e("error", "Error getting current page in quran screen: $e")
         }
@@ -158,6 +168,8 @@ fun QuranScreen(
         alertDialog.show()
     }
 
+    var expanded by remember { mutableStateOf(false) }
+
     if (quranViewModel.currentPageObject.pageNum.toInt() !in 1..604) {
         Text(text = "جاري التحميل")
     } else {
@@ -178,11 +190,72 @@ fun QuranScreen(
                         onClick = { if (!quranViewModel.isBookmarked) quranViewModel.togglePageBookmark() else confirmRemoveBookmark() },
                         icon = if (quranViewModel.isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder
                     )
-
                     OttrojjaElevatedButton(
-                        onClick = { quranViewModel.sharePage() },
-                        icon = Icons.Default.Share
+                        onClick = { expanded = !expanded },
+                        icon = Icons.Default.MoreVert
                     )
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    "مشاركة",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            trailingIcon = {
+                                Icon(
+                                    Icons.Default.Share,
+                                    contentDescription = "share",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            onClick = { quranViewModel.sharePage(); expanded = false; }
+                        )
+                        ListHorizontalDivider()
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    "إضافة الى ختمة",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            trailingIcon = {
+                                Icon(
+                                    Icons.Default.Add,
+                                    contentDescription = "add to khitmah",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            onClick = { quranViewModel.showAddToKhitmahDialog = true; expanded = false; }
+                        )
+                        ListHorizontalDivider()
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    "إنتقال للبحث",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            trailingIcon = {
+                                Icon(
+                                    Icons.Default.Search,
+                                    contentDescription = "move to search",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            onClick = {
+                                navController.navigate(Screen.MainScreen.invokeRoute(BrowsingOption.البحث));
+                                expanded = false;
+                            }
+                        )
+                    }
+
                 }
 
                 OttrojjaElevatedButton(
@@ -346,6 +419,14 @@ fun QuranScreen(
                 quranViewModel.showTafseerOptions = false
             },
             quranViewModel.tafseerNamesMap
+        )
+    }
+
+    if (quranViewModel.showAddToKhitmahDialog) {
+        AddToKhitmahDialog(
+            onDismiss = { quranViewModel.showAddToKhitmahDialog = false },
+            khitmahList = quranViewModel.khitmahList,
+            assignPageToKhitmah = { khitmah -> quranViewModel.assignPageToKhitmah(khitmah) }
         )
     }
 }
@@ -982,7 +1063,11 @@ fun Benefits(
                     benefitContent = applianceItem,
                     shareSubject = "تطبيق قرآني",
                     shareTitle = "مشاركة التطبيق",
-                    shareContent = "من التطبيقات القرآنية للصفحة $pageNum \n $applianceItem\n${stringResource(R.string.share_app)}"
+                    shareContent = "من التطبيقات القرآنية للصفحة $pageNum \n $applianceItem\n${
+                        stringResource(
+                            R.string.share_app
+                        )
+                    }"
                 )
             }
         }
@@ -1254,6 +1339,99 @@ fun VersesBottomSheet(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun AddToKhitmahDialog(
+    onDismiss: () -> Unit,
+    khitmahList: List<Khitmah>,
+    assignPageToKhitmah: (Khitmah) -> Unit
+) {
+    OttrojjaDialog(
+        contentModifier = Modifier
+            .padding(8.dp)
+            .wrapContentHeight()
+            .fillMaxWidth(0.9f)
+            .background(MaterialTheme.colorScheme.secondary)
+            .padding(8.dp)
+            .clip(shape = RoundedCornerShape(12.dp)),
+        onDismissRequest = { onDismiss() },
+        useDefaultWidth = false,
+    ) {
+
+
+        Column(modifier = Modifier.wrapContentHeight()) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                Text(text = "إضافة الى ختمة", textAlign = TextAlign.Center)
+            }
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 6.dp),
+                color = MaterialTheme.colorScheme.onTertiary
+            )
+
+            LazyColumn(modifier = Modifier.fillMaxHeight(0.4f)) {
+                if (khitmahList.size <= 0) {
+                    item {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp)
+                        ) {
+                            Text(
+                                text = "لا يوجد ختمات حاليا",
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSecondary
+                            )
+                        }
+                    }
+                }
+
+                items(khitmahList, key = { it.id }) { item ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { assignPageToKhitmah(item); onDismiss() }
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = item.title,
+                            color = MaterialTheme.colorScheme.onSecondary,
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 2.dp),
+                        color = MaterialTheme.colorScheme.onSecondary
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Button(
+                    onClick = { onDismiss() },
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                        .padding(vertical = 6.dp)
+                ) {
+                    Text(
+                        text = "إلغاء",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+
         }
     }
 }

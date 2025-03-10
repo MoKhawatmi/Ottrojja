@@ -27,6 +27,8 @@ import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.room.BookmarkEntity
+import com.ottrojja.room.Khitmah
+import com.ottrojja.room.KhitmahMark
 import com.ottrojja.services.PagePlayerService
 import com.ottrojja.services.PageServiceInterface
 import kotlinx.coroutines.Dispatchers
@@ -943,6 +945,53 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             bindToService()
         }
     }
+
+    /*****************************KHITMAH CONTROL***********************************/
+    private val _khitmahList = mutableStateOf(emptyList<Khitmah>())
+    var khitmahList: List<Khitmah>
+        get() = _khitmahList.value
+        set(value) {
+            _khitmahList.value = value;
+        }
+
+    private val _showAddToKhitmahDialog = mutableStateOf(false)
+    var showAddToKhitmahDialog: Boolean
+        get() = _showAddToKhitmahDialog.value
+        set(value) {
+            _showAddToKhitmahDialog.value = value;
+        }
+
+    fun fetchKhitmahList() {
+        try {
+            viewModelScope.launch(Dispatchers.IO) {
+                repository.getAllKhitmah().collect { state ->
+                    _khitmahList.value = state;
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    fun assignPageToKhitmah(khitmah: Khitmah) {
+        val khitmahMark = KhitmahMark(khitmahId = khitmah.id, pageNum = _currentPageObject.pageNum)
+        try {
+            viewModelScope.launch(Dispatchers.IO) {
+                repository.insertKhitmahMark(khitmahMark);
+                repository.updateKhitmah(khitmah.copy(latestPage = _currentPageObject.pageNum))
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "تمت إضافة الصفحة للختمة بنجاح", Toast.LENGTH_LONG).show()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+        }
+
+    }
+
+
 }
 
 enum class RepetitionTab {

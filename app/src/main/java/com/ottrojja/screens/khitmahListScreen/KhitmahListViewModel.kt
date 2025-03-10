@@ -9,13 +9,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.room.Khitmah
+import com.ottrojja.room.KhitmahMark
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class KhitmahListViewModel(private val repository: QuranRepository, application: Application) :
     AndroidViewModel(application) {
-
     val context = application.applicationContext;
 
     private val _khitmahList = mutableStateOf(emptyList<Khitmah>())
@@ -49,7 +49,10 @@ class KhitmahListViewModel(private val repository: QuranRepository, application:
     fun createKhitmah(title: String) {
         try {
             viewModelScope.launch(Dispatchers.IO) {
-                repository.insertKhitmah(Khitmah(title = title))
+                val createdKhitmahId = repository.insertKhitmah(Khitmah(title = title))
+                repository.insertKhitmahMark(
+                    KhitmahMark(khitmahId = createdKhitmahId.toInt(), pageNum = "1")
+                )
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "تمت الإضافة بنجاح", Toast.LENGTH_LONG).show()
                 }

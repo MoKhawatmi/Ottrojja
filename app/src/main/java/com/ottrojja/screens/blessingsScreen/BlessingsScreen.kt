@@ -95,10 +95,10 @@ fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
                 item {
                     Row(
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                     ) {
                         CircularProgressIndicator(
-                            modifier = Modifier.width(32.dp),
+                            modifier = Modifier.width(34.dp),
                             color = MaterialTheme.colorScheme.primary,
                             trackColor = MaterialTheme.colorScheme.onPrimary,
                             strokeWidth = 4.dp
