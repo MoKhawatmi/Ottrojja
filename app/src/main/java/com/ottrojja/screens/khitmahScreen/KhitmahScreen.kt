@@ -1,11 +1,13 @@
 package com.ottrojja.screens.khitmahScreen
 
+import android.app.AlertDialog
 import android.app.Application
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,15 +16,25 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Pending
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,7 +54,10 @@ import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.ListHorizontalDivider
+import com.ottrojja.composables.OttrojjaElevatedButton
+import com.ottrojja.composables.OttrojjaTopBar
 import com.ottrojja.room.KhitmahMark
+import com.ottrojja.screens.mainScreen.BrowsingOption
 import com.ottrojja.ui.theme.complete_green
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -67,82 +82,201 @@ fun KhitmahScreen(
         khitmahViewModel.fetchKhitmah(id)
     }
 
+    var expanded by remember { mutableStateOf(false) }
+
+    fun confirmDeleteKhitmah() {
+        val alertDialogBuilder = AlertDialog.Builder(context)
+        alertDialogBuilder.setTitle("حذف الختمة")
+        alertDialogBuilder.setMessage("هل انت متأكد من حذف هذه الختمة؟")
+        alertDialogBuilder.setPositiveButton("نعم") { dialog, which ->
+            khitmahViewModel.deleteKhitmah()
+            dialog.dismiss()
+            val currentDestination = navController.currentBackStackEntry?.destination?.route
+            currentDestination?.let {
+                navController.navigate(Screen.KhitmahListScreen.route) {
+                    popUpTo(it) { inclusive = true }
+                }
+            }
+
+            navController.navigate(Screen.KhitmahListScreen.route){
+                popUpTo("current_destination") { inclusive = true }
+            }
+        }
+        alertDialogBuilder.setNegativeButton("لا") { dialog, which ->
+            dialog.dismiss()
+        }
+
+        val alertDialog = alertDialogBuilder.create()
+        alertDialog.show()
+    }
+
+
     Column(modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Top
     ) {
 
-        Row(
-            modifier = Modifier
-                .padding(6.dp)
-                .background(MaterialTheme.colorScheme.background)
-                .fillMaxWidth()
-                .padding(6.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = "${khitmahViewModel.khitmah?.title}",
-                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 32.sp),
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Start
-            )
-            Row(verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+        OttrojjaTopBar {
+            Row(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(
-                        if (khitmahViewModel.khitmah?.isComplete == true) complete_green else MaterialTheme.colorScheme.primary,
-                        RoundedCornerShape(50)
-                    )
-                    .padding(horizontal = 12.dp, vertical = 4.dp)
-
+                    .padding(horizontal = 6.dp)
+                    .background(MaterialTheme.colorScheme.background)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = if (khitmahViewModel.khitmah?.isComplete == true) "مكتملة" else "جارية",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    textAlign = TextAlign.Start,
+                Text(text = "${khitmahViewModel.khitmah?.title}",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 32.sp),
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Start
                 )
-                Icon(
-                    if (khitmahViewModel.khitmah?.isComplete == true) Icons.Default.CheckCircle else Icons.Outlined.Pending,
-                    contentDescription = "completion status",
-                    tint = if (khitmahViewModel.khitmah?.isComplete == true) complete_green else MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                        .size(32.dp)
-                )
+
+                Row {
+                    Column {
+                        OttrojjaElevatedButton(
+                            onClick = { expanded = !expanded },
+                            icon = Icons.Default.MoreVert
+                        )
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            if (khitmahViewModel.khitmah?.isComplete == true) {
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            "تعيين كجارية",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    },
+                                    trailingIcon = {
+                                        Icon(
+                                            Icons.Outlined.Pending,
+                                            contentDescription = "set as ongoing",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    },
+                                    onClick = { khitmahViewModel.toggleKhitmahStatus(); expanded = false; }
+                                )
+                            } else {
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            "تعيين كمكتملة",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    },
+                                    trailingIcon = {
+                                        Icon(
+                                            Icons.Default.CheckCircle,
+                                            contentDescription = "set as complete",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    },
+                                    onClick = { khitmahViewModel.toggleKhitmahStatus(); expanded = false; }
+                                )
+                            }
+
+                            ListHorizontalDivider()
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        "حذف الختمة",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                },
+                                trailingIcon = {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "delete khitmah",
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                },
+                                onClick = { confirmDeleteKhitmah(); expanded = false; }
+                            )
+                        }
+                    }
+
+                    OttrojjaElevatedButton(
+                        onClick = { navController.popBackStack() },
+                        icon = Icons.Filled.ArrowBack
+                    )
+                }
+
+
             }
         }
 
+
         if (khitmahViewModel.khitmahMarks.size > 0) {
-            Row(horizontalArrangement = Arrangement.Start,
+            Row(horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
+                    .padding(horizontal = 8.dp, vertical = 12.dp)
             ) {
                 Text(text = "مسار الختمة",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
+
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(
+                            if (khitmahViewModel.khitmah?.isComplete == true) complete_green else MaterialTheme.colorScheme.primary,
+                            RoundedCornerShape(50)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 4.dp)
+
+                ) {
+                    Text(
+                        text = if (khitmahViewModel.khitmah?.isComplete == true) "مكتملة" else "جارية",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        textAlign = TextAlign.Start,
+                    )
+                    Icon(
+                        if (khitmahViewModel.khitmah?.isComplete == true) Icons.Default.CheckCircle else Icons.Outlined.Pending,
+                        contentDescription = "completion status",
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp)
+                            .size(32.dp)
+                    )
+                }
             }
             Column(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.Start,
                 modifier = Modifier
                     .padding(4.dp)
+                    .fillMaxHeight(0.95f)
                     .verticalScroll(rememberScrollState())
             ) {
                 VerticalStepper(
                     style = tabVerticalWithLabel(
                         totalSteps = khitmahViewModel.khitmahMarks.size,
-                        currentStep = khitmahViewModel.khitmahMarks.size - 1,
+                        currentStep = if (khitmahViewModel.khitmah?.isComplete == true) khitmahViewModel.khitmahMarks.size else khitmahViewModel.khitmahMarks.size - 1,
                         trailingLabels = khitmahViewModel.khitmahMarks.map { mark ->
                             {
                                 MarkItem(
                                     item = mark,
-                                    onClick = { pageNum -> navController.navigate(Screen.QuranScreen.invokeRoute(pageNum)) },
-                                    removeKhitmahMark = {id-> khitmahViewModel.removeKhitmahMark(id)},
-                                    toggleExpanded = {id->khitmahViewModel.toggleMarkExpanded(id)}
+                                    onClick = { pageNum ->
+                                        navController.navigate(
+                                            Screen.QuranScreen.invokeRoute(pageNum)
+                                        )
+                                    },
+                                    removeKhitmahMark = { id ->
+                                        khitmahViewModel.removeKhitmahMark(id)
+                                    },
+                                    toggleExpanded = { id ->
+                                        khitmahViewModel.toggleMarkExpanded(id
+                                        )
+                                    }
                                 )
                             }
                         },
@@ -193,7 +327,8 @@ fun MarkItem(item: ExpandableItem<KhitmahMark>,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier
-                .fillMaxWidth(0.5f)) {
+                .fillMaxWidth(0.5f)
+            ) {
                 Text(
                     text = "صفحة ${item.data.pageNum}",
                     color = MaterialTheme.colorScheme.primary,

@@ -1,9 +1,11 @@
 package com.ottrojja.screens.blessingsScreen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -53,14 +55,15 @@ fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
     }
 
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.tertiary)) {
         Header()
-        LazyColumn(state = listState, modifier = Modifier.padding(horizontal = 6.dp)) {
+        LazyColumn(state = listState, modifier = Modifier.padding(horizontal = 6.dp).fillMaxHeight(0.9f)) {
             items(blessings) { item ->
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
+                        .background(MaterialTheme.colorScheme.background)
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.End,
@@ -71,7 +74,7 @@ fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
                             Icons.Default.Share,
                             contentDescription = "share blessing",
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.clickable { blessingsViewModel.shareBlessing(item) }
+                            modifier = Modifier.padding(top = 4.dp, end = 4.dp, start = 4.dp, bottom = 0.dp).clickable { blessingsViewModel.shareBlessing(item) }
                         )
                     }
 
@@ -106,10 +109,6 @@ fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
                     }
                 }
             }
-            item {
-                FillerItem()
-            }
-
         }
     }
 

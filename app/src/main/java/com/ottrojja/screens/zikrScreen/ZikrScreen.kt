@@ -48,6 +48,7 @@ import com.ottrojja.composables.LoadingDialog
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
 import com.ottrojja.composables.OttrojjaTabs
+import com.ottrojja.composables.OttrojjaTopBar
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.quranScreen.NoRippleInteractionSource
 import com.ottrojja.screens.quranScreen.YouTube
@@ -72,90 +73,88 @@ fun ZikrScreen(
     }
 
     Column() {
-        Row(
-            modifier = Modifier
-                .padding(6.dp)
-                .background(MaterialTheme.colorScheme.background)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
 
-            Row {
-                ElevatedButton(
-                    onClick = {
-                        copyToClipboard(
-                            context,
-                            zikr.value.azkarText,
-                            "تم تسخ الذكر بنجاح"
-                        );
-                    },
-                    elevation = ButtonDefaults.elevatedButtonElevation(
-                        2.dp,
-                        2.dp,
-                        2.dp,
-                        2.dp,
-                        2.dp
-                    ),
-                    contentPadding = PaddingValues(0.dp),
-                    shape = CircleShape,
+        OttrojjaTopBar {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
                     modifier = Modifier
-                        .padding(4.dp, 0.dp)
-                        .clip(CircleShape)
+                        .padding(start = 6.dp, end = 6.dp, top = 0.dp, bottom = 6.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        Icons.Default.ContentCopy,
-                        contentDescription = "Copy",
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                if (!zikrViewModel.checkIfZikrDownloaded()) {
+                    Row {
+                        ElevatedButton(
+                            onClick = {
+                                copyToClipboard(
+                                    context,
+                                    zikr.value.azkarText,
+                                    "تم تسخ الذكر بنجاح"
+                                );
+                            },
+                            elevation = ButtonDefaults.elevatedButtonElevation(2.dp, 2.dp, 2.dp,
+                                2.dp, 2.dp
+                            ),
+                            contentPadding = PaddingValues(0.dp),
+                            shape = CircleShape,
+                            modifier = Modifier
+                                .padding(4.dp, 0.dp)
+                                .clip(CircleShape)
+                        ) {
+                            Icon(
+                                Icons.Default.ContentCopy,
+                                contentDescription = "Copy",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                        if (!zikrViewModel.checkIfZikrDownloaded()) {
+                            ElevatedButton(
+                                onClick = { zikrViewModel.downloadZikr() },
+                                elevation = ButtonDefaults.elevatedButtonElevation(2.dp, 2.dp, 2.dp,
+                                    2.dp, 2.dp
+                                ),
+                                contentPadding = PaddingValues(0.dp),
+                                shape = CircleShape,
+                                modifier = Modifier
+                                    .padding(4.dp, 0.dp)
+                                    .clip(CircleShape)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.DownloadForOffline,
+                                    contentDescription = "Download",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
+                    }
+
+
                     ElevatedButton(
-                        onClick = { zikrViewModel.downloadZikr() },
-                        elevation = ButtonDefaults.elevatedButtonElevation(
-                            2.dp,
-                            2.dp,
-                            2.dp,
-                            2.dp,
+                        onClick = { navController.popBackStack() },
+                        elevation = ButtonDefaults.elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp,
                             2.dp
                         ),
                         contentPadding = PaddingValues(0.dp),
                         shape = CircleShape,
                         modifier = Modifier
-                            .padding(4.dp, 0.dp)
+                            .padding(0.dp)
                             .clip(CircleShape)
                     ) {
                         Icon(
-                            Icons.Outlined.DownloadForOffline,
-                            contentDescription = "Download",
+                            Icons.Filled.ArrowBack,
+                            contentDescription = "Back",
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
-            }
 
-
-            ElevatedButton(
-                onClick = { navController.popBackStack() },
-                elevation = ButtonDefaults.elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
-                contentPadding = PaddingValues(0.dp),
-                shape = CircleShape,
-                modifier = Modifier
-                    .padding(0.dp)
-                    .clip(CircleShape)
-            ) {
-                Icon(
-                    Icons.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.primary,
-                )
+                OttrojjaTabs(
+                    items = ZikrViewModel.ZikrTab.entries,
+                    selectedItem = zikrViewModel.selectedTab,
+                    onClickTab = { item -> zikrViewModel.selectedTab = item })
             }
         }
 
-        OttrojjaTabs(
-            items = ZikrViewModel.ZikrTab.entries,
-            selectedItem = zikrViewModel.selectedTab,
-            onClickTab = { item -> zikrViewModel.selectedTab = item })
 
         when (zikrViewModel.selectedTab) {
             ZikrViewModel.ZikrTab.الذكر -> ZikrSection(

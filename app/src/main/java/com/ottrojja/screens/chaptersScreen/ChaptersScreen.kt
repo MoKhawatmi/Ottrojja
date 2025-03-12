@@ -37,6 +37,7 @@ import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.LoadingDialog
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
+import com.ottrojja.composables.OttrojjaTopBar
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 import com.ottrojja.screens.mainScreen.ChapterData
 
@@ -62,21 +63,23 @@ fun ChaptersScreen(
 
     Column {
         Header()
-        Row(
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.Bottom
-        )
-        {
-            PillShapedTextFieldWithIcon(
-                value = chaptersViewModel.searchFilter,
-                onValueChange = { newValue -> chaptersViewModel.searchFilter = newValue },
-                leadingIcon = painterResource(id = R.drawable.search),
-                modifier = Modifier.fillMaxWidth(0.9f),
-                placeHolder = "اسم او رقم السورة"
+        OttrojjaTopBar {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal =  10.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.Bottom
             )
+            {
+                PillShapedTextFieldWithIcon(
+                    value = chaptersViewModel.searchFilter,
+                    onValueChange = { newValue -> chaptersViewModel.searchFilter = newValue },
+                    leadingIcon = painterResource(id = R.drawable.search),
+                    modifier = Modifier.fillMaxWidth(0.9f),
+                    placeHolder = "اسم او رقم السورة"
+                )
+            }
         }
         Box {
             LazyColumn(

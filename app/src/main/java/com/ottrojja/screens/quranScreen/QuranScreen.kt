@@ -105,6 +105,7 @@ import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
+import com.ottrojja.composables.OttrojjaTopBar
 import com.ottrojja.composables.SelectedVerseContentSection
 import com.ottrojja.room.Khitmah
 import com.ottrojja.screens.mainScreen.BrowsingOption
@@ -173,105 +174,117 @@ fun QuranScreen(
     if (quranViewModel.currentPageObject.pageNum.toInt() !in 1..604) {
         Text(text = "جاري التحميل")
     } else {
-        Column {
-            Row(
-                modifier = Modifier
-                    .padding(6.dp)
-                    .background(MaterialTheme.colorScheme.background)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OttrojjaElevatedButton(
-                        onClick = { if (!quranViewModel.isBookmarked) quranViewModel.togglePageBookmark() else confirmRemoveBookmark() },
-                        icon = if (quranViewModel.isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder
-                    )
-                    OttrojjaElevatedButton(
-                        onClick = { expanded = !expanded },
-                        icon = Icons.Default.MoreVert
-                    )
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
+        Column() {
+            OttrojjaTopBar {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier
+                            .padding(end = 6.dp, start = 6.dp, bottom = 6.dp, top = 0.dp)
+                            .background(MaterialTheme.colorScheme.background)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    "مشاركة",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.primary
+                        Row(
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OttrojjaElevatedButton(
+                                onClick = { if (!quranViewModel.isBookmarked) quranViewModel.togglePageBookmark() else confirmRemoveBookmark() },
+                                icon = if (quranViewModel.isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder
+                            )
+                            Column {
+                                OttrojjaElevatedButton(
+                                    onClick = { expanded = !expanded },
+                                    icon = Icons.Default.MoreVert
                                 )
-                            },
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.Share,
-                                    contentDescription = "share",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            },
-                            onClick = { quranViewModel.sharePage(); expanded = false; }
-                        )
-                        ListHorizontalDivider()
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    "إضافة الى ختمة",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            },
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.Add,
-                                    contentDescription = "add to khitmah",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            },
-                            onClick = { quranViewModel.showAddToKhitmahDialog = true; expanded = false; }
-                        )
-                        ListHorizontalDivider()
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    "إنتقال للبحث",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            },
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.Search,
-                                    contentDescription = "move to search",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            },
-                            onClick = {
-                                navController.navigate(Screen.MainScreen.invokeRoute(BrowsingOption.البحث));
-                                expanded = false;
+                                DropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                "مشاركة",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                Icons.Default.Share,
+                                                contentDescription = "share",
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        },
+                                        onClick = { quranViewModel.sharePage(); expanded = false; }
+                                    )
+                                    ListHorizontalDivider()
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                "إضافة الى ختمة",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                Icons.Default.Add,
+                                                contentDescription = "add to khitmah",
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        },
+                                        onClick = { quranViewModel.showAddToKhitmahDialog = true; expanded = false; }
+                                    )
+                                    ListHorizontalDivider()
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                "إنتقال للبحث",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                Icons.Default.Search,
+                                                contentDescription = "move to search",
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        },
+                                        onClick = {
+                                            navController.navigate(
+                                                Screen.MainScreen.invokeRoute(BrowsingOption.البحث)
+                                            );
+                                            expanded = false;
+                                        }
+                                    )
+                                }
                             }
+
+
+                        }
+
+                        OttrojjaElevatedButton(
+                            onClick = { handleBackBehaviour() },
+                            icon = Icons.Filled.ArrowBack
                         )
                     }
 
+                    OttrojjaTabs(
+                        items = QuranViewModel.PageTab.entries,
+                        selectedItem = quranViewModel.selectedTab,
+                        onClickTab = { item ->
+                            quranViewModel.selectedTab = item
+                        })
                 }
-
-                OttrojjaElevatedButton(
-                    onClick = { handleBackBehaviour() },
-                    icon = Icons.Filled.ArrowBack
-                )
             }
 
-            OttrojjaTabs(
-                items = QuranViewModel.PageTab.entries,
-                selectedItem = quranViewModel.selectedTab,
-                onClickTab = { item ->
-                    quranViewModel.selectedTab = item
-                })
             when (quranViewModel.selectedTab) {
-                QuranViewModel.PageTab.الصفحة -> Column(verticalArrangement = Arrangement.SpaceBetween) {
+                QuranViewModel.PageTab.الصفحة -> Column(
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
                     PagesContainer(
                         quranViewModel.currentPageObject.pageNum,
                         onPageChanged = { newPage ->
@@ -957,7 +970,9 @@ fun SinglePage(pageNum: String, nightReadingMode: Boolean) {
             ),
             contentDescription = "page",
             modifier = Modifier
-                .fillMaxWidth(if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 0.75f else 1.0f)
+                .fillMaxWidth(
+                    if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 0.75f else 1.0f
+                )
                 .fillMaxHeight(0.92f),
             contentScale = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) ContentScale.Crop else ContentScale.Fit,
             colorFilter = if (!nightReadingMode) null else ColorFilter.colorMatrix(
@@ -1149,7 +1164,7 @@ fun VersesSection(
     }
     val versesList = versesSectionViewModel.items.collectAsState();
 
-    Column {
+    Column() {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -1173,7 +1188,10 @@ fun VersesSection(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "${Helpers.convertToIndianNumbers(item.pageContent.verseNum)} ${item.pageContent.verseText}",
+                            text = "${
+                                Helpers.convertToIndianNumbers(item.pageContent.verseNum
+                                )
+                            } ${item.pageContent.verseText}",
                             color = Color.Black,
                             style = MaterialTheme.typography.titleLarge,
                             textAlign = TextAlign.Right,
@@ -1201,7 +1219,10 @@ fun VersesSection(
                                 modifier = Modifier
                                     .weight(1.0f)
                                     .background(MaterialTheme.colorScheme.tertiary)
-                                    .clickable { versesSectionViewModel.shareVerse(item.pageContent) }
+                                    .clickable {
+                                        versesSectionViewModel.shareVerse(item.pageContent
+                                        )
+                                    }
                                     .padding(4.dp, 6.dp)
                             ) {
                                 Text(
@@ -1216,7 +1237,9 @@ fun VersesSection(
                                     .weight(1.0f)
                                     .background(MaterialTheme.colorScheme.primary)
                                     .clickable {
-                                        onTafseerClick("${item.pageContent.surahNum}-${item.pageContent.verseNum}")
+                                        onTafseerClick(
+                                            "${item.pageContent.surahNum}-${item.pageContent.verseNum}"
+                                        )
                                     }
                                     .padding(4.dp, 6.dp)
                             ) {
@@ -1232,7 +1255,9 @@ fun VersesSection(
                                     .weight(1.0f)
                                     .background(MaterialTheme.colorScheme.tertiary)
                                     .clickable {
-                                        onE3rabClick("${item.pageContent.surahNum}-${item.pageContent.verseNum}")
+                                        onE3rabClick(
+                                            "${item.pageContent.surahNum}-${item.pageContent.verseNum}"
+                                        )
                                     }
                                     .padding(4.dp, 6.dp)
                             ) {
@@ -1248,7 +1273,9 @@ fun VersesSection(
                                     .weight(1.0f)
                                     .background(MaterialTheme.colorScheme.primary)
                                     .clickable {
-                                        onCauseOfRevelationClick("${item.pageContent.surahNum}-${item.pageContent.verseNum}")
+                                        onCauseOfRevelationClick(
+                                            "${item.pageContent.surahNum}-${item.pageContent.verseNum}"
+                                        )
                                     }
                                     .padding(4.dp, 6.dp)
                             ) {

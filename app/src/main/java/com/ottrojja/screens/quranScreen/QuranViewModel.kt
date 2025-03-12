@@ -965,7 +965,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 repository.getAllKhitmah().collect { state ->
-                    _khitmahList.value = state;
+                    _khitmahList.value = state.filter { !it.isComplete };
                 }
             }
         } catch (e: Exception) {

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -53,13 +54,16 @@ fun BookmarksScreen(
         bookmarksViewModel.getBookmarks()
     }
 
-    Column {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.tertiary)
+    )
+    {
         Header()
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.9f)
-                .background(MaterialTheme.colorScheme.tertiary)
         ) {
             if (bookmarksViewModel.bookmarks.size <= 0) {
                 item {
@@ -116,7 +120,9 @@ fun BookmarksScreen(
                             )
 
                             Text(
-                                text = SimpleDateFormat("HH:mm dd.MM.yyyy", Locale.US).format(Date(item.timeStamp)),
+                                text = SimpleDateFormat("HH:mm dd.MM.yyyy", Locale.US).format(
+                                    Date(item.timeStamp)
+                                ),
                                 color = MaterialTheme.colorScheme.outlineVariant,
                                 style = MaterialTheme.typography.bodySmall,
                                 textAlign = TextAlign.Right,

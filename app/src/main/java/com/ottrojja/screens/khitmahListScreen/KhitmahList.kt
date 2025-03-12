@@ -10,14 +10,17 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -43,6 +46,7 @@ import com.ottrojja.classes.Screen
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaElevatedButton
+import com.ottrojja.composables.OttrojjaTopBar
 import com.ottrojja.ui.theme.complete_green
 
 @Composable
@@ -68,23 +72,32 @@ fun KhitmahList(
     }
 
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier
-                .padding(6.dp)
-                .background(MaterialTheme.colorScheme.background)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.tertiary)
+    ) {
+        OttrojjaTopBar {
             Row(
-                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OttrojjaElevatedButton(
-                    onClick = { khitmahListViewModel.showAddKhitmahDialog = true },
-                    icon = Icons.Default.Add
+
+                Text("الختمات", style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.primary
                 )
+
+                Row(
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OttrojjaElevatedButton(
+                        onClick = { khitmahListViewModel.showAddKhitmahDialog = true },
+                        icon = Icons.Default.Add
+                    )
+                }
             }
         }
 
@@ -92,7 +105,6 @@ fun KhitmahList(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.9f)
-                .background(MaterialTheme.colorScheme.tertiary)
         ) {
             if (khitmahListViewModel.khitmahList.size <= 0) {
                 item {
@@ -119,20 +131,29 @@ fun KhitmahList(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(
-                            if (item.isComplete) complete_green else MaterialTheme.colorScheme.background
-                        )
+                        .background(MaterialTheme.colorScheme.background)
                         .clickable {
                             navController.navigate(Screen.KhitmahScreen.invokeRoute("${item.id}"))
                         }
                         .padding(8.dp)
                 ) {
-                    Text(
-                        text = item.title,
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Right,
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Icon(Icons.Filled.Circle,
+                            contentDescription = "Khitmah Status",
+                            tint = if (item.isComplete) complete_green else MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(end = 8.dp).size(16.dp)
+                        )
+                        Text(
+                            text = item.title,
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Right,
+                        )
+                    }
+
+
 
                     Button(onClick = {
                         navController.navigate(Screen.QuranScreen.invokeRoute(item.latestPage))

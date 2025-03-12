@@ -45,7 +45,9 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
                 println(khitmahWithMarks.marks)
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
@@ -56,7 +58,6 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
                 repository.deleteKhitmahMarkById(id)
                 val indexOfItem = _khitmahMarks.indexOfFirst { khitmahMark -> khitmahMark.data.id == id };
                 _khitmahMarks.removeAt(index = indexOfItem)
-
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, " تم الحذف بنجاح", Toast.LENGTH_LONG).show()
                 }
@@ -73,6 +74,39 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
         val indexOfItem = _khitmahMarks.indexOfFirst { khitmahMark -> khitmahMark.data.id == id };
         val foundItem = _khitmahMarks.get(indexOfItem)
         _khitmahMarks.set(indexOfItem, foundItem.copy(expanded = !foundItem.expanded));
+    }
+
+    fun deleteKhitmah() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.deleteKhitmah(_khitmah.value!!)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "تم الحذف بنجاح", Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    fun toggleKhitmahStatus() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.updateKhitmah(_khitmah.value!!.copy(isComplete = !_khitmah.value!!.isComplete))
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "تم التحديث بنجاح", Toast.LENGTH_LONG).show()
+                }
+                fetchKhitmah(_khitmah.value!!.id)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
 
 

@@ -34,7 +34,9 @@ import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,6 +44,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -54,6 +58,7 @@ import com.ottrojja.classes.Tasabeeh
 import com.ottrojja.composables.Header
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaTabs
+import com.ottrojja.composables.OttrojjaTopBar
 import com.ottrojja.ui.theme.timeNormal
 
 @Composable
@@ -63,17 +68,20 @@ fun TasbeehScreen(
 
     Column() {
         Header()
-        Row(
-            modifier = Modifier
-                .padding(0.dp, 6.dp, 0.dp, 6.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            OttrojjaTabs(
-                items = TasbeehTab.entries,
-                selectedItem = tasbeehScreenViewModel.selectedTab,
-                onClickTab = { item -> tasbeehScreenViewModel.selectedTab = item })
+        OttrojjaTopBar{
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                OttrojjaTabs(
+                    items = TasbeehTab.entries,
+                    selectedItem = tasbeehScreenViewModel.selectedTab,
+                    onClickTab = { item -> tasbeehScreenViewModel.selectedTab = item })
+            }
         }
+
 
         if (tasbeehScreenViewModel.selectedTab == TasbeehTab.المسبحة) {
             CounterContent(

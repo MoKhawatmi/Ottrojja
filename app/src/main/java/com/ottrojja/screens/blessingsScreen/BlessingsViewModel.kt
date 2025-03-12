@@ -94,6 +94,8 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
         }
 
         val shareIntent = Intent.createChooser(sendIntent, "مشاركة الإشراقة")
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
         startActivity(context, shareIntent, null)
 
     }

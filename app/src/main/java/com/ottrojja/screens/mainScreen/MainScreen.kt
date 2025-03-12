@@ -57,6 +57,7 @@ import com.ottrojja.classes.SearchResult
 import com.ottrojja.composables.Header
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaTabs
+import com.ottrojja.composables.OttrojjaTopBar
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 
 @Composable
@@ -69,7 +70,6 @@ fun MainScreen(
     val application = context.applicationContext as Application
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-
 
 
     val mainViewModel: MainViewModel = viewModel(
@@ -300,45 +300,48 @@ fun MainScreen(
                 Row(modifier = Modifier.height(75.dp)) {}
             }
         }
-    }
-    else {
+    } else {
         Column {
-            Row(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.Bottom
-            )
-            {
-                Image(
-                    painter = painterResource(R.drawable.logo),
-                    contentDescription = null,
-                    modifier = Modifier.size(50.dp),
-                    colorFilter = ColorFilter.tint(primaryColor)
-                )
+            OttrojjaTopBar {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier
+                            .padding(top = 0.dp, start = 10.dp, end = 10.dp, bottom = 10.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.Bottom
+                    )
+                    {
+                        Image(
+                            painter = painterResource(R.drawable.logo),
+                            contentDescription = null,
+                            modifier = Modifier.size(50.dp),
+                            colorFilter = ColorFilter.tint(primaryColor)
+                        )
 
-                PillShapedTextFieldWithIcon(
-                    value = mainViewModel.searchFilter,
-                    onValueChange = { newText ->
-                        mainViewModel.searchFilter = newText
-                        if (mainViewModel.selectedSection == BrowsingOption.البحث) {
-                            mainViewModel.searchInQuran(newText)
-                        }
-                    },
-                    leadingIcon = painterResource(id = R.drawable.search),
-                    modifier = Modifier.fillMaxWidth(0.9f)
-                )
+                        PillShapedTextFieldWithIcon(
+                            value = mainViewModel.searchFilter,
+                            onValueChange = { newText ->
+                                mainViewModel.searchFilter = newText
+                                if (mainViewModel.selectedSection == BrowsingOption.البحث) {
+                                    mainViewModel.searchInQuran(newText)
+                                }
+                            },
+                            leadingIcon = painterResource(id = R.drawable.search),
+                            modifier = Modifier.fillMaxWidth(0.9f)
+                        )
+                    }
+
+                    OttrojjaTabs(
+                        items = BrowsingOption.entries,
+                        selectedItem = mainViewModel.selectedSection,
+                        onClickTab = { option ->
+                            mainViewModel.clickBrowsingOption(option);
+                            focusManager.clearFocus()
+                            keyboardController?.hide()
+                        })
+                }
             }
-
-            OttrojjaTabs(
-                items = BrowsingOption.entries,
-                selectedItem = mainViewModel.selectedSection,
-                onClickTab = { option ->
-                    mainViewModel.clickBrowsingOption(option);
-                    focusManager.clearFocus()
-                    keyboardController?.hide()
-                })
 
             when (mainViewModel.selectedSection) {
                 BrowsingOption.الصفحات -> {
@@ -478,7 +481,10 @@ fun ChaptersMenu(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "${Helpers.convertToIndianNumbers("${item.verseCount}")} اية",
+                                text = "${
+                                    Helpers.convertToIndianNumbers("${item.verseCount}"
+                                    )
+                                } اية",
                                 color = Color.Black,
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight(700)
@@ -567,7 +573,10 @@ fun SearchMenu(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "{${item.verseText} ${Helpers.convertToIndianNumbers(item.verseNum)}} - ${item.surahName}",
+                        text = "{${item.verseText} ${
+                            Helpers.convertToIndianNumbers(item.verseNum
+                            )
+                        }} - ${item.surahName}",
                         color = Color.Black,
                         style = MaterialTheme.typography.titleLarge
                     )

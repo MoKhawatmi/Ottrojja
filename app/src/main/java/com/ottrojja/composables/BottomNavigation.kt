@@ -15,6 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
@@ -30,6 +32,8 @@ fun BottomNavigation(
     currentRoute: String,
     modifier: Modifier = Modifier
 ) {
+    val separatorColor= MaterialTheme.colorScheme.secondary;
+
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
@@ -37,7 +41,17 @@ fun BottomNavigation(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background)
             .horizontalScroll(rememberScrollState())
+            .drawBehind {
+                val strokeWidth = 1.dp.toPx()
+                drawLine(
+                    color = separatorColor,
+                    start = Offset(0f, 0f),
+                    end = Offset(size.width, 0f),
+                    strokeWidth = strokeWidth
+                )
+            }
             .padding(8.dp)
+
     ) {
         BottomNavigationOption(
             optionText = "المصحف",
@@ -99,7 +113,7 @@ fun BottomNavigation(
             optionText = "الختمات",
             isCurrent = Screen.KhitmahListScreen.route == currentRoute,
             onClick = { navController.navigate(Screen.KhitmahListScreen.route) },
-            iconId = R.drawable.bookmarks,
+            iconId = R.drawable.khitmah,
             alternateIcon = null
         )
 

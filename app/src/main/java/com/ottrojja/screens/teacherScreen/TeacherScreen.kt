@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -89,6 +90,8 @@ import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.composables.Header
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.LoadingDialog
+import com.ottrojja.composables.OttrojjaDialog
+import com.ottrojja.composables.OttrojjaTopBar
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 
 @Composable
@@ -167,35 +170,38 @@ fun PageSelection(
 ) {
     Column(modifier = Modifier, verticalArrangement = Arrangement.Top) {
         Header()
-        Row(
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "إختر صفحة",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
+        OttrojjaTopBar {
+            Column {
+                Row(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "إختر صفحة",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.Bottom
+                )
+                {
+                    PillShapedTextFieldWithIcon(
+                        value = searchFilter,
+                        onValueChange = { newValue -> searchFilterChanged(newValue) },
+                        leadingIcon = painterResource(id = R.drawable.search),
+                        modifier = Modifier.fillMaxWidth(0.9f)
+                    )
+                }
+            }
         }
-        Row(
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.Bottom
-        )
-        {
-            PillShapedTextFieldWithIcon(
-                value = searchFilter,
-                onValueChange = { newValue -> searchFilterChanged(newValue) },
-                leadingIcon = painterResource(id = R.drawable.search),
-                modifier = Modifier.fillMaxWidth(0.9f)
-            )
-        }
-
         BrowseMenu(
             pagesList,
             { value -> pageSelected(value) })
@@ -251,56 +257,60 @@ fun PageTraining(
         }
     }
 
-    Row(
-        modifier = Modifier
-            .padding(6.dp, 4.dp)
-            .background(MaterialTheme.colorScheme.background)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            ElevatedButton(
-                onClick = { infoClicked() },
-                elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
-                contentPadding = PaddingValues(0.dp),
-                shape = CircleShape,
-                modifier = Modifier
-                    .padding(4.dp, 0.dp)
-                    .clip(CircleShape)
-            ) {
-                Icon(
-                    Icons.Default.Info,
-                    contentDescription = "Info",
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-            }
-        }
 
+    OttrojjaTopBar {
         Row(
-            horizontalArrangement = Arrangement.End,
+            modifier = Modifier
+                .padding(horizontal = 6.dp)
+                .background(MaterialTheme.colorScheme.background)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ElevatedButton(
-                onClick = { backToPageSelection() },
-                elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
-                contentPadding = PaddingValues(0.dp),
-                shape = CircleShape,
-                modifier = Modifier
-                    .padding(4.dp, 0.dp)
-                    .clip(CircleShape)
+            Row(
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    Icons.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.primary,
-                )
+                ElevatedButton(
+                    onClick = { infoClicked() },
+                    elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
+                    contentPadding = PaddingValues(0.dp),
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .padding(4.dp, 0.dp)
+                        .clip(CircleShape)
+                ) {
+                    Icon(
+                        Icons.Default.Info,
+                        contentDescription = "Info",
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ElevatedButton(
+                    onClick = { backToPageSelection() },
+                    elevation = elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
+                    contentPadding = PaddingValues(0.dp),
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .padding(4.dp, 0.dp)
+                        .clip(CircleShape)
+                ) {
+                    Icon(
+                        Icons.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
         }
     }
+
     if (hasStarted) {
         Row(
             modifier = Modifier
@@ -309,7 +319,8 @@ fun PageTraining(
         ) {
             // Animate the progress value
             val animatedProgress by animateFloatAsState(
-                targetValue = currentPage.pageContent.indexOf(currentVerse) / (currentPage.pageContent.size - 1).toFloat(),
+                targetValue = currentPage.pageContent.indexOf(currentVerse
+                ) / (currentPage.pageContent.size - 1).toFloat(),
                 animationSpec = tween(durationMillis = 500) // Customize the duration as needed
             )
 
@@ -387,7 +398,8 @@ fun PageTraining(
                             val textMeasurer = rememberTextMeasurer()
                             val textLayoutResult: TextLayoutResult =
                                 textMeasurer.measure(
-                                    text = AnnotatedString("$it  "), //extra spacing for input field sizing
+                                    text = AnnotatedString("$it  "
+                                    ), //extra spacing for input field sizing
                                     style = LocalTextStyle.current
                                 )
                             val textSize = textLayoutResult.size
@@ -697,13 +709,67 @@ fun InstructionsDialog(onDismiss: () -> Unit) {
     instructionsText.add("إختبر حفظك لصفحات وايات القرآن الكريم من خلال هذه الميزة")
     instructionsText.add("الإرشادات:")
     instructionsText.add("بعد اختيار صفحة قم بالضغط على زر البدء")
-    instructionsText.add("سيتم عرض ايات الصفحة بالترتيب وبها فراغات لاكمالها حيث يمثل كل فراغ كلمة واحدة فقط من الاية")
+    instructionsText.add(
+        "سيتم عرض ايات الصفحة بالترتيب وبها فراغات لاكمالها حيث يمثل كل فراغ كلمة واحدة فقط من الاية"
+    )
     instructionsText.add("قم بملئ الفراغات بالكلمات بدون استخدام اي تشكيل او حركات للحروف")
     instructionsText.add("ثم اضغط على زر التحقق للتحقق من اجاباتك")
     instructionsText.add("سيتم اظهار الاجابات الصحيحة باللون الاخضر والخاطئة باللون الاحمر")
-    instructionsText.add("امامك ثلاث محاولات للوصول للاجابات الصحيحة وبعدها يتم إظهار النص الصحيح لمقارنته بالحل ويمكنك عندها الاستماع للاية صوتيا")
+    instructionsText.add(
+        "امامك ثلاث محاولات للوصول للاجابات الصحيحة وبعدها يتم إظهار النص الصحيح لمقارنته بالحل ويمكنك عندها الاستماع للاية صوتيا"
+    )
 
-    Dialog(onDismissRequest = { onDismiss() }) {
+    OttrojjaDialog(
+        contentModifier = Modifier
+            .padding(8.dp)
+            .wrapContentHeight()
+            .fillMaxWidth(0.9f)
+            .background(MaterialTheme.colorScheme.secondary)
+            .padding(8.dp)
+            .clip(shape = RoundedCornerShape(12.dp)),
+        onDismissRequest = { onDismiss() },
+        useDefaultWidth = false,
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.5f)
+        ) {
+            LazyColumn(
+                Modifier
+                    .fillMaxSize()
+            ) {
+                items(instructionsText) { item ->
+
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 0.dp, vertical = 2.dp)
+                    ) {
+                        Icon(
+                            painterResource(id = R.drawable.lightbulb),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier
+                                .padding(0.dp, 2.dp, 4.dp, 2.dp)
+                                .fillMaxWidth(0.08f)
+                        )
+                        Text(
+                            item,
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Start,
+                            color = MaterialTheme.colorScheme.onSecondary,
+                            lineHeight = 28.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    /*Dialog(onDismissRequest = { onDismiss() }) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -720,79 +786,8 @@ fun InstructionsDialog(onDismiss: () -> Unit) {
                     .padding(8.dp)
                     .clip(shape = RoundedCornerShape(12.dp))
             ) {
-                Column(
-                    verticalArrangement = Arrangement.Top,
-                    horizontalAlignment = Alignment.Start,
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
 
-                    LazyColumn(
-                        Modifier
-                            .fillMaxSize()
-                    ) {
-                        items(instructionsText) { item ->
-
-                            Row(
-                                verticalAlignment = Alignment.Top,
-                                horizontalArrangement = Arrangement.Start,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 0.dp, vertical = 2.dp)
-                            ) {
-                                Icon(
-                                    painterResource(id = R.drawable.lightbulb),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier
-                                        .padding(0.dp, 2.dp, 4.dp, 2.dp)
-                                        .fillMaxWidth(0.08f)
-                                )
-                                Text(
-                                    item,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    textAlign = TextAlign.Start,
-                                    color = MaterialTheme.colorScheme.onSecondary,
-                                    lineHeight = 28.sp
-                                )
-                            }
-
-                        }
-                    }
-
-                }
             }
         }
-    }
+    }*/
 }
-
-
-/*TextField(
-                                value = inputSolutions.get(index)!!,
-                                onValueChange = { value -> onInputSolutionChanged(value, index) },
-                                singleLine = true,
-                                modifier = Modifier
-                                    .padding(2.dp)
-                                    .width(with(density) { textSize.width.toDp() }),
-                                textStyle = MaterialTheme.typography.labelLarge,
-                                textSize = 24.sp
-                            )*/
-/*Text(
-    text = "_",
-    style = MaterialTheme.typography.labelLarge,
-    color = MaterialTheme.colorScheme.primary,
-    modifier = Modifier.padding(4.dp, 2.dp)
-)*/
-/*Row(
-    modifier = Modifier
-        .padding(10.dp)
-        .fillMaxWidth(),
-    horizontalArrangement = Arrangement.Center,
-    verticalAlignment = Alignment.CenterVertically
-) {
-    Text(
-        text = "النص الصحيح",
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.primary
-    )
-}*/
