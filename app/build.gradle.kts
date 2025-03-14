@@ -14,7 +14,7 @@ android {
         applicationId = "com.ottrojja"
         minSdk = 24
         targetSdk = 35
-        versionCode = 26
+        versionCode = 27
         versionName = "1.7.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

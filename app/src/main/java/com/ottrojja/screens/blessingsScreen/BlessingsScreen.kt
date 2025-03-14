@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -26,16 +27,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.composables.FillerItem
 import com.ottrojja.composables.Header
 import com.ottrojja.composables.ListHorizontalDivider
 
 @Composable
 fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
-
+    val context= LocalContext.current
     val blessings by blessingsViewModel.blessingsList.collectAsState()
     val listState = rememberLazyListState()
 
@@ -71,10 +74,10 @@ fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
                             .fillMaxWidth()
                     ) {
                         Icon(
-                            Icons.Default.Share,
+                            Icons.Default.ContentCopy,
                             contentDescription = "share blessing",
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(top = 4.dp, end = 4.dp, start = 4.dp, bottom = 0.dp).clickable { blessingsViewModel.shareBlessing(item) }
+                            modifier = Modifier.padding(top = 4.dp, end = 4.dp, start = 4.dp, bottom = 0.dp).clickable { copyToClipboard(context, item.text) }
                         )
                     }
 
@@ -83,7 +86,7 @@ fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
                             .fillMaxWidth()
                     ) {
                         Text(
-                            text ="${item.id} ${item.text}",
+                            text =item.text,
                             color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Right,

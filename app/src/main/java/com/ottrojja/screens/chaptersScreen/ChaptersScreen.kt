@@ -19,9 +19,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -61,6 +64,13 @@ fun ChaptersScreen(
         value = chaptersViewModel.getChaptersList()
     }
 
+    var filteredChapters by remember { mutableStateOf(emptyList<ChapterData>()) }
+
+    LaunchedEffect(chaptersViewModel.searchFilter) {
+        filteredChapters = chaptersViewModel.getChaptersList()
+    }
+
+
     Column {
         Header()
         OttrojjaTopBar {
@@ -88,7 +98,7 @@ fun ChaptersScreen(
                     .background(MaterialTheme.colorScheme.background)
                     .align(Alignment.TopCenter)
             ) {
-                items(chaptersList) { item ->
+                items(filteredChapters) { item ->
                     Column(modifier = Modifier
                         .padding(12.dp, 2.dp)
                         .fillMaxWidth()

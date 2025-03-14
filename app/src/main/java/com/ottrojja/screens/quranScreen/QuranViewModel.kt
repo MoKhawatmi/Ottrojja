@@ -988,9 +988,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             e.printStackTrace()
             Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
         }
-
     }
-
 
 }
 

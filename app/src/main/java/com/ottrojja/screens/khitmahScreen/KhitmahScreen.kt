@@ -204,8 +204,6 @@ fun KhitmahScreen(
                         icon = Icons.Filled.ArrowBack
                     )
                 }
-
-
             }
         }
 
@@ -293,7 +291,7 @@ fun KhitmahScreen(
                                 todoContainerColor = MaterialTheme.colorScheme.primary
                             ),
                             showCheckMarkOnDone = false,
-                            stepStroke = 20f,
+                            stepStroke = 10f,
                             lineStyle = LineDefault(progressStrokeCap = StrokeCap.Round)
                         ),
                     ),
@@ -326,9 +324,7 @@ fun MarkItem(item: ExpandableItem<KhitmahMark>,
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier
-                .fillMaxWidth(0.5f)
-            ) {
+            Column(Modifier.fillMaxWidth(0.9f)) {
                 Text(
                     text = "صفحة ${item.data.pageNum}",
                     color = MaterialTheme.colorScheme.primary,

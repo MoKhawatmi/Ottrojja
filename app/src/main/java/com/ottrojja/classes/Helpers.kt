@@ -50,7 +50,7 @@ object Helpers {
         return result
     }
 
-    fun copyToClipboard(context: Context, text: String, successToast: String) {
+    fun copyToClipboard(context: Context, text: String, successToast: String="") {
         try {
             val clipboardManager =
                 context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager

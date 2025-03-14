@@ -38,7 +38,6 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
     private val chaptersList = CompletableDeferred<List<ChapterData>>()
 
-
     private var _selectedSurah = mutableStateOf(ChapterData("", "", 0, "", 0))
     var selectedSurah: ChapterData
         get() = _selectedSurah.value
@@ -362,9 +361,8 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
     suspend fun getChaptersList(): List<ChapterData> {
         return chaptersList.await().filter { chapter ->
-            chapter.chapterName.contains(_searchFilter) || chapter.surahId.toString() == convertToArabicNumbers(
-                _searchFilter
-            )
+            chapter.chapterName.contains(_searchFilter)
+                    || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
                     || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
         };
     }
