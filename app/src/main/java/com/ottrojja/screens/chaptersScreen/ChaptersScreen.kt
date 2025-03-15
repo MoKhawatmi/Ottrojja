@@ -94,7 +94,7 @@ fun ChaptersScreen(
         Box {
             LazyColumn(
                 Modifier
-                    .fillMaxHeight(0.9f)
+                    .fillMaxHeight()
                     .background(MaterialTheme.colorScheme.background)
                     .align(Alignment.TopCenter)
             ) {

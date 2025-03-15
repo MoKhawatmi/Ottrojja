@@ -63,7 +63,7 @@ fun BookmarksScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.9f)
+                .fillMaxHeight()
         ) {
             if (bookmarksViewModel.bookmarks.isEmpty()) {
                 item {

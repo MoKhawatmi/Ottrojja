@@ -12,14 +12,20 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.classes.Screen
+import com.ottrojja.composables.BottomNavigation
 import com.ottrojja.room.database.MIGRATION_1_2
 import com.ottrojja.room.database.MIGRATION_2_3
 import com.ottrojja.room.database.MIGRATION_3_4
@@ -85,7 +91,27 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    NavGraph(navController = navController, repository = quranRepository)
+                    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentRoute = currentBackStackEntry?.destination?.route
+                    val bottomBarRoutes = listOf(Screen.MainScreen.route, Screen.AzkarScreen.route,
+                        Screen.TeacherScreen.route, Screen.ChaptersScreen.route,
+                        Screen.TasbeehScreen.route, Screen.BookmarksScreen.route,
+                        Screen.KhitmahListScreen.route, Screen.SettingsScreen.route,
+                        Screen.BlessingsScreen.route
+                    )
+                    Scaffold(
+                        bottomBar = {
+                            if (currentRoute in bottomBarRoutes) {
+                                BottomNavigation(navController = navController)
+                            }
+                        }
+                    ) { innerPadding ->
+                        NavGraph(navController = navController,
+                            repository = quranRepository,
+                            modifier = Modifier.padding(innerPadding)
+                        )
+                    }
+
                 }
             }
         }

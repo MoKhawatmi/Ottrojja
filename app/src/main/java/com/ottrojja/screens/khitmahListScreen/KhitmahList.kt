@@ -104,7 +104,7 @@ fun KhitmahList(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.9f)
+                .fillMaxHeight()
         ) {
             if (khitmahListViewModel.khitmahList.size <= 0) {
                 item {

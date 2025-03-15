@@ -383,7 +383,7 @@ fun BrowseMenu(
 
     LazyColumn(
         Modifier
-            .fillMaxHeight(0.9f)
+            .fillMaxHeight()
             .background(MaterialTheme.colorScheme.background)
     ) {
         items(items) { item ->
@@ -416,7 +416,7 @@ fun PartsMenu(
 
     LazyColumn(
         Modifier
-            .fillMaxHeight(0.9f)
+            .fillMaxHeight()
             .background(MaterialTheme.colorScheme.background)
     ) {
         items(items) { item ->
@@ -459,7 +459,7 @@ fun ChaptersMenu(
     val keyboardController = LocalSoftwareKeyboardController.current;
     LazyColumn(
         Modifier
-            .fillMaxHeight(0.9f)
+            .fillMaxHeight()
             .background(MaterialTheme.colorScheme.background)
     ) {
         items(items) { item ->

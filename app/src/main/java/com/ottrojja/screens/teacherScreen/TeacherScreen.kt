@@ -339,7 +339,7 @@ fun PageTraining(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.9f)
+            .fillMaxHeight()
             .verticalScroll(rememberScrollState())
             .padding(12.dp, 2.dp, 12.dp, 8.dp)
     ) {
@@ -612,7 +612,7 @@ fun BrowseMenu(
 
     LazyColumn(
         Modifier
-            .fillMaxHeight(0.9f)
+            .fillMaxHeight()
             .background(MaterialTheme.colorScheme.background)
     ) {
         items(items) { item ->

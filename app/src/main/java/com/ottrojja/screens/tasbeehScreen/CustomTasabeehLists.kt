@@ -32,7 +32,7 @@ import com.ottrojja.room.entities.TasabeehList
 fun CustomTasabeehLists(customTasabeehLists: List<TasabeehList>, onClickAdd: () -> Unit) {
     Box(modifier = Modifier
         .fillMaxWidth()
-        .fillMaxHeight(0.9f)
+        .fillMaxHeight()
     ) {
         FloatingActionButton(
             onClick = { onClickAdd() },

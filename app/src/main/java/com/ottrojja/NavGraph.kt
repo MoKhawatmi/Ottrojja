@@ -27,10 +27,13 @@ import com.ottrojja.screens.tasbeehScreen.TasbeehScreen
 import com.ottrojja.screens.zikrScreen.ZikrScreen
 
 @Composable
-fun NavGraph(navController: NavHostController, repository: QuranRepository) {
+fun NavGraph(navController: NavHostController,
+             repository: QuranRepository,
+             modifier: Modifier = Modifier) {
     NavHost(
         navController = navController,
-        startDestination = Screen.LoadingScreen.route
+        startDestination = Screen.LoadingScreen.route,
+        modifier = modifier
     )
     {
         composable(route = Screen.MainScreen.route, arguments = listOf(navArgument("section") {
@@ -39,7 +42,12 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
             defaultValue = null
         })) {
             val section = it.arguments?.getString("section")
-            Box() {
+            MainScreen(
+                navController = navController,
+                repository = repository,
+                section = section ?: ""
+            )
+            /*Box() {
                 MainScreen(
                     navController = navController,
                     repository = repository,
@@ -50,11 +58,15 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
                     Screen.MainScreen.route,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
-            }
+            }*/
         }
 
         composable(route = Screen.AzkarScreen.route) {
-            Box() {
+            AzkarScreen(
+                navController,
+                repository
+            )
+            /*Box() {
                 AzkarScreen(
                     navController,
                     repository
@@ -64,42 +76,49 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
                     Screen.AzkarScreen.route,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
-            }
+            }*/
         }
 
         composable(route = Screen.TeacherScreen.route) {
-            Box() {
+            TeacherScreen(repository)
+            /*Box() {
                 TeacherScreen(repository)
                 BottomNavigation(
                     navController,
                     Screen.TeacherScreen.route,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
-            }
+            }*/
         }
         composable(route = Screen.ChaptersScreen.route) {
-            Box() {
+            ChaptersScreen(repository)
+            /*Box() {
                 ChaptersScreen(repository)
                 BottomNavigation(
                     navController,
                     Screen.ChaptersScreen.route,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
-            }
+            }*/
         }
         composable(route = Screen.TasbeehScreen.route) {
-            Box() {
+            TasbeehScreen(navController = navController, repository = repository)
+            /*Box() {
                 TasbeehScreen(navController = navController, repository = repository)
                 BottomNavigation(
                     navController,
                     Screen.TasbeehScreen.route,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
-            }
+            }*/
         }
 
         composable(route = Screen.BookmarksScreen.route) {
-            Box() {
+            BookmarksScreen(
+                navController = navController,
+                repository = repository
+            )
+            /*Box() {
                 BookmarksScreen(
                     navController = navController,
                     repository = repository
@@ -109,11 +128,15 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
                     Screen.BookmarksScreen.route,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
-            }
+            }*/
         }
 
         composable(route = Screen.KhitmahListScreen.route) {
-            Box() {
+            KhitmahList(
+                navController = navController,
+                repository = repository
+            )
+            /*Box() {
                 KhitmahList(
                     navController,
                     repository = repository
@@ -123,30 +146,32 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
                     Screen.KhitmahListScreen.route,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
-            }
+            }*/
         }
 
 
         composable(route = Screen.SettingsScreen.route) {
-            Box() {
+            SettingsScreen()
+            /*Box() {
                 SettingsScreen()
                 BottomNavigation(
                     navController,
                     Screen.SettingsScreen.route,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
-            }
+            }*/
         }
 
         composable(route = Screen.BlessingsScreen.route) {
-            Box() {
+            BlessingsScreen()
+            /*Box() {
                 BlessingsScreen()
                 BottomNavigation(
                     navController,
                     Screen.BlessingsScreen.route,
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
-            }
+            }*/
         }
 
         composable(route = Screen.LoadingScreen.route) {
@@ -159,6 +184,7 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
             val pageNum = requireNotNull(it.arguments).getString("pageNum")
             QuranScreen(navController, pageNum!!, repository)
         }
+
         composable(route = Screen.ZikrScreen.route, arguments = listOf(navArgument("zikerTitle") {
             type = NavType.StringType
         })) {

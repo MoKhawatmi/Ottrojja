@@ -38,6 +38,7 @@ import androidx.navigation.NavController
 import com.ottrojja.R
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
+import com.ottrojja.composables.FillerItem
 import com.ottrojja.composables.Header
 
 @Composable
@@ -93,7 +94,7 @@ fun AzkarScreen(
                     }
                 }
                 item {
-                    Row(modifier = Modifier.height(100.dp)) {}
+                    FillerItem()
                 }
             }
         }

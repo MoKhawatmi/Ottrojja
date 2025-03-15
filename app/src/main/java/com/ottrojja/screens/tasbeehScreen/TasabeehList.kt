@@ -30,7 +30,7 @@ fun TasabeehList(tasabeeh: MutableList<Tasabeeh>, updateExpanded: (Tasabeeh) -> 
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.9f)
+            .fillMaxHeight()
             .background(MaterialTheme.colorScheme.tertiary)
     ) {
         items(tasabeeh) { item ->

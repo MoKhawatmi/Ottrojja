@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -22,6 +23,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.ottrojja.R
 import com.ottrojja.classes.Screen
 
@@ -29,10 +31,11 @@ import com.ottrojja.classes.Screen
 @Composable
 fun BottomNavigation(
     navController: NavController,
-    currentRoute: String,
     modifier: Modifier = Modifier
 ) {
     val separatorColor= MaterialTheme.colorScheme.secondary;
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
 
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -51,7 +54,6 @@ fun BottomNavigation(
                 )
             }
             .padding(8.dp)
-
     ) {
         BottomNavigationOption(
             optionText = "المصحف",
