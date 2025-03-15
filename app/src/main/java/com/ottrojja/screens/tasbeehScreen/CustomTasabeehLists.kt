@@ -24,12 +24,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.room.entities.TasabeehList
 
 @Composable
-fun CustomTasabeehLists(customTasabeehLists: List<TasabeehList>, onClickAdd: () -> Unit) {
+fun CustomTasabeehLists(navController: NavController,
+                        customTasabeehLists: List<TasabeehList>,
+                        onClickAdd: () -> Unit) {
     Box(modifier = Modifier
         .fillMaxWidth()
         .fillMaxHeight()
@@ -69,19 +72,20 @@ fun CustomTasabeehLists(customTasabeehLists: List<TasabeehList>, onClickAdd: () 
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.background)
                             .clickable {
-                                //  navController.navigate(Screen.QuranScreen.invokeRoute(item.pageNum))
+                                navController.navigate(Screen.CustomTasabeehListScreen.invokeRoute("${item.id}"))
                             }
                             .padding(8.dp)
                     ) {
                         Row(
                             modifier = Modifier
-                                .fillMaxWidth().padding(6.dp),
+                                .fillMaxWidth()
+                                .padding(6.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = item.title,
-                                color = Color.Black,
+                                color = MaterialTheme.colorScheme.primary,
                                 style = MaterialTheme.typography.bodyLarge,
                                 textAlign = TextAlign.Right,
                                 modifier = Modifier.fillMaxWidth()

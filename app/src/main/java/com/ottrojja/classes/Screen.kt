@@ -31,8 +31,12 @@ sealed class Screen(val route: String) {
             return this.route.replace("{zikerTitle}", zikerTitle)
         }
     }
-
     object KhitmahScreen : Screen(route = "khitmah_screen/{id}") {
+        fun invokeRoute(id: String): String {
+            return this.route.replace("{id}", id)
+        }
+    }
+    object CustomTasabeehListScreen : Screen(route = "tasabeeh_list_screen/{id}") {
         fun invokeRoute(id: String): String {
             return this.route.replace("{id}", id)
         }

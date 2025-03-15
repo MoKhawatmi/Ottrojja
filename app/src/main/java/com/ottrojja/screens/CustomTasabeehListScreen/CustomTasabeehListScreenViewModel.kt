@@ -18,7 +18,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class CustomTasabeehListScreenViewModel(private val repository: QuranRepository, application: Application) : AndroidViewModel(application) {
+class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
+                                        application: Application) : AndroidViewModel(application) {
     val context = application.applicationContext;
 
     private val _customTasabeehList = mutableStateOf<TasabeehList?>(null)
@@ -32,14 +33,63 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
     val customTasabeeh: MutableList<CustomTasbeeh>
         get() = _customTasabeeh
 
+    private val _addTasbeehDialog = mutableStateOf(false)
+    var addTasbeehDialog: Boolean
+        get() = _addTasbeehDialog.value
+        set(value) {
+            _addTasbeehDialog.value = value;
+        }
+
+
     fun fetchCustomTasabeehList(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                _customTasabeeh.clear()
-                val fullTasabeehList = repository.getTasabeehList(id)
-                _customTasabeehList.value = fullTasabeehList.tasabeehList;
-                fullTasabeehList.customTasabeeh.forEach { tasbeeh ->
-                    _customTasabeeh.add(tasbeeh)
+                repository.getTasabeehList(id).collect{
+                    state->
+                    _customTasabeeh.clear()
+                    _customTasabeehList.value = state.tasabeehList;
+                    state.customTasabeeh.forEach { tasbeeh ->
+                        _customTasabeeh.add(tasbeeh)
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    fun addCustomTasbeeh(text: String, count: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.insertCustomTasbeeh(CustomTasbeeh(text = text,
+                    count = count,
+                    listId = _customTasabeehList.value!!.id
+                )
+                )
+                _addTasbeehDialog.value = false;
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "تمت الإضافة بنجاح", Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    fun deleteCustomTasabeehList() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _customTasabeehList.value?.let {
+                    repository.deleteTasabeehList(it)
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "تم الحذف بنجاح", Toast.LENGTH_LONG).show()
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

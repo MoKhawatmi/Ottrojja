@@ -124,7 +124,7 @@ fun CounterContent(
             modifier = Modifier
                 .padding(0.dp, 2.dp, 0.dp, 12.dp)
                 .fillMaxWidth(0.9F)
-                .fillMaxHeight(0.7F)
+                .fillMaxHeight(0.8F)
                 .padding(24.dp, 24.dp)
                 .clip(CircleShape)
         ) {

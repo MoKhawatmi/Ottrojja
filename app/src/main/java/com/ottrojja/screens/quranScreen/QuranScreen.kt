@@ -63,6 +63,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -115,6 +118,7 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.Abs
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.serialization.json.Json.Default.configuration
 
 
 @SuppressLint("UnrememberedMutableState", "DiscouragedApi")
@@ -124,6 +128,7 @@ fun QuranScreen(
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
+    val configuration = LocalConfiguration.current
 
     val quranViewModel: QuranViewModel = viewModel(
         factory = QuranScreenViewModelFactory(repository, application)
@@ -255,15 +260,15 @@ fun QuranScreen(
                                         },
                                         onClick = {
                                             navController.navigate(
-                                                Screen.MainScreen.invokeRoute(BrowsingOption.البحث)
+                                                Screen.MainScreen.invokeRoute(
+                                                    BrowsingOption.البحث
+                                                )
                                             );
                                             expanded = false;
                                         }
                                     )
                                 }
                             }
-
-
                         }
 
                         OttrojjaElevatedButton(
@@ -1458,7 +1463,6 @@ fun AddToKhitmahDialog(
                     )
                 }
             }
-
         }
     }
 }

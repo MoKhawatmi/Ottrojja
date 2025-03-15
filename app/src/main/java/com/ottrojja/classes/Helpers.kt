@@ -50,12 +50,15 @@ object Helpers {
         return result
     }
 
-    fun copyToClipboard(context: Context, text: String, successToast: String="") {
+    fun copyToClipboard(context: Context, text: String, successToast: String = "") {
         try {
             val clipboardManager =
                 context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clipData = ClipData.newPlainText("text", text)
             clipboardManager.setPrimaryClip(clipData)
+            if (successToast.isNotBlank()) {
+                Toast.makeText(context, successToast, Toast.LENGTH_LONG).show();
+            }
         } catch (e: Exception) {
             println(e);
             Toast.makeText(context, "تعذر النسخ", Toast.LENGTH_LONG).show();
@@ -94,7 +97,7 @@ object Helpers {
         }
     }
 
-    fun terminateAllServices(context:Context){
+    fun terminateAllServices(context: Context) {
         val servicesList = listOf(MediaPlayerService::class.java, PagePlayerService::class.java)
         servicesList.forEach {
             val sr = Helpers.isMyServiceRunning(it, context);

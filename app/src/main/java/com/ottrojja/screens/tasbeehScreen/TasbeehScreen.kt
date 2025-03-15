@@ -64,9 +64,11 @@ fun TasbeehScreen(
 
             TasbeehTab.الاذكار -> TasabeehList(
                 tasabeeh = tasbeehScreenViewModel.tasabeeh,
-                updateExpanded = { item -> tasbeehScreenViewModel.updateExpanded(item) })
+                updateExpanded = { item -> tasbeehScreenViewModel.updateExpanded(item) }
+            )
 
             TasbeehTab.القوائم -> CustomTasabeehLists(
+                navController = navController,
                 customTasabeehLists = tasbeehScreenViewModel.tasabeehLists,
                 onClickAdd = { tasbeehScreenViewModel.showAddListDialog = true }
             )

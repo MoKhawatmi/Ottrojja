@@ -13,6 +13,7 @@ import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.BottomNavigation
 import com.ottrojja.screens.BookmarksScreen.BookmarksScreen
+import com.ottrojja.screens.CustomTasabeehListScreen.CustomTasabeehListScreen
 import com.ottrojja.screens.teacherScreen.TeacherScreen
 import com.ottrojja.screens.azkarScreen.AzkarScreen
 import com.ottrojja.screens.blessingsScreen.BlessingsScreen
@@ -197,6 +198,15 @@ fun NavGraph(navController: NavHostController,
         })) {
             val id = requireNotNull(it.arguments).getInt("id")
             KhitmahScreen(navController, repository, id)
+        }
+
+        composable(route = Screen.CustomTasabeehListScreen.route,
+            arguments = listOf(navArgument("id") {
+                type = NavType.IntType
+            })
+        ) {
+            val id = requireNotNull(it.arguments).getInt("id")
+            CustomTasabeehListScreen(navController, repository, id)
         }
     }
 }

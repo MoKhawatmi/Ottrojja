@@ -11,7 +11,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -101,8 +104,14 @@ class MainActivity : ComponentActivity() {
                     )
                     Scaffold(
                         bottomBar = {
-                            if (currentRoute in bottomBarRoutes) {
-                                BottomNavigation(navController = navController)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateContentSize() // Smoothly adjust height
+                            ) {
+                                if (currentRoute in bottomBarRoutes) {
+                                    BottomNavigation(navController)
+                                }
                             }
                         }
                     ) { innerPadding ->
@@ -111,7 +120,6 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.padding(innerPadding)
                         )
                     }
-
                 }
             }
         }
