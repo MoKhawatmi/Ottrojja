@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.Bookmark
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.room.BookmarkEntity
+import com.ottrojja.room.entities.BookmarkEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -43,7 +43,6 @@ class BookmarksViewModel(private val repository: QuranRepository, application: A
                 Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
             }
         }
-
     }
 
 

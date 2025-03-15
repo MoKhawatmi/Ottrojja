@@ -10,9 +10,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.room.BookmarkEntity
-import com.ottrojja.room.Khitmah
-import com.ottrojja.room.KhitmahMark
+import com.ottrojja.room.entities.Khitmah
+import com.ottrojja.room.entities.KhitmahMark
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -60,6 +59,12 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
                 _khitmahMarks.removeAt(index = indexOfItem)
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, " تم الحذف بنجاح", Toast.LENGTH_LONG).show()
+                }
+                //need a better approach for this
+                if(_khitmah.value?.latestPage!=_khitmahMarks.last().data.pageNum){
+                    _khitmah.value?.let {
+                        repository.updateKhitmah(it.copy(latestPage =_khitmahMarks.last().data.pageNum))
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

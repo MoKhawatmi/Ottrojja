@@ -107,7 +107,7 @@ import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.OttrojjaTopBar
 import com.ottrojja.composables.SelectedVerseContentSection
-import com.ottrojja.room.Khitmah
+import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.screens.mainScreen.BrowsingOption
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer

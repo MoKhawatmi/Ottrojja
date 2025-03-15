@@ -26,9 +26,9 @@ import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.room.BookmarkEntity
-import com.ottrojja.room.Khitmah
-import com.ottrojja.room.KhitmahMark
+import com.ottrojja.room.entities.BookmarkEntity
+import com.ottrojja.room.entities.Khitmah
+import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.services.PagePlayerService
 import com.ottrojja.services.PageServiceInterface
 import kotlinx.coroutines.Dispatchers

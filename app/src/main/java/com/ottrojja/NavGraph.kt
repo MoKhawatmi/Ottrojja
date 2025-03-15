@@ -33,7 +33,6 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
         startDestination = Screen.LoadingScreen.route
     )
     {
-
         composable(route = Screen.MainScreen.route, arguments = listOf(navArgument("section") {
             type = NavType.StringType
             nullable = true
@@ -90,7 +89,7 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
         }
         composable(route = Screen.TasbeehScreen.route) {
             Box() {
-                TasbeehScreen()
+                TasbeehScreen(navController = navController, repository = repository)
                 BottomNavigation(
                     navController,
                     Screen.TasbeehScreen.route,
@@ -102,7 +101,7 @@ fun NavGraph(navController: NavHostController, repository: QuranRepository) {
         composable(route = Screen.BookmarksScreen.route) {
             Box() {
                 BookmarksScreen(
-                    navController,
+                    navController = navController,
                     repository = repository
                 )
                 BottomNavigation(

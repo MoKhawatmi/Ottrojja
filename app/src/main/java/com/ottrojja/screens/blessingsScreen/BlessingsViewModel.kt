@@ -68,7 +68,6 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
                 emptyList<Blessing>()
             }
             _loading.value = false;
-            println(blessings)
             if (blessings.size != 0) {
                 blessingsList.value += blessings;
                 page++;

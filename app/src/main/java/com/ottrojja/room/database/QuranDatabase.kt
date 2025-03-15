@@ -1,4 +1,4 @@
-package com.ottrojja.room
+package com.ottrojja.room.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
@@ -8,6 +8,14 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.ottrojja.classes.CauseOfRevelation
 import com.ottrojja.classes.Converters
 import com.ottrojja.classes.QuranPage
+import com.ottrojja.room.entities.BookmarkEntity
+import com.ottrojja.room.entities.Khitmah
+import com.ottrojja.room.dao.KhitmahDao
+import com.ottrojja.room.entities.KhitmahMark
+import com.ottrojja.room.dao.QuranDao
+import com.ottrojja.room.dao.TasabeehDao
+import com.ottrojja.room.entities.CustomTasbeeh
+import com.ottrojja.room.entities.TasabeehList
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
@@ -19,12 +27,39 @@ import com.ottrojja.screens.quranScreen.TafseerData
     entities = [QuranPage::class, ChapterData::class, PartData::class,
         TafseerData::class, E3rabData::class, Azkar::class,
         CauseOfRevelation::class, BookmarkEntity::class, Khitmah::class,
-        KhitmahMark::class],
-    version = 4
+        KhitmahMark::class, CustomTasbeeh::class, TasabeehList::class],
+    version = 5
 )
 abstract class QuranDatabase : RoomDatabase() {
     abstract fun quranDao(): QuranDao
     abstract fun khitmahDao(): KhitmahDao
+    abstract fun tasabeehDao(): TasabeehDao
+}
+
+// Migration from version 4 to version 5
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `TasabeehList` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `title` TEXT NOT NULL
+            )
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `CustomTasbeeh` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            `listId` INTEGER NOT NULL,
+            `count` INTEGER NOT NULL,
+            `text` TEXT NOT NULL,
+            FOREIGN KEY (`listId`) REFERENCES `TasabeehList`(`id`) ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+    }
 }
 
 // Migration from version 3 to version 4
@@ -34,7 +69,7 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
             """
             CREATE TABLE IF NOT EXISTS `BookmarkEntity` (
                 `pageNum` TEXT PRIMARY KEY NOT NULL,
-                `timeStamp` INTEGER NOT NULL,
+                `timeStamp` INTEGER NOT NULL
             )
             """.trimIndent()
         )
@@ -45,7 +80,7 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
                 `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 `title` TEXT NOT NULL,
                 `latestPage` TEXT NOT NULL,
-                `isComplete` INTEGER NOT NULL DEFAULT 0,
+                `isComplete` INTEGER NOT NULL DEFAULT 0
             )
             """.trimIndent()
         )

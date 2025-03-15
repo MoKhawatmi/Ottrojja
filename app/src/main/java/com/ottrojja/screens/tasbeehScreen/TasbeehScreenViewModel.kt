@@ -5,11 +5,21 @@ import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import android.widget.Toast
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Tasabeeh
+import com.ottrojja.room.entities.TasabeehList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class TasbeehScreenViewModel(application: Application) : AndroidViewModel(application) {
+class TasbeehScreenViewModel(private val repository: QuranRepository, application: Application) :
+    AndroidViewModel(application) {
     val context = application.applicationContext;
     val sharedPreferences: SharedPreferences =
         application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
@@ -73,9 +83,63 @@ class TasbeehScreenViewModel(application: Application) : AndroidViewModel(applic
         tempList.set(indexOfItem, newItem);
         _tasabeeh.value = tempList;
     }
+
+    private var _tasabeehLists = mutableStateListOf<TasabeehList>()
+    val tasabeehLists: MutableList<TasabeehList>
+        get() = _tasabeehLists
+
+    private val _showAddListDialog = mutableStateOf(false)
+    var showAddListDialog: Boolean
+        get() = _showAddListDialog.value
+        set(value) {
+            _showAddListDialog.value = value;
+        }
+
+    fun fetchTasabeehLists() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.getTasabeehLists().collect { state ->
+                    _tasabeehLists.clear()
+                    state.forEach {
+                        _tasabeehLists.add(it)
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    fun createTasabeehList(title: String) {
+        try {
+            viewModelScope.launch(Dispatchers.IO) {
+                repository.insertTasabeehList(TasabeehList(title = title));
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "تمت الإضافة بنجاح", Toast.LENGTH_LONG).show()
+                }
+                _showAddListDialog.value = false;
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+        }
+    }
+
 }
 
-
 enum class TasbeehTab {
-    المسبحة, الاذكار
+    المسبحة, الاذكار, القوائم
+}
+
+class TasbeehViewModelFactory(
+    private val repository: QuranRepository,
+    private val application: Application
+) : ViewModelProvider.AndroidViewModelFactory(application) {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(TasbeehScreenViewModel::class.java)) {
+            return TasbeehScreenViewModel(repository, application) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
 }

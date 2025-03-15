@@ -1,4 +1,4 @@
-package com.ottrojja.room
+package com.ottrojja.room.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey
             entity = Khitmah::class, // Parent table
             parentColumns = arrayOf("id"), //primary key in Khitmah
             childColumns = arrayOf("khitmahId"), // Foreign key in KhitmahMark
-            onDelete = ForeignKey.CASCADE // if a student is deleted, their subjects are deleted
+            onDelete = ForeignKey.CASCADE // if a khitmah is deleted, their marks are deleted
         )
     ]
 )

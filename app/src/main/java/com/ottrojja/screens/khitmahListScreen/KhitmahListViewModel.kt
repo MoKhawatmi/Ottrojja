@@ -8,8 +8,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.room.Khitmah
-import com.ottrojja.room.KhitmahMark
+import com.ottrojja.room.entities.Khitmah
+import com.ottrojja.room.entities.KhitmahMark
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

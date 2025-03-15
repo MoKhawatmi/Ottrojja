@@ -1,20 +1,25 @@
 package com.ottrojja.classes
 
-import com.ottrojja.room.BookmarkEntity
-import com.ottrojja.room.Khitmah
-import com.ottrojja.room.KhitmahDao
-import com.ottrojja.room.KhitmahMark
-import com.ottrojja.room.KhitmahWithMarks
-import com.ottrojja.room.QuranDao
+import com.ottrojja.room.entities.BookmarkEntity
+import com.ottrojja.room.entities.Khitmah
+import com.ottrojja.room.dao.KhitmahDao
+import com.ottrojja.room.entities.KhitmahMark
+import com.ottrojja.room.relations.KhitmahWithMarks
+import com.ottrojja.room.dao.QuranDao
+import com.ottrojja.room.dao.TasabeehDao
+import com.ottrojja.room.entities.CustomTasbeeh
+import com.ottrojja.room.entities.TasabeehList
+import com.ottrojja.room.relations.ListWithTasabeeh
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.screens.quranScreen.E3rabData
 import com.ottrojja.screens.quranScreen.TafseerData
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 
-class QuranRepository(private val quranDao: QuranDao, private val khitmahDao: KhitmahDao) {
+class QuranRepository(private val quranDao: QuranDao,
+                      private val khitmahDao: KhitmahDao,
+                      private val tasabeehDao: TasabeehDao) {
 
     suspend fun getAllPages(): List<QuranPage> {
         return quranDao.getAllPages()
@@ -134,6 +139,9 @@ class QuranRepository(private val quranDao: QuranDao, private val khitmahDao: Kh
         return quranDao.getCausesOfRevelationCount()
     }
 
+    /*******************BOOKMARKS MANAGEMENT*************************/
+
+
     suspend fun insertBookmark(bookmark: BookmarkEntity) {
         quranDao.insertBookmark(bookmark)
     }
@@ -150,7 +158,7 @@ class QuranRepository(private val quranDao: QuranDao, private val khitmahDao: Kh
         quranDao.deleteBookmark(bookmark)
     }
 
-    /**********Khitmah Access**********/
+    /*******************KHITMAH MANAGEMENT*************************/
 
     suspend fun insertKhitmah(khitmah: Khitmah): Long {
         return khitmahDao.insertKhitmah(khitmah)
@@ -183,5 +191,37 @@ class QuranRepository(private val quranDao: QuranDao, private val khitmahDao: Kh
     suspend fun deleteKhitmahMarkById(id: Int) {
         khitmahDao.deleteKhitmahMarkById(id)
     }
+
+
+    /*******************TASABEEH MANAGEMENT*************************/
+
+    suspend fun insertTasabeehList(tasabeehList: TasabeehList): Long {
+        return tasabeehDao.insertTasabeehList(tasabeehList)
+    }
+
+    suspend fun insertCustomTasbeeh(customTasbeeh: CustomTasbeeh) {
+        tasabeehDao.insertCustomTasbeeh(customTasbeeh)
+    }
+
+    suspend fun getTasabeehLists(): Flow<List<TasabeehList>> {
+        return tasabeehDao.getTasabeehLists()
+    }
+
+    suspend fun getTasabeehList(id: Int): ListWithTasabeeh {
+        return tasabeehDao.getTasabeehList(id)
+    }
+
+    suspend fun deleteTasabeehList(tasabeehList: TasabeehList) {
+        tasabeehDao.deleteTasabeehList(tasabeehList)
+    }
+
+    suspend fun deleteCustomTasabeeh(customTasbeeh: CustomTasbeeh) {
+        tasabeehDao.deleteCustomTasabeeh(customTasbeeh)
+    }
+
+    suspend fun updateTasabeehList(tasabeehList: TasabeehList) {
+        tasabeehDao.updateTasabeehList(tasabeehList)
+    }
+
 
 }

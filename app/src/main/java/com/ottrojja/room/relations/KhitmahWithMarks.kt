@@ -1,7 +1,9 @@
-package com.ottrojja.room
+package com.ottrojja.room.relations
 
 import androidx.room.Embedded
 import androidx.room.Relation
+import com.ottrojja.room.entities.Khitmah
+import com.ottrojja.room.entities.KhitmahMark
 
 data class KhitmahWithMarks(
     @Embedded val khitmah: Khitmah,  // Embeds the Student data in this class

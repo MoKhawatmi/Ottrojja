@@ -65,7 +65,7 @@ fun BookmarksScreen(
                 .fillMaxWidth()
                 .fillMaxHeight(0.9f)
         ) {
-            if (bookmarksViewModel.bookmarks.size <= 0) {
+            if (bookmarksViewModel.bookmarks.isEmpty()) {
                 item {
                     Row(
                         horizontalArrangement = Arrangement.Center,

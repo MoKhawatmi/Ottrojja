@@ -16,13 +16,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Pending
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -56,8 +53,7 @@ import com.ottrojja.classes.Screen
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTopBar
-import com.ottrojja.room.KhitmahMark
-import com.ottrojja.screens.mainScreen.BrowsingOption
+import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.ui.theme.complete_green
 import java.text.SimpleDateFormat
 import java.util.Date

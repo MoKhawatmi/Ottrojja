@@ -20,10 +20,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.room.MIGRATION_1_2
-import com.ottrojja.room.MIGRATION_2_3
-import com.ottrojja.room.QuranDatabase
-import com.ottrojja.ui.theme.TestAppTheme
+import com.ottrojja.room.database.MIGRATION_1_2
+import com.ottrojja.room.database.MIGRATION_2_3
+import com.ottrojja.room.database.MIGRATION_3_4
+import com.ottrojja.room.database.MIGRATION_4_5
+import com.ottrojja.room.database.QuranDatabase
+import com.ottrojja.ui.theme.OttrojjaAppTheme
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
@@ -70,13 +72,13 @@ class MainActivity : ComponentActivity() {
         val db = Room.databaseBuilder(
             application,
             QuranDatabase::class.java, "QuranDB"
-        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-            .fallbackToDestructiveMigration()
+        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+            //.fallbackToDestructiveMigration()
             .build()
-        val quranRepository = QuranRepository(db.quranDao(), db.khitmahDao())
+        val quranRepository = QuranRepository(db.quranDao(), db.khitmahDao(), db.tasabeehDao())
 
         setContent {
-            TestAppTheme {
+            OttrojjaAppTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),

@@ -1,4 +1,4 @@
-package com.ottrojja.room
+package com.ottrojja.room.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.ottrojja.classes.CauseOfRevelation
 import com.ottrojja.classes.QuranPage
+import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
