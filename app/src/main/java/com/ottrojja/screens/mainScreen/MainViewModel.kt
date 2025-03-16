@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
@@ -66,35 +67,28 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
             this._showImageList = value
         }
 
-    private val _quranSearchResults = mutableStateOf(mutableListOf<SearchResult>())
-    var quranSearchResults: MutableList<SearchResult>
-        get() = _quranSearchResults.value
-        set(value) {
-            _quranSearchResults.value = value
-        }
+
+    private val _quranSearchResults = mutableStateListOf<SearchResult>()
+    val quranSearchResults: MutableList<SearchResult>
+        get() = _quranSearchResults
 
 
     val handler = Handler(Looper.getMainLooper())
     fun searchInQuran(text: String) {
         handler.removeCallbacksAndMessages(null)
         val searchText = text.trim()
+        _quranSearchResults.clear()
         if (searchText.length == 0) {
-            _quranSearchResults.value = emptyList<SearchResult>().toMutableList()
             return;
         }
-        _quranSearchResults.value.clear()
-        var tempResults = mutableListOf<SearchResult>()
         println("searching for $text")
         viewModelScope.launch(Dispatchers.IO) {
             repository.getAllPages().forEach { page ->
                 page.pageContent.forEach { verse ->
-                    if (verse.type == PageContentItemType.verse && (verse.verseText.contains(
-                            searchText
-                        ) || verse.verseTextPlain.contains(
-                            searchText
-                        ))
+                    if (verse.type == PageContentItemType.verse && (verse.verseText.contains(searchText)
+                                || verse.verseTextPlain.contains(searchText))
                     ) {
-                        tempResults.add(
+                        _quranSearchResults.add(
                             SearchResult(
                                 page.pageNum,
                                 verse.surahNum,
@@ -106,7 +100,6 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
                     }
                 }
             }
-            _quranSearchResults.value = tempResults;
         }
         handler.postDelayed(
             { saveLatestSearchResult() },
@@ -122,7 +115,8 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
 
     fun getPartsList(): List<PartData> {
         return partsList.filter { part ->
-            part.partName.contains(_searchFilter) || part.partId.contains(_searchFilter) || part.partId.contains(
+            part.partName.contains(_searchFilter) || part.partId.contains(_searchFilter
+            ) || part.partId.contains(
                 convertToArabicNumbers(_searchFilter)
             )
         };
@@ -130,7 +124,8 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
 
     fun getChaptersList(): List<ChapterData> {
         return chaptersList.filter { chapter ->
-            chapter.chapterName.contains(_searchFilter) || chapter.surahId.toString() == convertToArabicNumbers(
+            chapter.chapterName.contains(_searchFilter
+            ) || chapter.surahId.toString() == convertToArabicNumbers(
                 _searchFilter
             )
                     || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
@@ -177,7 +172,7 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
         println("most recent page: ${_mostRecentPage}")
     }
 
-    fun clickBrowsingOption(option: BrowsingOption){
+    fun clickBrowsingOption(option: BrowsingOption) {
         _selectedSection = option;
         searchFilter = "";
         if (_selectedSection == BrowsingOption.البحث) {

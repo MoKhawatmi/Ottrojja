@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.room.entities.TasabeehList
 import com.ottrojja.room.relations.ListWithTasabeeh
@@ -16,7 +17,7 @@ interface TasabeehDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertTasabeehList(tasabeehList: TasabeehList): Long
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     fun insertCustomTasbeeh(customTasbeeh: CustomTasbeeh)
 
     @Query("SELECT * FROM TasabeehList")

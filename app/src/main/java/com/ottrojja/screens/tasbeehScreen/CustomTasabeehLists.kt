@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.ottrojja.classes.Screen
+import com.ottrojja.composables.EmptyListMessage
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.room.entities.TasabeehList
 
@@ -37,32 +38,11 @@ fun CustomTasabeehLists(navController: NavController,
         .fillMaxWidth()
         .fillMaxHeight()
     ) {
-        FloatingActionButton(
-            onClick = { onClickAdd() },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(8.dp)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Add")
-        }
         Column(modifier = Modifier.fillMaxSize()) {
             LazyColumn {
                 if (customTasabeehLists.isEmpty()) {
                     item {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(20.dp)
-                        ) {
-                            Text(
-                                text = "لا يوجد قوائم ذكر حاليا",
-                                style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Center,
-                                color = Color(0xFF9E9E9E)
-                            )
-                        }
+                        EmptyListMessage("لا يوجد قوائم ذكر حاليا")
                     }
                 }
 
@@ -72,7 +52,9 @@ fun CustomTasabeehLists(navController: NavController,
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.background)
                             .clickable {
-                                navController.navigate(Screen.CustomTasabeehListScreen.invokeRoute("${item.id}"))
+                                navController.navigate(
+                                    Screen.CustomTasabeehListScreen.invokeRoute("${item.id}")
+                                )
                             }
                             .padding(8.dp)
                     ) {
@@ -95,6 +77,14 @@ fun CustomTasabeehLists(navController: NavController,
                     ListHorizontalDivider()
                 }
             }
+        }
+        FloatingActionButton(
+            onClick = { onClickAdd() },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(8.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add")
         }
     }
 }

@@ -6,7 +6,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -43,9 +42,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.classes.Screen
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
@@ -54,7 +50,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
@@ -523,7 +518,7 @@ fun ChaptersMenu(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SearchMenu(
-    items: List<SearchResult> = listOf<SearchResult>(),
+    items: List<SearchResult> = emptyList(),
     navController: NavController,
     shareVerse: (SearchResult) -> Unit
 ) {
@@ -585,7 +580,7 @@ fun SearchMenu(
                             )
                         }} - ${item.surahName}",
                         color = Color.Black,
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
                 ListHorizontalDivider()
@@ -595,7 +590,6 @@ fun SearchMenu(
             Row(modifier = Modifier.height(100.dp)) {}
         }
     }
-
 }
 
 /*

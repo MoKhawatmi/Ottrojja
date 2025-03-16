@@ -61,9 +61,13 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
                     Toast.makeText(context, " تم الحذف بنجاح", Toast.LENGTH_LONG).show()
                 }
                 //need a better approach for this
-                if(_khitmah.value?.latestPage!=_khitmahMarks.last().data.pageNum){
-                    _khitmah.value?.let {
-                        repository.updateKhitmah(it.copy(latestPage =_khitmahMarks.last().data.pageNum))
+                if (_khitmahMarks.isNotEmpty()) {
+                    if (_khitmah.value?.latestPage != _khitmahMarks.last().data.pageNum) {
+                        _khitmah.value?.let {
+                            repository.updateKhitmah(
+                                it.copy(latestPage = _khitmahMarks.last().data.pageNum)
+                            )
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -100,7 +104,9 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
     fun toggleKhitmahStatus() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                repository.updateKhitmah(_khitmah.value!!.copy(isComplete = !_khitmah.value!!.isComplete))
+                repository.updateKhitmah(
+                    _khitmah.value!!.copy(isComplete = !_khitmah.value!!.isComplete)
+                )
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "تم التحديث بنجاح", Toast.LENGTH_LONG).show()
                 }

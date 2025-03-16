@@ -43,6 +43,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
+import com.ottrojja.composables.EmptyListMessage
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaElevatedButton
@@ -108,20 +109,7 @@ fun KhitmahList(
         ) {
             if (khitmahListViewModel.khitmahList.size <= 0) {
                 item {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp)
-                    ) {
-                        Text(
-                            text = "لا يوجد ختمات حاليا",
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center,
-                            color = Color(0xFF9E9E9E)
-                        )
-                    }
+                    EmptyListMessage("لا يوجد ختمات حاليا")
                 }
             }
 
@@ -138,12 +126,15 @@ fun KhitmahList(
                         .padding(8.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.fillMaxWidth(0.7f)
                     ) {
                         Icon(Icons.Filled.Circle,
                             contentDescription = "Khitmah Status",
                             tint = if (item.isComplete) complete_green else MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(end = 8.dp).size(16.dp)
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(16.dp)
                         )
                         Text(
                             text = item.title,
@@ -157,9 +148,9 @@ fun KhitmahList(
 
                     Button(onClick = {
                         navController.navigate(Screen.QuranScreen.invokeRoute(item.latestPage))
-                    }) {
+                    }, modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            "صفحة ${item.latestPage}",
+                            "ص${item.latestPage}",
                             style = MaterialTheme.typography.bodyMedium,
                             fontSize = 20.sp,
                         )

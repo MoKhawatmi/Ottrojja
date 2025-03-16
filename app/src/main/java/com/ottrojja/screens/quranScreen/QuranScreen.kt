@@ -1404,7 +1404,7 @@ fun AddToKhitmahDialog(
             )
 
             LazyColumn(modifier = Modifier.fillMaxHeight(0.4f)) {
-                if (khitmahList.size <= 0) {
+                if (khitmahList.isEmpty()) {
                     item {
                         Row(
                             horizontalArrangement = Arrangement.Center,

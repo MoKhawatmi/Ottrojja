@@ -32,6 +32,7 @@ import androidx.navigation.NavController
 import com.ottrojja.R
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
+import com.ottrojja.composables.EmptyListMessage
 import com.ottrojja.composables.Header
 import com.ottrojja.composables.ListHorizontalDivider
 import java.text.SimpleDateFormat
@@ -67,20 +68,7 @@ fun BookmarksScreen(
         ) {
             if (bookmarksViewModel.bookmarks.isEmpty()) {
                 item {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp)
-                    ) {
-                        Text(
-                            text = "لا يوجد اشارات مرجعية حاليا",
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center,
-                            color = Color(0xFF9E9E9E)
-                        )
-                    }
+                    EmptyListMessage("لا يوجد اشارات مرجعية حاليا")
                 }
             }
             items(bookmarksViewModel.bookmarks, key = { "bookmark_page_${it.pageNum}" }) { item ->

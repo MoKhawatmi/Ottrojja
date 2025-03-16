@@ -116,18 +116,21 @@ fun KhitmahScreen(
             Row(
                 modifier = Modifier
                     .padding(horizontal = 6.dp)
-                    .background(MaterialTheme.colorScheme.background)
-                    .fillMaxWidth(),
+                    .background(MaterialTheme.colorScheme.background),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = "${khitmahViewModel.khitmah?.title}",
                     style = MaterialTheme.typography.bodyLarge.copy(fontSize = 32.sp),
                     color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Start
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.fillMaxWidth(0.6f)
                 )
 
-                Row {
+                Row(modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Column {
                         OttrojjaElevatedButton(
                             onClick = { expanded = !expanded },

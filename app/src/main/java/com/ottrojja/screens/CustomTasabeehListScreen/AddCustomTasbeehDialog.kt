@@ -1,6 +1,8 @@
 package com.ottrojja.screens.CustomTasabeehListScreen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,8 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -27,10 +32,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ottrojja.composables.OttrojjaDialog
+import com.ottrojja.room.entities.CustomTasbeeh
 
 @Composable
-fun AddCustomTasbeehDialog(onDismiss: () -> Unit, onConfirm: (text: String, count: Int) -> Unit) {
+fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
+                           onConfirm: () -> Unit,
+                           callImportTasbeehDialog: () -> Unit,
+                           tasbeehInWork: CustomTasbeeh,
+                           onTasbeehChange: (CustomTasbeeh) -> Unit
+) {
     OttrojjaDialog(
         contentModifier = Modifier
             .padding(8.dp)
@@ -42,27 +54,45 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit, onConfirm: (text: String, coun
         onDismissRequest = { onDismiss() },
         useDefaultWidth = false,
     ) {
-        var tasbeehText by remember { mutableStateOf("") }
-        var tasbeehCount by remember { mutableStateOf("") }
-
 
         Column(modifier = Modifier.wrapContentHeight()) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center) {
                 Text(text = "إضافة ذكر", textAlign = TextAlign.Center)
             }
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 6.dp),
                 color = MaterialTheme.colorScheme.onTertiary
             )
-
+            Row(
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth()
+                    .border(2.dp,
+                        MaterialTheme.colorScheme.onSecondary, RoundedCornerShape(8.dp)
+                    )
+                    .clickable { callImportTasbeehDialog() }
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "إستيراد من قائمة الاذكار",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
+                    color = MaterialTheme.colorScheme.onSecondary
+                )
+                Icon(Icons.Default.Link,
+                    contentDescription = "import tasbeeh",
+                    tint = MaterialTheme.colorScheme.onSecondary
+                )
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
-                    value = tasbeehText,
-                    onValueChange = { tasbeehText = it },
+                    value = tasbeehInWork.text,
+                    onValueChange = { onTasbeehChange(tasbeehInWork.copy(text = it)) },
                     label = { Text("نص الذكر") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -82,7 +112,7 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit, onConfirm: (text: String, coun
                         focusedLabelColor = MaterialTheme.colorScheme.onSecondary,
                         unfocusedLabelColor = MaterialTheme.colorScheme.onSecondary
                     ),
-                    shape = RoundedCornerShape(8.dp) // Rounded corners for a softer look
+                    shape = RoundedCornerShape(8.dp)
                 )
             }
 
@@ -92,12 +122,12 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit, onConfirm: (text: String, coun
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
-                    value = tasbeehCount,
-                    onValueChange = { newText ->
+                    value = "${tasbeehInWork.count}",
+                    onValueChange = { newText:String ->
                         val filteredText = newText.filter { it.isDigit() } // Allow only digits
                         val intValue = filteredText.toIntOrNull() ?: 0 // Convert to integer safely
                         if (intValue <= 1000000) {
-                            tasbeehCount = filteredText // Update only if within limit
+                            onTasbeehChange(tasbeehInWork.copy(count = intValue))
                         }
                     },
                     label = { Text("مرات الذكر") },
@@ -127,8 +157,8 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit, onConfirm: (text: String, coun
             ) {
                 Button(
                     onClick = {
-                        if (tasbeehText.isNotBlank() && tasbeehCount.isNotBlank()) {
-                            onConfirm(tasbeehText, tasbeehCount.toInt())
+                        if (tasbeehInWork.text.isNotBlank() && tasbeehInWork.count.toString().isNotBlank()) {
+                            onConfirm()
                         }
                     },
                     modifier = Modifier

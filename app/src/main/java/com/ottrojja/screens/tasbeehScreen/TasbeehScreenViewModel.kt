@@ -11,6 +11,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Tasabeeh
 import com.ottrojja.room.entities.TasabeehList
@@ -39,20 +40,21 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
             _selectedTab.value = value
         }
 
-    private val _tasabeeh = mutableStateOf(mutableListOf<Tasabeeh>())
-    var tasabeeh: MutableList<Tasabeeh>
-        get() = _tasabeeh.value
-        set(value) {
-            _tasabeeh.value = value
-        }
+
+    private val _tasabeeh = mutableStateListOf<ExpandableItem<Tasabeeh>>()
+    val tasabeeh: MutableList<ExpandableItem<Tasabeeh>>
+        get() = _tasabeeh
 
 
     init {
         _tasbeehCount.value = sharedPreferences.getInt("tasbeehCount", 0)
         try {
             JsonParser(context).parseJsonArrayFile<Tasabeeh>("tasabeeh.json")
-                ?.let { _tasabeeh.value = it.toMutableList() }
-
+                ?.let {
+                    it.forEach { item ->
+                        _tasabeeh.add(ExpandableItem(data = item, expanded = false))
+                    }
+                }
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
@@ -73,20 +75,18 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
         editor.apply()
     }
 
-    fun updateExpanded(item: Tasabeeh) {
-        //println("update $item")
-        val tempList = _tasabeeh.value.toMutableList();
-        val indexOfItem =
-            tempList.indexOfFirst { tasabeeh -> tasabeeh.ziker == item.ziker };
-        //println("index $indexOfItem")
-        val newItem: Tasabeeh = Tasabeeh(item.ziker, item.benefit, !item.expanded);
-        tempList.set(indexOfItem, newItem);
-        _tasabeeh.value = tempList;
+    fun updateExpanded(item: ExpandableItem<Tasabeeh>) {
+        val indexOfItem = _tasabeeh.indexOfFirst { it.data.ziker == item.data.ziker };
+        _tasabeeh.set(indexOfItem, item.copy(expanded = !item.expanded))
     }
 
-    private var _tasabeehLists = mutableStateListOf<TasabeehList>()
-    val tasabeehLists: MutableList<TasabeehList>
-        get() = _tasabeehLists
+    private val _tasabeehLists = mutableStateOf(emptyList<TasabeehList>())
+    var tasabeehLists: List<TasabeehList>
+        get() = _tasabeehLists.value
+        set(value) {
+            _tasabeehLists.value = value;
+        }
+
 
     private val _showAddListDialog = mutableStateOf(false)
     var showAddListDialog: Boolean
@@ -99,10 +99,7 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 repository.getTasabeehLists().collect { state ->
-                    _tasabeehLists.clear()
-                    state.forEach {
-                        _tasabeehLists.add(it)
-                    }
+                    _tasabeehLists.value = state;
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
