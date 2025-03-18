@@ -93,7 +93,6 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             _correctVersesAnswered.value = value
         }
 
-
     private var _hasStarted = mutableStateOf(false)
     var hasStarted: Boolean
         get() = _hasStarted.value
@@ -343,7 +342,9 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
 
         val client = OkHttpClient()
         val request = Request.Builder()
-            .url("https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/${_selectedPage.value.pageNum}-${_currentVerse.value.surahNum}-${_currentVerse.value.verseNum}.mp3")
+            .url(
+                "https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/${_selectedPage.value.pageNum}-${_currentVerse.value.surahNum}-${_currentVerse.value.verseNum}.mp3"
+            )
             .build()
 
 
@@ -410,12 +411,18 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             context.startService(stopServiceIntent)
         }
 
-        exoPlayer.apply {
-            val mediaItem =
-                MediaItem.fromUri(Uri.fromFile(File(context.getExternalFilesDir(null), path)))
-            setMediaItem(mediaItem)
-            prepare()
-            play()
+        try {
+            exoPlayer.apply {
+                val mediaItem =
+                    MediaItem.fromUri(Uri.fromFile(File(context.getExternalFilesDir(null), path)))
+                setMediaItem(mediaItem)
+                prepare()
+                play()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
+                .show()
         }
     }
 
@@ -440,7 +447,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         resetMedia();
     }
 
-    fun releasePlayer(){
+    fun releasePlayer() {
         exoPlayer.release()
     }
 
@@ -465,7 +472,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
 
                 override fun onPlayerError(error: PlaybackException) {
                     super.onPlayerError(error)
-                    println(error.printStackTrace())
+                    error.printStackTrace()
                     Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
                         .show()
                 }

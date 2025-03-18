@@ -1,4 +1,4 @@
-package com.ottrojja.screens.BookmarksScreen
+package com.ottrojja.screens.bookmarksScreen
 
 import android.app.Application
 import android.widget.Toast

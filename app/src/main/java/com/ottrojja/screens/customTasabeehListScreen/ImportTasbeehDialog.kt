@@ -1,4 +1,4 @@
-package com.ottrojja.screens.CustomTasabeehListScreen
+package com.ottrojja.screens.customTasabeehListScreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

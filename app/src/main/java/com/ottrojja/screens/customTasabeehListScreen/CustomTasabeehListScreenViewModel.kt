@@ -1,14 +1,16 @@
-package com.ottrojja.screens.CustomTasabeehListScreen
+package com.ottrojja.screens.customTasabeehListScreen
 
 import android.app.Application
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.JsonParser
+import com.ottrojja.classes.ModalFormMode
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Tasabeeh
 import com.ottrojja.room.entities.CustomTasbeeh
@@ -58,9 +60,11 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
             try {
                 repository.getTasabeehList(id).collect { state ->
                     _customTasabeeh.clear()
-                    _customTasabeehList.value = state.tasabeehList;
-                    state.customTasabeeh.forEach { tasbeeh ->
-                        _customTasabeeh.add(tasbeeh)
+                    if (state != null) {
+                        _customTasabeehList.value = state.tasabeehList;
+                        state.customTasabeeh.forEach { tasbeeh ->
+                            _customTasabeeh.add(tasbeeh)
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -72,15 +76,23 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
         }
     }
 
-    fun addCustomTasbeeh() {
+    fun upsertCustomTasbeeh() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                repository.insertCustomTasbeeh(tasbeehInWork.copy(listId = _customTasabeehList.value!!.id))
-                _addTasbeehDialog.value = false;
-                _tasbeehInWork.value = CustomTasbeeh(text = "", count = 0, listId = 0);
+                repository.insertCustomTasbeeh(
+                    tasbeehInWork.copy(listId = _customTasabeehList.value!!.id)
+                )
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "تمت الإضافة بنجاح", Toast.LENGTH_LONG).show()
+                    if (customTasbeehModalMode == ModalFormMode.ADD) {
+                        Toast.makeText(context, "تمت الإضافة بنجاح", Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(context, "تم التعديل بنجاح", Toast.LENGTH_LONG).show()
+                        itemCounts.put(_tasbeehInWork.value.id, _tasbeehInWork.value.count)
+                    }
                 }
+                _addTasbeehDialog.value = false;
+                // reset form
+                _tasbeehInWork.value = CustomTasbeeh(text = "", count = 0, listId = 0);
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
@@ -131,6 +143,13 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
             _tasabeeh.value = value
         }
 
+    private val _customTasbeehModalMode = mutableStateOf(ModalFormMode.ADD)
+    var customTasbeehModalMode: ModalFormMode
+        get() = _customTasbeehModalMode.value
+        set(value) {
+            _customTasbeehModalMode.value = value
+        }
+
     init {
         try {
             JsonParser(context).parseJsonArrayFile<Tasabeeh>("tasabeeh.json")
@@ -141,6 +160,11 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
             e.printStackTrace()
             Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
         }
+    }
+
+    // to keep count of each tasbeeh counter by their id, useful for updating and checking
+    var itemCounts = mutableStateMapOf<Int, Int>().apply {
+        customTasabeeh.forEach { put(it.id, it.count) }
     }
 }
 

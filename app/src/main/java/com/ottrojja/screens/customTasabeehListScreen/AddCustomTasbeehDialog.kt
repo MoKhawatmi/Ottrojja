@@ -1,4 +1,4 @@
-package com.ottrojja.screens.CustomTasabeehListScreen
+package com.ottrojja.screens.customTasabeehListScreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,10 +22,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +29,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ottrojja.classes.ModalFormMode
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.room.entities.CustomTasbeeh
 
@@ -41,7 +38,8 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                            onConfirm: () -> Unit,
                            callImportTasbeehDialog: () -> Unit,
                            tasbeehInWork: CustomTasbeeh,
-                           onTasbeehChange: (CustomTasbeeh) -> Unit
+                           onTasbeehChange: (CustomTasbeeh) -> Unit,
+                           mode: ModalFormMode
 ) {
     OttrojjaDialog(
         contentModifier = Modifier
@@ -58,7 +56,7 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
         Column(modifier = Modifier.wrapContentHeight()) {
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center) {
-                Text(text = "إضافة ذكر", textAlign = TextAlign.Center)
+                Text(text = if(mode==ModalFormMode.ADD) "إضافة ذكر" else "تعديل الذكر", textAlign = TextAlign.Center)
             }
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 6.dp),
@@ -166,7 +164,7 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                         .padding(vertical = 2.dp)
                 ) {
                     Text(
-                        text = "إضافة",
+                        text = if(mode==ModalFormMode.ADD) "إضافة" else "تعديل",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }

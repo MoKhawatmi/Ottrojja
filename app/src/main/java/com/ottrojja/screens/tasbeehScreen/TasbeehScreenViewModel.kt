@@ -103,7 +103,9 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+                withContext(Dispatchers.Main){
+                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }

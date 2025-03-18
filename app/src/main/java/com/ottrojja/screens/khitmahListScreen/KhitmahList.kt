@@ -145,15 +145,16 @@ fun KhitmahList(
                     }
 
 
-
-                    Button(onClick = {
-                        navController.navigate(Screen.QuranScreen.invokeRoute(item.latestPage))
-                    }, modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            "ص${item.latestPage}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontSize = 20.sp,
-                        )
+                    if (item.latestPage.isNotBlank()) {
+                        Button(onClick = {
+                            navController.navigate(Screen.QuranScreen.invokeRoute(item.latestPage))
+                        }, modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                "ص${item.latestPage}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontSize = 20.sp,
+                            )
+                        }
                     }
                 }
                 ListHorizontalDivider()

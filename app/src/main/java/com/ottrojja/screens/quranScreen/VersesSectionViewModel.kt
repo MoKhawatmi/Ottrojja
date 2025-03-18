@@ -15,7 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-
 class VersesSectionViewModel(private val repository: QuranRepository, application: Application) :
     AndroidViewModel(application),
     LifecycleObserver {

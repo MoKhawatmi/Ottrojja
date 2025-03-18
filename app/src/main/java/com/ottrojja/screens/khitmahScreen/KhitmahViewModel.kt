@@ -69,6 +69,12 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
                             )
                         }
                     }
+                }else{
+                    _khitmah.value?.let {
+                        repository.updateKhitmah(
+                            it.copy(latestPage = "")
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

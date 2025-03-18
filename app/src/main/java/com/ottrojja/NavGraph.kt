@@ -1,8 +1,6 @@
 package com.ottrojja
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -11,9 +9,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
-import com.ottrojja.composables.BottomNavigation
-import com.ottrojja.screens.BookmarksScreen.BookmarksScreen
-import com.ottrojja.screens.CustomTasabeehListScreen.CustomTasabeehListScreen
+import com.ottrojja.screens.bookmarksScreen.BookmarksScreen
+import com.ottrojja.screens.customTasabeehListScreen.CustomTasabeehListScreen
 import com.ottrojja.screens.teacherScreen.TeacherScreen
 import com.ottrojja.screens.azkarScreen.AzkarScreen
 import com.ottrojja.screens.blessingsScreen.BlessingsScreen
