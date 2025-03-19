@@ -105,7 +105,7 @@ fun CustomTasabeehListScreen(
 
     if (customTasabeehListScreenViewModel.addTasbeehDialog) {
         AddCustomTasbeehDialog(
-            onDismiss = { customTasabeehListScreenViewModel.addTasbeehDialog = false },
+            onDismiss = { customTasabeehListScreenViewModel.closeCustomTasbeehModal() },
             onConfirm = { customTasabeehListScreenViewModel.upsertCustomTasbeeh() },
             callImportTasbeehDialog = { customTasabeehListScreenViewModel.showImportTasbeehDialog = true },
             tasbeehInWork = customTasabeehListScreenViewModel.tasbeehInWork,

@@ -90,9 +90,7 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
                         itemCounts.put(_tasbeehInWork.value.id, _tasbeehInWork.value.count)
                     }
                 }
-                _addTasbeehDialog.value = false;
-                // reset form
-                _tasbeehInWork.value = CustomTasbeeh(text = "", count = 0, listId = 0);
+                closeCustomTasbeehModal()
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
@@ -165,6 +163,12 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
     // to keep count of each tasbeeh counter by their id, useful for updating and checking
     var itemCounts = mutableStateMapOf<Int, Int>().apply {
         customTasabeeh.forEach { put(it.id, it.count) }
+    }
+
+    fun closeCustomTasbeehModal(){
+        _addTasbeehDialog.value = false;
+        // reset form
+        _tasbeehInWork.value = CustomTasbeeh(text = "", count = 0, listId = 0);
     }
 }
 

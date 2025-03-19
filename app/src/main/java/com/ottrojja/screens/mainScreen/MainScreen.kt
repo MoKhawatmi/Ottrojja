@@ -3,6 +3,10 @@ package com.ottrojja.screens.mainScreen
 import android.app.Application
 import android.content.Intent
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -11,9 +15,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -34,6 +40,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -109,199 +117,235 @@ fun MainScreen(
     }
 
     val imageListscrollState = rememberScrollState()
+    val showBottomFade = remember {
+        derivedStateOf {
+            val maxScroll = imageListscrollState.maxValue
+            imageListscrollState.value < maxScroll
+        }
+    }
 
 
     if (mainViewModel.showImageList) {
-        Column( verticalArrangement = Arrangement.Top) {
-            Header(isMain = true)
-            Column(
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .padding(12.dp)
-                    .background(MaterialTheme.colorScheme.background)
-                    .verticalScroll(imageListscrollState)
-            ) {
-                if (mainViewModel.mostRecentPage.length > 0) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .padding(12.dp, 8.dp)
-                            .fillMaxWidth()
-                            .background(Color.Transparent)
-                            .border(
-                                BorderStroke(1.dp, color = MaterialTheme.colorScheme.primary),
-                                shape = RoundedCornerShape(10.dp)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Header(isMain = true)
+                }
+                Column(
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .background(MaterialTheme.colorScheme.background)
+                        .verticalScroll(imageListscrollState)
+                ) {
+                    if (mainViewModel.mostRecentPage.length > 0) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .padding(12.dp, 8.dp)
+                                .fillMaxWidth()
+                                .background(Color.Transparent)
+                                .border(
+                                    BorderStroke(1.dp, color = MaterialTheme.colorScheme.primary),
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .clip(RoundedCornerShape(10))
+                                .clickable {
+                                    navController.navigate(
+                                        Screen.QuranScreen.invokeRoute(
+                                            mainViewModel.mostRecentPage
+                                        )
+                                    )
+                                }
+                                .padding(12.dp, 8.dp)
+                        ) {
+                            Text(
+                                text = "عودة الى اخر صفحة (${mainViewModel.mostRecentPage})",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.primary
                             )
+                            Icon(
+                                Icons.Outlined.ArrowCircleLeft,
+                                contentDescription = "Quick Transition",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .padding(12.dp, 24.dp)
                             .clip(RoundedCornerShape(10))
-                            .clickable {
-                                navController.navigate(
-                                    Screen.QuranScreen.invokeRoute(
-                                        mainViewModel.mostRecentPage
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color.Red,
+                                        Color(0xDD660000)
                                     )
                                 )
+                            )
+                            .fillMaxWidth()
+                            .clickable {
+                                mainViewModel.selectedSection = BrowsingOption.الصفحات;
+                                mainViewModel.showImageList = false;
                             }
-                            .padding(12.dp, 8.dp)
+                            .padding(12.dp)
                     ) {
                         Text(
-                            text = "عودة الى اخر صفحة (${mainViewModel.mostRecentPage})",
+                            text = "صفحات القرآن",
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.primary
+                            color = Color.White
+                        );
+                        Image(
+                            painter = painterResource(id = R.drawable.q_image1),
+                            contentDescription = "",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(112.dp)
+                                .clip(CircleShape)
                         )
-                        Icon(
-                            Icons.Outlined.ArrowCircleLeft,
-                            contentDescription = "Quick Transition",
-                            tint = MaterialTheme.colorScheme.primary,
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .padding(12.dp, 24.dp)
+                            .clip(RoundedCornerShape(10))
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color.Green,
+                                        Color(0xDD006600)
+                                    )
+                                )
+                            )
+                            .fillMaxWidth()
+                            .clickable {
+                                mainViewModel.selectedSection = BrowsingOption.السور;
+                                mainViewModel.showImageList = false;
+                            }
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = "سور القرآن",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.White
+                        );
+                        Image(
+                            painter = painterResource(id = R.drawable.q_image2),
+                            contentDescription = "",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(112.dp)
+                                .clip(CircleShape)
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .padding(12.dp, 24.dp)
+                            .clip(RoundedCornerShape(10))
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color.Blue,
+                                        Color(0xDD000066)
+                                    )
+                                )
+                            )
+                            .fillMaxWidth()
+                            .clickable {
+                                mainViewModel.selectedSection = BrowsingOption.الاجزاء;
+                                mainViewModel.showImageList = false;
+                            }
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = "اجزاء القرآن",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.White
+                        );
+                        Image(
+                            painter = painterResource(id = R.drawable.q_image3),
+                            contentDescription = "",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(112.dp)
+                                .clip(CircleShape)
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .padding(12.dp, 24.dp)
+                            .clip(RoundedCornerShape(10))
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color(0xFFD0B968),
+                                        Color(0xFFA86809)
+                                    )
+                                )
+                            )
+                            .fillMaxWidth()
+                            .clickable {
+                                mainViewModel.selectedSection = BrowsingOption.البحث;
+                                mainViewModel.invokeLatestSearchOperation();
+                                mainViewModel.showImageList =
+                                    false;
+                            }
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = "البحث",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.White
+                        );
+                        Image(
+                            painter = painterResource(id = R.drawable.q_image4),
+                            contentDescription = "",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(112.dp)
+                                .clip(CircleShape)
+                        )
+                    }
+
+                    Row(modifier = Modifier.height(25.dp)) {}
+                }
+
+            }
+
+
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 24.dp)
+                        .fillMaxWidth()
+                        .height(46.dp)
+                        .align(Alignment.BottomCenter)
+                ) {
+                    AnimatedVisibility(visible = showBottomFade.value,
+                        enter = fadeIn(animationSpec = tween(durationMillis = 300)),
+                        exit = fadeOut(animationSpec = tween(durationMillis = 200))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(Color.Transparent, Color.White)
+                                    )
+                                )
                         )
                     }
                 }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(12.dp, 24.dp)
-                        .clip(RoundedCornerShape(10))
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color.Red,
-                                    Color(0xDD660000)
-                                )
-                            )
-                        )
-                        .fillMaxWidth()
-                        .clickable {
-                            mainViewModel.selectedSection = BrowsingOption.الصفحات;
-                            mainViewModel.showImageList = false;
-                        }
-                        .padding(12.dp)
-                ) {
-                    Text(
-                        text = "صفحات القرآن",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White
-                    );
-                    Image(
-                        painter = painterResource(id = R.drawable.q_image1),
-                        contentDescription = "",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(112.dp)
-                            .clip(CircleShape)
-                    )
-                }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(12.dp, 24.dp)
-                        .clip(RoundedCornerShape(10))
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color.Green,
-                                    Color(0xDD006600)
-                                )
-                            )
-                        )
-                        .fillMaxWidth()
-                        .clickable {
-                            mainViewModel.selectedSection = BrowsingOption.السور;
-                            mainViewModel.showImageList = false;
-                        }
-                        .padding(12.dp)
-                ) {
-                    Text(
-                        text = "سور القرآن",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White
-                    );
-                    Image(
-                        painter = painterResource(id = R.drawable.q_image2),
-                        contentDescription = "",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(112.dp)
-                            .clip(CircleShape)
-                    )
-                }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(12.dp, 24.dp)
-                        .clip(RoundedCornerShape(10))
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color.Blue,
-                                    Color(0xDD000066)
-                                )
-                            )
-                        )
-                        .fillMaxWidth()
-                        .clickable {
-                            mainViewModel.selectedSection = BrowsingOption.الاجزاء;
-                            mainViewModel.showImageList = false;
-                        }
-                        .padding(12.dp)
-                ) {
-                    Text(
-                        text = "اجزاء القرآن",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White
-                    );
-                    Image(
-                        painter = painterResource(id = R.drawable.q_image3),
-                        contentDescription = "",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(112.dp)
-                            .clip(CircleShape)
-                    )
-                }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(12.dp, 24.dp)
-                        .clip(RoundedCornerShape(10))
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color(0xFFD0B968),
-                                    Color(0xFFA86809)
-                                )
-                            )
-                        )
-                        .fillMaxWidth()
-                        .clickable {
-                            mainViewModel.selectedSection = BrowsingOption.البحث;
-                            mainViewModel.invokeLatestSearchOperation();
-                            mainViewModel.showImageList =
-                                false;
-                        }
-                        .padding(12.dp)
-                ) {
-                    Text(
-                        text = "البحث",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White
-                    );
-                    Image(
-                        painter = painterResource(id = R.drawable.q_image4),
-                        contentDescription = "",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(112.dp)
-                            .clip(CircleShape)
-                    )
-                }
-
-                Row(modifier = Modifier.height(75.dp)) {}
             }
-        }
+
     } else {
         Column {
             OttrojjaTopBar {
