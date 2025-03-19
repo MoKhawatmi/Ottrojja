@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.EmptyListMessage
@@ -48,6 +49,7 @@ import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTopBar
+import com.ottrojja.composables.OttrojjaTopBarTitle
 import com.ottrojja.ui.theme.complete_green
 
 @Composable
@@ -85,10 +87,7 @@ fun KhitmahList(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-                Text("الختمات", style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.primary
-                )
+                OttrojjaTopBarTitle("الختمات")
 
                 Row(
                     horizontalArrangement = Arrangement.Start,
@@ -133,7 +132,7 @@ fun KhitmahList(
                             contentDescription = "Khitmah Status",
                             tint = if (item.isComplete) complete_green else MaterialTheme.colorScheme.primary,
                             modifier = Modifier
-                                .padding(end = 8.dp)
+                                .padding(end = 4.dp)
                                 .size(16.dp)
                         )
                         Text(
@@ -150,9 +149,8 @@ fun KhitmahList(
                             navController.navigate(Screen.QuranScreen.invokeRoute(item.latestPage))
                         }, modifier = Modifier.fillMaxWidth()) {
                             Text(
-                                "ص${item.latestPage}",
+                                "ص${Helpers.convertToIndianNumbers(item.latestPage)}",
                                 style = MaterialTheme.typography.bodyMedium,
-                                fontSize = 20.sp,
                             )
                         }
                     }

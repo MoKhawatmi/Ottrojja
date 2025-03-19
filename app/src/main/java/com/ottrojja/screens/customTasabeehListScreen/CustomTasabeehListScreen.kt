@@ -1,5 +1,3 @@
-@file:Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-
 package com.ottrojja.screens.customTasabeehListScreen
 
 import android.app.AlertDialog
@@ -56,6 +54,7 @@ import com.ottrojja.composables.EmptyListMessage
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTopBar
+import com.ottrojja.composables.OttrojjaTopBarTitle
 
 @Composable
 fun CustomTasabeehListScreen(
@@ -138,12 +137,7 @@ fun CustomTasabeehListScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "${customTasabeehListScreenViewModel.customTasabeehList?.title}",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 32.sp),
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier.fillMaxWidth(0.6f)
-                )
+                OttrojjaTopBarTitle(customTasabeehListScreenViewModel.customTasabeehList?.title?:"")
 
                 Row(modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,

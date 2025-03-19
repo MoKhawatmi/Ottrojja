@@ -53,6 +53,7 @@ import com.ottrojja.classes.Screen
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTopBar
+import com.ottrojja.composables.OttrojjaTopBarTitle
 import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.ui.theme.complete_green
 import java.text.SimpleDateFormat
@@ -120,12 +121,7 @@ fun KhitmahScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "${khitmahViewModel.khitmah?.title}",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 32.sp),
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier.fillMaxWidth(0.6f)
-                )
+                OttrojjaTopBarTitle(khitmahViewModel.khitmah?.title?:"")
 
                 Row(modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
