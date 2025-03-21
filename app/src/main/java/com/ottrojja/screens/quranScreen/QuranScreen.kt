@@ -101,6 +101,7 @@ import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.BenefitItem
 import com.ottrojja.composables.BenefitSectionTitle
+import com.ottrojja.composables.IsTablet
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.OttrojjaDialog
@@ -186,7 +187,8 @@ fun QuranScreen(
     } else {
         Column() {
 
-            if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT || quranViewModel.selectedTab!=QuranViewModel.PageTab.الصفحة) {
+            //configuration.orientation == Configuration.ORIENTATION_PORTRAIT || quranViewModel.selectedTab!=QuranViewModel.PageTab.الصفحة
+            if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT || (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && IsTablet())) {
                 OttrojjaTopBar {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Row(

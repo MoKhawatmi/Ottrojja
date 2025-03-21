@@ -82,7 +82,11 @@ fun AddTasabeehListDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Button(
-                    onClick = { onConfirm(listTitle) },
+                    onClick = {
+                        if (listTitle.isNotBlank()) {
+                            onConfirm(listTitle)
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
                         .padding(vertical = 2.dp)

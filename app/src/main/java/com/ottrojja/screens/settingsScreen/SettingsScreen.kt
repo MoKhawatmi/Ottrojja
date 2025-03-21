@@ -79,6 +79,7 @@ fun SettingsScreen(
                         modifier = Modifier
                             .fillMaxHeight(0.9f)
                             .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 2.dp)
                     )
                     Row(
                         modifier = Modifier

@@ -20,7 +20,9 @@ import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class MainViewModel(private val repository: QuranRepository, application: Application) :
@@ -74,21 +76,25 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
 
 
     val handler = Handler(Looper.getMainLooper())
+    private var searchJob: Job? = null
     fun searchInQuran(text: String) {
         handler.removeCallbacksAndMessages(null)
         val searchText = text.trim()
+        // Cancel previous job if still running
+        searchJob?.cancel()
         _quranSearchResults.clear()
         if (searchText.length == 0) {
             return;
         }
         println("searching for $text")
-        viewModelScope.launch(Dispatchers.IO) {
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
+            val results = mutableListOf<SearchResult>()
             repository.getAllPages().forEach { page ->
                 page.pageContent.forEach { verse ->
                     if (verse.type == PageContentItemType.verse && (verse.verseText.contains(searchText)
                                 || verse.verseTextPlain.contains(searchText))
                     ) {
-                        _quranSearchResults.add(
+                        results.add(
                             SearchResult(
                                 page.pageNum,
                                 verse.surahNum,
@@ -99,6 +105,9 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
                         );
                     }
                 }
+            }
+            withContext(Dispatchers.Main) {
+                _quranSearchResults.addAll(results)
             }
         }
         handler.postDelayed(

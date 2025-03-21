@@ -219,7 +219,11 @@ fun AddKhitmahDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Button(
-                    onClick = { onConfirm(khitmahTitle) },
+                    onClick = {
+                        if (khitmahTitle.isNotBlank()) {
+                            onConfirm(khitmahTitle)
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
                         .padding(vertical = 2.dp)

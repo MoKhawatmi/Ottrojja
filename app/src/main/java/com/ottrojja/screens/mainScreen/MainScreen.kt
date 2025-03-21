@@ -321,12 +321,11 @@ fun MainScreen(
 
             }
 
-
                 Box(
                     modifier = Modifier
                         .padding(horizontal = 24.dp)
                         .fillMaxWidth()
-                        .height(46.dp)
+                        .height(48.dp)
                         .align(Alignment.BottomCenter)
                 ) {
                     AnimatedVisibility(visible = showBottomFade.value,
