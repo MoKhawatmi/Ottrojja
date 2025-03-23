@@ -100,7 +100,7 @@ class MainActivity : ComponentActivity() {
                         Screen.TeacherScreen.route, Screen.ChaptersScreen.route,
                         Screen.TasbeehScreen.route, Screen.BookmarksScreen.route,
                         Screen.KhitmahListScreen.route, Screen.SettingsScreen.route,
-                        Screen.BlessingsScreen.route
+                        Screen.BlessingsScreen.route, Screen.QiblaScreen.route
                     )
                     Scaffold(
                         bottomBar = {

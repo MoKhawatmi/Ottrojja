@@ -965,7 +965,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 repository.getAllKhitmah().collect { state ->
-                    _khitmahList.value = state.filter { !it.isComplete };
+                    withContext(Dispatchers.Main){
+                        _khitmahList.value = state.filter { !it.isComplete };
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -1008,96 +1010,3 @@ class QuranScreenViewModelFactory(
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
-
-
-// was in init
-/*
-exoPlayer = ExoPlayer.Builder(context).build()
-
-exoPlayer.addListener(
-    object : Player.Listener {
-        override fun onIsPlayingChanged(isPlaying: Boolean) {
-            if (isPlaying) {
-                setIsPlaying(isPlaying)
-            }
-        }
-
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            super.onPlaybackStateChanged(playbackState)
-            if (playbackState == Player.STATE_ENDED) {
-                length = 0;
-                val selectedMappedRepetitions = repetitionOptionsMap.get(_selectedRepetition)!!;
-                val repeatActive = selectedMappedRepetitions > 0;
-                println("repeated times $repeatedTimes")
-
-                if (_isPlaying.value) {
-                    // Repetition logic
-
-                    if (repeatActive && _versesPlayList[currentPlayingIndex.value].type == PageContentItemType.verse) {
-                        if (_selectedRepetitionTab.value == RepetitionTab.الاية) {
-                            if (repeatedTimes < selectedMappedRepetitions) {
-                                repeatedTimes++;
-                                playAudio(_versesPlayList[currentPlayingIndex.value])
-                            } else if (currentPlayingIndex.value < _versesPlayList.size - 1) {
-                                if (currentPlayingIndex.value != endPlayingIndex) {
-                                    repeatedTimes = 0;
-                                    goNextVerse();
-                                } else {
-                                    resetPlayer();
-                                }
-                            } else {
-                                // done playing, done looping
-                                resetPlayer()
-                                if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
-                                    playNextPage()
-                                }
-                            }
-                        } else if (_selectedRepetitionTab.value == RepetitionTab.المقطع) {
-                            if (currentPlayingIndex.value != endPlayingIndex) {
-                                if (currentPlayingIndex.value < _versesPlayList.size - 1) {
-                                    goNextVerse();
-                                } else {
-                                    resetPlayer()
-                                    if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
-                                        playNextPage()
-                                    }
-                                }
-                            } else if (repeatedTimes < selectedMappedRepetitions) {
-                                repeatedTimes++;
-                                currentPlayingIndex.value = startPlayingIndex ?: 0;
-                                playAudio(_versesPlayList[currentPlayingIndex.value])
-                                println("repeat times increased $repeatedTimes")
-                            } else {
-                                // done playing, done looping
-                                resetPlayer()
-                            }
-                        }
-                    }
-                    // Play next verse
-                    else if (currentPlayingIndex.value < _versesPlayList.size - 1) {
-                        if (currentPlayingIndex.value != endPlayingIndex) {
-                            goNextVerse();
-                        } else {
-                            resetPlayer();
-                        }
-                    }
-                    // End page media logic
-                    else {
-                        resetPlayer()
-                        if (currentPageObject.pageNum != "604" && _continuousPlay.value) {
-                            playNextPage()
-                        }
-                    }
-                }
-            }
-        }
-
-        override fun onPlayerError(error: PlaybackException) {
-            super.onPlayerError(error)
-            println(error.printStackTrace())
-            Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
-                .show()
-        }
-    }
-)
-*/

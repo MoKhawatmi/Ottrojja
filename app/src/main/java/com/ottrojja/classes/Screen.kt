@@ -11,6 +11,7 @@ sealed class Screen(val route: String) {
     object TasbeehScreen : Screen(route = "tasbeeh_screen")
     object SettingsScreen : Screen(route = "settings_screen")
     object BlessingsScreen : Screen(route = "blessings_screen")
+    object QiblaScreen : Screen(route = "qibla_screen")
     object KhitmahListScreen : Screen(route = "khitmah_list_screen")
     object MainScreen : Screen(route = "main_screen?section={section}"){
         fun invokeRoute(section: BrowsingOption?): String {

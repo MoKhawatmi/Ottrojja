@@ -60,11 +60,15 @@ fun ChaptersScreen(
         LoadingDialog()
     }
 
-    val chaptersList by produceState(initialValue = emptyList<ChapterData>()) {
+    /*val chaptersList by produceState(initialValue = emptyList<ChapterData>()) {
         value = chaptersViewModel.getChaptersList()
-    }
+    }*/
 
     var filteredChapters by remember { mutableStateOf(emptyList<ChapterData>()) }
+
+    LaunchedEffect(Unit) {
+        chaptersViewModel.initChaptersList()
+    }
 
     LaunchedEffect(chaptersViewModel.searchFilter) {
         filteredChapters = chaptersViewModel.getChaptersList()

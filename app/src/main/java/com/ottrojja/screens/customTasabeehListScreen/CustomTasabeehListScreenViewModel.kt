@@ -59,11 +59,13 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 repository.getTasabeehList(id).collect { state ->
-                    _customTasabeeh.clear()
+                    withContext(Dispatchers.Main){
+                        _customTasabeeh.clear()
+                    }
                     if (state != null) {
-                        _customTasabeehList.value = state.tasabeehList;
-                        state.customTasabeeh.forEach { tasbeeh ->
-                            _customTasabeeh.add(tasbeeh)
+                        withContext(Dispatchers.Main){
+                            _customTasabeehList.value = state.tasabeehList;
+                            _customTasabeeh.addAll(state.customTasabeeh)
                         }
                     }
                 }
@@ -86,8 +88,8 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
                     if (customTasbeehModalMode == ModalFormMode.ADD) {
                         Toast.makeText(context, "تمت الإضافة بنجاح", Toast.LENGTH_LONG).show()
                     } else {
-                        Toast.makeText(context, "تم التعديل بنجاح", Toast.LENGTH_LONG).show()
                         itemCounts.put(_tasbeehInWork.value.id, _tasbeehInWork.value.count)
+                        Toast.makeText(context, "تم التعديل بنجاح", Toast.LENGTH_LONG).show()
                     }
                 }
                 closeCustomTasbeehModal()

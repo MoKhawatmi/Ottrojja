@@ -88,6 +88,14 @@ fun BottomNavigation(
         )
 
         BottomNavigationOption(
+            optionText = "القبلة",
+            isCurrent = Screen.QiblaScreen.route == currentRoute,
+            onClick = { navController.navigate(Screen.QiblaScreen.route) },
+            iconId = R.drawable.qibla,
+            alternateIcon = null
+        )
+
+        BottomNavigationOption(
             optionText = "المعلم",
             isCurrent = Screen.TeacherScreen.route == currentRoute,
             onClick = { navController.navigate(Screen.TeacherScreen.route) },
@@ -102,14 +110,6 @@ fun BottomNavigation(
             iconId = R.drawable.pin,
             alternateIcon = null
         )
-
-        /*BottomNavigationOption(
-            optionText = "صلاتي",
-            isCurrent = Screen.PrayerScreen.route == currentRoute,
-            onClick = { navController.navigate(Screen.PrayerScreen.route) },
-            iconId = R.drawable.prayer_times,
-            alternateIcon = null
-        )*/
 
         BottomNavigationOption(
             optionText = "الختمات",
@@ -172,3 +172,11 @@ fun BottomNavigationOption(
         )
     }
 }
+
+/*BottomNavigationOption(
+    optionText = "صلاتي",
+    isCurrent = Screen.PrayerScreen.route == currentRoute,
+    onClick = { navController.navigate(Screen.PrayerScreen.route) },
+    iconId = R.drawable.prayer_times,
+    alternateIcon = null
+)*/

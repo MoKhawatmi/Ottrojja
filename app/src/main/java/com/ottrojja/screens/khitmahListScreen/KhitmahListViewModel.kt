@@ -37,7 +37,9 @@ class KhitmahListViewModel(private val repository: QuranRepository, application:
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 repository.getAllKhitmah().collect { state ->
-                    _khitmahList.value = state;
+                    withContext(Dispatchers.Main){
+                        _khitmahList.value = state;
+                    }
                 }
             }
         } catch (e: Exception) {

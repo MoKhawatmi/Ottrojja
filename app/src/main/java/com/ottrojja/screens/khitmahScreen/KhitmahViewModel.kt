@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.classes.SearchResult
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahMark
 import kotlinx.coroutines.Dispatchers
@@ -35,12 +36,20 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
     fun fetchKhitmah(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                _khitmahMarks.clear()
-                val khitmahWithMarks = repository.getKhitmah(id)
-                _khitmah.value = khitmahWithMarks.khitmah;
-                khitmahWithMarks.marks.forEach { mark ->
-                    _khitmahMarks.add(ExpandableItem(data = mark, expanded = false))
+                withContext(Dispatchers.Main) {
+                    _khitmahMarks.clear()
                 }
+                val khitmahWithMarks = repository.getKhitmah(id)
+                val results = mutableListOf<ExpandableItem<KhitmahMark>>()
+                khitmahWithMarks.marks.forEach { mark ->
+                    results.add(ExpandableItem(data = mark, expanded = false))
+                }
+
+                withContext(Dispatchers.Main) {
+                    _khitmah.value = khitmahWithMarks.khitmah;
+                    _khitmahMarks.addAll(results)
+                }
+
                 println(khitmahWithMarks.marks)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -55,9 +64,9 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 repository.deleteKhitmahMarkById(id)
-                val indexOfItem = _khitmahMarks.indexOfFirst { khitmahMark -> khitmahMark.data.id == id };
-                _khitmahMarks.removeAt(index = indexOfItem)
                 withContext(Dispatchers.Main) {
+                    val indexOfItem = _khitmahMarks.indexOfFirst { khitmahMark -> khitmahMark.data.id == id };
+                    _khitmahMarks.removeAt(index = indexOfItem)
                     Toast.makeText(context, " تم الحذف بنجاح", Toast.LENGTH_LONG).show()
                 }
                 //need a better approach for this
@@ -69,7 +78,7 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
                             )
                         }
                     }
-                }else{
+                } else {
                     _khitmah.value?.let {
                         repository.updateKhitmah(
                             it.copy(latestPage = "")

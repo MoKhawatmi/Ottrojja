@@ -78,26 +78,26 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
         }
 
     }
+    /*
+        fun shareBlessing(blessing: Blessing) {
 
-    fun shareBlessing(blessing: Blessing) {
+            val sendIntent: Intent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_SUBJECT, "إشراقة")
+                putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
+                putExtra(
+                    Intent.EXTRA_TEXT,
+                    "${blessing.text}\n${context.resources.getString(R.string.share_app)}"
+                )
+                type = "text/plain"
+            }
 
-        val sendIntent: Intent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_SUBJECT, "إشراقة")
-            putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
-            putExtra(
-                Intent.EXTRA_TEXT,
-                "${blessing.text}\n${context.resources.getString(R.string.share_app)}"
-            )
-            type = "text/plain"
+            val shareIntent = Intent.createChooser(sendIntent, "مشاركة الإشراقة")
+            shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+            startActivity(context, shareIntent, null)
+
         }
-
-        val shareIntent = Intent.createChooser(sendIntent, "مشاركة الإشراقة")
-        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-        startActivity(context, shareIntent, null)
-
-    }
-
+    */
 
 }

@@ -101,9 +101,7 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
         }
 
         if (isMyServiceRunning(MediaPlayerService::class.java, context)) {
-            audioService?.playChapter(
-                "https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/${_selectedSurah.value.surahId}.mp3"
-            );
+            audioService?.playChapter("https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/${_selectedSurah.value.surahId}.mp3");
         } else {
             clickedPlay = true;
             startAndBind();
@@ -274,13 +272,7 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
     fun downloadChapter(surahId: Int) {
         if (!Helpers.checkNetworkConnectivity(context)) {
-            Toast
-                .makeText(
-                    context,
-                    "لا يوجد اتصال بالانترنت",
-                    Toast.LENGTH_LONG
-                )
-                .show()
+            Toast.makeText(context, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG).show()
             return;
         }
 
@@ -312,11 +304,7 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
 
                         tempFile.copyTo(localFile, overwrite = true)
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(
-                                context,
-                                "تم التحميل بنجاح!",
-                                Toast.LENGTH_LONG
-                            ).show()
+                            Toast.makeText(context, "تم التحميل بنجاح!", Toast.LENGTH_LONG).show()
                         }
 
                     }
@@ -339,12 +327,15 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
         }
     }
 
-    init {
+    suspend fun initChaptersList(){
+        println("Fetching chapters list")
         viewModelScope.launch(Dispatchers.IO) {
             val chapters = repository.getAllChapters()
             chaptersList.complete(chapters)
         }
+    }
 
+    init {
         val sr = isMyServiceRunning(MediaPlayerService::class.java, context);
         println("service running $sr")
         if (sr) {
@@ -363,7 +354,7 @@ class ChaptersViewModel(private val repository: QuranRepository, application: Ap
         return chaptersList.await().filter { chapter ->
             chapter.chapterName.contains(_searchFilter)
                     || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
-                    || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
+                    || chapter.surahId.toString() == _searchFilter
         };
     }
 

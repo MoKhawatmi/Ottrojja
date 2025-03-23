@@ -19,6 +19,7 @@ import com.ottrojja.screens.khitmahListScreen.KhitmahList
 import com.ottrojja.screens.khitmahScreen.KhitmahScreen
 import com.ottrojja.screens.loadingScreen.LoadingScreen
 import com.ottrojja.screens.mainScreen.MainScreen
+import com.ottrojja.screens.qiblaScreen.QiblaScreen
 import com.ottrojja.screens.quranScreen.QuranScreen
 import com.ottrojja.screens.settingsScreen.SettingsScreen
 import com.ottrojja.screens.tasbeehScreen.TasbeehScreen
@@ -45,18 +46,6 @@ fun NavGraph(navController: NavHostController,
                 repository = repository,
                 section = section ?: ""
             )
-            /*Box() {
-                MainScreen(
-                    navController = navController,
-                    repository = repository,
-                    section = section ?: ""
-                )
-                BottomNavigation(
-                    navController,
-                    Screen.MainScreen.route,
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
-            }*/
         }
 
         composable(route = Screen.AzkarScreen.route) {
@@ -64,51 +53,16 @@ fun NavGraph(navController: NavHostController,
                 navController,
                 repository
             )
-            /*Box() {
-                AzkarScreen(
-                    navController,
-                    repository
-                )
-                BottomNavigation(
-                    navController,
-                    Screen.AzkarScreen.route,
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
-            }*/
         }
 
         composable(route = Screen.TeacherScreen.route) {
             TeacherScreen(repository)
-            /*Box() {
-                TeacherScreen(repository)
-                BottomNavigation(
-                    navController,
-                    Screen.TeacherScreen.route,
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
-            }*/
         }
         composable(route = Screen.ChaptersScreen.route) {
             ChaptersScreen(repository)
-            /*Box() {
-                ChaptersScreen(repository)
-                BottomNavigation(
-                    navController,
-                    Screen.ChaptersScreen.route,
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
-            }*/
         }
         composable(route = Screen.TasbeehScreen.route) {
             TasbeehScreen(navController = navController, repository = repository)
-            /*Box() {
-                TasbeehScreen(navController = navController, repository = repository)
-                BottomNavigation(
-                    navController,
-                    Screen.TasbeehScreen.route,
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
-            }*/
         }
 
         composable(route = Screen.BookmarksScreen.route) {
@@ -116,17 +70,6 @@ fun NavGraph(navController: NavHostController,
                 navController = navController,
                 repository = repository
             )
-            /*Box() {
-                BookmarksScreen(
-                    navController = navController,
-                    repository = repository
-                )
-                BottomNavigation(
-                    navController,
-                    Screen.BookmarksScreen.route,
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
-            }*/
         }
 
         composable(route = Screen.KhitmahListScreen.route) {
@@ -134,43 +77,21 @@ fun NavGraph(navController: NavHostController,
                 navController = navController,
                 repository = repository
             )
-            /*Box() {
-                KhitmahList(
-                    navController,
-                    repository = repository
-                )
-                BottomNavigation(
-                    navController,
-                    Screen.KhitmahListScreen.route,
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
-            }*/
         }
 
 
         composable(route = Screen.SettingsScreen.route) {
             SettingsScreen()
-            /*Box() {
-                SettingsScreen()
-                BottomNavigation(
-                    navController,
-                    Screen.SettingsScreen.route,
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
-            }*/
         }
 
         composable(route = Screen.BlessingsScreen.route) {
             BlessingsScreen()
-            /*Box() {
-                BlessingsScreen()
-                BottomNavigation(
-                    navController,
-                    Screen.BlessingsScreen.route,
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
-            }*/
         }
+
+        composable(route = Screen.QiblaScreen.route) {
+            QiblaScreen()
+        }
+
 
         composable(route = Screen.LoadingScreen.route) {
             LoadingScreen(navController, repository)

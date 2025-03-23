@@ -137,7 +137,9 @@ fun CustomTasabeehListScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OttrojjaTopBarTitle(customTasabeehListScreenViewModel.customTasabeehList?.title?:"")
+                OttrojjaTopBarTitle(
+                    customTasabeehListScreenViewModel.customTasabeehList?.title ?: ""
+                )
 
                 Row(modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
@@ -210,21 +212,25 @@ fun CustomTasabeehListScreen(
                 item {
                     EmptyListMessage("لا يوجد اذكار مضافة بعد")
                 }
-            }
-            items(customTasabeehListScreenViewModel.customTasabeeh, key = { it.id }) { item ->
-                CustomTasbeehCounter(
-                    item = item,
-                    deleteCustomTasbeeh = {
-                        customTasabeehListScreenViewModel.deleteCustomTasbeeh(item)
-                    },
-                    editCustomTasbeeh = {
-                        customTasabeehListScreenViewModel.customTasbeehModalMode = ModalFormMode.EDIT
-                        customTasabeehListScreenViewModel.tasbeehInWork = item;
-                        customTasabeehListScreenViewModel.addTasbeehDialog = true;
-                    },
-                    tasbeehCount = customTasabeehListScreenViewModel.itemCounts.get(item.id) ?: item.count,
-                    onCountChanged = { value -> customTasabeehListScreenViewModel.itemCounts.put(item.id, value) },
-                )
+            } else {
+                items(customTasabeehListScreenViewModel.customTasabeeh, key = { it.id }) { item ->
+                    CustomTasbeehCounter(
+                        item = item,
+                        deleteCustomTasbeeh = {
+                            customTasabeehListScreenViewModel.deleteCustomTasbeeh(item)
+                        },
+                        editCustomTasbeeh = {
+                            customTasabeehListScreenViewModel.customTasbeehModalMode = ModalFormMode.EDIT
+                            customTasabeehListScreenViewModel.tasbeehInWork = item;
+                            customTasabeehListScreenViewModel.addTasbeehDialog = true;
+                        },
+                        tasbeehCount = customTasabeehListScreenViewModel.itemCounts.get(item.id)
+                            ?: item.count,
+                        onCountChanged = { value ->
+                            customTasabeehListScreenViewModel.itemCounts.put(item.id, value)
+                        },
+                    )
+                }
             }
         }
     }

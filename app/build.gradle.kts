@@ -14,8 +14,8 @@ android {
         applicationId = "com.ottrojja"
         minSdk = 24
         targetSdk = 35
-        versionCode = 29
-        versionName = "1.7.9"
+        versionCode = 30
+        versionName = "1.8.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -79,7 +79,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.caverock:androidsvg-aar:1.4")
-    implementation("androidx.compose.material:material-icons-extended:{latest_version}")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:11.1.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")

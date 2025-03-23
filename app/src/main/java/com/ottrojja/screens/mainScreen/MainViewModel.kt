@@ -91,7 +91,9 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
             val results = mutableListOf<SearchResult>()
             repository.getAllPages().forEach { page ->
                 page.pageContent.forEach { verse ->
-                    if (verse.type == PageContentItemType.verse && (verse.verseText.contains(searchText)
+                    if (verse.type == PageContentItemType.verse && (verse.verseText.contains(
+                            searchText
+                        )
                                 || verse.verseTextPlain.contains(searchText))
                     ) {
                         results.add(
@@ -133,11 +135,9 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
 
     fun getChaptersList(): List<ChapterData> {
         return chaptersList.filter { chapter ->
-            chapter.chapterName.contains(_searchFilter
-            ) || chapter.surahId.toString() == convertToArabicNumbers(
-                _searchFilter
-            )
+            chapter.chapterName.contains(_searchFilter)
                     || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
+                    || chapter.surahId.toString() == _searchFilter
         };
     }
 
