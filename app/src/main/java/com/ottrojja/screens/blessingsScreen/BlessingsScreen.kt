@@ -38,7 +38,7 @@ import com.ottrojja.composables.ListHorizontalDivider
 
 @Composable
 fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
-    val context= LocalContext.current
+    val context = LocalContext.current
     val blessings by blessingsViewModel.blessingsList.collectAsState()
     val listState = rememberLazyListState()
 
@@ -58,50 +58,26 @@ fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
     }
 
 
-    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.tertiary)) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.tertiary)) {
         Header()
-        LazyColumn(state = listState, modifier = Modifier.padding(horizontal = 6.dp).fillMaxHeight()) {
+        LazyColumn(state = listState,
+            modifier = Modifier
+                .padding(horizontal = 6.dp)
+                .fillMaxHeight()
+        ) {
             items(blessings) { item ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .background(MaterialTheme.colorScheme.background)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.End,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        Icon(
-                            Icons.Default.ContentCopy,
-                            contentDescription = "share blessing",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(top = 4.dp, end = 4.dp, start = 4.dp, bottom = 0.dp).clickable { copyToClipboard(context, item.text) }
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text =item.text,
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Right,
-                            modifier = Modifier.padding(6.dp, 8.dp)
-                        )
-                    }
-                    ListHorizontalDivider()
-                }
+                BlessingItem(item = item, onShareClick = { copyToClipboard(context, item.text) })
             }
 
             if (blessingsViewModel.loading) {
                 item {
                     Row(
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp)
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.width(34.dp),

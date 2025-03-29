@@ -2,11 +2,12 @@ package com.ottrojja.screens.tasbeehScreen
 
 import com.ottrojja.classes.JsonParser
 import android.app.Application
-import android.content.Context
-import android.content.SharedPreferences
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -16,21 +17,37 @@ import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Tasabeeh
 import com.ottrojja.room.entities.TasabeehList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+private val Application.dataStore by preferencesDataStore(name = "ottrojja")
+
 
 class TasbeehScreenViewModel(private val repository: QuranRepository, application: Application) :
     AndroidViewModel(application) {
     val context = application.applicationContext;
-    val sharedPreferences: SharedPreferences =
-        application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
 
-    private val _tasbeehCount = mutableStateOf(0)
+   // val sharedPreferences: SharedPreferences = application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
+
+    private val dataStore = application.dataStore
+    private val COUNT_KEY = intPreferencesKey("tasbeehCount")
+
+    // Flow to observe count value from DataStore
+    val tasbeehCount: StateFlow<Int> = dataStore.data
+        .map { preferences -> preferences[COUNT_KEY] ?: 0 }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
+
+    /*private val _tasbeehCount = mutableStateOf(0)
     var tasbeehCount: Int
         get() = _tasbeehCount.value
         set(value) {
             _tasbeehCount.value = value
-        }
+        }*/
 
 
     private val _selectedTab = mutableStateOf(TasbeehTab.المسبحة)
@@ -47,7 +64,7 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
 
 
     init {
-        _tasbeehCount.value = sharedPreferences.getInt("tasbeehCount", 0)
+      //  _tasbeehCount.value = sharedPreferences.getInt("tasbeehCount", 0)
         try {
             JsonParser(context).parseJsonArrayFile<Tasabeeh>("tasabeeh.json")
                 ?.let {
@@ -62,17 +79,31 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
     }
 
     fun increaseTasbeeh() {
-        _tasbeehCount.value++;
+        /*_tasbeehCount.value++;
         val editor: SharedPreferences.Editor = sharedPreferences.edit()
         editor.putInt("tasbeehCount", _tasbeehCount.value)
-        editor.apply()
+        editor.apply()*/
+
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                val current = preferences[COUNT_KEY] ?: 0
+                preferences[COUNT_KEY] = current + 1
+            }
+        }
+
     }
 
     fun resetTasbeeh() {
-        _tasbeehCount.value = 0
+        /*_tasbeehCount.value = 0
         val editor: SharedPreferences.Editor = sharedPreferences.edit()
         editor.putInt("tasbeehCount", _tasbeehCount.value)
-        editor.apply()
+        editor.apply()*/
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[COUNT_KEY] = 0
+            }
+        }
+
     }
 
     fun updateExpanded(item: ExpandableItem<Tasabeeh>) {

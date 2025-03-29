@@ -60,6 +60,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.Helpers.convertToIndianNumbers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
 import com.ottrojja.composables.Header
@@ -618,10 +619,7 @@ fun SearchMenu(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "{${item.verseText} ${
-                            Helpers.convertToIndianNumbers(item.verseNum
-                            )
-                        }} - ${item.surahName}",
+                        text = "{${item.verseText}} ${convertToIndianNumbers(item.verseNum)} - ${item.surahName}",
                         color = Color.Black,
                         style = MaterialTheme.typography.bodyMedium
                     )
