@@ -53,51 +53,11 @@ fun SettingsScreen(
         settingsScreenViewModel.getSettings()
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.tertiary)) {
         Header()
 
         if (settingsScreenViewModel.ShowAboutDialog) {
-            OttrojjaDialog(contentModifier = Modifier
-                .padding(8.dp)
-                .fillMaxHeight(0.7f)
-                .background(MaterialTheme.colorScheme.secondary)
-                .padding(8.dp)
-                .clip(shape = RoundedCornerShape(12.dp)),
-                onDismissRequest = {
-                    settingsScreenViewModel.ShowAboutDialog = false
-                }) {
-                Column(
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    horizontalAlignment = Alignment.Start,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Text(
-                        stringResource(R.string.about_app),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontSize = 20.sp,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .fillMaxHeight(0.9f)
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = 2.dp)
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
-                        Button(onClick = { settingsScreenViewModel.ShowAboutDialog = false }) {
-                            Text(
-                                "إغلاق",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontSize = 20.sp,
-                                textAlign = TextAlign.End
-                            )
-                        }
-                    }
-                }
-            }
+            AboutDialog(onDismiss = {settingsScreenViewModel.ShowAboutDialog = false} )
         }
 
         if (settingsScreenViewModel.ShowContactDialog) {
@@ -213,7 +173,9 @@ fun SettingsScreen(
             "سياسة الخصوصية", {
                 val intent = Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("https://doc-hosting.flycricket.io/trj-lshykh-hmd-lhrsys-privacy-policy/202aef51-24ea-40e3-b208-b05c0cb698d6/privacy")
+                    Uri.parse(
+                        "https://doc-hosting.flycricket.io/trj-lshykh-hmd-lhrsys-privacy-policy/202aef51-24ea-40e3-b208-b05c0cb698d6/privacy"
+                    )
                 )
                 context.startActivity(intent)
             })
@@ -255,5 +217,48 @@ fun sendMail(context: Context, to: String, subject: String) {
     } catch (t: Throwable) {
         Toast.makeText(context, "حدث خطأ", Toast.LENGTH_LONG).show()
     }
+}
 
+@Composable
+fun AboutDialog(onDismiss: () -> Unit) {
+    OttrojjaDialog(contentModifier = Modifier
+        .padding(8.dp)
+        .fillMaxHeight(0.7f)
+        .padding(8.dp)
+        .clip(shape = RoundedCornerShape(12.dp)),
+        onDismissRequest = {
+            onDismiss()
+        }) {
+        Column(
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Text(
+                stringResource(R.string.about_app),
+                style = MaterialTheme.typography.bodyMedium,
+                fontSize = 20.sp,
+                textAlign = TextAlign.Start,
+                modifier = Modifier
+                    .fillMaxHeight(0.9f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 2.dp)
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                Button(onClick = { onDismiss() }) {
+                    Text(
+                        "إغلاق",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.End
+                    )
+                }
+            }
+        }
+    }
 }

@@ -3,6 +3,7 @@ package com.ottrojja.screens.qiblaScreen
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -33,21 +34,43 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.sp
 import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
+import com.ottrojja.composables.OttrojjaDialog
+import com.ottrojja.ui.theme.complete_green
 import com.ottrojja.ui.theme.md_theme_light_primary
 import com.ottrojja.ui.theme.md_theme_light_secondary
+import kotlin.math.abs
 
 
 @Composable
@@ -110,6 +133,13 @@ private fun CompassContent() {
     }
     var angle by remember { mutableStateOf(0f) }
     var bearing by remember { mutableStateOf(0f) }
+    val animatedAngle by animateFloatAsState(
+        targetValue = angle,
+        animationSpec = tween(durationMillis = 100, easing = FastOutSlowInEasing)
+    )
+
+    var calibrationRequired by remember { mutableStateOf(false) }
+    var sensorAccuracy by remember { mutableStateOf(SensorManager.SENSOR_STATUS_UNRELIABLE) }
 
     val locationState = remember { mutableStateOf<Location?>(null) }
     val locationManager =
@@ -145,7 +175,23 @@ private fun CompassContent() {
                 }
             }
 
-            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+                sensorAccuracy = accuracy
+                when (accuracy) {
+                    SensorManager.SENSOR_STATUS_ACCURACY_LOW -> {
+                        calibrationRequired = true
+                    }
+
+                    SensorManager.SENSOR_STATUS_UNRELIABLE -> {
+                        calibrationRequired = true
+                    }
+
+                    else -> {
+                        calibrationRequired = false
+                    }
+                }
+            }
+
         }
     }
 
@@ -197,111 +243,84 @@ private fun CompassContent() {
         }
     }
 
+    val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.kaaba)
+    val imageBitmap = bitmap.asImageBitmap()
+
+    // Calibration dialog
+    if (calibrationRequired) {
+        CalibrationDialog(
+            onDismiss = { calibrationRequired = false },
+            onConfirm = { calibrationRequired = false }
+        )
+    }
+
+
     Column(modifier = Modifier
         .fillMaxSize()
-        .background(MaterialTheme.colorScheme.tertiary)
+        .background(MaterialTheme.colorScheme.tertiary),
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.secondary)
-            .padding(bottom = 6.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+        Column(modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("تجريبي",
-                color = MaterialTheme.colorScheme.onSecondary,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-        }
-
-        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             Row(modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 6.dp),
-                horizontalArrangement = Arrangement.Center
+                .background(MaterialTheme.colorScheme.secondary)
+                .padding(bottom = 6.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "الرجاء تفعيل خاصية تحديد المواقع GPS ليتمكن التطبيق من تحديد القبلة بفعالية",
-                    color = Color.Red,
+                Text("تجريبي",
+                    color = MaterialTheme.colorScheme.onSecondary,
+                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
             }
-        }
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "إتجاه القبلة °${bearing.toString().split(".").get(0)}",
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center
-            )
-        }
-        /*Canvas(modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(0.9f)
-        ) {
-            val canvasWidth = size.width
-            val canvasHeight = size.height
-            val centerX = canvasWidth / 2
-            val centerY = canvasHeight / 2
-            val radius = min(canvasWidth, canvasHeight) / 2 * 0.8f
 
-            // Draw compass circle
-            drawCircle(
-                color = Color(0xFFD0B968),
-                radius = radius,
-                center = Offset(centerX, centerY),
-                style = Stroke(width = 4.dp.toPx())
-            )
-
-
-            // Draw compass needle
-            val needleLength = radius * 0.9f
-            val path = Path().apply {
-                moveTo(centerX, centerY - needleLength)
-                lineTo(centerX - 20f, centerY)
-                lineTo(centerX + 20f, centerY)
-                close()
+            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(vertical = 6.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "الرجاء تفعيل نظام تحديد المواقع GPS ليتمكن التطبيق من تحديد إتجاه القبلة",
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
 
-
-            rotate(angle, Offset(centerX, centerY)) {
-                drawPath(path, Color(0xFF194D65))
+            if (locationState.value != null) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "إتجاه القبلة °${bearing.toString().split(".").get(0)}",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
-
-            /*
-            // Draw North indicator
-            drawContext.canvas.nativeCanvas.apply {
-                drawText(
-                    "N",
-                    centerX - 15f,
-                    centerY - radius - 40f,
-                    android.graphics.Paint().apply {
-                        color = android.graphics.Color.RED
-                        textSize = 40f
-                        textAlign = android.graphics.Paint.Align.CENTER
-                    }
-                )
-            }*/
-        }*/
+        }
 
         Canvas(modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(0.8f)
+            .size(400.dp)
         ) {
             val canvasWidth = size.width
             val canvasHeight = size.height
             val centerX = canvasWidth / 2
             val centerY = canvasHeight / 2
-            val radius = min(canvasWidth, canvasHeight) / 2 * 0.8f
+            val radius = min(size.width, size.height) / 2 * 0.7f
 
             // Draw compass background
             drawCircle(
-                color = md_theme_light_secondary,
+                color = if (abs(angle.toInt()) == 0) complete_green else md_theme_light_secondary,
                 radius = radius,
                 center = Offset(centerX, centerY),
                 style = Stroke(width = 8.dp.toPx())
@@ -320,13 +339,12 @@ private fun CompassContent() {
                 }
             }
 
-            // Improved needle design
-            rotate(angle, Offset(centerX, centerY)) {
+
+            rotate(animatedAngle, Offset(centerX, centerY)) {
                 val needleLength = radius * 0.9f
                 val needleWidth = radius * 0.15f
                 val tailWidth = radius * 0.07f
 
-                // North needle (red)
                 Path().apply {
                     moveTo(centerX, centerY - needleLength)
                     lineTo(centerX - needleWidth, centerY)
@@ -363,44 +381,73 @@ private fun CompassContent() {
                     center = Offset(centerX, centerY)
                 )
             }
+
+            val greyscaleMatrix = ColorMatrix(
+                floatArrayOf(
+                    0.33f, 0.33f, 0.33f, 0f, 0f,
+                    0.33f, 0.33f, 0.33f, 0f, 0f,
+                    0.33f, 0.33f, 0.33f, 0f, 0f,
+                    0f, 0f, 0f, 1f, 0f
+                )
+            )
+            val drawImageWidth = 108;
+            val drawImageHeight = 108;
+
+            drawImage(imageBitmap,
+                dstOffset = IntOffset((centerX - drawImageWidth / 2).toInt(),
+                    (centerY - radius - 200).toInt()
+                ),
+                dstSize = IntSize(drawImageWidth, drawImageHeight
+                ),
+                colorFilter = if (abs(angle.toInt()) == 0) null else ColorFilter.colorMatrix(
+                    greyscaleMatrix
+                )
+            )
         }
 
-        if(locationState.value!=null){
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 6.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text("Lat: ${String.format(Locale.US, "%.4f", locationState.value?.latitude)}    Lng: ${String.format(Locale.US, "%.4f", locationState.value?.longitude)}",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
-                )
-            }
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 6.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(getCityFromLocation(context,
-                    locationState.value?.latitude,
-                    locationState.value?.longitude
-                ), color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }else{
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 6.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text("جاري المعالجة..",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
-                )
+        Column(modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (locationState.value != null) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 6.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("Lat: ${
+                        String.format(Locale.US, "%.4f", locationState.value?.latitude
+                        )
+                    }    Lng: ${String.format(Locale.US, "%.4f", locationState.value?.longitude)}",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(getCityFromLocation(context,
+                        locationState.value?.latitude,
+                        locationState.value?.longitude
+                    ), color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("جاري المعالجة..",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }
@@ -431,19 +478,63 @@ private fun getCityFromLocation(context: Context, latitude: Double?, longitude: 
 
 
 @Composable
-fun CalibrationPrompt() {
-    AlertDialog(
-        onDismissRequest = { /* Optionally allow dismissing */ },
-        title = { Text("Compass Calibration Needed") },
-        text = {
-            Text(
-                "Your compass accuracy is low. Please move your phone in a figure-8 motion to calibrate it."
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = { /* You might dismiss the prompt after user acknowledgment */ }) {
-                Text("OK")
+private fun CalibrationDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    OttrojjaDialog(contentModifier = Modifier
+        .padding(8.dp)
+        .fillMaxHeight(0.7f)
+        .clip(shape = RoundedCornerShape(12.dp)), onDismissRequest = { onDismiss() }) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier
+                .fillMaxHeight(0.9f)
+                .verticalScroll(rememberScrollState())
+            ) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("معايرة البوصلة",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSecondary
+                    )
+                }
+
+                Image(painter = painterResource(R.drawable.calibration),
+                    contentDescription = "calibration",
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Text("لتحديد اتجاه القبلة بدقة يرجى:", style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
+                )
+                Text("١. أمساك الجهاز بشكل مسطح", style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
+                )
+                Text("٢. تحريكه في نمط بشكل رقم 8", style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
+                )
+                Text("٣. تجنب التداخل المغناطيسي وأبعد الجهاز عن أي أجهزة كهربائية أو مغناطيسات",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                Button(onClick = { onDismiss() }) {
+                    Text(
+                        "إغلاق",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.End
+                    )
+                }
             }
         }
-    )
+    }
 }
+

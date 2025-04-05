@@ -99,6 +99,7 @@ import com.ottrojja.classes.PageContent
 import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
+import com.ottrojja.classes.TafseerSheetMode
 import com.ottrojja.composables.BenefitItem
 import com.ottrojja.composables.BenefitSectionTitle
 import com.ottrojja.composables.IsTablet
@@ -333,19 +334,9 @@ fun QuranScreen(
 
                 QuranViewModel.PageTab.الآيات -> VersesSection(
                     quranViewModel.currentPageObject.pageContent.filter { item -> item.type == PageContentItemType.verse },
-                    { targetVerse ->
+                    onSheetRequest = { targetVerse, mode ->
                         quranViewModel.tafseerTargetVerse = targetVerse;
-                        quranViewModel.tafseerSheetMode = "tafseer"
-                        quranViewModel.showTafseerSheet = true
-                    },
-                    { targetVerse ->
-                        quranViewModel.tafseerTargetVerse = targetVerse;
-                        quranViewModel.tafseerSheetMode = "e3rab"
-                        quranViewModel.showTafseerSheet = true
-                    },
-                    { targetVerse ->
-                        quranViewModel.tafseerTargetVerse = targetVerse;
-                        quranViewModel.tafseerSheetMode = "causeOfRevelation"
+                        quranViewModel.tafseerSheetMode = mode
                         quranViewModel.showTafseerSheet = true
                     },
                     repository
@@ -381,6 +372,7 @@ fun QuranScreen(
                 quranViewModel.verseTafseer,
                 quranViewModel.verseE3rab,
                 quranViewModel.verseCauseOfRevelation,
+                verseMeanings = quranViewModel.verseMeanings,
                 quranViewModel.selectedTafseer,
                 onClickTafseerOptions = { quranViewModel.showTafseerOptions = true },
                 mode = quranViewModel.tafseerSheetMode,
@@ -468,9 +460,10 @@ fun TafseerBottomSheet(
     tafseer: String,
     e3rab: String,
     causeOfRevelation: String,
+    verseMeanings: String,
     selectedTafseer: String,
     onClickTafseerOptions: () -> Unit,
-    mode: String,
+    mode: TafseerSheetMode,
     atFirstVerse: Boolean,
     atLastVerse: Boolean,
     targetNextVerse: () -> Unit,
@@ -488,15 +481,17 @@ fun TafseerBottomSheet(
             SelectedVerseContentSection(
                 context = context,
                 text = when (mode) {
-                    "tafseer" -> tafseer
-                    "e3rab" -> e3rab
-                    "causeOfRevelation" -> causeOfRevelation
+                    TafseerSheetMode.TAFSEER -> tafseer
+                    TafseerSheetMode.E3RAB -> e3rab
+                    TafseerSheetMode.CAUSES_OF_REVELATION -> causeOfRevelation
+                    TafseerSheetMode.VERSE_MEANINGS -> verseMeanings
                     else -> ""
                 },
                 copiedMessage = when (mode) {
-                    "tafseer" -> "تم تسخ التفسير بنجاح"
-                    "e3rab" -> "تم تسخ الإعراب بنجاح"
-                    "causeOfRevelation" -> "تم تسخ سبب النزول بنجاح"
+                    TafseerSheetMode.TAFSEER -> "تم تسخ التفسير بنجاح"
+                    TafseerSheetMode.E3RAB -> "تم تسخ الإعراب بنجاح"
+                    TafseerSheetMode.CAUSES_OF_REVELATION -> "تم تسخ سبب النزول بنجاح"
+                    TafseerSheetMode.VERSE_MEANINGS -> "تم تسخ معاني المفردات بنجاح"
                     else -> ""
                 },
                 atFirstVerse = atFirstVerse,
@@ -504,7 +499,7 @@ fun TafseerBottomSheet(
                 targetNextVerse = { targetNextVerse() },
                 targetPreviousVerse = { targetPreviousVerse() }
             ) {
-                if (mode == "tafseer") {
+                if (mode == TafseerSheetMode.TAFSEER) {
                     Row(horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -1161,9 +1156,7 @@ fun YoutubeScreen(
 @Composable
 fun VersesSection(
     items: List<PageContent>,
-    onTafseerClick: (String) -> Unit,
-    onE3rabClick: (String) -> Unit,
-    onCauseOfRevelationClick: (String) -> Unit,
+    onSheetRequest: (String, TafseerSheetMode) -> Unit,
     repository: QuranRepository
 ) {
     val context = LocalContext.current
@@ -1252,8 +1245,9 @@ fun VersesSection(
                                     .weight(1.0f)
                                     .background(MaterialTheme.colorScheme.primary)
                                     .clickable {
-                                        onTafseerClick(
-                                            "${item.pageContent.surahNum}-${item.pageContent.verseNum}"
+                                        onSheetRequest(
+                                            "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
+                                            TafseerSheetMode.TAFSEER
                                         )
                                     }
                                     .padding(4.dp, 6.dp)
@@ -1270,8 +1264,9 @@ fun VersesSection(
                                     .weight(1.0f)
                                     .background(MaterialTheme.colorScheme.tertiary)
                                     .clickable {
-                                        onE3rabClick(
-                                            "${item.pageContent.surahNum}-${item.pageContent.verseNum}"
+                                        onSheetRequest(
+                                            "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
+                                            TafseerSheetMode.E3RAB
                                         )
                                     }
                                     .padding(4.dp, 6.dp)
@@ -1288,8 +1283,9 @@ fun VersesSection(
                                     .weight(1.0f)
                                     .background(MaterialTheme.colorScheme.primary)
                                     .clickable {
-                                        onCauseOfRevelationClick(
-                                            "${item.pageContent.surahNum}-${item.pageContent.verseNum}"
+                                        onSheetRequest(
+                                            "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
+                                            TafseerSheetMode.CAUSES_OF_REVELATION
                                         )
                                     }
                                     .padding(4.dp, 6.dp)
@@ -1300,14 +1296,25 @@ fun VersesSection(
                                     color = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
+                            Column(horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center,
                                 modifier = Modifier
                                     .weight(1.0f)
-                                    .background(Color.Transparent)
+                                    .background(MaterialTheme.colorScheme.tertiary)
+                                    .clickable {
+                                        onSheetRequest(
+                                            "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
+                                            TafseerSheetMode.VERSE_MEANINGS
+                                        )
+                                    }
                                     .padding(4.dp, 6.dp)
-                            ) {}
+                            ) {
+                                Text(
+                                    text = "المفردات",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.Black
+                                )
+                            }
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center,

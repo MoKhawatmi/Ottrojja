@@ -1,4 +1,4 @@
-package com.ottrojja.screens.quranScreen
+package com.ottrojja.room.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

@@ -38,7 +38,7 @@ fun CustomTasabeehLists(navController: NavController,
         .fillMaxWidth()
         .fillMaxHeight()
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.tertiary)) {
             LazyColumn {
                 if (customTasabeehLists.isEmpty()) {
                     item {

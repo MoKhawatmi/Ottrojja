@@ -46,6 +46,7 @@ class JsonParser(private val context: Context) {
             null
         }
     }
+
     fun getFilesVersions(): HashMap<String, Int> {
         val json: String? = loadJsonFromAsset("files_versions.json")
         val jsonObject = JSONObject(json)
@@ -55,6 +56,7 @@ class JsonParser(private val context: Context) {
             "chapters" to jsonObject.getInt("chapters"),
             "parts" to jsonObject.getInt("parts"),
             "e3rab" to jsonObject.getInt("e3rab"),
+            "verseMeanings" to jsonObject.getInt("verseMeanings"),
             "causesOfRevelation" to jsonObject.getInt("causesOfRevelation"),
             "tafaseer" to jsonObject.getInt("tafaseer"),
         )
@@ -76,85 +78,3 @@ class JsonParser(private val context: Context) {
         return json
     }
 }
-
-
-
-/*
-    fun parseJsonArrayFileChapters(fileName: String): List<ChapterData>? {
-        val json: String? = loadJsonFromAsset(fileName)
-
-        return if (json != null) {
-            val listType = object : TypeToken<List<ChapterData>>() {}.type
-            Gson().fromJson(json, listType)
-        } else {
-            null
-        }
-    }
-
-    fun parseJsonArrayFileAzkar(fileName: String): List<Azkar>? {
-        val json: String? = loadJsonFromAsset(fileName)
-
-        return if (json != null) {
-            val listType = object : TypeToken<List<Azkar>>() {}.type
-            Gson().fromJson(json, listType)
-        } else {
-            null
-        }
-    }
-
-    fun parseJsonArrayFileParts(fileName: String): List<PartData>? {
-        val json: String? = loadJsonFromAsset(fileName)
-
-        return if (json != null) {
-            val listType = object : TypeToken<List<PartData>>() {}.type
-            Gson().fromJson(json, listType)
-        } else {
-            null
-        }
-    }
-
-    fun parseJsonArrayFileTafseer(fileName: String): List<TafseerData>? {
-        val json: String? = loadJsonFromAsset(fileName)
-
-        return if (json != null) {
-            val listType = object : TypeToken<List<TafseerData>>() {}.type
-            Gson().fromJson(json, listType)
-        } else {
-            null
-        }
-    }
-
-    fun parseJsonArrayFileE3rab(fileName: String): List<E3rabData>? {
-        val json: String? = loadJsonFromAsset(fileName)
-
-        return if (json != null) {
-            val listType = object : TypeToken<List<E3rabData>>() {}.type
-            Gson().fromJson(json, listType)
-        } else {
-            null
-        }
-    }
-
-    fun parseJsonArrayFileCausesOfRevelation(fileName: String): List<CauseOfRevelation>? {
-        val json: String? = loadJsonFromAsset(fileName)
-
-        return if (json != null) {
-            val listType = object : TypeToken<List<CauseOfRevelation>>() {}.type
-            Gson().fromJson(json, listType)
-        } else {
-            null
-        }
-    }
-
-    fun parseJsonArrayFileTasabeeh(fileName: String): List<Tasabeeh>? {
-        val json: String? = loadJsonFromAsset(fileName)
-
-        return if (json != null) {
-            val listType = object : TypeToken<List<Tasabeeh>>() {}.type
-            Gson().fromJson(json, listType)
-        } else {
-            null
-        }
-    }
-*/
-

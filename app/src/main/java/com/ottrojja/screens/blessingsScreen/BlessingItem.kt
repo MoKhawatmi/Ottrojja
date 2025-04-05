@@ -25,6 +25,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.Blessing
@@ -88,20 +90,23 @@ fun BlessingItem(item: Blessing, onShareClick: () -> Unit) {
 
         if (!expanded) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
                     .align(alignment = Alignment.BottomCenter)
+                    .height(125.dp)
                     .fillMaxWidth()
                     .background(
-                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.7f)
+                        brush = Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, Color.White)
+                        )
                     )
             ) {
                 Text(text = "عرض المزيد",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(vertical = 6.dp)
+                    modifier = Modifier.padding(vertical = 4.dp)
                 )
             }
         }

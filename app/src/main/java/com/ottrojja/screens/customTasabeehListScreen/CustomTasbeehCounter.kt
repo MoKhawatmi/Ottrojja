@@ -2,6 +2,7 @@ package com.ottrojja.screens.customTasabeehListScreen
 
 import android.app.AlertDialog
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -93,6 +94,7 @@ fun CustomTasbeehCounter(item: CustomTasbeeh,
                 shape = RoundedCornerShape(12.dp)
             )
             .clip(RoundedCornerShape(12))
+            .background(MaterialTheme.colorScheme.background)
             .padding(0.dp)
     ) {
         Row(verticalAlignment = Alignment.Bottom,

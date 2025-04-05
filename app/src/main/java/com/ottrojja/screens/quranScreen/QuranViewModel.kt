@@ -26,6 +26,7 @@ import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.classes.TafseerSheetMode
 import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahMark
@@ -80,8 +81,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             _shouldAutoPlay.value = value
         }
 
-    private var _tafseerSheetMode by mutableStateOf("tafseer")
-    var tafseerSheetMode: String
+    private var _tafseerSheetMode by mutableStateOf(TafseerSheetMode.TAFSEER)
+    var tafseerSheetMode: TafseerSheetMode
         get() = _tafseerSheetMode
         set(value) {
             _tafseerSheetMode = value
@@ -646,11 +647,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 println(value)
                 println("tafseer for $surah-$verse at ${tafseerNamesMap.get(_selectedTafseer)}")
 
-                _verseTafseer = repository.getVerseTafseerData(
-                    surah,
-                    verse,
-                    tafseerNamesMap.get(_selectedTafseer)!!
-                ).text
+                _verseTafseer = repository.getVerseTafseerData(surah, verse, tafseerNamesMap.get(_selectedTafseer)!!).text
                 _verseE3rab = repository.getVerseE3rabData(surah, verse).text
                 val causesOfRevelation = repository.getCauseOfRevelation(surah, verse)
                 if (causesOfRevelation.size == 0) {
@@ -660,6 +657,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                     causesOfRevelation.forEach { cause -> concatCauses += "${cause.text}\n\n" }
                     _verseCauseOfRevelation = concatCauses
                 }
+                _verseMeanings=repository.getSingleVerseMeanings(surah,verse)?.text?:"لم يرد في المرجع معاني لمفردات الاية"
             }
         }
 
@@ -683,6 +681,14 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         set(value) {
             _verseCauseOfRevelation = value
         }
+
+    private var _verseMeanings by mutableStateOf("")
+    var verseMeanings: String
+        get() = _verseMeanings
+        set(value) {
+            _verseMeanings = value
+        }
+
 
     private var _showTafseerSheet by mutableStateOf(false)
     var showTafseerSheet: Boolean

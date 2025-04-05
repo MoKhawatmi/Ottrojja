@@ -1,5 +1,8 @@
 package com.ottrojja.classes
 
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.dao.KhitmahDao
@@ -7,14 +10,16 @@ import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.room.relations.KhitmahWithMarks
 import com.ottrojja.room.dao.QuranDao
 import com.ottrojja.room.dao.TasabeehDao
+import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.room.entities.TasabeehList
 import com.ottrojja.room.relations.ListWithTasabeeh
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
-import com.ottrojja.screens.quranScreen.E3rabData
-import com.ottrojja.screens.quranScreen.TafseerData
+import com.ottrojja.room.entities.E3rabData
+import com.ottrojja.room.entities.TafseerData
+import com.ottrojja.room.entities.VerseMeanings
 import kotlinx.coroutines.flow.Flow
 
 class QuranRepository(private val quranDao: QuranDao,
@@ -221,6 +226,25 @@ class QuranRepository(private val quranDao: QuranDao,
 
     suspend fun updateTasabeehList(tasabeehList: TasabeehList) {
         tasabeehDao.updateTasabeehList(tasabeehList)
+    }
+
+    /*******************VERSE MEANINGS MANAGEMENT*************************/
+
+
+    suspend fun insertVerseMeanings(verseMeanings: List<VerseMeanings>) {
+        quranDao.insertVerseMeanings(verseMeanings)
+    }
+
+    suspend fun getAllVerseMeanings(): List<VerseMeanings> {
+        return quranDao.getAllVerseMeanings()
+    }
+
+    suspend fun getSingleVerseMeanings(surahNum: String, verseNum: String): VerseMeanings? {
+        return quranDao.getSingleVerseMeanings(surahNum = surahNum, verseNum = verseNum)
+    }
+
+    suspend fun getVerseMeaningsCount(): Int {
+        return quranDao.getVerseMeaningsCount()
     }
 
 

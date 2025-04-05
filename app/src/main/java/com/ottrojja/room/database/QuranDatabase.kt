@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.ottrojja.classes.CauseOfRevelation
+import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.classes.Converters
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.room.entities.BookmarkEntity
@@ -19,21 +19,38 @@ import com.ottrojja.room.entities.TasabeehList
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
-import com.ottrojja.screens.quranScreen.E3rabData
-import com.ottrojja.screens.quranScreen.TafseerData
+import com.ottrojja.room.entities.E3rabData
+import com.ottrojja.room.entities.TafseerData
+import com.ottrojja.room.entities.VerseMeanings
 
 @TypeConverters(Converters::class)
 @Database(
     entities = [QuranPage::class, ChapterData::class, PartData::class,
         TafseerData::class, E3rabData::class, Azkar::class,
         CauseOfRevelation::class, BookmarkEntity::class, Khitmah::class,
-        KhitmahMark::class, CustomTasbeeh::class, TasabeehList::class],
-    version = 5
+        KhitmahMark::class, CustomTasbeeh::class, TasabeehList::class, VerseMeanings::class],
+    version = 6
 )
 abstract class QuranDatabase : RoomDatabase() {
     abstract fun quranDao(): QuranDao
     abstract fun khitmahDao(): KhitmahDao
     abstract fun tasabeehDao(): TasabeehDao
+}
+
+// Migration from version 5 to version 6
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `VerseMeanings` (
+                `id` TEXT PRIMARY KEY NOT NULL,
+                `sura` INTEGER NOT NULL,
+                `aya` TEXT NOT NULL,
+                `text` TEXT NOT NULL
+            )
+            """.trimIndent()
+        )
+    }
 }
 
 // Migration from version 4 to version 5

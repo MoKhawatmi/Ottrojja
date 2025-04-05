@@ -10,15 +10,16 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.ottrojja.classes.CauseOfRevelation
+import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
-import com.ottrojja.screens.quranScreen.E3rabData
-import com.ottrojja.screens.quranScreen.TafseerData
+import com.ottrojja.room.entities.E3rabData
+import com.ottrojja.room.entities.TafseerData
+import com.ottrojja.room.entities.VerseMeanings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -36,7 +37,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     val context = application.applicationContext;
     var loadingFile = true;
     val jsonParser = JsonParser(context)
-    val QURAN_FILE_URL= "https://ottrojja.fra1.cdn.digitaloceanspaces.com/quran.json";
+    val QURAN_FILE_URL = "https://ottrojja.fra1.cdn.digitaloceanspaces.com/quran.json";
 
     val sharedPreferences: SharedPreferences =
         application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
@@ -45,6 +46,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     val chaptersJsonVersion = sharedPreferences.getInt("chaptersJsonVersion", 0)
     val partsJsonVersion = sharedPreferences.getInt("partsJsonVersion", 0)
     val e3rabJsonVersion = sharedPreferences.getInt("e3rabJsonVersion", 0)
+    val verseMeaningsJsonVersion = sharedPreferences.getInt("verseMeaningsJsonVersion", 0)
     val causesOfRevelationJsonVersion = sharedPreferences.getInt("causesOfRevelationJsonVersion", 0)
     val tafaseerJsonVersion = sharedPreferences.getInt("tafaseerJsonVersion", 0)
 
@@ -76,17 +78,18 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 }
             }
 
-            if (repository.getChaptersCount() != 114 || versions.get("chapters")!! > chaptersJsonVersion) {
+            if (repository.getChaptersCount() != 114 || versions.get("chapters"
+                )!! > chaptersJsonVersion
+            ) {
                 jsonParser.parseJsonArrayFile<ChapterData>("chaptersList.json")
                     ?.let {
                         try {
                             repository.insertAllChapters(it)
+                            sharedPreferences.edit().putInt("chaptersJsonVersion", versions.get("chapters")!!).apply()
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
                     }
-                sharedPreferences.edit().putInt("chaptersJsonVersion", versions.get("chapters")!!)
-                    .apply()
             }
 
             if (repository.getPartsCount() != 30 || versions.get("parts")!! > partsJsonVersion) {
@@ -94,49 +97,63 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                     ?.let {
                         try {
                             repository.insertAllParts(it)
+                            sharedPreferences.edit().putInt("partsJsonVersion", versions.get("parts")!!).apply()
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
                     }
-                sharedPreferences.edit().putInt("partsJsonVersion", versions.get("parts")!!).apply()
             }
 
             if (repository.getE3rabsCount() != 6236 || versions.get("e3rab")!! > e3rabJsonVersion) {
                 jsonParser.parseJsonArrayFile<E3rabData>("e3rab.json")?.let {
                     try {
                         repository.insertAllE3rabData(it)
+                        sharedPreferences.edit().putInt("e3rabJsonVersion", versions.get("e3rab")!!).apply()
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
                 }
-                sharedPreferences.edit().putInt("e3rabJsonVersion", versions.get("e3rab")!!).apply()
             }
+
+            if (versions.get("verseMeanings")!! > verseMeaningsJsonVersion) {
+                jsonParser.parseJsonArrayFile<VerseMeanings>("verseMeanings.json")?.let {
+                    try {
+                        repository.insertVerseMeanings(it)
+                        sharedPreferences.edit().putInt("verseMeaningsJsonVersion", versions.get("verseMeanings")!!).apply()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+
 
             if (repository.getAzkarCount() == 0 || versions.get("azkar")!! > azkarJsonVersion) {
                 jsonParser.parseJsonArrayFile<Azkar>("azkar.json")?.let {
                     try {
                         repository.insertAllAzkar(it)
+                        sharedPreferences.edit().putInt("azkarJsonVersion", versions.get("azkar")!!).apply()
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
                 }
-                sharedPreferences.edit().putInt("azkarJsonVersion", versions.get("azkar")!!).apply()
             }
 
-            if (repository.getCauseOfRevelationCount() == 0 || versions.get("causesOfRevelation")!! > causesOfRevelationJsonVersion) {
+            if (repository.getCauseOfRevelationCount() == 0 || versions.get("causesOfRevelation"
+                )!! > causesOfRevelationJsonVersion
+            ) {
                 jsonParser.parseJsonArrayFile<CauseOfRevelation>("causesOfRevelation.json")?.let {
                     try {
                         repository.insertAllCausesOfRevelation(it)
+                        sharedPreferences.edit().putInt("causesOfRevelationJsonVersion", versions.get("causesOfRevelation")!!).apply()
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
                 }
-                sharedPreferences.edit()
-                    .putInt("causesOfRevelationJsonVersion", versions.get("causesOfRevelation")!!)
-                    .apply()
             }
 
-            if (repository.getTafseersCount() != 6236 * 7 || versions.get("tafaseer")!! > tafaseerJsonVersion) {
+            if (repository.getTafseersCount() != 6236 * 7 || versions.get("tafaseer"
+                )!! > tafaseerJsonVersion
+            ) {
                 //insert the available tafseer files to db
                 val tafaseerList = listOf(
                     "saadi.json",
@@ -152,15 +169,12 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                     jsonParser.parseJsonArrayFile<TafseerData>(tafseerFile)?.let {
                         try {
                             repository.insertAllTafseerData(it)
+                            sharedPreferences.edit().putInt("tafaseerJsonVersion", versions.get("tafaseer")!!).apply()
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
                     }
                 }
-
-                sharedPreferences.edit()
-                    .putInt("tafaseerJsonVersion", versions.get("tafaseer")!!)
-                    .apply()
             }
 
             runBlocking {
@@ -215,7 +229,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             if (response.isSuccessful) {
                 println("success meta")
                 println(response.headers)
-                val fileLastModified = response.header("x-amz-meta-uploaded-at")?.toLong()?:0L
+                val fileLastModified = response.header("x-amz-meta-uploaded-at")?.toLong() ?: 0L
                 println("file last modified $fileLastModified")
                 if (fileLastModified > quranFileCreateTime) {
                     println("updating file from online")

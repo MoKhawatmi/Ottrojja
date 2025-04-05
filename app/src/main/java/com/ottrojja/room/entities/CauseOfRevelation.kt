@@ -1,4 +1,4 @@
-package com.ottrojja.classes
+package com.ottrojja.room.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

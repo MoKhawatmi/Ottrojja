@@ -5,14 +5,15 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.ottrojja.classes.CauseOfRevelation
+import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.screens.azkarScreen.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
-import com.ottrojja.screens.quranScreen.E3rabData
-import com.ottrojja.screens.quranScreen.TafseerData
+import com.ottrojja.room.entities.E3rabData
+import com.ottrojja.room.entities.TafseerData
+import com.ottrojja.room.entities.VerseMeanings
 
 @Dao
 interface QuranDao {
@@ -96,7 +97,9 @@ interface QuranDao {
     @Query("SELECT * FROM CauseOfRevelation")
     fun getAllCausesOfRevelationData(): List<CauseOfRevelation>
 
-    @Query("SELECT * FROM CauseOfRevelation WHERE sura=:surahNum AND (verses LIKE '%' || :verseNum || ',%' OR verses LIKE '%,' || :verseNum || '%' OR verses = :verseNum)")
+    @Query(
+        "SELECT * FROM CauseOfRevelation WHERE sura=:surahNum AND (verses LIKE '%' || :verseNum || ',%' OR verses LIKE '%,' || :verseNum || '%' OR verses = :verseNum)"
+    )
     fun getCauseOfRevelationData(surahNum: String, verseNum: String): List<CauseOfRevelation>
 
     @Query("SELECT count(*) FROM CauseOfRevelation")
@@ -113,6 +116,19 @@ interface QuranDao {
 
     @Delete
     fun deleteBookmark(bookmark: BookmarkEntity)
+
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertVerseMeanings(verseMeanings: List<VerseMeanings>)
+
+    @Query("SELECT * FROM VerseMeanings")
+    fun getAllVerseMeanings(): List<VerseMeanings>
+
+    @Query("SELECT * FROM VerseMeanings WHERE sura=:surahNum AND aya=:verseNum")
+    fun getSingleVerseMeanings(surahNum: String, verseNum: String): VerseMeanings?
+
+    @Query("SELECT count(*) FROM VerseMeanings")
+    fun getVerseMeaningsCount(): Int
 
 
 }

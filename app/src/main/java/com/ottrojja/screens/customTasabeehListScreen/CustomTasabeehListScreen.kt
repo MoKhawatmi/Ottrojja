@@ -125,7 +125,7 @@ fun CustomTasabeehListScreen(
         )
     }
 
-    Column(modifier = Modifier.fillMaxSize(),
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.tertiary),
         verticalArrangement = Arrangement.Top
     ) {
         OttrojjaTopBar {
