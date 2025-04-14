@@ -159,7 +159,7 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
 }
 
 enum class TasbeehTab {
-    المسبحة, الاذكار, القوائم
+    المسبحة, تسابيح, القوائم
 }
 
 class TasbeehViewModelFactory(

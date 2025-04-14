@@ -1,12 +1,10 @@
 package com.ottrojja.screens.tasbeehScreen
 
 import android.app.Application
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -69,7 +67,7 @@ fun TasbeehScreen(
                 resetCount = { tasbeehScreenViewModel.resetTasbeeh() }
             )
 
-            TasbeehTab.الاذكار -> TasabeehList(
+            TasbeehTab.تسابيح -> TasabeehList(
                 tasabeeh = tasbeehScreenViewModel.tasabeeh,
                 updateExpanded = { item -> tasbeehScreenViewModel.updateExpanded(item) }
             )

@@ -136,6 +136,10 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
         }
     }
 
+    fun shareList(){
+
+    }
+
     private val _tasabeeh = mutableStateOf(listOf<Tasabeeh>())
     var tasabeeh: List<Tasabeeh>
         get() = _tasabeeh.value

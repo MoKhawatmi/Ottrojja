@@ -55,7 +55,7 @@ fun BlessingItem(item: Blessing, onShareClick: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp)
+                .padding(top = 4.dp)
         ) {
             Row(
                 horizontalArrangement = Arrangement.End,
