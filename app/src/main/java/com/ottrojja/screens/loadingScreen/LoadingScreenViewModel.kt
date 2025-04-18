@@ -14,7 +14,7 @@ import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.screens.azkarScreen.Azkar
+import com.ottrojja.room.entities.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData

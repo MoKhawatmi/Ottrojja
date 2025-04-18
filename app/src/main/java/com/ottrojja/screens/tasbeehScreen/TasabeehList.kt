@@ -17,9 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,6 +36,10 @@ import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Tasabeeh
 import com.ottrojja.composables.ListHorizontalDivider
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.shadow
+
 
 @Composable
 fun TasabeehList(tasabeeh: MutableList<ExpandableItem<Tasabeeh>>,
@@ -49,7 +51,7 @@ fun TasabeehList(tasabeeh: MutableList<ExpandableItem<Tasabeeh>>,
             .background(MaterialTheme.colorScheme.tertiary)
     ) {
         items(tasabeeh) { item ->
-            TsabeehItem(item, {updateExpanded(item)})
+            TsabeehItem(item, { updateExpanded(item) })
         }
     }
 }
@@ -69,6 +71,11 @@ fun TsabeehItem(item: ExpandableItem<Tasabeeh>,
     Column(
         modifier = Modifier
             .padding(12.dp)
+            .shadow(
+                elevation = 2.dp, // shadow size
+                shape = RoundedCornerShape(16.dp), //gives soft edges
+                clip = false // keep the shadow outside the bounds
+            )
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.background)
@@ -87,22 +94,30 @@ fun TsabeehItem(item: ExpandableItem<Tasabeeh>,
             Icon(
                 Icons.Default.ContentCopy,
                 contentDescription = "copy tasbeeh",
-                modifier = Modifier.padding(horizontal = 2.dp).clickable {
-                    Helpers.copyToClipboard(context, item.data.ziker, "تم النسخ بنجاح")
-                },
+                modifier = Modifier
+                    .padding(horizontal = 2.dp)
+                    .clickable {
+                        Helpers.copyToClipboard(context, item.data.ziker, "تم النسخ بنجاح")
+                    },
                 tint = MaterialTheme.colorScheme.primary
             )
             Icon(
                 Icons.Default.KeyboardArrowLeft,
                 contentDescription = "expand tasbeeh",
-                modifier = Modifier.rotate(rotation).padding(horizontal = 2.dp).clickable {
-                    updateExpanded()
-                },
+                modifier = Modifier
+                    .rotate(rotation)
+                    .padding(horizontal = 2.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { updateExpanded() }
+                    ),
                 tint = MaterialTheme.colorScheme.primary
             )
         }
         Row(
-            modifier = Modifier.padding(top = 4.dp)
+            modifier = Modifier
+                .padding(top = 4.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.Top

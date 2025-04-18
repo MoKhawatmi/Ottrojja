@@ -16,7 +16,7 @@ import com.ottrojja.room.dao.QuranDao
 import com.ottrojja.room.dao.TasabeehDao
 import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.room.entities.TasabeehList
-import com.ottrojja.screens.azkarScreen.Azkar
+import com.ottrojja.room.entities.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData

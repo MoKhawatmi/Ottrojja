@@ -1,4 +1,4 @@
-package com.ottrojja.screens.azkarScreen
+package com.ottrojja.room.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

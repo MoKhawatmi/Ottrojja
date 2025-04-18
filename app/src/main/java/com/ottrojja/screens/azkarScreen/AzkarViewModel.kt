@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.screens.mainScreen.PartData
+import com.ottrojja.room.entities.Azkar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

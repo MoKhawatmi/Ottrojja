@@ -194,24 +194,6 @@ fun CustomTasabeehListScreen(
                                 },
                                 onClick = { confirmDeleteList(); expanded = false; }
                             )
-                            ListHorizontalDivider()
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        "مشاركة",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                },
-                                trailingIcon = {
-                                    Icon(
-                                        Icons.Default.Share,
-                                        contentDescription = "share list",
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                },
-                                onClick = { customTasabeehListScreenViewModel.shareList(); expanded = false; }
-                            )
                         }
                     }
 

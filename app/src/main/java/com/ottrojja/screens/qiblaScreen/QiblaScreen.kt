@@ -30,10 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import kotlin.math.min
 import android.location.Location
-import android.location.LocationListener
 import android.location.LocationManager
-import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -45,6 +44,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -65,6 +65,8 @@ import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.ui.theme.complete_green
 import com.ottrojja.ui.theme.md_theme_light_primary
 import com.ottrojja.ui.theme.md_theme_light_secondary
+import kotlinx.coroutines.flow.collectLatest
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.abs
 
 
@@ -95,7 +97,10 @@ fun QiblaScreen(qiblaViewModel: QiblaViewModel = viewModel()) {
     }
 
     if (permissionsGranted) {
-        CompassContent()
+        CompassContent(
+            showPositionDialog = qiblaViewModel.showPoistionDialog,
+            triggerPositionDialog = { value -> qiblaViewModel.showPoistionDialog = value },
+        )
     } else {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -120,7 +125,8 @@ fun QiblaScreen(qiblaViewModel: QiblaViewModel = viewModel()) {
 }
 
 @Composable
-private fun CompassContent() {
+private fun CompassContent(showPositionDialog: Boolean,
+                           triggerPositionDialog: (Boolean) -> Unit) {
     val context = LocalContext.current
     val sensorManager = remember {
         context.getSystemService(Context.SENSOR_SERVICE
@@ -130,7 +136,7 @@ private fun CompassContent() {
     var bearing by remember { mutableStateOf(0f) }
     val animatedAngle by animateFloatAsState(
         targetValue = angle,
-        animationSpec = tween(durationMillis = 100, easing = FastOutSlowInEasing)
+        animationSpec = tween(durationMillis = 150, easing = FastOutSlowInEasing)
     )
 
     var calibrationRequired by remember { mutableStateOf(false) }
@@ -150,13 +156,39 @@ private fun CompassContent() {
 
             override fun onSensorChanged(event: SensorEvent) {
                 when (event.sensor.type) {
-                    Sensor.TYPE_ACCELEROMETER -> System.arraycopy(event.values, 0,
-                        accelerometerReading, 0, 3
-                    )
+                    Sensor.TYPE_ACCELEROMETER -> {
+                        val x = event.values[0]
+                        val y = event.values[1]
+                        val z = event.values[2]
 
-                    Sensor.TYPE_MAGNETIC_FIELD -> System.arraycopy(event.values, 0,
-                        magnetometerReading, 0, 3
-                    )
+                        // Check if the device is relatively flat
+                        val isFlat = (abs(x) < 4f && abs(y) < 4f && z in 7f..11f)
+                        if (!isFlat) {
+                            triggerPositionDialog(true)
+                        } else {
+                            triggerPositionDialog(false)
+                        }
+
+                        System.arraycopy(event.values, 0,
+                            accelerometerReading, 0, 3
+                        )
+                    }
+
+                    Sensor.TYPE_MAGNETIC_FIELD -> {
+                        val x = event.values[0]
+                        val y = event.values[1]
+                        val z = event.values[2]
+
+                        // Calculate total magnetic field strength (in micro-Tesla, μT)
+                        val magneticFieldStrength = kotlin.math.sqrt(x * x + y * y + z * z)
+                        if (magneticFieldStrength > 60f) {
+                            calibrationRequired = true;
+                        }
+
+                        System.arraycopy(event.values, 0,
+                            magnetometerReading, 0, 3
+                        )
+                    }
                 }
 
                 if (SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading,
@@ -174,10 +206,12 @@ private fun CompassContent() {
                 sensorAccuracy = accuracy
                 when (accuracy) {
                     SensorManager.SENSOR_STATUS_ACCURACY_LOW -> {
+                        Toast.makeText(context, "accuracy low", Toast.LENGTH_LONG).show()
                         calibrationRequired = true
                     }
 
                     SensorManager.SENSOR_STATUS_UNRELIABLE -> {
+                        Toast.makeText(context, "accuracy low", Toast.LENGTH_LONG).show()
                         calibrationRequired = true
                     }
 
@@ -187,6 +221,32 @@ private fun CompassContent() {
                 }
             }
 
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        try {
+            LocationProvider.getLocationUpdates(context).collectLatest { location ->
+                println("new location $location")
+                locationState.value = location
+                val userLoc = Location("service Provider");
+                //get longitudeM Latitude and altitude of current location with gps class and  set in userLoc
+                userLoc.setLongitude(location.longitude);
+                userLoc.setLatitude(location.latitude);
+                userLoc.setAltitude(location.altitude);
+
+                val destinationLoc = Location("service Provider");
+                destinationLoc.setLatitude(21.422487); //kaaba latitude setting
+                destinationLoc.setLongitude(39.826206); //kaaba longitude setting
+                val bearTo = userLoc.bearingTo(destinationLoc);
+                bearing = normalizeAngle(bearTo)
+
+            }
+        } catch (e: CancellationException) {
+            //nothing
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "حصل خطأ", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -205,36 +265,8 @@ private fun CompassContent() {
             SensorManager.SENSOR_DELAY_GAME
         )
 
-        val provider = LocationManager.GPS_PROVIDER
-
-        // Create a listener that updates the state with new location values.
-        val locationListener = object : LocationListener {
-            override fun onLocationChanged(newLocation: Location) {
-                locationState.value = newLocation
-                val userLoc = Location("service Provider");
-                //get longitudeM Latitude and altitude of current location with gps class and  set in userLoc
-                userLoc.setLongitude(newLocation.longitude);
-                userLoc.setLatitude(newLocation.latitude);
-                userLoc.setAltitude(newLocation.altitude);
-
-                val destinationLoc = Location("service Provider");
-                destinationLoc.setLatitude(21.422487); //kaaba latitude setting
-                destinationLoc.setLongitude(39.826206); //kaaba longitude setting
-                val bearTo = userLoc.bearingTo(destinationLoc);
-                bearing = normalizeAngle(bearTo)
-            }
-
-            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-            override fun onProviderEnabled(provider: String) {}
-            override fun onProviderDisabled(provider: String) {}
-        }
-
-        //Ignore the permission warning, this composable wouldn't be rendered unless the permission is given in the first place
-        locationManager.requestLocationUpdates(provider, 1000L, 0.5f, locationListener)
-
         onDispose {
             sensorManager.unregisterListener(sensorEventListener)
-            locationManager.removeUpdates(locationListener)
         }
     }
 
@@ -244,16 +276,21 @@ private fun CompassContent() {
     // Calibration dialog
     if (calibrationRequired) {
         CalibrationDialog(
-            onDismiss = { calibrationRequired = false },
-            onConfirm = { calibrationRequired = false }
+            onDismiss = { calibrationRequired = false }
         )
+    }
+
+    if (showPositionDialog) {
+        DevicePositionDialog(
+            onDismiss = { triggerPositionDialog(false) })
     }
 
 
     Column(modifier = Modifier
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.tertiary),
-        verticalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Column(modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -333,7 +370,6 @@ private fun CompassContent() {
                     )
                 }
             }
-
 
             rotate(animatedAngle, Offset(centerX, centerY)) {
                 val needleLength = radius * 0.9f
@@ -458,6 +494,9 @@ private fun normalizeAngle(angle: Float): Float {
 }
 
 private fun getCityFromLocation(context: Context, latitude: Double?, longitude: Double?): String {
+    println("getting city")
+    println(latitude)
+    println(longitude)
     if (latitude != null && longitude != null) {
         return try {
             val geocoder = Geocoder(context, Locale.getDefault())
@@ -473,14 +512,16 @@ private fun getCityFromLocation(context: Context, latitude: Double?, longitude: 
 
 
 @Composable
-private fun CalibrationDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
+private fun CalibrationDialog(onDismiss: () -> Unit) {
     OttrojjaDialog(contentModifier = Modifier
         .padding(8.dp)
-        .fillMaxHeight(0.7f)
-        .clip(shape = RoundedCornerShape(12.dp)), onDismissRequest = { onDismiss() }) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        .wrapContentHeight()
+        .clip(shape = RoundedCornerShape(12.dp)),
+        onDismissRequest = { onDismiss() }) {
+        Column(verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Column(modifier = Modifier
-                .fillMaxHeight(0.9f)
                 .verticalScroll(rememberScrollState())
             ) {
                 Row(modifier = Modifier
@@ -500,7 +541,8 @@ private fun CalibrationDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Text("لتحديد اتجاه القبلة بدقة يرجى:", style = MaterialTheme.typography.bodyMedium,
+                Text("لمعايرة بوصلة الجهاز لتحديد اتجاه القبلة بدقة يرجى:",
+                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
                 )
                 Text("١. أمساك الجهاز بشكل مسطح", style = MaterialTheme.typography.bodyMedium,
@@ -509,7 +551,8 @@ private fun CalibrationDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                 Text("٢. تحريكه في نمط بشكل رقم 8", style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
                 )
-                Text("٣. تجنب التداخل المغناطيسي وأبعد الجهاز عن أي أجهزة كهربائية أو مغناطيسات",
+                Text(
+                    "٣. تجنب التداخل المغناطيسي وأبعد الجهاز عن أي أجهزة كهربائية أو معادن أو مغناطيسات",
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
                 )
@@ -517,7 +560,7 @@ private fun CalibrationDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(),
+                    .padding(top = 4.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
                 Button(onClick = { onDismiss() }) {
@@ -533,3 +576,49 @@ private fun CalibrationDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
     }
 }
 
+@Composable
+private fun DevicePositionDialog(onDismiss: () -> Unit) {
+    OttrojjaDialog(contentModifier = Modifier
+        .padding(8.dp)
+        .wrapContentHeight()
+        .clip(shape = RoundedCornerShape(12.dp)), onDismissRequest = { onDismiss() }) {
+        Column(verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Column(modifier = Modifier
+                .verticalScroll(rememberScrollState())
+            ) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("يرجى إبقاء الجهاز مسطحا لتحديد اتجاه القبلة بدقة",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSecondary
+                    )
+                }
+                Image(painter = painterResource(R.drawable.flat_device),
+                    contentDescription = "keep device flat",
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                Button(onClick = { onDismiss() }) {
+                    Text(
+                        "إغلاق",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.End
+                    )
+                }
+            }
+        }
+    }
+}

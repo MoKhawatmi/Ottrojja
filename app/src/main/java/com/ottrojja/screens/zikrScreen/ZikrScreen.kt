@@ -49,7 +49,7 @@ import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.OttrojjaTopBar
-import com.ottrojja.screens.azkarScreen.Azkar
+import com.ottrojja.room.entities.Azkar
 import com.ottrojja.screens.quranScreen.NoRippleInteractionSource
 import com.ottrojja.screens.quranScreen.YouTube
 

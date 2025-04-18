@@ -206,15 +206,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             if (index == -1) {
                 startPlayingIndex = 0;
                 updateServicePlayingIndex()
-                /*audioService?.setPlayingIndex(0)
-                audioService?.setStartPlayingIndex(0)*/
             } else {
                 startPlayingIndex = index;
                 updateServicePlayingIndex()
-
-                /*audioService?.setPlayingIndex(index)
-                audioService?.setStartPlayingIndex(index)
-                audioService?.setStartPlayingItem(value)*/
             }
         }
 
@@ -240,12 +234,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 endPlayingIndex = null;
                 updateServicePlayingParameters();
-                //audioService?.setEndPlayingIndex(null)
             } else {
                 endPlayingIndex = index;
                 updateServicePlayingParameters();
-                /*audioService?.setEndPlayingIndex(index)
-                audioService?.setEndPlayingItem(value)*/
             }
         }
 
@@ -326,16 +317,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         val versesList = _currentPageObject.pageContent
         return versesList;
     }
-
-    /*fun resetPlayer() {
-        audioService?.resetPlayer();
-
-        _selectedVerse = emptyPageObject.copy()
-        _selectedEndVerse = emptyPageObject.copy()
-
-        downloadIndex = 0;
-        checkVerseFilesExistance();
-    }*/
 
     private val _isDownloading = mutableStateOf(false)
     var isDownloading: Boolean
@@ -631,6 +612,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         set(value) {
             _selectedRepetitionTab.value = value
             updateServicePlayingParameters()
+            if (_isCurrentPagePlaying.value) {
+                audioService?.playingParameterUpdated();
+            }
         }
 
     /*****************************TAFSEER MODAL CONTROL***********************************/

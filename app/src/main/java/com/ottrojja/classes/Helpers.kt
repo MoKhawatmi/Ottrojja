@@ -9,6 +9,8 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.widget.Toast
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.services.PagePlayerService
 
@@ -106,4 +108,11 @@ object Helpers {
             context.startService(stopServiceIntent)
         }
     }
+
+    fun isGmsAvailable(context: Context): Boolean {
+        val apiAvailability = GoogleApiAvailability.getInstance()
+        val resultCode = apiAvailability.isGooglePlayServicesAvailable(context)
+        return resultCode == ConnectionResult.SUCCESS
+    }
+
 }

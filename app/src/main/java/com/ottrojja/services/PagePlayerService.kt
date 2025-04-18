@@ -239,6 +239,7 @@ class PagePlayerService : Service(), PageServiceInterface {
         _exoPlayer.stop();
         _isPlaying.value = false;
         length = 0;
+        repeatedTimes = 0;
     }
 
     override fun getPlayingIndex(): StateFlow<Int> {

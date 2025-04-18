@@ -186,8 +186,6 @@ fun QuranScreen(
         }
     } else {
         Column() {
-
-            //configuration.orientation == Configuration.ORIENTATION_PORTRAIT || quranViewModel.selectedTab!=QuranViewModel.PageTab.الصفحة
             if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT || (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && IsTablet())) {
                 OttrojjaTopBar {
                     Column(modifier = Modifier.fillMaxWidth()) {
@@ -822,7 +820,6 @@ fun ListeningOptionsDialog(
                     )
                 }
             }
-
         }
     }
 }
@@ -1039,7 +1036,6 @@ fun Benefits(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-
         LazyColumn() {
             if (benefits.size != 0) {
                 item {

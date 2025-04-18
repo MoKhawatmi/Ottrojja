@@ -19,7 +19,7 @@ import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.screens.azkarScreen.Azkar
+import com.ottrojja.room.entities.Azkar
 import com.ottrojja.services.PagePlayerService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
