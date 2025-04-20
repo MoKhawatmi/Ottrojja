@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -21,7 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
@@ -35,7 +38,7 @@ fun AzkarMain(navController: NavController) {
     ) {
         Header(title = "الأذكار")
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2), // 3 columns
+            columns = GridCells.Fixed(2),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
@@ -56,7 +59,12 @@ fun AzkarMain(navController: NavController) {
             item {
                 AzkarSectionItem(imageId = R.drawable.meditation,
                     title = "أدعية مأثورة",
-                    onClick = { navController.navigate(Screen.MainScreen.route) })
+                    onClick = { navController.navigate(Screen.GeneralSupplicationsScreen.route) })
+            }
+            item {
+                AzkarSectionItem(imageId = R.drawable.names_of_god,
+                    title = "أسماء الله الحسنى",
+                    onClick = { navController.navigate(Screen.NamesOfGodScreen.route) })
             }
         }
     }
@@ -64,9 +72,10 @@ fun AzkarMain(navController: NavController) {
 
 @Composable
 fun AzkarSectionItem(imageId: Int, title: String, onClick: () -> Unit) {
-    Column(verticalArrangement = Arrangement.Center,
+    Column(verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
+            .height(250.dp)
             .background(Helpers.ottrojjaBrush, shape = RoundedCornerShape(12.dp))
             .clip(RoundedCornerShape(12))
             .clickable { onClick() }
@@ -78,17 +87,16 @@ fun AzkarSectionItem(imageId: Int, title: String, onClick: () -> Unit) {
             contentDescription = "",
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .size(100.dp)
+                .size(128.dp)
                 .clip(CircleShape)
         )
 
         Text(
             text = title,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 24.sp),
             color = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.padding(top = 38.dp)
+            modifier = Modifier.padding(top = 38.dp).fillMaxWidth(),
+            textAlign = TextAlign.Center
         )
-
-
     }
 }

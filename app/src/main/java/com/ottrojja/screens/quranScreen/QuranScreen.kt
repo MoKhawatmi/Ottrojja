@@ -376,7 +376,8 @@ fun QuranScreen(
                 atFirstVerse = quranViewModel.atFirstVerse(),
                 atLastVerse = quranViewModel.atLastVerse(),
                 targetNextVerse = { quranViewModel.targetNextVerse() },
-                targetPreviousVerse = { quranViewModel.targetPreviousVerse() }
+                targetPreviousVerse = { quranViewModel.targetPreviousVerse() },
+                tafseerChapterVerse= quranViewModel.tafseerChapterVerse,
             )
         }
     }
@@ -464,7 +465,8 @@ fun TafseerBottomSheet(
     atFirstVerse: Boolean,
     atLastVerse: Boolean,
     targetNextVerse: () -> Unit,
-    targetPreviousVerse: () -> Unit
+    targetPreviousVerse: () -> Unit,
+    tafseerChapterVerse: String
 ) {
     val modalBottomSheetState = rememberModalBottomSheetState()
 
@@ -494,7 +496,8 @@ fun TafseerBottomSheet(
                 atFirstVerse = atFirstVerse,
                 atLastVerse = atLastVerse,
                 targetNextVerse = { targetNextVerse() },
-                targetPreviousVerse = { targetPreviousVerse() }
+                targetPreviousVerse = { targetPreviousVerse() },
+                tafseerChapterVerse = tafseerChapterVerse
             ) {
                 if (mode == TafseerSheetMode.TAFSEER) {
                     Row(horizontalArrangement = Arrangement.SpaceBetween,
@@ -1022,6 +1025,14 @@ fun SinglePage(pageNum: String, nightReadingMode: Boolean) {
 }
 
 @Composable
+fun BenefitSectionSeparator() {
+    Image(painter = painterResource(R.drawable.benefit_seperator),
+        contentDescription = "",
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
 fun Benefits(
     benefits: Array<String>,
     appliance: Array<String>,
@@ -1039,7 +1050,8 @@ fun Benefits(
         LazyColumn() {
             if (benefits.size != 0) {
                 item {
-                    BenefitSectionTitle("فوائد الصفحة")
+                    BenefitSectionTitle("فوائد الصفحة");
+                    BenefitSectionSeparator()
                 }
             }
             items(benefits) { benefit ->
@@ -1058,6 +1070,7 @@ fun Benefits(
             if (guidance.size != 0) {
                 item {
                     BenefitSectionTitle("توجيهات الصفحة");
+                    BenefitSectionSeparator()
                 }
             }
             items(guidance) { guidanceItem ->
@@ -1075,7 +1088,8 @@ fun Benefits(
 
             if (appliance.size != 0) {
                 item {
-                    BenefitSectionTitle("الجانب التطبيقي")
+                    BenefitSectionTitle("الجانب التطبيقي");
+                    BenefitSectionSeparator()
                 }
             }
             items(appliance) { applianceItem ->

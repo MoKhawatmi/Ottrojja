@@ -97,11 +97,11 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     val currentBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentRoute = currentBackStackEntry?.destination?.route
-                    val bottomBarRoutes = listOf(Screen.MainScreen.route, Screen.AzkarScreen.route,
+                    val bottomBarRoutes = listOf(Screen.MainScreen.route, Screen.AzkarMain.route,
                         Screen.TeacherScreen.route, Screen.ChaptersScreen.route,
                         Screen.TasbeehScreen.route, Screen.BookmarksScreen.route,
                         Screen.KhitmahListScreen.route, Screen.SettingsScreen.route,
-                        Screen.BlessingsScreen.route, Screen.QiblaScreen.route, Screen.AzkarMain.route
+                        Screen.BlessingsScreen.route, Screen.QiblaScreen.route
                     )
                     Scaffold(
                         bottomBar = {

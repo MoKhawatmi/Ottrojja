@@ -190,7 +190,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         get() = _selectedVerse
         set(value) {
             val pageVerses: Array<PageContent> = getCurrentPageVerses();
-            val index = pageVerses.indexOf(pageVerses.find { item -> item.surahNum == value.surahNum && item.verseNum == value.verseNum });
+            val index = pageVerses.indexOf(
+                pageVerses.find { item -> item.surahNum == value.surahNum && item.verseNum == value.verseNum });
             if (index > (endPlayingIndex ?: (pageVerses.size - 1))) {
                 Toast.makeText(
                     context,
@@ -217,7 +218,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         get() = _selectedEndVerse
         set(value) {
             val pageVerses: Array<PageContent> = getCurrentPageVerses();
-            val index = pageVerses.indexOf(pageVerses.find { item -> item.surahNum == value.surahNum && item.verseNum == value.verseNum });
+            val index = pageVerses.indexOf(
+                pageVerses.find { item -> item.surahNum == value.surahNum && item.verseNum == value.verseNum });
             if (index < (startPlayingIndex ?: 0)) {
                 Toast.makeText(
                     context,
@@ -536,7 +538,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 }
             }
-
         }
     }
 
@@ -619,6 +620,10 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     /*****************************TAFSEER MODAL CONTROL***********************************/
 
+    private var _tafseerChapterVerse by mutableStateOf("")
+    val tafseerChapterVerse: String
+        get() = _tafseerChapterVerse
+
     private var _tafseerTargetVerse by mutableStateOf("0-0")
     var tafseerTargetVerse: String
         get() = _tafseerTargetVerse
@@ -627,11 +632,18 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 _tafseerTargetVerse = value
                 val surah = value.split("-")[0]
                 val verse = value.split("-")[1]
-
+                val chapterName = repository.getChapter(surah.toInt()).chapterName
+                if (chapterName.isNotBlank()) {
+                    _tafseerChapterVerse = "الاية $verse من سورة $chapterName"
+                } else {
+                    _tafseerChapterVerse = ""
+                }
                 println(value)
                 println("tafseer for $surah-$verse at ${tafseerNamesMap.get(_selectedTafseer)}")
 
-                _verseTafseer = repository.getVerseTafseerData(surah, verse, tafseerNamesMap.get(_selectedTafseer)!!).text
+                _verseTafseer = repository.getVerseTafseerData(surah, verse,
+                    tafseerNamesMap.get(_selectedTafseer)!!
+                ).text
                 _verseE3rab = repository.getVerseE3rabData(surah, verse).text
                 val causesOfRevelation = repository.getCauseOfRevelation(surah, verse)
                 if (causesOfRevelation.size == 0) {
@@ -641,7 +653,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                     causesOfRevelation.forEach { cause -> concatCauses += "${cause.text}\n\n" }
                     _verseCauseOfRevelation = concatCauses
                 }
-                _verseMeanings=repository.getSingleVerseMeanings(surah,verse)?.text?:"لم يرد في المرجع معاني لمفردات الاية"
+                _verseMeanings = repository.getSingleVerseMeanings(surah, verse)?.text
+                    ?: "لم يرد في المرجع معاني لمفردات الاية"
             }
         }
 
@@ -714,7 +727,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
         if (verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } + 1 != verses.size) {
             val nextVerse =
-                verses.get(verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } + 1)
+                verses.get(
+                    verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } + 1)
             tafseerTargetVerse = "${nextVerse.surahNum}-${nextVerse.verseNum}"
         }
     }
@@ -727,7 +741,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
         if (verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } - 1 >= 0) {
             val previousVerse =
-                verses.get(verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } - 1)
+                verses.get(
+                    verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } - 1)
             tafseerTargetVerse = "${previousVerse.surahNum}-${previousVerse.verseNum}"
         }
     }
@@ -955,7 +970,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 repository.getAllKhitmah().collect { state ->
-                    withContext(Dispatchers.Main){
+                    withContext(Dispatchers.Main) {
                         _khitmahList.value = state.filter { !it.isComplete };
                     }
                 }
@@ -973,7 +988,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 repository.insertKhitmahMark(khitmahMark);
                 repository.updateKhitmah(khitmah.copy(latestPage = _currentPageObject.pageNum))
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "تمت إضافة الصفحة للختمة بنجاح", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "تمت إضافة الصفحة للختمة بنجاح", Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         } catch (e: Exception) {

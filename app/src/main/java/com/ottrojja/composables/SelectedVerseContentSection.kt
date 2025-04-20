@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +28,7 @@ fun SelectedVerseContentSection(
     atLastVerse: Boolean,
     targetNextVerse: () -> Unit,
     targetPreviousVerse: () -> Unit,
+    tafseerChapterVerse: String,
     content: @Composable() () -> Unit = {},
 ) {
     Column(
@@ -74,6 +76,6 @@ fun SelectedVerseContentSection(
                 }, icon = Icons.Default.ContentCopy)
             }
         }
-        SelectableText(text)
+        SelectableText("$tafseerChapterVerse\n\n$text" )
     }
 }

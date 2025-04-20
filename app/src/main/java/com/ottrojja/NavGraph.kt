@@ -16,11 +16,13 @@ import com.ottrojja.screens.teacherScreen.TeacherScreen
 import com.ottrojja.screens.azkarScreen.AzkarScreen
 import com.ottrojja.screens.blessingsScreen.BlessingsScreen
 import com.ottrojja.screens.chaptersScreen.ChaptersScreen
+import com.ottrojja.screens.generalSupplicationsScreen.GeneralSupplicationsScreen
 import com.ottrojja.screens.jwam3Screen.Jwam3Screen
 import com.ottrojja.screens.khitmahListScreen.KhitmahList
 import com.ottrojja.screens.khitmahScreen.KhitmahScreen
 import com.ottrojja.screens.loadingScreen.LoadingScreen
 import com.ottrojja.screens.mainScreen.MainScreen
+import com.ottrojja.screens.namesOfGodScreen.NamesOfGod
 import com.ottrojja.screens.qiblaScreen.QiblaScreen
 import com.ottrojja.screens.quranScreen.QuranScreen
 import com.ottrojja.screens.settingsScreen.SettingsScreen
@@ -49,24 +51,26 @@ fun NavGraph(navController: NavHostController,
                 section = section ?: ""
             )
         }
-
         composable(route = Screen.AzkarMain.route) {
             AzkarMain(
                 navController
             )
         }
-
         composable(route = Screen.AzkarScreen.route) {
             AzkarScreen(
                 navController,
                 repository
             )
         }
-
         composable(route = Screen.Jwam3Screen.route) {
             Jwam3Screen()
         }
-
+        composable(route = Screen.NamesOfGodScreen.route) {
+            NamesOfGod()
+        }
+        composable(route = Screen.GeneralSupplicationsScreen.route) {
+            GeneralSupplicationsScreen()
+        }
         composable(route = Screen.TeacherScreen.route) {
             TeacherScreen(repository)
         }

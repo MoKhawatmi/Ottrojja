@@ -8,6 +8,8 @@ sealed class Screen(val route: String) {
     object AzkarMain : Screen(route = "azkar_main")
     object AzkarScreen : Screen(route = "azkar_screen")
     object Jwam3Screen : Screen(route = "jwam3_screen")
+    object GeneralSupplicationsScreen : Screen(route = "general_supplications_screen")
+    object NamesOfGodScreen : Screen(route = "god_names_screen")
     object TeacherScreen : Screen(route = "teacher_screen")
     object ChaptersScreen : Screen(route = "chapters_screen")
     object TasbeehScreen : Screen(route = "tasbeeh_screen")
