@@ -54,7 +54,7 @@ fun SettingsScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.tertiary)) {
-        Header()
+        Header(title = "الإعدادات")
 
         if (settingsScreenViewModel.ShowAboutDialog) {
             AboutDialog(onDismiss = {settingsScreenViewModel.ShowAboutDialog = false} )

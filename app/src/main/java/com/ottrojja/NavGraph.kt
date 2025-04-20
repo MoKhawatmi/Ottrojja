@@ -9,12 +9,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
+import com.ottrojja.screens.azkarScreen.AzkarMain
 import com.ottrojja.screens.bookmarksScreen.BookmarksScreen
 import com.ottrojja.screens.customTasabeehListScreen.CustomTasabeehListScreen
 import com.ottrojja.screens.teacherScreen.TeacherScreen
 import com.ottrojja.screens.azkarScreen.AzkarScreen
 import com.ottrojja.screens.blessingsScreen.BlessingsScreen
 import com.ottrojja.screens.chaptersScreen.ChaptersScreen
+import com.ottrojja.screens.jwam3Screen.Jwam3Screen
 import com.ottrojja.screens.khitmahListScreen.KhitmahList
 import com.ottrojja.screens.khitmahScreen.KhitmahScreen
 import com.ottrojja.screens.loadingScreen.LoadingScreen
@@ -48,11 +50,21 @@ fun NavGraph(navController: NavHostController,
             )
         }
 
+        composable(route = Screen.AzkarMain.route) {
+            AzkarMain(
+                navController
+            )
+        }
+
         composable(route = Screen.AzkarScreen.route) {
             AzkarScreen(
                 navController,
                 repository
             )
+        }
+
+        composable(route = Screen.Jwam3Screen.route) {
+            Jwam3Screen()
         }
 
         composable(route = Screen.TeacherScreen.route) {

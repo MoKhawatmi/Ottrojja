@@ -76,7 +76,7 @@ fun ChaptersScreen(
 
 
     Column {
-        Header()
+        Header(title = "الإستماع")
         OttrojjaTopBar {
             Row(
                 modifier = Modifier

@@ -45,7 +45,7 @@ fun TasbeehScreen(
 
 
     Column() {
-        Header()
+        Header(title = "المسبحة")
         OttrojjaTopBar {
             Row(
                 modifier = Modifier

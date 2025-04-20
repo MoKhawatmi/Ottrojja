@@ -60,7 +60,7 @@ fun BookmarksScreen(
         .background(MaterialTheme.colorScheme.tertiary)
     )
     {
-        Header()
+        Header(title = "المرجعيات")
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()

@@ -169,7 +169,7 @@ fun PageSelection(
     pageSelected: (String) -> (Unit)
 ) {
     Column(modifier = Modifier, verticalArrangement = Arrangement.Top) {
-        Header()
+        Header(title = "المعلم")
         OttrojjaTopBar {
             Column {
                 Row(

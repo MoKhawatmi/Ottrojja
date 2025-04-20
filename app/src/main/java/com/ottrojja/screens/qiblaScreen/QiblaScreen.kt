@@ -31,6 +31,8 @@ import androidx.core.content.ContextCompat
 import kotlin.math.min
 import android.location.Location
 import android.location.LocationManager
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -40,7 +42,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -146,6 +147,35 @@ private fun CompassContent(showPositionDialog: Boolean,
     val locationManager =
         context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
+    var calibrationCoolDown by remember { mutableStateOf(false) }
+    var positionCoolDown by remember { mutableStateOf(false) }
+
+    val calibrationHandler = Handler(Looper.getMainLooper())
+    fun triggerCalibrationWarning() {
+        if(calibrationCoolDown){
+            return;
+        }
+        println("trigger calibration warning")
+        calibrationRequired = true;
+        calibrationCoolDown = true;
+        calibrationHandler.removeCallbacksAndMessages(null)
+        val runnable = Runnable { println("reset calibration cooldown"); calibrationCoolDown = false }
+        calibrationHandler.postDelayed(runnable, 1000*30)
+    }
+
+    val positionHandler = Handler(Looper.getMainLooper())
+    fun triggerPositionWarning() {
+        if(positionCoolDown){
+            return;
+        }
+        println("trigger position warning")
+        triggerPositionDialog(true);
+        positionCoolDown = true;
+        positionHandler.removeCallbacksAndMessages(null)
+        val runnable = Runnable { println("reset position cooldown"); positionCoolDown = false }
+        positionHandler.postDelayed(runnable, 1000*30)
+    }
+
 
     val sensorEventListener = remember {
         object : SensorEventListener {
@@ -164,14 +194,12 @@ private fun CompassContent(showPositionDialog: Boolean,
                         // Check if the device is relatively flat
                         val isFlat = (abs(x) < 4f && abs(y) < 4f && z in 7f..11f)
                         if (!isFlat) {
-                            triggerPositionDialog(true)
+                            triggerPositionWarning()
                         } else {
                             triggerPositionDialog(false)
                         }
 
-                        System.arraycopy(event.values, 0,
-                            accelerometerReading, 0, 3
-                        )
+                        System.arraycopy(event.values, 0, accelerometerReading, 0, 3)
                     }
 
                     Sensor.TYPE_MAGNETIC_FIELD -> {
@@ -182,12 +210,10 @@ private fun CompassContent(showPositionDialog: Boolean,
                         // Calculate total magnetic field strength (in micro-Tesla, μT)
                         val magneticFieldStrength = kotlin.math.sqrt(x * x + y * y + z * z)
                         if (magneticFieldStrength > 60f) {
-                            calibrationRequired = true;
+                            triggerCalibrationWarning()
                         }
 
-                        System.arraycopy(event.values, 0,
-                            magnetometerReading, 0, 3
-                        )
+                        System.arraycopy(event.values, 0, magnetometerReading, 0, 3)
                     }
                 }
 
@@ -206,17 +232,15 @@ private fun CompassContent(showPositionDialog: Boolean,
                 sensorAccuracy = accuracy
                 when (accuracy) {
                     SensorManager.SENSOR_STATUS_ACCURACY_LOW -> {
-                        Toast.makeText(context, "accuracy low", Toast.LENGTH_LONG).show()
-                        calibrationRequired = true
+                        triggerCalibrationWarning()
                     }
 
                     SensorManager.SENSOR_STATUS_UNRELIABLE -> {
-                        Toast.makeText(context, "accuracy low", Toast.LENGTH_LONG).show()
-                        calibrationRequired = true
+                        triggerCalibrationWarning()
                     }
 
                     else -> {
-                        calibrationRequired = false
+                        // nothing
                     }
                 }
             }
@@ -227,7 +251,7 @@ private fun CompassContent(showPositionDialog: Boolean,
     LaunchedEffect(Unit) {
         try {
             LocationProvider.getLocationUpdates(context).collectLatest { location ->
-                println("new location $location")
+                //println("new location $location")
                 locationState.value = location
                 val userLoc = Location("service Provider");
                 //get longitudeM Latitude and altitude of current location with gps class and  set in userLoc
@@ -494,9 +518,9 @@ private fun normalizeAngle(angle: Float): Float {
 }
 
 private fun getCityFromLocation(context: Context, latitude: Double?, longitude: Double?): String {
-    println("getting city")
+  /*  println("getting city")
     println(latitude)
-    println(longitude)
+    println(longitude)*/
     if (latitude != null && longitude != null) {
         return try {
             val geocoder = Geocoder(context, Locale.getDefault())

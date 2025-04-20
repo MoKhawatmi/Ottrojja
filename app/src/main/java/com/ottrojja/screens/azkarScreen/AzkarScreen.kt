@@ -1,9 +1,7 @@
 package com.ottrojja.screens.azkarScreen
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,7 +20,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -30,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.R
+import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.FillerItem
@@ -49,8 +47,10 @@ fun AzkarScreen(
         azkarViewModel.fetchAzakr()
     }
 
+
+
     Column {
-        Header()
+        Header(title = "الأذكار")
         Column(modifier = Modifier.padding(8.dp)) {
             LazyColumn {
                 items(azkarViewModel.azkarData) { item ->
@@ -60,11 +60,11 @@ fun AzkarScreen(
                         modifier = Modifier
                             .padding(4.dp)
                             .fillMaxWidth()
-                            .background(Color.Transparent)
-                            .border(
+                            .background(Helpers.ottrojjaBrush, shape = RoundedCornerShape(12.dp))
+                            /*.border(
                                 BorderStroke(1.dp, color = MaterialTheme.colorScheme.primary),
                                 shape = RoundedCornerShape(12.dp)
-                            )
+                            )*/
                             .clip(RoundedCornerShape(12))
                             .clickable { navController.navigate(Screen.ZikrScreen.invokeRoute(item.azkarTitle)) }
                             .padding(12.dp)
@@ -72,7 +72,7 @@ fun AzkarScreen(
                         Text(
                             text = item.azkarTitle,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                         Image(
                             painter = painterResource(

@@ -73,8 +73,8 @@ fun BottomNavigation(
 
         BottomNavigationOption(
             optionText = "الاذكار",
-            isCurrent = Screen.AzkarScreen.route == currentRoute,
-            onClick = { navController.navigate(Screen.AzkarScreen.route) },
+            isCurrent = Screen.AzkarMain.route == currentRoute,
+            onClick = { navController.navigate(Screen.AzkarMain.route) },
             iconId = R.drawable.azkar,
             alternateIcon = null
         )

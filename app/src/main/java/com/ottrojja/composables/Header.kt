@@ -20,10 +20,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ottrojja.R
 
 @Composable
-fun Header(modifier: Modifier = Modifier, isMain: Boolean = false) {
+fun Header(modifier: Modifier = Modifier, isMain: Boolean = false, title: String = "") {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -41,12 +42,20 @@ fun Header(modifier: Modifier = Modifier, isMain: Boolean = false) {
                 .fillMaxWidth(1f)
         )
         if (!isMain) {
-            Image(
-                painter = painterResource(id = R.drawable.logo),
-                contentDescription = "logo",
-                colorFilter = ColorFilter.tint(Color.White),
-                modifier = Modifier.align(Alignment.Center)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(4.dp, 0.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.displayLarge.copy(fontSize = 28.sp),
+                    textAlign = TextAlign.Center,
+                    color = Color.White
+                )
+            }
         } else {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

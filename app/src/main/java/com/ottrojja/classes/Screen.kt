@@ -5,7 +5,9 @@ import com.ottrojja.screens.mainScreen.BrowsingOption
 sealed class Screen(val route: String) {
     object LoadingScreen : Screen(route = "loading_screen")
     object BookmarksScreen : Screen(route = "bookmarks_screen")
+    object AzkarMain : Screen(route = "azkar_main")
     object AzkarScreen : Screen(route = "azkar_screen")
+    object Jwam3Screen : Screen(route = "jwam3_screen")
     object TeacherScreen : Screen(route = "teacher_screen")
     object ChaptersScreen : Screen(route = "chapters_screen")
     object TasbeehScreen : Screen(route = "tasbeeh_screen")

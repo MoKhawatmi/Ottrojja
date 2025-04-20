@@ -61,7 +61,7 @@ fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
     Column(modifier = Modifier
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.tertiary)) {
-        Header()
+        Header(title = "إشراقات")
         LazyColumn(state = listState,
             modifier = Modifier
                 .padding(horizontal = 6.dp)

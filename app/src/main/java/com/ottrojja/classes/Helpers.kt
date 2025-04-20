@@ -9,6 +9,8 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.widget.Toast
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.ottrojja.services.MediaPlayerService
@@ -114,5 +116,16 @@ object Helpers {
         val resultCode = apiAvailability.isGooglePlayServicesAvailable(context)
         return resultCode == ConnectionResult.SUCCESS
     }
+
+    val ottrojjaBrush = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFF1E5C77), // lighter teal (a bit more bright)
+            Color(0xFF194D65), // your base color
+            Color(0xFF123C4F), // deeper blue teal
+            Color(0xFF194D65), // back to your base
+            Color(0xFF1E5C77)  // back to lighter
+        )
+    )
+
 
 }
