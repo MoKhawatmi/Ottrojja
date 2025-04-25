@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,31 +40,32 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.NameOfGod
 import com.ottrojja.composables.Header
 
 @Composable
-fun NamesOfGod(namesOfGodViewModel: NamesOfGodViewModel = viewModel()) {
+fun NamesOfGod(namesOfGodViewModel: NamesOfGodViewModel = viewModel(), navController: NavController) {
 
     var expandedItem by remember { mutableStateOf<NameOfGod?>(null) }
 
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Top) {
-        Header(title = "أسماء الله الحسنى")
+        Header(title = "أسماء الله الحسنى",
+            buttonAction = ButtonAction(Icons.Default.ArrowBack, action = { navController.popBackStack() })
+        )
         Box() {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.tertiary)
-                    .padding(top = 12.dp, end = 6.dp, start = 6.dp, bottom = 6.dp)
+                    .padding(top = 12.dp, end = 2.dp, start = 2.dp, bottom = 6.dp)
             ) {
-                items(namesOfGodViewModel.namesOfGod, key = { it.data.id }, span = { item ->
-                    if (item.expanded) GridItemSpan(maxLineSpan)
-                    else GridItemSpan(1)
-                }) { item ->
+                items(namesOfGodViewModel.namesOfGod, key = { it.data.id }) { item ->
                     NamesOfGodItem(name = item.data.name,
                         updateExpanded = { expandedItem = item.data }
                     )
@@ -163,7 +166,6 @@ fun NamesOfGodItem(
 
     Column(
         modifier = Modifier
-            .padding(12.dp)
             .shadow(
                 elevation = 2.dp,
                 shape = RoundedCornerShape(16.dp),
@@ -179,7 +181,7 @@ fun NamesOfGodItem(
     ) {
         Row(
             modifier = Modifier
-                .height(75.dp)
+                .height(80.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
@@ -187,7 +189,7 @@ fun NamesOfGodItem(
             Text(
                 text = name,
                 color = MaterialTheme.colorScheme.onPrimary,
-                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 24.sp),
+                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 20.sp),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
                 lineHeight = 26.sp

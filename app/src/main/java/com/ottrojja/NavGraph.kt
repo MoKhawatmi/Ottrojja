@@ -63,13 +63,13 @@ fun NavGraph(navController: NavHostController,
             )
         }
         composable(route = Screen.Jwam3Screen.route) {
-            Jwam3Screen()
+            Jwam3Screen(navController = navController)
         }
         composable(route = Screen.NamesOfGodScreen.route) {
-            NamesOfGod()
+            NamesOfGod(navController = navController)
         }
         composable(route = Screen.GeneralSupplicationsScreen.route) {
-            GeneralSupplicationsScreen()
+            GeneralSupplicationsScreen(navController = navController)
         }
         composable(route = Screen.TeacherScreen.route) {
             TeacherScreen(repository)

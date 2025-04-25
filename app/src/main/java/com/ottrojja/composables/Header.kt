@@ -9,24 +9,25 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ottrojja.R
+import com.ottrojja.classes.ButtonAction
 
 @Composable
-fun Header(modifier: Modifier = Modifier, isMain: Boolean = false, title: String = "") {
+fun Header(modifier: Modifier = Modifier,
+           isMain: Boolean = false,
+           title: String = "",
+           buttonAction: ButtonAction? = null) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -46,7 +47,7 @@ fun Header(modifier: Modifier = Modifier, isMain: Boolean = false, title: String
         if (!isMain) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = if (buttonAction != null) Arrangement.SpaceBetween else Arrangement.Center,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(4.dp, 0.dp)
@@ -57,6 +58,10 @@ fun Header(modifier: Modifier = Modifier, isMain: Boolean = false, title: String
                     textAlign = TextAlign.Center,
                     color = Color.White
                 )
+                if (buttonAction != null) {
+                    OttrojjaElevatedButton(icon = buttonAction.icon,
+                        onClick = { buttonAction.action() })
+                }
             }
         } else {
             Row(

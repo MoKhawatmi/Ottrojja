@@ -8,19 +8,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.ottrojja.classes.ButtonAction
 import com.ottrojja.composables.ExpandableTextWithDetails
 import com.ottrojja.composables.Header
 
 @Composable
-fun Jwam3Screen(jwam3ViewModel: Jwam3ViewModel = viewModel()) {
+fun Jwam3Screen(jwam3ViewModel: Jwam3ViewModel = viewModel(), navController: NavController) {
 
 
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Top) {
-        Header(title = "جوامع الدعاء")
+        Header(title = "جوامع الدعاء",
+            buttonAction = ButtonAction(Icons.Default.ArrowBack,
+                action = { navController.popBackStack() })
+        )
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()

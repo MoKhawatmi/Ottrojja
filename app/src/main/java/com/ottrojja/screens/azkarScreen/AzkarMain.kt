@@ -81,7 +81,6 @@ fun AzkarSectionItem(imageId: Int, title: String, onClick: () -> Unit) {
             .clickable { onClick() }
             .padding(horizontal = 6.dp, vertical = 16.dp)
     ) {
-
         Image(
             painter = painterResource(id = imageId),
             contentDescription = "",

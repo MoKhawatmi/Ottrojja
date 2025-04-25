@@ -150,15 +150,11 @@ fun MainScreen(
                                 .background(Color.Transparent)
                                 .border(
                                     BorderStroke(1.dp, color = MaterialTheme.colorScheme.primary),
-                                    shape = RoundedCornerShape(10.dp)
+                                    shape = RoundedCornerShape(12.dp)
                                 )
-                                .clip(RoundedCornerShape(10))
+                                .clip(RoundedCornerShape(12))
                                 .clickable {
-                                    navController.navigate(
-                                        Screen.QuranScreen.invokeRoute(
-                                            mainViewModel.mostRecentPage
-                                        )
-                                    )
+                                    navController.navigate(Screen.QuranScreen.invokeRoute(mainViewModel.mostRecentPage))
                                 }
                                 .padding(12.dp, 8.dp)
                         ) {
@@ -174,6 +170,29 @@ fun MainScreen(
                             )
                         }
                     }
+
+                    MainScreenTab(title = "صفحات القرآن", imageId = R.drawable.q_image1,
+                        startColor = Color.Red, endColor = Color(0xDD660000), onClick = {
+                            mainViewModel.selectedSection = BrowsingOption.الصفحات;
+                            mainViewModel.showImageList = false;
+                        })
+                    MainScreenTab(title = "سور القرآن", imageId = R.drawable.q_image2,
+                        startColor = Color.Green, endColor = Color(0xDD006600), onClick = {
+                            mainViewModel.selectedSection = BrowsingOption.السور;
+                            mainViewModel.showImageList = false;
+                        })
+                    MainScreenTab(title = "اجزاء القرآن", imageId = R.drawable.q_image3,
+                        startColor = Color.Blue, endColor = Color(0xDD000066), onClick = {
+                            mainViewModel.selectedSection = BrowsingOption.الاجزاء;
+                            mainViewModel.showImageList = false;
+                        })
+                    MainScreenTab(title = "البحث", imageId = R.drawable.q_image4,
+                        startColor = Color(0xFFD0B968), endColor = Color(0xFFA86809), onClick = {
+                            mainViewModel.selectedSection = BrowsingOption.البحث;
+                            mainViewModel.invokeLatestSearchOperation();
+                            mainViewModel.showImageList = false;
+                        })
+/*
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
@@ -316,35 +335,35 @@ fun MainScreen(
                                 .clip(CircleShape)
                         )
                     }
-
+*/
                     Row(modifier = Modifier.height(25.dp)) {}
                 }
 
             }
 
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 24.dp)
-                        .fillMaxWidth()
-                        .height(52.dp)
-                        .align(Alignment.BottomCenter)
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 24.dp)
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .align(Alignment.BottomCenter)
+            ) {
+                AnimatedVisibility(visible = showBottomFade.value,
+                    enter = fadeIn(animationSpec = tween(durationMillis = 300)),
+                    exit = fadeOut(animationSpec = tween(durationMillis = 200))
                 ) {
-                    AnimatedVisibility(visible = showBottomFade.value,
-                        enter = fadeIn(animationSpec = tween(durationMillis = 300)),
-                        exit = fadeOut(animationSpec = tween(durationMillis = 200))
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    brush = Brush.verticalGradient(
-                                        colors = listOf(Color.Transparent, Color.White)
-                                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(Color.Transparent, Color.White)
                                 )
-                        )
-                    }
+                            )
+                    )
                 }
             }
+        }
 
     } else {
         Column {
@@ -619,7 +638,10 @@ fun SearchMenu(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "{${item.verseText}} ${convertToIndianNumbers(item.verseNum)} - ${item.surahName}",
+                        text = "{${item.verseText}} ${
+                            convertToIndianNumbers(item.verseNum
+                            )
+                        } - ${item.surahName}",
                         color = Color.Black,
                         style = MaterialTheme.typography.bodyMedium
                     )

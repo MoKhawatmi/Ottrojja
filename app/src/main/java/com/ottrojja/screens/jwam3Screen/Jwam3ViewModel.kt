@@ -20,9 +20,8 @@ class Jwam3ViewModel(application: Application) : AndroidViewModel(application) {
         try {
             JsonParser(context).parseJsonArrayFile<Jam3Supplication>("supplications.json")
                 ?.let {
-                    it.forEach { item ->
-                        _supplications.add(ExpandableItem(data = item, expanded = false))
-                    }
+                    _supplications.addAll(
+                        it.map { item -> ExpandableItem(data = item, expanded = false) })
                 }
         } catch (e: Exception) {
             e.printStackTrace()

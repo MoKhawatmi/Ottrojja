@@ -41,10 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.EmptyListMessage
+import com.ottrojja.composables.Header
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaElevatedButton
@@ -79,27 +81,9 @@ fun KhitmahList(
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.tertiary)
     ) {
-        OttrojjaTopBar {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 6.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OttrojjaTopBarTitle("الختمات")
-
-                Row(
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OttrojjaElevatedButton(
-                        onClick = { khitmahListViewModel.showAddKhitmahDialog = true },
-                        icon = Icons.Default.Add
-                    )
-                }
-            }
-        }
+        Header(title = "الختمات", buttonAction = ButtonAction(Icons.Default.Add,
+            action = { khitmahListViewModel.showAddKhitmahDialog = true })
+        )
 
         LazyColumn(
             modifier = Modifier

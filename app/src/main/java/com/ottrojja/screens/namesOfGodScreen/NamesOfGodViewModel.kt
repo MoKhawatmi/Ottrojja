@@ -20,9 +20,8 @@ class NamesOfGodViewModel(application: Application) : AndroidViewModel(applicati
         try {
             JsonParser(context).parseJsonArrayFile<NameOfGod>("namesOfGod.json")
                 ?.let {
-                    it.forEach { item ->
-                        _namesOfGod.add(ExpandableItem(data = item, expanded = false))
-                    }
+                    _namesOfGod.addAll(
+                        it.map { item -> ExpandableItem(data = item, expanded = false) })
                 }
         } catch (e: Exception) {
             e.printStackTrace()
