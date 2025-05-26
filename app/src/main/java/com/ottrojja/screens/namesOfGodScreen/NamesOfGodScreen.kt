@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,7 +43,7 @@ import androidx.navigation.NavController
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.NameOfGod
-import com.ottrojja.composables.Header
+import com.ottrojja.composables.TopBar
 
 @Composable
 fun NamesOfGod(namesOfGodViewModel: NamesOfGodViewModel = viewModel(), navController: NavController) {
@@ -52,8 +51,8 @@ fun NamesOfGod(namesOfGodViewModel: NamesOfGodViewModel = viewModel(), navContro
     var expandedItem by remember { mutableStateOf<NameOfGod?>(null) }
 
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Top) {
-        Header(title = "أسماء الله الحسنى",
-            buttonAction = ButtonAction(Icons.Default.ArrowBack, action = { navController.popBackStack() })
+        TopBar(title = "أسماء الله الحسنى",
+            mainAction = ButtonAction(Icons.Default.ArrowBack, action = { navController.popBackStack() })
         )
         Box() {
             LazyVerticalGrid(

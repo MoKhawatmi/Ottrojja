@@ -33,7 +33,7 @@ import com.ottrojja.R
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.EmptyListMessage
-import com.ottrojja.composables.Header
+import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -60,7 +60,7 @@ fun BookmarksScreen(
         .background(MaterialTheme.colorScheme.tertiary)
     )
     {
-        Header(title = "المرجعيات")
+        TopBar(title = "المرجعيات")
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()

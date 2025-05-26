@@ -29,14 +29,14 @@ import androidx.navigation.NavController
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Screen
-import com.ottrojja.composables.Header
+import com.ottrojja.composables.TopBar
 
 @Composable
 fun AzkarMain(navController: NavController) {
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Header(title = "الأذكار")
+        TopBar(title = "الأذكار")
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             horizontalArrangement = Arrangement.spacedBy(8.dp),

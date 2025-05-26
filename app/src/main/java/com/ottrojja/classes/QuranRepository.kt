@@ -209,7 +209,7 @@ class QuranRepository(private val quranDao: QuranDao,
         return tasabeehDao.getTasabeehLists()
     }
 
-    suspend fun getTasabeehList(id: Int): Flow<ListWithTasabeeh> {
+    suspend fun getTasabeehList(id: Int): Flow<ListWithTasabeeh?> {
         return tasabeehDao.getTasabeehList(id)
     }
 

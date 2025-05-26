@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,16 +21,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -43,7 +39,7 @@ import androidx.navigation.NavController
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.truncate
-import com.ottrojja.composables.Header
+import com.ottrojja.composables.TopBar
 
 
 @SuppressLint("ContextCastToActivity")
@@ -59,7 +55,7 @@ fun GeneralSupplicationsScreen(generalSupplicationsViewModel: GeneralSupplicatio
 
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Top) {
         if (generalSupplicationsViewModel.selectedSupplications == null) {
-            Header(title = "أدعية مأثورة", buttonAction = ButtonAction(Icons.Default.ArrowBack,
+            TopBar(title = "أدعية مأثورة", mainAction = ButtonAction(Icons.Default.ArrowBack,
                 action = { navController.popBackStack() })
             )
             LazyVerticalGrid(
@@ -120,9 +116,9 @@ fun GeneralSupplicationsScreen(generalSupplicationsViewModel: GeneralSupplicatio
                 }
             }
         } else {
-            Header(title = "${
+            TopBar(title = "${
                 generalSupplicationsViewModel.selectedSupplications?.category?.truncate(20)
-            }", buttonAction = ButtonAction(Icons.Default.ArrowBack,
+            }", mainAction = ButtonAction(Icons.Default.ArrowBack,
                 action = { generalSupplicationsViewModel.clearSelectedSupplications() })
             )
             LazyColumn(

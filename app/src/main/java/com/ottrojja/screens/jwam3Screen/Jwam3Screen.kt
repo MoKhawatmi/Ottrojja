@@ -17,15 +17,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.composables.ExpandableTextWithDetails
-import com.ottrojja.composables.Header
+import com.ottrojja.composables.TopBar
 
 @Composable
 fun Jwam3Screen(jwam3ViewModel: Jwam3ViewModel = viewModel(), navController: NavController) {
 
 
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Top) {
-        Header(title = "جوامع الدعاء",
-            buttonAction = ButtonAction(Icons.Default.ArrowBack,
+        TopBar(title = "جوامع الدعاء",
+            mainAction = ButtonAction(Icons.Default.ArrowBack,
                 action = { navController.popBackStack() })
         )
         LazyColumn(

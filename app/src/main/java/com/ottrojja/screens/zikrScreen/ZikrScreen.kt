@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,9 +50,8 @@ import com.ottrojja.composables.LoadingDialog
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
 import com.ottrojja.composables.OttrojjaTabs
-import com.ottrojja.composables.OttrojjaTopBar
+import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.room.entities.Azkar
-import com.ottrojja.screens.quranScreen.NoRippleInteractionSource
 import com.ottrojja.screens.quranScreen.YouTube
 
 @Composable
@@ -74,7 +75,7 @@ fun ZikrScreen(
 
     Column() {
 
-        OttrojjaTopBar {
+        SecondaryTopBar {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier
@@ -203,8 +204,8 @@ fun ZikrSection(
             }
         }
         .clickable(
+            interactionSource = remember { MutableInteractionSource() },
             indication = null,
-            interactionSource = NoRippleInteractionSource()
         ) { toggleController() }
     ) {
         Column {

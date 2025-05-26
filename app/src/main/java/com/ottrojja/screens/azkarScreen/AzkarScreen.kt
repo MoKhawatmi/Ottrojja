@@ -33,7 +33,7 @@ import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
-import com.ottrojja.composables.Header
+import com.ottrojja.composables.TopBar
 
 @Composable
 fun AzkarScreen(
@@ -50,8 +50,8 @@ fun AzkarScreen(
     }
 
     Column {
-        Header(title = "الأذكار",
-            buttonAction = ButtonAction(Icons.Default.ArrowBack, action = { navController.popBackStack() })
+        TopBar(title = "الأذكار",
+            mainAction = ButtonAction(Icons.Default.ArrowBack, action = { navController.popBackStack() })
         )
         Column(modifier = Modifier.padding(8.dp)) {
             LazyColumn {

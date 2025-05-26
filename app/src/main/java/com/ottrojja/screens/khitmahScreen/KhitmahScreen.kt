@@ -39,7 +39,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.binayshaw7777.kotstep.model.LineDefault
@@ -47,13 +46,15 @@ import com.binayshaw7777.kotstep.model.StepDefaults
 import com.binayshaw7777.kotstep.model.StepStyle
 import com.binayshaw7777.kotstep.model.tabVerticalWithLabel
 import com.binayshaw7777.kotstep.ui.vertical.VerticalStepper
+import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaElevatedButton
-import com.ottrojja.composables.OttrojjaTopBar
+import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.OttrojjaTopBarTitle
+import com.ottrojja.composables.TopBar
 import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.ui.theme.complete_green
 import java.text.SimpleDateFormat
@@ -113,96 +114,15 @@ fun KhitmahScreen(
         verticalArrangement = Arrangement.Top
     ) {
 
-        OttrojjaTopBar {
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 6.dp)
-                    .background(MaterialTheme.colorScheme.background),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OttrojjaTopBarTitle(khitmahViewModel.khitmah?.title?:"")
-
-                Row(modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        OttrojjaElevatedButton(
-                            onClick = { expanded = !expanded },
-                            icon = Icons.Default.MoreVert
-                        )
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            if (khitmahViewModel.khitmah?.isComplete == true) {
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            "تعيين كجارية",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                    },
-                                    trailingIcon = {
-                                        Icon(
-                                            Icons.Outlined.Pending,
-                                            contentDescription = "set as ongoing",
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    },
-                                    onClick = { khitmahViewModel.toggleKhitmahStatus(); expanded = false; }
-                                )
-                            } else {
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            "تعيين كمكتملة",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                    },
-                                    trailingIcon = {
-                                        Icon(
-                                            Icons.Default.CheckCircle,
-                                            contentDescription = "set as complete",
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    },
-                                    onClick = { khitmahViewModel.toggleKhitmahStatus(); expanded = false; }
-                                )
-                            }
-
-                            ListHorizontalDivider()
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        "حذف الختمة",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                },
-                                trailingIcon = {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = "delete khitmah",
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                },
-                                onClick = { confirmDeleteKhitmah(); expanded = false; }
-                            )
-                        }
-                    }
-
-                    OttrojjaElevatedButton(
-                        onClick = { navController.popBackStack() },
-                        icon = Icons.Filled.ArrowBack
-                    )
-                }
-            }
-        }
-
+        TopBar(title = khitmahViewModel.khitmah?.title ?: "",
+            mainAction = ButtonAction(icon = Icons.Filled.ArrowBack,
+                action = { navController.popBackStack() }),
+            secondaryActions = listOf(
+                ButtonAction(icon = Icons.Outlined.Pending, action = { khitmahViewModel.toggleKhitmahStatus(); }, title = "تعيين كجارية"),
+                ButtonAction(icon = Icons.Default.CheckCircle, action = { khitmahViewModel.toggleKhitmahStatus(); }, title = "تعيين كمكتملة"),
+                ButtonAction(icon = Icons.Default.Close, action = { confirmDeleteKhitmah(); }, title = "حذف الختمة"),
+            )
+        )
 
         if (khitmahViewModel.khitmahMarks.size > 0) {
             Row(horizontalArrangement = Arrangement.SpaceBetween,

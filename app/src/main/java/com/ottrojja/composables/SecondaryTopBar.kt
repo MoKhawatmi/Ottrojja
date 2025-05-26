@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun OttrojjaTopBar(content: @Composable() () -> Unit) {
+fun SecondaryTopBar(content: @Composable() () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
         Row(modifier = Modifier
             .fillMaxWidth()

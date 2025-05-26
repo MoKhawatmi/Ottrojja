@@ -34,11 +34,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.classes.ButtonAction
@@ -46,12 +44,9 @@ import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.EmptyListMessage
-import com.ottrojja.composables.Header
+import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaDialog
-import com.ottrojja.composables.OttrojjaElevatedButton
-import com.ottrojja.composables.OttrojjaTopBar
-import com.ottrojja.composables.OttrojjaTopBarTitle
 import com.ottrojja.ui.theme.complete_green
 
 @Composable
@@ -81,7 +76,7 @@ fun KhitmahList(
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.tertiary)
     ) {
-        Header(title = "الختمات", buttonAction = ButtonAction(Icons.Default.Add,
+        TopBar(title = "الختمات", mainAction = ButtonAction(Icons.Default.Add,
             action = { khitmahListViewModel.showAddKhitmahDialog = true })
         )
 

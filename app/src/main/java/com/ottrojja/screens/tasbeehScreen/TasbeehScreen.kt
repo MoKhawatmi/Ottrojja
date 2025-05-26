@@ -1,10 +1,13 @@
 package com.ottrojja.screens.tasbeehScreen
 
 import android.app.Application
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -16,9 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.composables.Header
+import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.OttrojjaTabs
-import com.ottrojja.composables.OttrojjaTopBar
+import com.ottrojja.composables.SecondaryTopBar
 
 @Composable
 fun TasbeehScreen(
@@ -44,9 +47,9 @@ fun TasbeehScreen(
     val tasbeehCount by tasbeehScreenViewModel.tasbeehCount.collectAsState()
 
 
-    Column() {
-        Header(title = "المسبحة")
-        OttrojjaTopBar {
+    Column(modifier = Modifier.fillMaxHeight().background(MaterialTheme.colorScheme.tertiary)) {
+        TopBar(title = "المسبحة")
+        SecondaryTopBar {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

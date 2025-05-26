@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -52,21 +51,21 @@ import com.ottrojja.classes.Screen
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToIndianNumbers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
-import com.ottrojja.composables.Header
+import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaTabs
-import com.ottrojja.composables.OttrojjaTopBar
+import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 
 @Composable
@@ -130,7 +129,22 @@ fun MainScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             Column {
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    Header(isMain = true)
+                    TopBar(customContent = true){
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(4.dp, 0.dp)
+                        ) {
+                            Text(
+                                text = "مَثَلُ الْمُؤْمِنِ الَّذِي يَقْرَأُ الْقُرْآنَ كَمَثَلِ الْأُتْرُجَّةِ، رِيحُهَا طَيِّبٌ وَطَعْمُهَا طَيِّبٌ",
+                                style = MaterialTheme.typography.displayLarge,
+                                textAlign = TextAlign.Center,
+                                color = Color.White
+                            )
+                        }
+                    }
                 }
                 Column(
                     verticalArrangement = Arrangement.Top,
@@ -367,7 +381,7 @@ fun MainScreen(
 
     } else {
         Column {
-            OttrojjaTopBar {
+            SecondaryTopBar {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier

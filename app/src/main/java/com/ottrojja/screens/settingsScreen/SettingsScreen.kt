@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
-import com.ottrojja.composables.Header
+import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.SwitchWithIcon
@@ -54,7 +54,7 @@ fun SettingsScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.tertiary)) {
-        Header(title = "الإعدادات")
+        TopBar(title = "الإعدادات")
 
         if (settingsScreenViewModel.ShowAboutDialog) {
             AboutDialog(onDismiss = {settingsScreenViewModel.ShowAboutDialog = false} )

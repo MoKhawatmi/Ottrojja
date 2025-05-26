@@ -24,7 +24,7 @@ interface TasabeehDao {
     fun getTasabeehLists(): Flow<List<TasabeehList>>
 
     @Query("SELECT * FROM TasabeehList WHERE id=:id")
-    fun getTasabeehList(id: Int): Flow<ListWithTasabeeh>
+    fun getTasabeehList(id: Int): Flow<ListWithTasabeeh?>
 
     @Delete
     fun deleteTasabeehList(tasabeehList: TasabeehList)

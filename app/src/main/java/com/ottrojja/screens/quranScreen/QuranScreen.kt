@@ -16,7 +16,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,7 +45,6 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.BottomSheetDefaults
@@ -107,7 +105,7 @@ import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
-import com.ottrojja.composables.OttrojjaTopBar
+import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.SelectedVerseContentSection
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.screens.mainScreen.BrowsingOption
@@ -115,8 +113,6 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstan
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 
 
 @SuppressLint("UnrememberedMutableState", "DiscouragedApi")
@@ -187,7 +183,7 @@ fun QuranScreen(
     } else {
         Column() {
             if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT || (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && IsTablet())) {
-                OttrojjaTopBar {
+                SecondaryTopBar {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Row(
                             modifier = Modifier
@@ -377,7 +373,7 @@ fun QuranScreen(
                 atLastVerse = quranViewModel.atLastVerse(),
                 targetNextVerse = { quranViewModel.targetNextVerse() },
                 targetPreviousVerse = { quranViewModel.targetPreviousVerse() },
-                tafseerChapterVerse= quranViewModel.tafseerChapterVerse,
+                tafseerChapterVerse = quranViewModel.tafseerChapterVerse,
             )
         }
     }
@@ -905,7 +901,8 @@ fun PagesContainer(
                     }
                 }
                 .clickable(
-                    indication = null, interactionSource = NoRippleInteractionSource()
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
                 ) { showController = !showController }) { index ->
             SinglePage(quranPagesNumbers[index], nightReadingMode)
         }
@@ -935,28 +932,25 @@ fun PagesContainer(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
+                    /*Icon(
                         Icons.Default.Settings,
                         contentDescription = "More Options",
                         modifier = Modifier.clickable { listeningOptionsClicked() },
                         tint = MaterialTheme.colorScheme.primary
+                    )*/
+                    Text(text = "خيارات التشغيل",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(12.dp))
+                            .clickable { listeningOptionsClicked() }
+                            .padding(6.dp)
                     )
                 }
             }
         }
     }
 }
-
-class NoRippleInteractionSource : MutableInteractionSource {
-
-    override val interactions: Flow<Interaction> = emptyFlow()
-
-    override suspend fun emit(interaction: Interaction) {}
-
-    override fun tryEmit(interaction: Interaction) = true
-
-}
-
 
 @Composable
 fun SinglePage(pageNum: String, nightReadingMode: Boolean) {

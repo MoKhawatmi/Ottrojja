@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,12 +34,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.composables.Header
+import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.LoadingDialog
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
-import com.ottrojja.composables.OttrojjaTopBar
+import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 import com.ottrojja.screens.mainScreen.ChapterData
 
@@ -76,8 +75,8 @@ fun ChaptersScreen(
 
 
     Column {
-        Header(title = "الإستماع")
-        OttrojjaTopBar {
+        TopBar(title = "الإستماع")
+        SecondaryTopBar {
             Row(
                 modifier = Modifier
                     .padding(horizontal =  10.dp)

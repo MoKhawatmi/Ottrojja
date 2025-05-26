@@ -62,7 +62,7 @@ import com.ottrojja.classes.PageContentItemType
 import com.ottrojja.classes.QuranPage
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.composables.LoadingDialog
-import com.ottrojja.composables.OttrojjaTopBar
+import com.ottrojja.composables.SecondaryTopBar
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -112,7 +112,7 @@ fun PageTraining(
     }
 
 
-    OttrojjaTopBar {
+    SecondaryTopBar {
         Row(
             modifier = Modifier
                 .padding(horizontal = 6.dp)
