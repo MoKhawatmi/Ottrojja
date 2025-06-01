@@ -9,7 +9,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -57,21 +56,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
-import com.ottrojja.classes.PageContent
-import com.ottrojja.classes.PageContentItemType
-import com.ottrojja.classes.QuranPage
+import com.ottrojja.room.entities.PageContent
+import com.ottrojja.room.entities.PageContentItemType
+import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.composables.LoadingDialog
 import com.ottrojja.composables.SecondaryTopBar
+import com.ottrojja.room.relations.QuranPageWithContent
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PageTraining(
-    currentVerse: PageContent,
+    currentVerse: PageContent?,
     checkVerse: () -> Unit,
     currentTry: Int,
     proceedVerse: () -> Unit,
-    currentPage: QuranPage,
+    currentPage: QuranPageWithContent,
     startTeaching: () -> Unit,
     hasStarted: Boolean,
     solutionMap: HashMap<Int, List<String>>,
@@ -206,7 +205,7 @@ fun PageTraining(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "الصفحة ${currentPage.pageNum}",
+                    text = "الصفحة ${currentPage.page.pageNum}",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
@@ -247,7 +246,7 @@ fun PageTraining(
                         .fillMaxWidth()
                         .padding(0.dp, 4.dp)
                 ) {
-                    currentVerse.verseTextPlain.split(" ").forEachIndexed { index, it ->
+                    currentVerse?.verseTextPlain!!.split(" ").forEachIndexed { index, it ->
                         if (hiddenIndecies.contains(index)) {
                             val textMeasurer = rememberTextMeasurer()
                             val textLayoutResult: TextLayoutResult =
@@ -280,13 +279,12 @@ fun PageTraining(
                         }
                     }
                     Text(
-                        text = Helpers.convertToIndianNumbers(
-                            currentVerse.verseNum
-                        ),
+                        text = Helpers.convertToIndianNumbers("${currentVerse.verseNum!!}"),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(2.dp)
                     )
+
                 }
             }
 
@@ -358,11 +356,7 @@ fun PageTraining(
                             .padding(0.dp, 6.dp)
                     ) {
                         Text(
-                            text = "${currentVerse.verseText} ${
-                                Helpers.convertToIndianNumbers(
-                                    currentVerse.verseNum
-                                )
-                            }",
+                            text = "${currentVerse?.verseText} ${Helpers.convertToIndianNumbers("${currentVerse?.verseNum!!}")}",
                             style = MaterialTheme.typography.labelLarge,
                             lineHeight = 36.sp,
                             color = MaterialTheme.colorScheme.primary,

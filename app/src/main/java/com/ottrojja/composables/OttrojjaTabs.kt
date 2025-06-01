@@ -39,7 +39,7 @@ fun <T : Enum<T>> OttrojjaTabs(
         items.forEachIndexed { index, option ->
             Column() {
                 Text(
-                    text = "$tabPrefix$option",
+                    text = "$tabPrefix${option.toString().replace("_", " ")}",
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     color = if (selectedItem == option) MaterialTheme.colorScheme.onPrimary else primaryColor,

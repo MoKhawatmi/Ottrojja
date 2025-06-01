@@ -3,6 +3,7 @@ package com.ottrojja.classes
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.ottrojja.room.entities.QuranPage
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException

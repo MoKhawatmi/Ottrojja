@@ -16,7 +16,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
-import com.ottrojja.classes.PageContentItemType
+import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
 import kotlinx.coroutines.Dispatchers
@@ -89,24 +89,16 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
         println("searching for $text")
         searchJob = viewModelScope.launch(Dispatchers.IO) {
             val results = mutableListOf<SearchResult>()
-            repository.getAllPages().forEach { page ->
-                page.pageContent.forEach { verse ->
-                    if (verse.type == PageContentItemType.verse && (verse.verseText.contains(
-                            searchText
-                        )
-                                || verse.verseTextPlain.contains(searchText))
-                    ) {
-                        results.add(
-                            SearchResult(
-                                page.pageNum,
-                                verse.surahNum,
-                                verse.verseNum,
-                                verse.verseText,
-                                chaptersList.find { "${it.surahId}" == verse.surahNum }!!.chapterName
-                            )
-                        );
-                    }
-                }
+            repository.searchPagesContent(searchText).forEach { pageContent ->
+                results.add(
+                    SearchResult(
+                        pageContent.pageNum,
+                        pageContent.surahNum,
+                        pageContent.verseNum!!,
+                        pageContent.verseText!!,
+                        chaptersList.find { it.surahId == pageContent.surahNum }!!.chapterName
+                    )
+                );
             }
             withContext(Dispatchers.Main) {
                 _quranSearchResults.addAll(results)

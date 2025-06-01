@@ -1,5 +1,8 @@
 package com.ottrojja.classes
 
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.dao.KhitmahDao
@@ -15,19 +18,25 @@ import com.ottrojja.room.entities.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData
+import com.ottrojja.room.entities.PageContent
+import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.VerseMeanings
+import com.ottrojja.room.relations.QuranPageWithContent
 import kotlinx.coroutines.flow.Flow
 
 class QuranRepository(private val quranDao: QuranDao,
                       private val khitmahDao: KhitmahDao,
                       private val tasabeehDao: TasabeehDao) {
 
+
+    /****************************Pages*********************************/
+
     suspend fun getAllPages(): List<QuranPage> {
         return quranDao.getAllPages()
     }
 
-    suspend fun getPage(pageNum: String): QuranPage {
+    suspend fun getPage(pageNum: String): QuranPageWithContent {
         return quranDao.getPage(pageNum)
     }
 
@@ -42,6 +51,31 @@ class QuranRepository(private val quranDao: QuranDao,
     suspend fun getPagesCount(): Int {
         return quranDao.getPagesCount()
     }
+
+    /****************************Page Content*********************************/
+
+
+    suspend fun getAllPagesContent(): List<PageContent> {
+        return quranDao.getAllPagesContent()
+    }
+
+    suspend fun searchPagesContent(query: String): List<PageContent> {
+        return quranDao.searchPagesContent(query)
+    }
+    fun getPagesContentRange(startingSurah: Int, startingVerse: Int, endSurah: Int, endVerse: Int): List<PageContent> {
+        return quranDao.getPagesContentRange(startingSurah, startingVerse, endSurah, endVerse);
+    }
+
+    suspend fun insertPageContent(pageContent: PageContent) {
+        quranDao.insertPageContent(pageContent)
+    }
+
+    suspend fun insertPagesContent(pagesContent: List<PageContent>) {
+        quranDao.insertPagesContent(pagesContent)
+    }
+
+    /****************************Chapters*********************************/
+
 
     suspend fun insertAllChapters(chapters: List<ChapterData>) {
         quranDao.insertChapters(chapters)

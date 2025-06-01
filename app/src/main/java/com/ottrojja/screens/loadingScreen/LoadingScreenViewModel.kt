@@ -12,12 +12,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.classes.Helpers
-import com.ottrojja.classes.QuranPage
+import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.room.entities.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData
+import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.VerseMeanings
 import kotlinx.coroutines.Dispatchers
@@ -78,14 +79,14 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 }
             }
 
-            if (repository.getChaptersCount() != 114 || versions.get("chapters"
-                )!! > chaptersJsonVersion
-            ) {
+            if (repository.getChaptersCount() != 114 || versions.get("chapters")!! > chaptersJsonVersion) {
                 jsonParser.parseJsonArrayFile<ChapterData>("chaptersList.json")
                     ?.let {
                         try {
                             repository.insertAllChapters(it)
-                            sharedPreferences.edit().putInt("chaptersJsonVersion", versions.get("chapters")!!).apply()
+                            sharedPreferences.edit().putInt("chaptersJsonVersion",
+                                versions.get("chapters")!!
+                            ).apply()
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
@@ -97,7 +98,9 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                     ?.let {
                         try {
                             repository.insertAllParts(it)
-                            sharedPreferences.edit().putInt("partsJsonVersion", versions.get("parts")!!).apply()
+                            sharedPreferences.edit().putInt("partsJsonVersion",
+                                versions.get("parts")!!
+                            ).apply()
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
@@ -108,7 +111,8 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 jsonParser.parseJsonArrayFile<E3rabData>("e3rab.json")?.let {
                     try {
                         repository.insertAllE3rabData(it)
-                        sharedPreferences.edit().putInt("e3rabJsonVersion", versions.get("e3rab")!!).apply()
+                        sharedPreferences.edit().putInt("e3rabJsonVersion", versions.get("e3rab")!!
+                        ).apply()
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -119,7 +123,9 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 jsonParser.parseJsonArrayFile<VerseMeanings>("verseMeanings.json")?.let {
                     try {
                         repository.insertVerseMeanings(it)
-                        sharedPreferences.edit().putInt("verseMeaningsJsonVersion", versions.get("verseMeanings")!!).apply()
+                        sharedPreferences.edit().putInt("verseMeaningsJsonVersion",
+                            versions.get("verseMeanings")!!
+                        ).apply()
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -131,7 +137,8 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 jsonParser.parseJsonArrayFile<Azkar>("azkar.json")?.let {
                     try {
                         repository.insertAllAzkar(it)
-                        sharedPreferences.edit().putInt("azkarJsonVersion", versions.get("azkar")!!).apply()
+                        sharedPreferences.edit().putInt("azkarJsonVersion", versions.get("azkar")!!
+                        ).apply()
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -144,7 +151,9 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 jsonParser.parseJsonArrayFile<CauseOfRevelation>("causesOfRevelation.json")?.let {
                     try {
                         repository.insertAllCausesOfRevelation(it)
-                        sharedPreferences.edit().putInt("causesOfRevelationJsonVersion", versions.get("causesOfRevelation")!!).apply()
+                        sharedPreferences.edit().putInt("causesOfRevelationJsonVersion",
+                            versions.get("causesOfRevelation")!!
+                        ).apply()
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -169,7 +178,9 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                     jsonParser.parseJsonArrayFile<TafseerData>(tafseerFile)?.let {
                         try {
                             repository.insertAllTafseerData(it)
-                            sharedPreferences.edit().putInt("tafaseerJsonVersion", versions.get("tafaseer")!!).apply()
+                            sharedPreferences.edit().putInt("tafaseerJsonVersion",
+                                versions.get("tafaseer")!!
+                            ).apply()
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
@@ -184,6 +195,13 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                     handleLocalQuranFile(quranFile)
                 } else {
                     downloadAndUpdateQuranFile(quranFile)
+                }
+                jsonParser.parseJsonArrayFile<PageContent>("pagesContent.json")?.let {
+                    try {
+                        repository.insertPagesContent(it)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
 
@@ -323,19 +341,6 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        }
-    }
-
-    fun lastModifiedToMillis(lastModified: String?): Long {
-        if (lastModified.isNullOrEmpty()) return 0L
-        return try {
-            val dateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH)
-            dateFormat.timeZone = TimeZone.getTimeZone("GMT")
-            val date = dateFormat.parse(lastModified)
-            date.time
-        } catch (e: Exception) {
-            e.printStackTrace()
-            0L
         }
     }
 }

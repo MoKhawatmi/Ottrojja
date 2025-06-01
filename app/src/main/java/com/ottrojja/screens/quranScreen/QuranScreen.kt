@@ -92,8 +92,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
-import com.ottrojja.classes.PageContent
-import com.ottrojja.classes.PageContentItemType
+import com.ottrojja.room.entities.PageContent
+import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.classes.TafseerSheetMode
@@ -105,6 +105,7 @@ import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
+import com.ottrojja.composables.RepetitionOptionsDialog
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.SelectedVerseContentSection
 import com.ottrojja.room.entities.Khitmah
@@ -170,7 +171,7 @@ fun QuranScreen(
 
     var expanded by remember { mutableStateOf(false) }
 
-    if (quranViewModel.currentPageObject.pageNum.toInt() !in 1..604) {
+    if (quranViewModel.currentPageObject?.page?.pageNum?.toInt() !in 1..604) {
         Row(modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
@@ -295,38 +296,27 @@ fun QuranScreen(
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     PagesContainer(
-                        quranViewModel.currentPageObject.pageNum,
-                        onPageChanged = { newPage ->
-                            quranViewModel.setCurrentPage(newPage)
-                        },
-                        onPlayClicked = {
-                            quranViewModel.prepareForPlaying()
-                        },
-                        { quranViewModel.pausePlaying() },
-                        { quranViewModel.showRepOptions = true },
-                        { /*quranViewModel.updateSelectedRep()*/ },
-                        quranViewModel.selectedRepetition,
-                        { quranViewModel.showVerseOptions = true },
-                        quranViewModel.selectedVerse,
-                        isPlaying,
-                        { quranViewModel.decreasePlaybackSpeed() },
-                        { quranViewModel.increasePlaybackSpeed() },
-                        quranViewModel.isDownloading,
-                        { quranViewModel.goNextVerse() },
-                        { quranViewModel.goPreviousVerse() },
-                        quranViewModel.continuousPlay,
-                        { value -> quranViewModel.continuousPlay = value },
-                        quranViewModel.shouldAutoPlay,
-                        quranViewModel.playbackSpeed,
-                        quranViewModel.nightReadingMode,
-                        { quranViewModel.showListeningOptionsDialog = true },
+                        pageNum = quranViewModel.currentPageObject?.page?.pageNum,
+                        onPageChanged = { newPage -> quranViewModel.setCurrentPage(newPage) },
+                        onPlayClicked = { quranViewModel.prepareForPlaying() },
+                        onPauseClicked = { quranViewModel.pausePlaying() },
+                        isPlaying = isPlaying,
+                        onSlowerClicked = { quranViewModel.decreasePlaybackSpeed() },
+                        onFasterClicked = { quranViewModel.increasePlaybackSpeed() },
+                        isDownloading = quranViewModel.isDownloading,
+                        onNextClicked = { quranViewModel.goNextVerse() },
+                        onPreviousClicked = { quranViewModel.goPreviousVerse() },
+                        shouldAutoPlay = quranViewModel.shouldAutoPlay,
+                        playbackSpeed = quranViewModel.playbackSpeed,
+                        nightReadingMode = quranViewModel.nightReadingMode,
+                        listeningOptionsClicked = { quranViewModel.showListeningOptionsDialog = true },
                         vmChangedPage = quranViewModel.vmChangedPage,
                         setVmChangedPage = { value -> quranViewModel.vmChangedPage = value }
                     )
                 }
 
                 QuranViewModel.PageTab.الآيات -> VersesSection(
-                    quranViewModel.currentPageObject.pageContent.filter { item -> item.type == PageContentItemType.verse },
+                    quranViewModel.currentPageObject?.pageContent!!.filter { item -> item.type == PageContentItemType.verse },
                     onSheetRequest = { targetVerse, mode ->
                         quranViewModel.tafseerTargetVerse = targetVerse;
                         quranViewModel.tafseerSheetMode = mode
@@ -336,14 +326,14 @@ fun QuranScreen(
                 )
 
                 QuranViewModel.PageTab.الفوائد -> Benefits(
-                    quranViewModel.currentPageObject.benefits,
-                    quranViewModel.currentPageObject.appliance,
-                    quranViewModel.currentPageObject.guidance,
-                    quranViewModel.currentPageObject.pageNum
+                    quranViewModel.currentPageObject?.page?.benefits!!,
+                    quranViewModel.currentPageObject?.page?.appliance!!,
+                    quranViewModel.currentPageObject?.page?.guidance!!,
+                    quranViewModel.currentPageObject?.page?.pageNum!!
                 )
 
                 QuranViewModel.PageTab.الفيديو -> YouTube(
-                    quranViewModel.currentPageObject.ytLink.split(
+                    quranViewModel.currentPageObject?.page?.ytLink!!.split(
                         "v="
                     ).last()
                 )
@@ -356,7 +346,7 @@ fun QuranScreen(
                     quranViewModel.showVersesSheet = false;
                     quranViewModel.showTafseerSheet = true
                 },
-                quranViewModel.currentPageObject.pageContent.filter { item -> item.type == PageContentItemType.verse });
+                quranViewModel.currentPageObject?.pageContent!!.filter { item -> item.type == PageContentItemType.verse });
 
             TafseerBottomSheet(
                 context,
@@ -399,13 +389,13 @@ fun QuranScreen(
     }
 
     if (quranViewModel.showRepOptions) {
-        SelectRepDialog(
-            quranViewModel.repetitionOptionsMap.keys.toTypedArray(),
-            { quranViewModel.showRepOptions = false },
-            { selectedRep ->
+        RepetitionOptionsDialog(
+            onDismissRequest = { quranViewModel.showRepOptions = false },
+            onSelect = { selectedRep ->
                 quranViewModel.selectedRepetition = selectedRep;
                 quranViewModel.showRepOptions = false
-            })
+            }
+        )
     }
 
     if (quranViewModel.showVerseOptions) {
@@ -562,6 +552,7 @@ fun SelectTafseerDialog(
     }
 }
 
+/*
 @Composable
 fun SelectRepDialog(
     repOptions: Array<String>,
@@ -602,12 +593,12 @@ fun SelectRepDialog(
         }
     }
 }
-
+*/
 @Composable
 fun SelectVerseDialog(
     onDismissRequest: () -> Unit,
     onOptionClick: (PageContent) -> Unit,
-    versesList: Array<PageContent>
+    versesList: List<PageContent>
 ) {
     Dialog(onDismissRequest = { onDismissRequest() }) {
         Card(
@@ -665,8 +656,8 @@ fun SelectVerseDialog(
 @Composable
 fun ListeningOptionsDialog(
     onDismissRequest: () -> Unit,
-    selectedVerse: PageContent,
-    selectedEndVerse: PageContent,
+    selectedVerse: PageContent?,
+    selectedEndVerse: PageContent?,
     onSelectVerseClicked: () -> Unit,
     onSelectEndVerseClicked: () -> Unit,
     selectedRepetition: String,
@@ -712,7 +703,7 @@ fun ListeningOptionsDialog(
                         .background(MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
-                        text = if (selectedVerse.verseNum != null && selectedVerse.verseNum.length > 0) "اية: ${selectedVerse.verseNum}" else "الاية",
+                        text = if (selectedVerse != null) "اية: ${selectedVerse.verseNum}" else "الاية",
                         color = MaterialTheme.colorScheme.onPrimary,
                         style = MaterialTheme.typography.bodySmall,
                         textAlign = TextAlign.Right,
@@ -738,7 +729,7 @@ fun ListeningOptionsDialog(
                         .background(MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
-                        text = if (selectedEndVerse.verseNum != null && selectedEndVerse.verseNum.length > 0) "اية: ${selectedEndVerse.verseNum}" else "الاية",
+                        text = if (selectedEndVerse != null) "اية: ${selectedEndVerse.verseNum}" else "الاية",
                         color = MaterialTheme.colorScheme.onPrimary,
                         style = MaterialTheme.typography.bodySmall,
                         textAlign = TextAlign.Right,
@@ -829,19 +820,12 @@ fun PagesContainer(
     onPageChanged: (String) -> Unit,
     onPlayClicked: () -> Unit,
     onPauseClicked: () -> Unit,
-    onClickRepOptions: () -> Unit,
-    onClickUpdateRep: () -> Unit,
-    selectedRep: String,
-    onClickVerseOptions: () -> Unit,
-    selectedVerse: PageContent,
     isPlaying: Boolean,
     onSlowerClicked: () -> Unit,
     onFasterClicked: () -> Unit,
     isDownloading: Boolean,
     onNextClicked: () -> Unit,
     onPreviousClicked: () -> Unit,
-    continuousPlay: Boolean,
-    setContPlay: (Boolean) -> Unit,
     shouldAutoPlay: Boolean,
     playbackSpeed: Float,
     nightReadingMode: Boolean,
@@ -942,7 +926,9 @@ fun PagesContainer(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier
-                            .background(MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.primary,
+                                shape = RoundedCornerShape(12.dp)
+                            )
                             .clickable { listeningOptionsClicked() }
                             .padding(6.dp)
                     )
@@ -1200,8 +1186,7 @@ fun VersesSection(
                     ) {
                         Text(
                             text = "${
-                                Helpers.convertToIndianNumbers(item.pageContent.verseNum
-                                )
+                                Helpers.convertToIndianNumbers("${item.pageContent.verseNum!!}")
                             } ${item.pageContent.verseText}",
                             color = Color.Black,
                             style = MaterialTheme.typography.titleLarge,

@@ -33,7 +33,7 @@ fun MainScreenTab(title: String,
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .padding(12.dp, 18.dp)
-            .clip(RoundedCornerShape(12))
+            .clip(RoundedCornerShape(16))
             .background(
                 brush = Brush.horizontalGradient(
                     colors = listOf(

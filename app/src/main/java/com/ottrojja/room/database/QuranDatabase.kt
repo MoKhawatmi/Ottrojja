@@ -7,7 +7,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.classes.Converters
-import com.ottrojja.classes.QuranPage
+import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.dao.KhitmahDao
@@ -20,21 +20,46 @@ import com.ottrojja.room.entities.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData
+import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.VerseMeanings
 
 @TypeConverters(Converters::class)
 @Database(
-    entities = [QuranPage::class, ChapterData::class, PartData::class,
+    entities = [QuranPage::class, PageContent::class, ChapterData::class, PartData::class,
         TafseerData::class, E3rabData::class, Azkar::class,
         CauseOfRevelation::class, BookmarkEntity::class, Khitmah::class,
         KhitmahMark::class, CustomTasbeeh::class, TasabeehList::class, VerseMeanings::class],
-    version = 6
+    version = 7
 )
 abstract class QuranDatabase : RoomDatabase() {
     abstract fun quranDao(): QuranDao
     abstract fun khitmahDao(): KhitmahDao
     abstract fun tasabeehDao(): TasabeehDao
+}
+
+
+// Migration from version 6 to version 7
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `PageContent` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            `pageNum` TEXT NOT NULL,
+            `type` TEXT NOT NULL,
+            `surahName` TEXT NOT NULL,
+            `surahNum` INTEGER NOT NULL,
+            `surahTotal` INTEGER NOT NULL,
+            `surahType` TEXT NOT NULL,
+            `verseNum` INTEGER NOT NULL,
+            `verseText` TEXT NOT NULL,
+            `verseTextPlain` TEXT NOT NULL,
+            FOREIGN KEY (`pageNum`) REFERENCES `QuranPage`(`pageNum`)
+            )
+            """.trimIndent()
+        )
+    }
 }
 
 // Migration from version 5 to version 6

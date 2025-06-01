@@ -3,7 +3,8 @@ package com.ottrojja.classes
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import kotlinx.serialization.encodeToString
+import com.ottrojja.room.entities.PageContent
+import com.ottrojja.room.entities.QuranPage
 import kotlinx.serialization.json.Json
 
 class Converters {

@@ -21,17 +21,11 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Pending
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,9 +45,6 @@ import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.ListHorizontalDivider
-import com.ottrojja.composables.OttrojjaElevatedButton
-import com.ottrojja.composables.SecondaryTopBar
-import com.ottrojja.composables.OttrojjaTopBarTitle
 import com.ottrojja.composables.TopBar
 import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.ui.theme.complete_green
@@ -79,8 +70,6 @@ fun KhitmahScreen(
     LaunchedEffect(Unit) {
         khitmahViewModel.fetchKhitmah(id)
     }
-
-    var expanded by remember { mutableStateOf(false) }
 
     fun confirmDeleteKhitmah() {
         val alertDialogBuilder = AlertDialog.Builder(context)
@@ -118,9 +107,19 @@ fun KhitmahScreen(
             mainAction = ButtonAction(icon = Icons.Filled.ArrowBack,
                 action = { navController.popBackStack() }),
             secondaryActions = listOf(
-                ButtonAction(icon = Icons.Outlined.Pending, action = { khitmahViewModel.toggleKhitmahStatus(); }, title = "تعيين كجارية"),
-                ButtonAction(icon = Icons.Default.CheckCircle, action = { khitmahViewModel.toggleKhitmahStatus(); }, title = "تعيين كمكتملة"),
-                ButtonAction(icon = Icons.Default.Close, action = { confirmDeleteKhitmah(); }, title = "حذف الختمة"),
+                if (khitmahViewModel.khitmah?.isComplete == true) {
+                    ButtonAction(icon = Icons.Outlined.Pending,
+                        action = { khitmahViewModel.toggleKhitmahStatus(); }, title = "تعيين كجارية"
+                    )
+                } else {
+                    ButtonAction(icon = Icons.Default.CheckCircle,
+                        action = { khitmahViewModel.toggleKhitmahStatus(); },
+                        title = "تعيين كمكتملة"
+                    )
+                },
+                ButtonAction(icon = Icons.Default.Close, action = { confirmDeleteKhitmah(); },
+                    title = "حذف الختمة"
+                ),
             )
         )
 

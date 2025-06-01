@@ -11,7 +11,7 @@ sealed class Screen(val route: String) {
     object GeneralSupplicationsScreen : Screen(route = "general_supplications_screen")
     object NamesOfGodScreen : Screen(route = "god_names_screen")
     object TeacherScreen : Screen(route = "teacher_screen")
-    object ChaptersScreen : Screen(route = "chapters_screen")
+    object ListeningScreen : Screen(route = "listening_screen")
     object TasbeehScreen : Screen(route = "tasbeeh_screen")
     object SettingsScreen : Screen(route = "settings_screen")
     object BlessingsScreen : Screen(route = "blessings_screen")

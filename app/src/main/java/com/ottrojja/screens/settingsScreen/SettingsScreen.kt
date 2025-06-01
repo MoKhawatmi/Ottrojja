@@ -41,6 +41,7 @@ import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.SwitchWithIcon
+import androidx.core.net.toUri
 
 
 @Composable
@@ -80,7 +81,7 @@ fun SettingsScreen(
                             .fillMaxHeight(0.8f)
                     ) {
                         Text(
-                            "لإقتراحاتكم وللإبلاغ عن اي مشاكل تقنية في التطبيق تواصلوا معنا على البريد الإلكتروني للمشروع",
+                            "لإقتراحاتكم وللإبلاغ عن اي مشاكل تقنية في التطبيق بإمكانكم تعبئة الاستبيان عبر الضغط على الزر ادناه او التواصل معنا على البريد الإلكتروني للمشروع",
                             style = MaterialTheme.typography.bodyMedium,
                             fontSize = 20.sp,
                             textAlign = TextAlign.Start,
@@ -113,14 +114,14 @@ fun SettingsScreen(
                                 .padding(0.dp, 8.dp)
                         ) {
                             Button(onClick = {
-                                sendMail(
-                                    context = context,
-                                    to = "ottrojjaapp@gmail.com",
-                                    subject = ""
+                                val intent = Intent(
+                                    Intent.ACTION_VIEW,
+                                    "https://docs.google.com/forms/d/e/1FAIpQLScPRdpxkyl39QC7aK3-KioCddZE2ioXJ8GZ6_XLZsu42eopxA/viewform?usp=header".toUri()
                                 )
+                                context.startActivity(intent)
                             }) {
                                 Text(
-                                    "ارسل بريدا",
+                                    "فتح الاستبيان",
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontSize = 20.sp,
                                     textAlign = TextAlign.End
@@ -173,9 +174,7 @@ fun SettingsScreen(
             "سياسة الخصوصية", {
                 val intent = Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse(
-                        "https://doc-hosting.flycricket.io/trj-lshykh-hmd-lhrsys-privacy-policy/202aef51-24ea-40e3-b208-b05c0cb698d6/privacy"
-                    )
+                    "https://doc-hosting.flycricket.io/trj-lshykh-hmd-lhrsys-privacy-policy/202aef51-24ea-40e3-b208-b05c0cb698d6/privacy".toUri()
                 )
                 context.startActivity(intent)
             })

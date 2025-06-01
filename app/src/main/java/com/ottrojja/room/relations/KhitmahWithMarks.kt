@@ -6,7 +6,7 @@ import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahMark
 
 data class KhitmahWithMarks(
-    @Embedded val khitmah: Khitmah,  // Embeds the Student data in this class
+    @Embedded val khitmah: Khitmah,  // Embeds the Khitmah data in this class
     @Relation(
         parentColumn = "id",  // Refers to the PRIMARY KEY in the Khitmah table
         entityColumn = "khitmahId"   // Refers to the FOREIGN KEY in the KhitmahMark table

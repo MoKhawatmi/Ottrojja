@@ -15,7 +15,7 @@ import com.ottrojja.screens.customTasabeehListScreen.CustomTasabeehListScreen
 import com.ottrojja.screens.teacherScreen.TeacherScreen
 import com.ottrojja.screens.azkarScreen.AzkarScreen
 import com.ottrojja.screens.blessingsScreen.BlessingsScreen
-import com.ottrojja.screens.chaptersScreen.ChaptersScreen
+import com.ottrojja.screens.listeningScreen.ListeningScreen
 import com.ottrojja.screens.generalSupplicationsScreen.GeneralSupplicationsScreen
 import com.ottrojja.screens.jwam3Screen.Jwam3Screen
 import com.ottrojja.screens.khitmahListScreen.KhitmahList
@@ -74,8 +74,8 @@ fun NavGraph(navController: NavHostController,
         composable(route = Screen.TeacherScreen.route) {
             TeacherScreen(repository)
         }
-        composable(route = Screen.ChaptersScreen.route) {
-            ChaptersScreen(repository)
+        composable(route = Screen.ListeningScreen.route) {
+            ListeningScreen(repository)
         }
         composable(route = Screen.TasbeehScreen.route) {
             TasbeehScreen(navController = navController, repository = repository)

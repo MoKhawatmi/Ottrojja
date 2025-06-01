@@ -25,11 +25,12 @@ import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.services.MediaPlayerService
-import com.ottrojja.classes.PageContent
-import com.ottrojja.classes.PageContentItemType
-import com.ottrojja.classes.QuranPage
+import com.ottrojja.room.entities.PageContent
+import com.ottrojja.room.entities.PageContentItemType
+import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
+import com.ottrojja.room.relations.QuranPageWithContent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -46,19 +47,10 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
 
     private val pagesList: List<String> = (1..604).map { "صفحة $it" };
 
-    private val _selectedPage = mutableStateOf(
-        QuranPage(
-            "",
-            "",
-            arrayOf(""),
-            arrayOf(""),
-            arrayOf(""),
-            arrayOf<PageContent>(),
-        )
-    )
-    var selectedPage: QuranPage
+    private val _selectedPage = mutableStateOf<QuranPageWithContent?>(null)
+    var selectedPage: QuranPageWithContent?
         get() = _selectedPage.value
-        set(value: QuranPage) {
+        set(value: QuranPageWithContent?) {
             _selectedPage.value = value
         }
 
@@ -72,10 +64,10 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         }
 
 
-    private val _currentVerse = mutableStateOf(PageContent())
-    var currentVerse: PageContent
+    private val _currentVerse = mutableStateOf<PageContent?>(null)
+    var currentVerse: PageContent?
         get() = _currentVerse.value
-        set(value: PageContent) {
+        set(value: PageContent?) {
             _currentVerse.value = value
         }
 
@@ -150,7 +142,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         viewModelScope.launch(Dispatchers.IO) {
             _selectedPage.value = repository.getPage(pageNum)
             _selectedPageVerses.value =
-                _selectedPage.value.pageContent.filter { it.type == PageContentItemType.verse }.toList()
+                _selectedPage.value?.pageContent!!.filter { it.type == PageContentItemType.verse }.toList()
             println(_selectedPage.value)
             println(_selectedPageVerses.value)
             _currentVerseIndex.value = 0
@@ -253,14 +245,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         _currentTry.value = 0;
         _allRight.value = false;
         _currentVerseIndex.value = 0;
-        _selectedPage.value = QuranPage(
-            "",
-            "",
-            arrayOf(""),
-            arrayOf(""),
-            arrayOf(""),
-            arrayOf<PageContent>(),
-        )
+        _selectedPage.value = null
         _selectedPageVerses.value = emptyList<PageContent>();
         _hasStarted.value = false;
         _correctVersesAnswered.value = 0;
@@ -271,7 +256,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
     val solutionMap = hashMapOf<Int, List<String>>()
 
     fun generateCutVerse() {
-        val verseWordsPlain = _currentVerse.value.verseTextPlain.split("\\s+".toRegex())
+        val verseWordsPlain = _currentVerse.value?.verseTextPlain!!.split("\\s+".toRegex())
         val verseWordsNum = verseWordsPlain.size;
 
         val indices = (0 until verseWordsNum).toList().shuffled(Random)
@@ -343,7 +328,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         val client = OkHttpClient()
         val request = Request.Builder()
             .url(
-                "https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/${_selectedPage.value.pageNum}-${_currentVerse.value.surahNum}-${_currentVerse.value.verseNum}.mp3"
+                "https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/${_selectedPage.value?.page?.pageNum}-${_currentVerse.value?.surahNum}-${_currentVerse.value?.verseNum}.mp3"
             )
             .build()
 
@@ -393,7 +378,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             return;
         }
         val path =
-            "${_selectedPage.value.pageNum}-${_currentVerse.value.surahNum}-${_currentVerse.value.verseNum}.mp3"
+            "${_selectedPage.value?.page?.pageNum}-${_currentVerse.value?.surahNum}-${_currentVerse.value?.verseNum}.mp3"
         val localFile = File(
             context.getExternalFilesDir(null),
             path

@@ -20,16 +20,17 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
 import com.ottrojja.services.MediaPlayerService
-import com.ottrojja.classes.PageContent
-import com.ottrojja.classes.QuranPage
+import com.ottrojja.room.entities.PageContent
+import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
-import com.ottrojja.classes.PageContentItemType
+import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TafseerSheetMode
 import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahMark
+import com.ottrojja.room.relations.QuranPageWithContent
 import com.ottrojja.services.PagePlayerService
 import com.ottrojja.services.PageServiceInterface
 import kotlinx.coroutines.Dispatchers
@@ -101,7 +102,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             try {
                 _currentPageObject = repository.getPage(value)
                 println(_currentPageObject)
-                _versesPlayList = _currentPageObject.pageContent
+                _versesPlayList = _currentPageObject?.pageContent!!.toTypedArray()
                 //the following couple of lines are made to accommodate the service changes
                 if (isMyServiceRunning(PagePlayerService::class.java, context)) {
                     updateIsCurrentPagePlaying()
@@ -123,36 +124,12 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         }
     }
 
-    private var _currentPageObject by mutableStateOf(
-        QuranPage(
-            "0",
-            "",
-            arrayOf(""),
-            arrayOf(""),
-            arrayOf(""),
-            arrayOf<PageContent>(),
-        )
-    )
-    var currentPageObject: QuranPage
+    private var _currentPageObject by mutableStateOf<QuranPageWithContent?>(null)
+    var currentPageObject: QuranPageWithContent?
         get() = _currentPageObject
         set(value) {
             _currentPageObject = value
         }
-
-    val repetitionOptionsMap = linkedMapOf<String, Int>(
-        "0" to 0,
-        "1" to 1,
-        "2" to 2,
-        "3" to 3,
-        "4" to 4,
-        "5" to 5,
-        "6" to 6,
-        "7" to 7,
-        "8" to 8,
-        "9" to 9,
-        "10" to 10,
-        "بلا توقف" to Integer.MAX_VALUE, //smart, right?!
-    )
 
 
     private var _selectedRepetition by mutableStateOf("0")
@@ -172,26 +149,16 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         }
     }*/
 
-    val emptyPageObject: PageContent = PageContent(
-        PageContentItemType.EMPTY,
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-    )
 
     var startPlayingIndex: Int? = null;
     var endPlayingIndex: Int? = null;
-    private var _selectedVerse by mutableStateOf<PageContent>(emptyPageObject)
-    var selectedVerse: PageContent
+    private var _selectedVerse by mutableStateOf<PageContent?>(null)
+    var selectedVerse: PageContent?
         get() = _selectedVerse
         set(value) {
-            val pageVerses: Array<PageContent> = getCurrentPageVerses();
+            val pageVerses: List<PageContent> = getCurrentPageVerses();
             val index = pageVerses.indexOf(
-                pageVerses.find { item -> item.surahNum == value.surahNum && item.verseNum == value.verseNum });
+                pageVerses.find { item -> item.surahNum == value?.surahNum && item.verseNum == value.verseNum });
             if (index > (endPlayingIndex ?: (pageVerses.size - 1))) {
                 Toast.makeText(
                     context,
@@ -213,13 +180,13 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             }
         }
 
-    private var _selectedEndVerse by mutableStateOf<PageContent>(emptyPageObject)
-    var selectedEndVerse: PageContent
+    private var _selectedEndVerse by mutableStateOf<PageContent?>(null)
+    var selectedEndVerse: PageContent?
         get() = _selectedEndVerse
         set(value) {
-            val pageVerses: Array<PageContent> = getCurrentPageVerses();
+            val pageVerses: List<PageContent> = getCurrentPageVerses();
             val index = pageVerses.indexOf(
-                pageVerses.find { item -> item.surahNum == value.surahNum && item.verseNum == value.verseNum });
+                pageVerses.find { item -> item.surahNum == value?.surahNum && item.verseNum == value.verseNum });
             if (index < (startPlayingIndex ?: 0)) {
                 Toast.makeText(
                     context,
@@ -315,8 +282,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         }
     }
 
-    fun getCurrentPageVerses(): Array<PageContent> {
-        val versesList = _currentPageObject.pageContent
+    fun getCurrentPageVerses(): List<PageContent> {
+        val versesList = _currentPageObject?.pageContent!!
         return versesList;
     }
 
@@ -332,22 +299,22 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     fun checkVerseFilesExistance() {
         allVersesExist = false;
         //check if all verse files exist, if not then download must be initialized
-        println("checking verses of page ${currentPageObject.pageNum}");
+        println("checking verses of page ${currentPageObject?.page?.pageNum}");
         for (item in _versesPlayList) {
             var path: String;
             if (item.type == PageContentItemType.surah) {
                 path = "1-1-1.mp3"
             } else {
-                path = "${currentPageObject.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
+                path = "${currentPageObject?.page?.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
             }
             val localFile = File(context.getExternalFilesDir(null), path)
             if (!localFile.exists()) {
-                println("audio files for page ${currentPageObject.pageNum} need downloading")
+                println("audio files for page ${currentPageObject?.page?.pageNum} need downloading")
                 allVersesExist = false;
                 return;
             }
         }
-        println("audio files for page ${currentPageObject.pageNum} are complete")
+        println("audio files for page ${currentPageObject?.page?.pageNum} are complete")
         allVersesExist = true;
     }
 
@@ -381,7 +348,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             if (!_isCurrentPagePlaying.value) {
                 println("preparing for a new page")
                 audioService?.resetPlayer();
-                audioService?.setPlayingPageNum(_currentPageObject.pageNum)
+                audioService?.setPlayingPageNum(_currentPageObject?.page?.pageNum!!)
                 updateIsCurrentPagePlaying();
                 updateServicePlayingParameters();
                 updateServicePlayingIndex();
@@ -431,8 +398,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     fun updateIsCurrentPagePlaying() {
-        println("${audioService?.getPlayingPageNum()} =? ${_currentPageObject.pageNum}")
-        _isCurrentPagePlaying.value = audioService?.getPlayingPageNum() == _currentPageObject.pageNum
+        println("${audioService?.getPlayingPageNum()} =? ${_currentPageObject?.page?.pageNum}")
+        _isCurrentPagePlaying.value = audioService?.getPlayingPageNum() == _currentPageObject?.page?.pageNum
         println("_isCurrentPagePlaying ${_isCurrentPagePlaying.value}")
     }
 
@@ -442,7 +409,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         if (item.type == PageContentItemType.surah) {
             path = "1-1-1.mp3"
         } else {
-            path = "${currentPageObject.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
+            path = "${currentPageObject?.page?.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
         }
 
         val localFile = File(
@@ -510,8 +477,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     fun isPageBookmarked() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                println("checking bookmarks for ${currentPageObject.pageNum}")
-                _isBookmarked.value = repository.isBookmarked(currentPageObject.pageNum)
+                println("checking bookmarks for ${currentPageObject?.page?.pageNum}")
+                _isBookmarked.value = repository.isBookmarked(currentPageObject?.page?.pageNum!!)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -519,7 +486,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     fun togglePageBookmark() {
-        val bookmark = BookmarkEntity(pageNum = currentPageObject.pageNum);
+        val bookmark = BookmarkEntity(pageNum = currentPageObject?.page?.pageNum!!);
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 if (!_isBookmarked.value) {
@@ -561,7 +528,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     fun sharePage() {
-        val varName = "p_${_currentPageObject.pageNum}"
+        val varName = "p_${_currentPageObject?.page?.pageNum}"
         val resourceId = context.resources.getIdentifier(varName, "drawable", context.packageName)
         val bitmap = BitmapFactory.decodeResource(context.resources, resourceId)
         val fileName = "image.png"
@@ -586,7 +553,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
             putExtra(
                 Intent.EXTRA_TEXT,
-                "الصفحة رقم ${_currentPageObject.pageNum} من القرآن الكريم\n${
+                "الصفحة رقم ${_currentPageObject?.page?.pageNum} من القرآن الكريم\n${
                     context.resources.getString(R.string.share_app)
                 }"
             )
@@ -702,28 +669,28 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         }
 
     fun atFirstVerse(): Boolean {
-        val surahNum = _tafseerTargetVerse.split("-").get(0)
-        val verseNum = _tafseerTargetVerse.split("-").get(1)
+        val surahNum = _tafseerTargetVerse.split("-").get(0).toInt()
+        val verseNum = _tafseerTargetVerse.split("-").get(1).toInt()
 
-        val verses = _currentPageObject.pageContent.filter { it.type == PageContentItemType.verse }
+        val verses = _currentPageObject?.pageContent!!.filter { it.type == PageContentItemType.verse }
 
         return verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } == 0
     }
 
     fun atLastVerse(): Boolean {
-        val surahNum = _tafseerTargetVerse.split("-").get(0)
-        val verseNum = _tafseerTargetVerse.split("-").get(1)
+        val surahNum = _tafseerTargetVerse.split("-").get(0).toInt()
+        val verseNum = _tafseerTargetVerse.split("-").get(1).toInt()
 
-        val verses = _currentPageObject.pageContent.filter { it.type == PageContentItemType.verse }
+        val verses = _currentPageObject?.pageContent!!.filter { it.type == PageContentItemType.verse }
 
         return verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } == verses.size - 1
     }
 
     fun targetNextVerse() {
-        val surahNum = _tafseerTargetVerse.split("-").get(0)
-        val verseNum = _tafseerTargetVerse.split("-").get(1)
+        val surahNum = _tafseerTargetVerse.split("-").get(0).toInt()
+        val verseNum = _tafseerTargetVerse.split("-").get(1).toInt()
 
-        val verses = _currentPageObject.pageContent.filter { it.type == PageContentItemType.verse }
+        val verses = _currentPageObject?.pageContent!!.filter { it.type == PageContentItemType.verse }
 
         if (verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } + 1 != verses.size) {
             val nextVerse =
@@ -734,10 +701,10 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     fun targetPreviousVerse() {
-        val surahNum = _tafseerTargetVerse.split("-").get(0)
-        val verseNum = _tafseerTargetVerse.split("-").get(1)
+        val surahNum = _tafseerTargetVerse.split("-").get(0).toInt()
+        val verseNum = _tafseerTargetVerse.split("-").get(1).toInt()
 
-        val verses = _currentPageObject.pageContent.filter { it.type == PageContentItemType.verse }
+        val verses = _currentPageObject?.pageContent!!.filter { it.type == PageContentItemType.verse }
 
         if (verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } - 1 >= 0) {
             val previousVerse =
@@ -752,7 +719,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     fun startAndBind() {
         val serviceIntent = Intent(context, PagePlayerService::class.java)
         serviceIntent.setAction("START")
-        serviceIntent.putExtra("playingPageNum", _currentPageObject.pageNum)
+        serviceIntent.putExtra("playingPageNum", _currentPageObject?.page?.pageNum)
         context.startService(serviceIntent)
         bindToService()
     }
@@ -767,7 +734,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 if (_isCurrentPagePlaying.value) {
                     println("current page playing, should update ui params")
                     println(_currentPageObject)
-                    audioService?.setVersesPlayList(_currentPageObject.pageContent)
+                    audioService?.setVersesPlayList(_currentPageObject?.pageContent!!)
                     updateServicePlayingParameters()
                     updateServicePlayingIndex()
                 }
@@ -891,8 +858,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     fun updateServicePageValues() {
-        audioService?.setVersesPlayList(_currentPageObject.pageContent)
-        audioService?.setPlayingPageNum(_currentPageObject.pageNum)
+        audioService?.setVersesPlayList(_currentPageObject?.pageContent!!)
+        audioService?.setPlayingPageNum(_currentPageObject?.page?.pageNum!!)
         updateIsCurrentPagePlaying()
     }
 
@@ -904,7 +871,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         println("updating ui params")
         audioService?.setContinuousPlay(_continuousPlay.value)
         audioService?.setSelectedRepetition(_selectedRepetition)
-        audioService?.setSelectedMappedRepetition(repetitionOptionsMap.get(_selectedRepetition)!!)
+        audioService?.setSelectedMappedRepetition(Helpers.repetitionOptionsMap.get(_selectedRepetition)!!)
         audioService?.setSelectedRepetitionTab(_selectedRepetitionTab.value)
         audioService?.setStartPlayingItem(_selectedVerse)
         audioService?.setEndPlayingIndex(endPlayingIndex)
@@ -926,9 +893,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         println("resetting ui params")
         _selectedRepetitionTab.value = RepetitionTab.الاية
         startPlayingIndex = 0
-        _selectedVerse = emptyPageObject
+        _selectedVerse = null
         endPlayingIndex = null
-        _selectedEndVerse = emptyPageObject
+        _selectedEndVerse = null
     }
 
     // fetch params like first and end verses and repetitions from service
@@ -938,9 +905,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         _selectedRepetitionTab.value = audioService?.getSelectedRepetitionTab()?.value
             ?: RepetitionTab.الاية
         startPlayingIndex = audioService?.getStartPlayingIndex()?.value ?: 0
-        _selectedVerse = audioService?.getStartPlayingItem()?.value ?: emptyPageObject
+        _selectedVerse = audioService?.getStartPlayingItem()?.value ?: null
         endPlayingIndex = audioService?.getEndPlayingIndex()?.value
-        _selectedEndVerse = audioService?.getEndPlayingItem()?.value ?: emptyPageObject
+        _selectedEndVerse = audioService?.getEndPlayingItem()?.value ?: null
     }
 
     init {
@@ -982,11 +949,11 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     fun assignPageToKhitmah(khitmah: Khitmah) {
-        val khitmahMark = KhitmahMark(khitmahId = khitmah.id, pageNum = _currentPageObject.pageNum)
+        val khitmahMark = KhitmahMark(khitmahId = khitmah.id, pageNum = _currentPageObject?.page?.pageNum!!)
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 repository.insertKhitmahMark(khitmahMark);
-                repository.updateKhitmah(khitmah.copy(latestPage = _currentPageObject.pageNum))
+                repository.updateKhitmah(khitmah.copy(latestPage = _currentPageObject?.page?.pageNum!!))
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "تمت إضافة الصفحة للختمة بنجاح", Toast.LENGTH_LONG
                     ).show()

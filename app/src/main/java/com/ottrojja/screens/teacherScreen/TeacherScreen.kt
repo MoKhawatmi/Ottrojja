@@ -56,52 +56,52 @@ fun TeacherScreen(
             teacherScreenViewModel.releasePlayer();
         }
     }
+    //ToDO
+        Column() {
+            when (teacherScreenViewModel.mode) {
+                TeacherScreenViewModel.TeacherMode.PAGE_SELECTION -> PageSelection(
+                    searchFilter = teacherScreenViewModel.searchFilter,
+                    searchFilterChanged = { value ->
+                        teacherScreenViewModel.searchFilter = value
+                    },
+                    pagesList = teacherScreenViewModel.getPagesList(),
+                    pageSelected = { value -> teacherScreenViewModel.pageSelected(value) }
+                )
 
-    Column() {
-        when (teacherScreenViewModel.mode) {
-            TeacherScreenViewModel.TeacherMode.PAGE_SELECTION -> PageSelection(
-                searchFilter = teacherScreenViewModel.searchFilter,
-                searchFilterChanged = { value ->
-                    teacherScreenViewModel.searchFilter = value
-                },
-                pagesList = teacherScreenViewModel.getPagesList(),
-                pageSelected = { value -> teacherScreenViewModel.pageSelected(value) }
-            )
+                TeacherScreenViewModel.TeacherMode.PAGE_TRAINING -> PageTraining(
+                    currentVerse = teacherScreenViewModel.currentVerse,
+                    checkVerse = { teacherScreenViewModel.checkVerse() },
+                    currentTry = teacherScreenViewModel.currentTry,
+                    proceedVerse = { teacherScreenViewModel.proceedVerse() },
+                    currentPage = teacherScreenViewModel.selectedPage!!,
+                    startTeaching = { teacherScreenViewModel.startTeaching() },
+                    hasStarted = teacherScreenViewModel.hasStarted,
+                    solutionMap = teacherScreenViewModel.solutionMap,
+                    inputSolutions = teacherScreenViewModel.inputSolutions,
+                    onInputSolutionChanged = { value, index ->
+                        teacherScreenViewModel.inputSolutions.set(
+                            index,
+                            TeacherAnswer(value, AnswerStatus.UNCHECKED)
+                        )
+                    },
+                    maxTries = teacherScreenViewModel.maxTries,
+                    maxTriesReached = teacherScreenViewModel.reachedMaxTries,
+                    allRight = teacherScreenViewModel.allRight,
+                    backToPageSelection = {
+                        teacherScreenViewModel.backToPages()
+                    },
+                    correctVersesAnswered = teacherScreenViewModel.correctVersesAnswered,
+                    lastVerseReached = teacherScreenViewModel.lastVerseReached,
+                    isDownloading = teacherScreenViewModel.isDownloading,
+                    playVerse = { teacherScreenViewModel.playVerse() },
+                    isPlaying = teacherScreenViewModel.isPlaying,
+                    onPauseClicked = { teacherScreenViewModel.pauseVerse() },
+                    onDispose = { teacherScreenViewModel.resetMedia(); },
+                    showInstructions = teacherScreenViewModel.showInstructionsDialog,
+                    infoClicked = { teacherScreenViewModel.showInstructionsDialog = true },
+                    hideInstructions = { teacherScreenViewModel.showInstructionsDialog = false }
 
-            TeacherScreenViewModel.TeacherMode.PAGE_TRAINING -> PageTraining(
-                currentVerse = teacherScreenViewModel.currentVerse,
-                checkVerse = { teacherScreenViewModel.checkVerse() },
-                currentTry = teacherScreenViewModel.currentTry,
-                proceedVerse = { teacherScreenViewModel.proceedVerse() },
-                currentPage = teacherScreenViewModel.selectedPage,
-                startTeaching = { teacherScreenViewModel.startTeaching() },
-                hasStarted = teacherScreenViewModel.hasStarted,
-                solutionMap = teacherScreenViewModel.solutionMap,
-                inputSolutions = teacherScreenViewModel.inputSolutions,
-                onInputSolutionChanged = { value, index ->
-                    teacherScreenViewModel.inputSolutions.set(
-                        index,
-                        TeacherAnswer(value, AnswerStatus.UNCHECKED)
-                    )
-                },
-                maxTries = teacherScreenViewModel.maxTries,
-                maxTriesReached = teacherScreenViewModel.reachedMaxTries,
-                allRight = teacherScreenViewModel.allRight,
-                backToPageSelection = {
-                    teacherScreenViewModel.backToPages()
-                },
-                correctVersesAnswered = teacherScreenViewModel.correctVersesAnswered,
-                lastVerseReached = teacherScreenViewModel.lastVerseReached,
-                isDownloading = teacherScreenViewModel.isDownloading,
-                playVerse = { teacherScreenViewModel.playVerse() },
-                isPlaying = teacherScreenViewModel.isPlaying,
-                onPauseClicked = { teacherScreenViewModel.pauseVerse() },
-                onDispose = { teacherScreenViewModel.resetMedia(); },
-                showInstructions = teacherScreenViewModel.showInstructionsDialog,
-                infoClicked = { teacherScreenViewModel.showInstructionsDialog = true },
-                hideInstructions = { teacherScreenViewModel.showInstructionsDialog = false }
-
-            )
+                )
         }
     }
 }

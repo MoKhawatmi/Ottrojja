@@ -34,6 +34,7 @@ import com.ottrojja.room.database.MIGRATION_2_3
 import com.ottrojja.room.database.MIGRATION_3_4
 import com.ottrojja.room.database.MIGRATION_4_5
 import com.ottrojja.room.database.MIGRATION_5_6
+import com.ottrojja.room.database.MIGRATION_6_7
 import com.ottrojja.room.database.QuranDatabase
 import com.ottrojja.ui.theme.OttrojjaAppTheme
 import java.util.Locale
@@ -82,7 +83,7 @@ class MainActivity : ComponentActivity() {
         val db = Room.databaseBuilder(
             application,
             QuranDatabase::class.java, "QuranDB"
-        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
             //.fallbackToDestructiveMigration()
             .build()
         val quranRepository = QuranRepository(db.quranDao(), db.khitmahDao(), db.tasabeehDao())
@@ -98,7 +99,7 @@ class MainActivity : ComponentActivity() {
                     val currentBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentRoute = currentBackStackEntry?.destination?.route
                     val bottomBarRoutes = listOf(Screen.MainScreen.route, Screen.AzkarMain.route,
-                        Screen.TeacherScreen.route, Screen.ChaptersScreen.route,
+                        Screen.TeacherScreen.route, Screen.ListeningScreen.route,
                         Screen.TasbeehScreen.route, Screen.BookmarksScreen.route,
                         Screen.KhitmahListScreen.route, Screen.SettingsScreen.route,
                         Screen.BlessingsScreen.route, Screen.QiblaScreen.route

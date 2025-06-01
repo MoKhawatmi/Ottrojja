@@ -6,23 +6,27 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.ottrojja.room.entities.CauseOfRevelation
-import com.ottrojja.classes.QuranPage
+import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.room.entities.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData
+import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.VerseMeanings
+import com.ottrojja.room.relations.QuranPageWithContent
 
 @Dao
 interface QuranDao {
+
+    /****************************Pages*********************************/
 
     @Query("SELECT * FROM QuranPage")
     fun getAllPages(): List<QuranPage>
 
     @Query("SELECT * FROM QuranPage WHERE pageNum=:pageNum")
-    fun getPage(pageNum: String): QuranPage
+    fun getPage(pageNum: String): QuranPageWithContent
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertQuranPage(quranPage: QuranPage)
@@ -32,6 +36,31 @@ interface QuranDao {
 
     @Query("SELECT count(*) FROM QuranPage")
     fun getPagesCount(): Int
+
+    /****************************Page Content*********************************/
+
+    @Query("SELECT * FROM PageContent")
+    fun getAllPagesContent(): List<PageContent>
+
+    @Query(
+        "SELECT * FROM PageContent WHERE verseText LIKE '%' || :query || '%' OR verseTextPlain LIKE '%' || :query || '%'"
+    )
+    fun searchPagesContent(query: String): List<PageContent>
+
+    @Query("""
+    SELECT * FROM PageContent
+    WHERE (surahNum > :startingSurah OR (surahNum = :startingSurah AND verseNum >= :startingVerse))
+      AND (surahNum < :endSurah OR (surahNum = :endSurah AND verseNum <= :endVerse)) AND type = "verse"
+""")
+    fun getPagesContentRange(startingSurah: Int, startingVerse: Int, endSurah: Int, endVerse: Int): List<PageContent>
+
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertPageContent(pageContent: PageContent)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertPagesContent(pagesContent: List<PageContent>)
+
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertChapters(chapters: List<ChapterData>)

@@ -41,6 +41,7 @@
 
         <service android:name=".services.MediaPlayerService" android:foregroundServiceType="mediaPlayback"/>
         <service android:name=".services.PagePlayerService" android:foregroundServiceType="mediaPlayback"/>
+        <service android:name=".services.QuranPlayerService" android:foregroundServiceType="mediaPlayback"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"

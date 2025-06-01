@@ -18,8 +18,8 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.R
-import com.ottrojja.classes.PageContent
-import com.ottrojja.classes.PageContentItemType
+import com.ottrojja.room.entities.PageContent
+import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.screens.quranScreen.RepetitionTab
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -55,7 +55,7 @@ interface PageServiceInterface {
     fun setStartPlayingItem(item: PageContent?)
     fun setEndPlayingIndex(index: Int?)
     fun setEndPlayingItem(item: PageContent?)
-    fun setVersesPlayList(versesPlayList: Array<PageContent>)
+    fun setVersesPlayList(versesPlayList: List<PageContent>)
     fun setPlayingPageNum(value: String)
     fun setContinuousPlay(value: Boolean)
     fun setSelectedRepetitionTab(value: RepetitionTab)
@@ -70,7 +70,7 @@ class PagePlayerService : Service(), PageServiceInterface {
     var repeatedTimes = 0;
     var currentPlayingPageNum: String? = null;
     var selectedMappedRepetitions: Int = 0;
-    private var _versesPlayList: Array<PageContent> = emptyArray()
+    private var _versesPlayList: List<PageContent> = emptyList()
     private var _playbackSpeed = MutableStateFlow<Float>(1.0f)
     private val _isPlaying = MutableStateFlow<Boolean>(false)
     private val _isPaused = MutableStateFlow<Boolean>(false)
@@ -288,7 +288,7 @@ class PagePlayerService : Service(), PageServiceInterface {
         return _playbackSpeed;
     }
 
-    override fun setVersesPlayList(versesPlayList: Array<PageContent>) {
+    override fun setVersesPlayList(versesPlayList: List<PageContent>) {
         logDebug("updating verses playlist")
         _versesPlayList = versesPlayList;
         logDebug("new size ${_versesPlayList.size}")
@@ -350,22 +350,14 @@ class PagePlayerService : Service(), PageServiceInterface {
                 urlParam = "${currentPlayingPageNum}-${item.surahNum}-${item.verseNum}.mp3"
             }
 
-            if (item.type == PageContentItemType.surah && (item.surahNum == "1" || item.surahNum == "9")) {
+            if (item.type == PageContentItemType.surah && (item.surahNum == 1 || item.surahNum == 9)) {
                 //skip basmallah for surah 1 and 9
                 _currentPlayingIndex.value++;
                 playAudio()
             } else {
                 try {
                     _exoPlayer.apply {
-                        val mediaItem =
-                            MediaItem.fromUri(
-                                Uri.fromFile(
-                                    File(
-                                        context.getExternalFilesDir(null),
-                                        urlParam
-                                    )
-                                )
-                            )
+                        val mediaItem = MediaItem.fromUri(Uri.fromFile(File(context.getExternalFilesDir(null), urlParam)))
                         setMediaItem(mediaItem)
                         prepare()
                         play()
@@ -510,8 +502,8 @@ class PagePlayerService : Service(), PageServiceInterface {
         _currentPlayingIndex.value = 0;
         _endPlayingIndex.value = null;
         _startPlayingIndex.value = 0;
-        _startPlayingItem.value = emptyPageObject;
-        _endPlayingItem.value = emptyPageObject;
+        _startPlayingItem.value = null;
+        _endPlayingItem.value = null;
         /*_selectedRepetition.value = "0";
         selectedMappedRepetitions = 0;*/
         repeatedTimes = 0;
@@ -567,17 +559,6 @@ class PagePlayerService : Service(), PageServiceInterface {
 
         return remoteViews
     }
-
-    val emptyPageObject: PageContent = PageContent(
-        PageContentItemType.EMPTY,
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-    )
 
     fun logDebug(msg: String) {
         Log.d("PagePlayerService", msg)

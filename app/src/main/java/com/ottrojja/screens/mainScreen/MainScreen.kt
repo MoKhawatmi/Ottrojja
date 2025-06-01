@@ -206,150 +206,6 @@ fun MainScreen(
                             mainViewModel.invokeLatestSearchOperation();
                             mainViewModel.showImageList = false;
                         })
-/*
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .padding(12.dp, 24.dp)
-                            .clip(RoundedCornerShape(10))
-                            .background(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(
-                                        Color.Red,
-                                        Color(0xDD660000)
-                                    )
-                                )
-                            )
-                            .fillMaxWidth()
-                            .clickable {
-                                mainViewModel.selectedSection = BrowsingOption.الصفحات;
-                                mainViewModel.showImageList = false;
-                            }
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = "صفحات القرآن",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White
-                        );
-                        Image(
-                            painter = painterResource(id = R.drawable.q_image1),
-                            contentDescription = "",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(112.dp)
-                                .clip(CircleShape)
-                        )
-                    }
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .padding(12.dp, 24.dp)
-                            .clip(RoundedCornerShape(10))
-                            .background(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(
-                                        Color.Green,
-                                        Color(0xDD006600)
-                                    )
-                                )
-                            )
-                            .fillMaxWidth()
-                            .clickable {
-                                mainViewModel.selectedSection = BrowsingOption.السور;
-                                mainViewModel.showImageList = false;
-                            }
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = "سور القرآن",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White
-                        );
-                        Image(
-                            painter = painterResource(id = R.drawable.q_image2),
-                            contentDescription = "",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(112.dp)
-                                .clip(CircleShape)
-                        )
-                    }
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .padding(12.dp, 24.dp)
-                            .clip(RoundedCornerShape(10))
-                            .background(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(
-                                        Color.Blue,
-                                        Color(0xDD000066)
-                                    )
-                                )
-                            )
-                            .fillMaxWidth()
-                            .clickable {
-                                mainViewModel.selectedSection = BrowsingOption.الاجزاء;
-                                mainViewModel.showImageList = false;
-                            }
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = "اجزاء القرآن",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White
-                        );
-                        Image(
-                            painter = painterResource(id = R.drawable.q_image3),
-                            contentDescription = "",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(112.dp)
-                                .clip(CircleShape)
-                        )
-                    }
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .padding(12.dp, 24.dp)
-                            .clip(RoundedCornerShape(10))
-                            .background(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(
-                                        Color(0xFFD0B968),
-                                        Color(0xFFA86809)
-                                    )
-                                )
-                            )
-                            .fillMaxWidth()
-                            .clickable {
-                                mainViewModel.selectedSection = BrowsingOption.البحث;
-                                mainViewModel.invokeLatestSearchOperation();
-                                mainViewModel.showImageList =
-                                    false;
-                            }
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = "البحث",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White
-                        );
-                        Image(
-                            painter = painterResource(id = R.drawable.q_image4),
-                            contentDescription = "",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(112.dp)
-                                .clip(CircleShape)
-                        )
-                    }
-*/
                     Row(modifier = Modifier.height(25.dp)) {}
                 }
 
@@ -592,7 +448,6 @@ fun ChaptersMenu(
 }
 
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SearchMenu(
     items: List<SearchResult> = emptyList(),
@@ -652,19 +507,13 @@ fun SearchMenu(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "{${item.verseText}} ${
-                            convertToIndianNumbers(item.verseNum
-                            )
-                        } - ${item.surahName}",
+                        text = "{${item.verseText}} ${convertToIndianNumbers("${item.verseNum}")} - ${item.surahName}",
                         color = Color.Black,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
                 ListHorizontalDivider()
             }
-        }
-        item {
-            Row(modifier = Modifier.height(100.dp)) {}
         }
     }
 }
