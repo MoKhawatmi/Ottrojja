@@ -14,8 +14,7 @@ data class QuranPage(
     @ColumnInfo(name = "benefits") val benefits: Array<String>,
     @ColumnInfo(name = "appliance") val appliance: Array<String>,
     @ColumnInfo(name = "guidance") val guidance: Array<String>,
-//   @ColumnInfo(name = "pageContent") val pageContent: Array<PageContent> = emptyArray()
-) {}
+)
 
 @Entity(
     foreignKeys = [
@@ -38,20 +37,7 @@ data class PageContent(
     @ColumnInfo(name = "verseNum") val verseNum: Int?,
     @ColumnInfo(name = "verseText") val verseText: String?,
     @ColumnInfo(name = "verseTextPlain") val verseTextPlain: String?,
-) {}
-
-
-/*@Serializable
-data class PageContent(
-    val type: PageContentItemType = PageContentItemType.EMPTY,
-    val surahName: String = "",
-    val surahNum: String = "",
-    val surahTotal: String = "",
-    val surahType: String = "",
-    val verseNum: String = "",
-    val verseText: String = "",
-    val verseTextPlain: String = "",
-) {}*/
+)
 
 enum class PageContentItemType{
     verse, surah, EMPTY

@@ -1,6 +1,5 @@
 package com.ottrojja.screens.listeningScreen
 
-import android.text.Selection
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,6 +40,7 @@ fun SurahSelectionDialog(
     checkIfChapterDownloaded: (Int) -> Boolean,
     downloadChapter: (Int) -> Unit,
 ) {
+
     OttrojjaDialog(onDismissRequest = { onDismiss() },
         contentModifier = Modifier
             .padding(8.dp)
@@ -105,7 +105,7 @@ fun SurahSelectionDialog(
                                                 contentDescription = "download",
                                                 modifier = Modifier
                                                     .padding(10.dp, 0.dp)
-                                                    .clickable { downloadChapter(item.surahId) }
+                                                    .clickable { downloadChapter(item.surahId);}
                                                     .size(35.dp),
                                                 colorFilter = ColorFilter.tint(
                                                     MaterialTheme.colorScheme.onPrimary

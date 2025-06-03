@@ -42,19 +42,35 @@ abstract class QuranDatabase : RoomDatabase() {
 // Migration from version 6 to version 7
 val MIGRATION_6_7 = object : Migration(6, 7) {
     override fun migrate(database: SupportSQLiteDatabase) {
+        // to separate pageContent from the QuranPage table at this stage of the project's life we drop the table entirely and create it anew
+
+        // Drop the existing QuranPage table if it exists
+        database.execSQL("DROP TABLE IF EXISTS QuranPage")
+
+        // Recreate the QuranPage table with the updated schema
+        database.execSQL("""
+            CREATE TABLE IF NOT EXISTS QuranPage (
+                pageNum TEXT NOT NULL PRIMARY KEY,
+                ytLink TEXT NOT NULL,
+                benefits TEXT NOT NULL,
+                appliance TEXT NOT NULL,
+                guidance TEXT NOT NULL
+            )
+        """.trimIndent())
+
         database.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `PageContent` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             `pageNum` TEXT NOT NULL,
             `type` TEXT NOT NULL,
-            `surahName` TEXT NOT NULL,
+            `surahName` TEXT,
             `surahNum` INTEGER NOT NULL,
-            `surahTotal` INTEGER NOT NULL,
-            `surahType` TEXT NOT NULL,
-            `verseNum` INTEGER NOT NULL,
-            `verseText` TEXT NOT NULL,
-            `verseTextPlain` TEXT NOT NULL,
+            `surahTotal` INTEGER,
+            `surahType` TEXT,
+            `verseNum` INTEGER,
+            `verseText` TEXT,
+            `verseTextPlain` TEXT,
             FOREIGN KEY (`pageNum`) REFERENCES `QuranPage`(`pageNum`)
             )
             """.trimIndent()

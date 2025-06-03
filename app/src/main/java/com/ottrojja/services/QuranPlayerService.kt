@@ -10,6 +10,7 @@ import android.os.Binder
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.util.Log
 import android.widget.RemoteViews
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +27,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 import androidx.core.net.toUri
+import androidx.media3.common.Player.REPEAT_MODE_OFF
+import androidx.media3.common.Player.REPEAT_MODE_ONE
+import androidx.media3.common.Player.STATE_ENDED
+import com.ottrojja.classes.Helpers.repetitionOptionsMap
 import com.ottrojja.classes.QuranListeningMode
 import com.ottrojja.screens.mainScreen.ChapterData
 
@@ -63,6 +68,10 @@ class QuranPlayerService : Service(), QuranServiceInterface {
     private val _currentPlayingTitle = MutableStateFlow("")
     private val _currentPlayingParameters = MutableStateFlow<QuranPlayingParameters?>(null)
     var surahRepeatedTimes = 0;
+    var verseRepeatedTimes = 0;
+    var rangeRepeatedTimes = 0;
+    var currentPlayingIndex = 0;
+    var currentPlayList = emptyList<MediaItem>();
 
     lateinit var exoPlayer: ExoPlayer;
 
@@ -85,7 +94,6 @@ class QuranPlayerService : Service(), QuranServiceInterface {
             object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     println("Listener is Playing $isPlaying")
-                    _isPlaying.value = isPlaying;
                 }
 
                 override fun onPlaybackStateChanged(playbackState: Int) {
@@ -107,33 +115,111 @@ class QuranPlayerService : Service(), QuranServiceInterface {
                         handler.postDelayed(updateProgressAction, 400) // Repeat every 400ms
                     }
 
-                    if (playbackState == Player.STATE_ENDED) {
+                    if (playbackState == STATE_ENDED) {
                         println("ExoPlayer State Ended")
 
                         if (_currentPlayingParameters.value!!.listeningMode == QuranListeningMode.سورة_كاملة) {
                             val currentIndex = exoPlayer.currentMediaItemIndex
-                            if (surahRepeatedTimes < Helpers.repetitionOptionsMap.getOrDefault(
+                            if (surahRepeatedTimes < repetitionOptionsMap.getOrDefault(
                                     _currentPlayingParameters.value?.surahRepetitions, 0
                                 )) {
                                 surahRepeatedTimes++;
                                 exoPlayer.seekTo(currentIndex, 0)
                                 exoPlayer.play()
                             } else {
-                                surahRepeatedTimes = 0;
-                                length = 0;
-                                _sliderPosition.value = 0f;
-                                resetPlayer()
-                                _isPlaying.value = false;
-                                handler.removeCallbacksAndMessages(null)
+                                prepareForNewTrack()
                                 if (_currentPlayingParameters.value!!.continuousChapterPlaying && _currentPlayingParameters.value?.selectedSurah?.surahId != 114) {
                                     playNextChapter();
+                                }
+                            }
+                        } else if (_currentPlayingParameters.value!!.listeningMode == QuranListeningMode.مقطع_ايات) {
+                            if (verseRepeatedTimes < repetitionOptionsMap.getOrDefault(
+                                    _currentPlayingParameters.value?.verseRepetitions, 0
+                                )) {
+                                verseRepeatedTimes++;
+                                exoPlayer.seekTo(0)
+                                exoPlayer.play()
+                            } else {
+                                verseRepeatedTimes = 0;
+                                length = 0;
+                                if (currentPlayingIndex != currentPlayList.lastIndex) {
+                                    currentPlayingIndex++;
+                                    playItem(currentPlayList.get(currentPlayingIndex));
+                                } else {
+                                    if (rangeRepeatedTimes < repetitionOptionsMap.getOrDefault(
+                                            _currentPlayingParameters.value?.verseRangeRepetitions,
+                                            0
+                                        )) {
+                                        rangeRepeatedTimes++;
+                                        currentPlayingIndex = 0;
+                                        playItem(currentPlayList.get(currentPlayingIndex));
+                                    } else {
+                                        prepareForNewTrack()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                /*override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                    super.onMediaItemTransition(mediaItem, reason)
+
+                    if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) {
+                        exoPlayer.pause()
+                        println("verse repeated")
+                        if (_currentPlayingParameters.value?.listeningMode == QuranListeningMode.مقطع_ايات &&
+                            verseRepeatedTimes < repetitionOptionsMap.getOrDefault(
+                                _currentPlayingParameters.value?.verseRepetitions, 0
+                            )) {
+                            verseRepeatedTimes++;
+                            exoPlayer.play();
+                        } else if (_currentPlayingParameters.value?.listeningMode == QuranListeningMode.مقطع_ايات &&
+                            verseRepeatedTimes >= repetitionOptionsMap.getOrDefault(
+                                _currentPlayingParameters.value?.verseRepetitions, 0
+                            )) {
+                            verseRepeatedTimes = 0;
+                            if (exoPlayer.hasNextMediaItem()) {
+                                exoPlayer.seekToNextMediaItem()
+                                exoPlayer.play()
+                            } else {
+                                if (rangeRepeatedTimes < repetitionOptionsMap.getOrDefault(
+                                        _currentPlayingParameters.value?.verseRangeRepetitions, 0
+                                    )) {
+                                    rangeRepeatedTimes++;
+                                    exoPlayer.seekTo(0, 0)
+                                    exoPlayer.play()
                                 } else {
                                     prepareForNewTrack()
                                 }
                             }
                         }
                     }
-                }
+                }*/
+
+
+                /*override fun onPositionDiscontinuity(
+                    oldPosition: Player.PositionInfo,
+                    newPosition: Player.PositionInfo,
+                    reason: Int
+                ) {
+                    if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION) {
+                        exoPlayer.pause()
+                        val previousIndex = oldPosition.mediaItemIndex
+                        val repeatCount = verseRepeatedTimes
+
+                        if (repeatCount < repetitionOptionsMap.getOrDefault(_currentPlayingParameters.value?.verseRepetitions,0)) {
+                            verseRepeatedTimes++;
+                            exoPlayer.seekTo(previousIndex, 0L)
+                        } else {
+                            verseRepeatedTimes = 0
+                            // Proceed to the next item as usual
+                        }
+                        exoPlayer.play()
+                    }
+                }*/
+
 
                 override fun onPlayerError(error: PlaybackException) {
                     super.onPlayerError(error)
@@ -187,16 +273,11 @@ class QuranPlayerService : Service(), QuranServiceInterface {
         return _isPlaying
     }
 
-    private fun resetAll() {
-        _currentPlayingParameters.value = null;
-        _isPlaying.value = false;
-        _isPaused.value = false;
-        _sliderPosition.value = 0F;
-        resetPlayer()
-    }
 
     private fun resumeTrack() {
         println("resuming")
+        _isPaused.value = false;
+        _isPlaying.value = true;
         exoPlayer.play()
     }
 
@@ -224,7 +305,7 @@ class QuranPlayerService : Service(), QuranServiceInterface {
             val localFile = File(this.getExternalFilesDir(null), path)
             if (!localFile.exists() && !Helpers.checkNetworkConnectivity(this)) {
                 Toast.makeText(this, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG).show()
-                resetAll();
+                prepareForNewTrack();
                 return;
             }
             if (localFile.exists()) {
@@ -235,21 +316,41 @@ class QuranPlayerService : Service(), QuranServiceInterface {
             }
         }
 
+        currentPlayList = mediaItems;
+
+        /*if (parameters.listeningMode == QuranListeningMode.مقطع_ايات) {
+            exoPlayer.repeatMode = REPEAT_MODE_ONE
+        } else {
+            exoPlayer.repeatMode = REPEAT_MODE_OFF
+        }*/
+
+        _isPlaying.value = true;
+        playItem(currentPlayList.get(currentPlayingIndex));
+    }
+
+    fun playItem(item: MediaItem) {
         exoPlayer.apply {
-            setMediaItems(mediaItems)
+            setMediaItem(item)
             prepare()
             playWhenReady = true
             play()
         }
     }
 
+
     private fun prepareForNewTrack() {
         handler.removeCallbacksAndMessages(null)
         length = 0;
         surahRepeatedTimes = 0;
+        rangeRepeatedTimes = 0;
+        verseRepeatedTimes = 0;
         _maxDuration.value = 0f;
         _sliderPosition.value = 0f;
         _playbackSpeed.value = 1.0f
+        currentPlayingIndex = 0;
+        currentPlayList = emptyList<MediaItem>();
+        _isPlaying.value = false;
+        _isPaused.value = false;
         resetPlayer()
     }
 
