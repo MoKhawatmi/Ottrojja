@@ -350,8 +350,8 @@ class PagePlayerService : Service(), PageServiceInterface {
                 urlParam = "${currentPlayingPageNum}-${item.surahNum}-${item.verseNum}.mp3"
             }
 
+            //skip basmallah for surah 1 and 9
             if (item.type == PageContentItemType.surah && (item.surahNum == 1 || item.surahNum == 9)) {
-                //skip basmallah for surah 1 and 9
                 _currentPlayingIndex.value++;
                 playAudio()
             } else {

@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.composables.LoadingDialog
@@ -51,6 +52,7 @@ import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.SecondaryTopBar
+import com.ottrojja.composables.TopBar
 import com.ottrojja.room.entities.Azkar
 import com.ottrojja.screens.quranScreen.YouTube
 
@@ -73,89 +75,31 @@ fun ZikrScreen(
         LoadingDialog()
     }
 
-    Column() {
+    Column {
+
+        TopBar(title = zikr.value.azkarTitle,
+            mainAction = ButtonAction(
+                icon = Icons.Filled.ArrowBack,
+                action = { navController.popBackStack() }
+            ),
+            secondaryActions = listOf(
+                ButtonAction(icon = Icons.Default.ContentCopy, action = {
+                    copyToClipboard(context, zikr.value.azkarText, "تم تسخ الذكر بنجاح"
+                    );
+                }, title = "نسخ"),
+                ButtonAction(icon = Icons.Outlined.DownloadForOffline,
+                    action = { zikrViewModel.downloadZikr() }, title = "تحميل"
+                ),
+            )
+        )
 
         SecondaryTopBar {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier
-                        .padding(start = 6.dp, end = 6.dp, top = 0.dp, bottom = 6.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row {
-                        ElevatedButton(
-                            onClick = {
-                                copyToClipboard(
-                                    context,
-                                    zikr.value.azkarText,
-                                    "تم تسخ الذكر بنجاح"
-                                );
-                            },
-                            elevation = ButtonDefaults.elevatedButtonElevation(2.dp, 2.dp, 2.dp,
-                                2.dp, 2.dp
-                            ),
-                            contentPadding = PaddingValues(0.dp),
-                            shape = CircleShape,
-                            modifier = Modifier
-                                .padding(4.dp, 0.dp)
-                                .clip(CircleShape)
-                        ) {
-                            Icon(
-                                Icons.Default.ContentCopy,
-                                contentDescription = "Copy",
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                        if (!zikrViewModel.checkIfZikrDownloaded()) {
-                            ElevatedButton(
-                                onClick = { zikrViewModel.downloadZikr() },
-                                elevation = ButtonDefaults.elevatedButtonElevation(2.dp, 2.dp, 2.dp,
-                                    2.dp, 2.dp
-                                ),
-                                contentPadding = PaddingValues(0.dp),
-                                shape = CircleShape,
-                                modifier = Modifier
-                                    .padding(4.dp, 0.dp)
-                                    .clip(CircleShape)
-                            ) {
-                                Icon(
-                                    Icons.Outlined.DownloadForOffline,
-                                    contentDescription = "Download",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                        }
-                    }
-
-
-                    ElevatedButton(
-                        onClick = { navController.popBackStack() },
-                        elevation = ButtonDefaults.elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp,
-                            2.dp
-                        ),
-                        contentPadding = PaddingValues(0.dp),
-                        shape = CircleShape,
-                        modifier = Modifier
-                            .padding(0.dp)
-                            .clip(CircleShape)
-                    ) {
-                        Icon(
-                            Icons.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                }
-
-                OttrojjaTabs(
-                    items = ZikrViewModel.ZikrTab.entries,
-                    selectedItem = zikrViewModel.selectedTab,
-                    onClickTab = { item -> zikrViewModel.selectedTab = item })
-            }
+            OttrojjaTabs(
+                items = ZikrViewModel.ZikrTab.entries,
+                selectedItem = zikrViewModel.selectedTab,
+                onClickTab = { item -> zikrViewModel.selectedTab = item }
+            )
         }
-
 
         when (zikrViewModel.selectedTab) {
             ZikrViewModel.ZikrTab.الذكر -> ZikrSection(
@@ -209,19 +153,6 @@ fun ZikrSection(
         ) { toggleController() }
     ) {
         Column {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = zikr.azkarTitle,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(2.dp)
-                )
-            }
-
             Column(
                 modifier = Modifier
                     .padding(12.dp)
@@ -273,86 +204,6 @@ fun ZikrSection(
                     )
                 }
             }
-
-            /*
-            Column(
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
-                    .fillMaxWidth()
-                    .padding(10.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                if (isPlaying && isZikrPlaying) {
-                    MediaSlider(
-                        sliderPosition,
-                        { value -> setSliderPosition(value) },
-                        sliderMaxDuration
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (isPlaying && isZikrPlaying) {
-                        Row(
-                            horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth(0.15f)
-                        ) {
-                            Text(
-                                text = "${playbackSpeed}x",
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodySmall,
-                                textAlign = TextAlign.Right,
-                            )
-                        }
-                    }
-
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        if (isPlaying && isZikrPlaying) {
-                            Image(painter = painterResource(R.drawable.faster),
-                                contentDescription = "faster",
-                                modifier = Modifier
-                                    .clickable { onFasterClicked() }
-                                    .size(25.dp)
-                            )
-                        }
-                        if (isPlaying && isZikrPlaying) {
-                            Image(painter = painterResource(R.drawable.playing),
-                                contentDescription = "pause",
-                                modifier = Modifier
-                                    .padding(10.dp, 0.dp)
-                                    .clickable { onPauseClicked() }
-                                    .size(35.dp)
-                            )
-                            //  ReplayIcon(selectedRep, onClickUpdateRep)
-                        } else {
-                            Image(painter = painterResource(R.drawable.play),
-                                contentDescription = "play",
-                                modifier = Modifier
-                                    .clickable { onPlayClicked() }
-                                    .size(35.dp),
-                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-                            )
-                        }
-                        if (isPlaying && isZikrPlaying) {
-                            Image(painter = painterResource(R.drawable.slower),
-                                contentDescription = "slower",
-                                modifier = Modifier
-                                    .clickable { onSlowerClicked() }
-                                    .size(25.dp)
-                            )
-                        }
-                    }
-                }
-            }*/
         }
     }
 }

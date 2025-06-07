@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults.elevatedButtonElevation
 import androidx.compose.material3.ElevatedButton
@@ -380,6 +381,7 @@ fun PageTraining(
                                 .clickable { onPauseClicked() }
                                 .size(35.dp))
                     } else {
+
                         Image(painter = painterResource(R.drawable.play),
                             contentDescription = "play",
                             modifier = Modifier

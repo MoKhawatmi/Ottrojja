@@ -60,6 +60,7 @@ class JsonParser(private val context: Context) {
             "verseMeanings" to jsonObject.getInt("verseMeanings"),
             "causesOfRevelation" to jsonObject.getInt("causesOfRevelation"),
             "tafaseer" to jsonObject.getInt("tafaseer"),
+            "pagesContent" to jsonObject.getInt("pagesContent"),
         )
     }
 

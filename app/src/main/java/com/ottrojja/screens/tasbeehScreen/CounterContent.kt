@@ -129,7 +129,7 @@ fun CounterContent(
                 .fillMaxWidth(0.9F)
                 .fillMaxHeight(0.8F)
                 .padding(24.dp, 24.dp)
-                .clip(CircleShape)
+                .clip(CircleShape),
         ) {
             Icon(
                 Icons.Default.TouchApp,

@@ -26,6 +26,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.ottrojja.R
+import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.Helpers.convertToArabicNumbers
+import com.ottrojja.classes.Helpers.convertToIndianNumbers
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 
@@ -70,13 +73,12 @@ fun VerseSelectionDialog(onDismiss: () -> Unit,
                 Modifier
                     .fillMaxHeight()
             ) {
-                items(versesArray.filter { it.toString().contains(searchFilter) }) { item ->
+                items(versesArray.filter { it.contains(searchFilter) || it.contains(convertToArabicNumbers(searchFilter)) }) { item ->
                     Column(modifier = Modifier
                         .padding(12.dp, 2.dp)
                         .fillMaxWidth()
                         .clickable {
                             selectVerse(item.toInt());
-                          //  searchFilter = "";
                             onDismiss();
                         }
                     ) {

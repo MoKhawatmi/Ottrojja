@@ -19,11 +19,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
-import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.room.entities.PageContent
-import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
+import com.ottrojja.classes.Helpers.terminateAllServices
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TafseerSheetMode
@@ -104,12 +103,12 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 println(_currentPageObject)
                 _versesPlayList = _currentPageObject?.pageContent!!.toTypedArray()
                 //the following couple of lines are made to accommodate the service changes
+                resetPlayingUIParams()
                 if (isMyServiceRunning(PagePlayerService::class.java, context)) {
+                    println("service running")
                     updateIsCurrentPagePlaying()
                     if (_isCurrentPagePlaying.value) {
                         fetchPlayingUIParams()
-                    } else {
-                        resetPlayingUIParams()
                     }
                 }
                 checkVerseFilesExistance()
@@ -319,14 +318,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     fun prepareForPlaying() {
-        // stop the other media player service
-        val sr = isMyServiceRunning(MediaPlayerService::class.java, context);
-        println("service running $sr")
-        if (sr) {
-            val stopServiceIntent = Intent(context, MediaPlayerService::class.java)
-            stopServiceIntent.setAction("TERMINATE")
-            context.startService(stopServiceIntent)
-        }
+        // stop other services
+        terminateAllServices(context, PagePlayerService::class.java)
         _shouldAutoPlay.value = false;
 
         if (!allVersesExist) {
@@ -757,7 +750,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
                 viewModelScope.launch {
                     audioService?.getStartPlayingItem()?.collect { state ->
-                        if (state != null && _isCurrentPagePlaying.value) {
+                        if (_isCurrentPagePlaying.value) {
                             _selectedVerse = state;
                         }
                     }
@@ -773,7 +766,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
                 viewModelScope.launch {
                     audioService?.getEndPlayingItem()?.collect { state ->
-                        if (state != null && _isCurrentPagePlaying.value) {
+                        if (_isCurrentPagePlaying.value) {
                             _selectedEndVerse = state;
                         }
                     }
@@ -871,7 +864,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         println("updating ui params")
         audioService?.setContinuousPlay(_continuousPlay.value)
         audioService?.setSelectedRepetition(_selectedRepetition)
-        audioService?.setSelectedMappedRepetition(Helpers.repetitionOptionsMap.get(_selectedRepetition)!!)
+        audioService?.setSelectedMappedRepetition(
+            Helpers.repetitionOptionsMap.get(_selectedRepetition)!!
+        )
         audioService?.setSelectedRepetitionTab(_selectedRepetitionTab.value)
         audioService?.setStartPlayingItem(_selectedVerse)
         audioService?.setEndPlayingIndex(endPlayingIndex)
@@ -905,9 +900,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         _selectedRepetitionTab.value = audioService?.getSelectedRepetitionTab()?.value
             ?: RepetitionTab.الاية
         startPlayingIndex = audioService?.getStartPlayingIndex()?.value ?: 0
-        _selectedVerse = audioService?.getStartPlayingItem()?.value ?: null
+        _selectedVerse = audioService?.getStartPlayingItem()?.value
         endPlayingIndex = audioService?.getEndPlayingIndex()?.value
-        _selectedEndVerse = audioService?.getEndPlayingItem()?.value ?: null
+        _selectedEndVerse = audioService?.getEndPlayingItem()?.value
     }
 
     init {
@@ -949,11 +944,15 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     fun assignPageToKhitmah(khitmah: Khitmah) {
-        val khitmahMark = KhitmahMark(khitmahId = khitmah.id, pageNum = _currentPageObject?.page?.pageNum!!)
+        val khitmahMark = KhitmahMark(khitmahId = khitmah.id,
+            pageNum = _currentPageObject?.page?.pageNum!!
+        )
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 repository.insertKhitmahMark(khitmahMark);
-                repository.updateKhitmah(khitmah.copy(latestPage = _currentPageObject?.page?.pageNum!!))
+                repository.updateKhitmah(
+                    khitmah.copy(latestPage = _currentPageObject?.page?.pageNum!!)
+                )
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "تمت إضافة الصفحة للختمة بنجاح", Toast.LENGTH_LONG
                     ).show()

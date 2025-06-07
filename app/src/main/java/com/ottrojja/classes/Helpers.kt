@@ -1,6 +1,7 @@
 package com.ottrojja.classes
 
 import android.app.ActivityManager
+import android.app.Service
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -102,13 +103,17 @@ object Helpers {
         }
     }
 
-    fun terminateAllServices(context: Context) {
-        val servicesList = listOf(MediaPlayerService::class.java, PagePlayerService::class.java, QuranPlayerService::class.java)
+    fun terminateAllServices(context: Context, except: Class<*>? = null) {
+        val servicesList = listOf(MediaPlayerService::class.java, PagePlayerService::class.java,
+            QuranPlayerService::class.java
+        )
         servicesList.forEach {
-            val sr = Helpers.isMyServiceRunning(it, context);
-            val stopServiceIntent = Intent(context, it)
-            stopServiceIntent.setAction("TERMINATE")
-            context.startService(stopServiceIntent)
+            if (it != except) {
+                // val sr = isMyServiceRunning(it, context);
+                val stopServiceIntent = Intent(context, it)
+                stopServiceIntent.setAction("TERMINATE")
+                context.startService(stopServiceIntent)
+            }
         }
     }
 

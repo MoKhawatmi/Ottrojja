@@ -17,10 +17,12 @@ import androidx.lifecycle.viewModelScope
 import com.ottrojja.services.AudioServiceInterface
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
+import com.ottrojja.classes.Helpers.terminateAllServices
 import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.room.entities.Azkar
 import com.ottrojja.services.PagePlayerService
+import com.ottrojja.services.QuranPlayerService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -108,14 +110,8 @@ class ZikrViewModel(
 
 
     fun playClicked() {
-        // stop the other page player service
-        val sr = isMyServiceRunning(PagePlayerService::class.java, context);
-        println("service running $sr")
-        if (sr) {
-            val stopServiceIntent = Intent(context, PagePlayerService::class.java)
-            stopServiceIntent.setAction("TERMINATE")
-            context.startService(stopServiceIntent)
-        }
+        // stop other services
+        terminateAllServices(context, MediaPlayerService::class.java)
 
 
         if (isMyServiceRunning(MediaPlayerService::class.java, context)) {

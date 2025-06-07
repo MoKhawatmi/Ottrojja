@@ -694,6 +694,7 @@ fun ListeningOptionsDialog(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                println("start $selectedVerse")
                 Text("من اية", style = MaterialTheme.typography.bodyMedium)
                 Row(
                     modifier = Modifier
@@ -720,6 +721,7 @@ fun ListeningOptionsDialog(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                println("end $selectedEndVerse")
                 Text("الى اية", style = MaterialTheme.typography.bodyMedium)
                 Row(
                     modifier = Modifier

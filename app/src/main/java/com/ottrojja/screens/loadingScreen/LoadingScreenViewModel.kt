@@ -50,6 +50,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     val verseMeaningsJsonVersion = sharedPreferences.getInt("verseMeaningsJsonVersion", 0)
     val causesOfRevelationJsonVersion = sharedPreferences.getInt("causesOfRevelationJsonVersion", 0)
     val tafaseerJsonVersion = sharedPreferences.getInt("tafaseerJsonVersion", 0)
+    val pagesContentJsonVersion = sharedPreferences.getInt("pagesContentJsonVersion", 0)
 
     private var _loaded = mutableStateOf(false)
     var loaded: Boolean
@@ -196,11 +197,14 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 } else {
                     downloadAndUpdateQuranFile(quranFile)
                 }
-                jsonParser.parseJsonArrayFile<PageContent>("pagesContent.json")?.let {
-                    try {
-                        repository.insertPagesContent(it)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+
+                if(versions.get("pagesContent")!! > pagesContentJsonVersion){
+                    jsonParser.parseJsonArrayFile<PageContent>("pagesContent.json")?.let {
+                        try {
+                            repository.insertPagesContent(it)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
                 }
             }

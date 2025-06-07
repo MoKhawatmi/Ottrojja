@@ -66,13 +66,17 @@ fun BottomNavigation(
                 strokeWidth = strokeWidth
             )
         }
-        .padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 0.dp)
+        .padding(start = 4.dp, end = 4.dp, top = 12.dp, bottom = 4.dp)
     ) {
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+        Row(modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(modifier = Modifier.weight(1f)) {
+            Row(modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 BottomNavigationOption(
                     optionText = "المصحف",
                     isCurrent = Screen.MainScreen.route == currentRoute,
@@ -98,9 +102,12 @@ fun BottomNavigation(
                 )
             }
 
-            Spacer(modifier = Modifier.width(75.dp))
+            Spacer(modifier = Modifier.width(50.dp))
 
-            Row(modifier = Modifier.weight(1f)) {
+            Row(modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 BottomNavigationOption(
                     optionText = "الاذكار",
                     isCurrent = Screen.AzkarMain.route == currentRoute,
@@ -125,12 +132,11 @@ fun BottomNavigation(
         }
 
 
-
         FloatingActionButton(
             onClick = { onMoreClick() },
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = (-10).dp)
+                .offset(y = (-12).dp)
                 .zIndex(1f)
                 .border(
                     width = 2.dp,
@@ -152,7 +158,7 @@ fun BottomNavigation(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FixedHeightModalBottomSheet(onDismissRequest:()->Unit, content: @Composable () -> Unit) {
+fun FixedHeightModalBottomSheet(onDismissRequest: () -> Unit, content: @Composable () -> Unit) {
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
         confirmValueChange = { newValue ->
@@ -166,16 +172,17 @@ fun FixedHeightModalBottomSheet(onDismissRequest:()->Unit, content: @Composable 
         sheetState = sheetState,
         dragHandle = null // Optional: removes the drag handle
     ) {
-        Column(modifier = Modifier.fillMaxWidth().
-        background(MaterialTheme.colorScheme.background).
-        padding(vertical = 20.dp, horizontal = 12.dp)) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background
+            )
+            .padding(vertical = 20.dp, horizontal = 12.dp)
+        ) {
             content()
         }
     }
 
 }
-
-
 
 
 @Composable

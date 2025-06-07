@@ -66,7 +66,11 @@ import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.ui.theme.complete_green
 import com.ottrojja.ui.theme.md_theme_light_primary
 import com.ottrojja.ui.theme.md_theme_light_secondary
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.abs
 
@@ -149,23 +153,28 @@ private fun CompassContent(showPositionDialog: Boolean,
 
     var calibrationCoolDown by remember { mutableStateOf(false) }
     var positionCoolDown by remember { mutableStateOf(false) }
+    var locationCity by remember { mutableStateOf("") }
+
 
     val calibrationHandler = Handler(Looper.getMainLooper())
     fun triggerCalibrationWarning() {
-        if(calibrationCoolDown){
+        if (calibrationCoolDown) {
             return;
         }
         println("trigger calibration warning")
         calibrationRequired = true;
         calibrationCoolDown = true;
         calibrationHandler.removeCallbacksAndMessages(null)
-        val runnable = Runnable { println("reset calibration cooldown"); calibrationCoolDown = false }
-        calibrationHandler.postDelayed(runnable, 1000*30)
+        val runnable = Runnable {
+            println("reset calibration cooldown"
+            ); calibrationCoolDown = false
+        }
+        calibrationHandler.postDelayed(runnable, 1000 * 30)
     }
 
     val positionHandler = Handler(Looper.getMainLooper())
     fun triggerPositionWarning() {
-        if(positionCoolDown){
+        if (positionCoolDown) {
             return;
         }
         println("trigger position warning")
@@ -173,7 +182,7 @@ private fun CompassContent(showPositionDialog: Boolean,
         positionCoolDown = true;
         positionHandler.removeCallbacksAndMessages(null)
         val runnable = Runnable { println("reset position cooldown"); positionCoolDown = false }
-        positionHandler.postDelayed(runnable, 1000*30)
+        positionHandler.postDelayed(runnable, 1000 * 30)
     }
 
 
@@ -274,6 +283,15 @@ private fun CompassContent(showPositionDialog: Boolean,
         }
     }
 
+    LaunchedEffect(locationState.value) {
+        if (locationState.value != null) {
+            getCityFromLocationAsync(context, locationState.value!!).collect {
+                locationCity = it ?: ""
+            }
+        }
+    }
+
+
     DisposableEffect(Unit) {
         val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         val magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
@@ -296,6 +314,7 @@ private fun CompassContent(showPositionDialog: Boolean,
 
     val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.kaaba)
     val imageBitmap = bitmap.asImageBitmap()
+
 
     // Calibration dialog
     if (calibrationRequired) {
@@ -470,10 +489,7 @@ private fun CompassContent(showPositionDialog: Boolean,
                     .padding(vertical = 6.dp),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text(getCityFromLocation(context,
-                        locationState.value?.latitude,
-                        locationState.value?.longitude
-                    ), color = MaterialTheme.colorScheme.primary,
+                    Text(locationCity, color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center
                     )
@@ -505,9 +521,9 @@ private fun normalizeAngle(angle: Float): Float {
 }
 
 private fun getCityFromLocation(context: Context, latitude: Double?, longitude: Double?): String {
-  /*  println("getting city")
-    println(latitude)
-    println(longitude)*/
+    /*  println("getting city")
+      println(latitude)
+      println(longitude)*/
     if (latitude != null && longitude != null) {
         return try {
             val geocoder = Geocoder(context, Locale.getDefault())
@@ -519,6 +535,14 @@ private fun getCityFromLocation(context: Context, latitude: Double?, longitude: 
         }
     }
     return ""
+}
+
+fun getCityFromLocationAsync(context: Context, location: Location): Flow<String?> = flow {
+    val geocoder = Geocoder(context, Locale.getDefault())
+    val addresses = withContext(Dispatchers.IO) {
+        geocoder.getFromLocation(location.latitude, location.longitude, 1)
+    }
+    emit(addresses?.firstOrNull()?.locality)
 }
 
 

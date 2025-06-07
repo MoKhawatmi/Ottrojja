@@ -132,10 +132,10 @@ class QuranPlayerService : Service(), QuranServiceInterface {
                                     playNextChapter();
                                 }
                             }
+
                         } else if (_currentPlayingParameters.value!!.listeningMode == QuranListeningMode.مقطع_ايات) {
-                            if (verseRepeatedTimes < repetitionOptionsMap.getOrDefault(
-                                    _currentPlayingParameters.value?.verseRepetitions, 0
-                                )) {
+                            if (verseRepeatedTimes < repetitionOptionsMap.getOrDefault(_currentPlayingParameters.value?.verseRepetitions, 0)
+                                && _currentPlayingParameters.value!!.playListItems!!.get(currentPlayingIndex).split("/").last() != "basmalah.mp3") {
                                 verseRepeatedTimes++;
                                 exoPlayer.seekTo(0)
                                 exoPlayer.play()
@@ -245,7 +245,6 @@ class QuranPlayerService : Service(), QuranServiceInterface {
 
 
     override fun getSliderMaxDuration(): StateFlow<Float> {
-        println("max duratuin $_maxDuration")
         return _maxDuration
     }
 
@@ -329,6 +328,8 @@ class QuranPlayerService : Service(), QuranServiceInterface {
     }
 
     fun playItem(item: MediaItem) {
+        println("play item")
+
         exoPlayer.apply {
             setMediaItem(item)
             prepare()

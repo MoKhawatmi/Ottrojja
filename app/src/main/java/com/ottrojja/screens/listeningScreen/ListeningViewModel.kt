@@ -17,11 +17,11 @@ import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
+import com.ottrojja.classes.Helpers.terminateAllServices
 import com.ottrojja.classes.QuranListeningMode
 import com.ottrojja.classes.QuranPlayingParameters
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.screens.mainScreen.ChapterData
-import com.ottrojja.services.PagePlayerService
 import com.ottrojja.services.QuranPlayerService
 import com.ottrojja.services.QuranServiceInterface
 import kotlinx.coroutines.CompletableDeferred
@@ -47,13 +47,6 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
             _selectedSurah.value = value
         }
 
-    /*fun selectSurah(surah: ChapterData) {
-        _selectedSurah.value = surah;
-        audioService?.setSelectedChapterId("${surah.surahId}")
-        println(_selectedSurah.value);
-        play();
-    }*/
-
     private var _isPlaying = mutableStateOf(false)
     var isPlaying: Boolean
         get() = _isPlaying.value
@@ -61,20 +54,12 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
             _isPlaying.value = value
         }
 
-    /*private var _isChapterPlaying = mutableStateOf(false) //for service binding issues
-    var isChapterPlaying: Boolean
-        get() = _isChapterPlaying.value
-        set(value) {
-            _isChapterPlaying.value = value
-        }*/
-
     private var _currentPlayingTitle = mutableStateOf("")
     var currentPlayingTitle: String
         get() = _currentPlayingTitle.value
         set(value) {
             _currentPlayingTitle.value = value
         }
-
 
     private var _isPaused = mutableStateOf(false)
     var isPaused: Boolean
@@ -98,14 +83,8 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
 
     var clickedPlay = false;
     fun play() {
-        // stop the other page player service
-        val sr = isMyServiceRunning(PagePlayerService::class.java, context);
-        println("service running $sr")
-        if (sr) {
-            val stopServiceIntent = Intent(context, PagePlayerService::class.java)
-            stopServiceIntent.setAction("TERMINATE")
-            context.startService(stopServiceIntent)
-        }
+        // stop other services
+        terminateAllServices(context, QuranPlayerService::class.java)
 
         if (isMyServiceRunning(QuranPlayerService::class.java, context)) {
             startPlaying()
@@ -136,6 +115,15 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
             )
         } else {
             if (_startingSurah.value != null && _endSurah.value != null) {
+
+                if (_startingSurah.value!!.surahId > _endSurah.value!!.surahId
+                    || (_startingSurah.value!!.surahId == _endSurah.value!!.surahId && _startingVerse.value > _endVerse.value)) {
+                    Toast.makeText(context, "موضع بداية التلاوة لا يجب ان يرد بعد موضع النهاية",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return;
+                }
+
                 viewModelScope.launch(Dispatchers.IO) {
                     val versesRange = repository.getPagesContentRange(
                         startingSurah = _startingSurah.value!!.surahId,
@@ -148,7 +136,7 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
                         if (verse.verseNum == 1 && (verse.surahNum != 1 && verse.surahNum != 9)) {
                             // making sure to add basmalah at the start of each surah
                             playListItems.add(
-                                "https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/1-1-1.mp3"
+                                "https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/basmalah.mp3"
                             );
                         }
                         playListItems.add(
@@ -281,6 +269,7 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
                     }
                 }
 
+
                 viewModelScope.launch {
                     audioService?.getCurrentPlayingParameters()?.collect { state ->
                         println("current playing parameters")
@@ -288,7 +277,6 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
                         if (state != null) {
                             _currentPlayingParameters.value = state;
                             if (state.listeningMode == QuranListeningMode.سورة_كاملة) {
-                                _listeningMode.value = QuranListeningMode.سورة_كاملة;
                                 // when the service moves to next/previous chapter it doesn't send the full chapter data back, only the id, so we use the id to get the full chapter data at all times
                                 _selectedSurah.value = chaptersList.await().find { it.surahId == state.selectedSurah?.surahId };
                                 _surahRepetitions.value = state.surahRepetitions;
@@ -298,7 +286,6 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
                                     "سورة ${_selectedSurah.value?.chapterName}"
                                 )
                             } else {
-                                _listeningMode.value = QuranListeningMode.مقطع_ايات;
                                 _startingSurah.value = state.startingSurah;
                                 _startingVerse.value = state.startingVerse ?: 1;
                                 _endSurah.value = state.endSurah;
@@ -313,6 +300,11 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
                             }
                         }
                     }
+                }
+
+                // fetch the current listening mode from the service just once on connection, while let other parameters be collected in realtime
+                if (audioService?.getCurrentPlayingParameters()?.value?.listeningMode != null) {
+                    _listeningMode.value = audioService?.getCurrentPlayingParameters()?.value?.listeningMode!!
                 }
 
                 println("should play $clickedPlay")

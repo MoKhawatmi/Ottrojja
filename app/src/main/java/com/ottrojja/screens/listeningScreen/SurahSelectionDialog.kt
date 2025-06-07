@@ -18,6 +18,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +40,7 @@ fun SurahSelectionDialog(
     selectionPhase: ListeningViewModel.SelectionPhase,
     checkIfChapterDownloaded: (Int) -> Boolean,
     downloadChapter: (Int) -> Unit,
+    isDownloading: Boolean
 ) {
 
     OttrojjaDialog(onDismissRequest = { onDismiss() },
@@ -74,8 +76,10 @@ fun SurahSelectionDialog(
                     .fillMaxHeight()
             ) {
                 items(chapters) { item ->
+                    val downloading = isDownloading // to update "download icon" after the downloading is done
+
                     Column(modifier = Modifier
-                        .padding(12.dp, 2.dp)
+                        .padding(2.dp)
                         .fillMaxWidth()
                         .clickable {
                             selectSurah(item);

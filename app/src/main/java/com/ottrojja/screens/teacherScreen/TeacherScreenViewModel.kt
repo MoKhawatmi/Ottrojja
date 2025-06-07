@@ -388,13 +388,8 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             downloadVerse(localFile)
             return
         }
-        val sr = Helpers.isMyServiceRunning(MediaPlayerService::class.java, context);
-        println("service running $sr")
-        if (sr) {
-            val stopServiceIntent = Intent(context, MediaPlayerService::class.java)
-            stopServiceIntent.setAction("TERMINATE")
-            context.startService(stopServiceIntent)
-        }
+
+        Helpers.terminateAllServices(context)
 
         try {
             exoPlayer.apply {

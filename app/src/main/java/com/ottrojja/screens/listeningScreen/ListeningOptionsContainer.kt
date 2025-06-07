@@ -28,7 +28,6 @@ fun ListeningOptionsContainer(content:@Composable()()->Unit){
         )
         .clip(RoundedCornerShape(16.dp))
         .background(MaterialTheme.colorScheme.background)
-        .verticalScroll(rememberScrollState())
         .padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top

@@ -1,21 +1,29 @@
 package com.ottrojja.screens.listeningScreen
 
 import android.app.Application
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,11 +34,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ottrojja.R
 import com.ottrojja.classes.QuranListeningMode
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.composables.TopBar
@@ -58,10 +68,6 @@ fun ListeningScreen(
         LoadingDialog()
     }
 
-    /*val chaptersList by produceState(initialValue = emptyList<ChapterData>()) {
-        value = chaptersViewModel.getChaptersList()
-    }*/
-
     var filteredChapters by remember { mutableStateOf(emptyList<ChapterData>()) }
 
     LaunchedEffect(Unit) {
@@ -85,7 +91,8 @@ fun ListeningScreen(
             checkIfChapterDownloaded = { value ->
                 listeningViewModel.checkIfChapterDownloaded(value)
             },
-            downloadChapter = { value -> listeningViewModel.downloadChapter(value) }
+            downloadChapter = { value -> listeningViewModel.downloadChapter(value) },
+            isDownloading = listeningViewModel.isDownloading
         )
     }
 
@@ -120,18 +127,15 @@ fun ListeningScreen(
             })
     }
 
-
-    Column {
+    Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Top) {
         TopBar(title = "الإستماع")
+        SecondaryTopBar {
+            OttrojjaTabs(items = QuranListeningMode.entries,
+                selectedItem = listeningViewModel.listeningMode,
+                onClickTab = { value -> listeningViewModel.switchListeningMode(value) })
+        }
         Box(modifier = Modifier.fillMaxSize()) {
-            Column {
-
-                SecondaryTopBar {
-                    OttrojjaTabs(items = QuranListeningMode.entries,
-                        selectedItem = listeningViewModel.listeningMode,
-                        onClickTab = { value -> listeningViewModel.switchListeningMode(value) })
-                }
-
+            Column(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.8f).verticalScroll(rememberScrollState())) {
                 if (listeningViewModel.listeningMode == QuranListeningMode.مقطع_ايات) {
                     Column {
                         Row(modifier = Modifier
@@ -172,13 +176,32 @@ fun ListeningScreen(
                                 )
                             }
                         }
+
+                        Row(modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            OutlinedButton(onClick = { listeningViewModel.play() },
+                                modifier = Modifier.fillMaxWidth(0.3f),
+                                shape = RoundedCornerShape(12.dp),
+                                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                            ) {
+                                Image(painter = painterResource(R.drawable.play),
+                                    contentDescription = "play",
+                                    modifier = Modifier
+                                        .size(24.dp),
+                                    colorFilter = ColorFilter.tint(
+                                        MaterialTheme.colorScheme.primary
+                                    )
+                                )
+                            }
+                        }
                     }
                 } else {
                     Row(modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-
                         Column(modifier = Modifier.weight(1f)) {
                             RangeSelectionItem(
                                 surahItem = listeningViewModel.selectedSurah,
@@ -329,72 +352,9 @@ fun ListeningScreen(
                 }
             }
 
-            /*LazyColumn(
-                Modifier
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.background)
-                    .align(Alignment.TopCenter)
-            ) {
-                items(filteredChapters) { item ->
-                    Column(modifier = Modifier
-                        .padding(12.dp, 2.dp)
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.background)
-                        .clickable {
-                            listeningViewModel.selectSurah(item)
-                        }
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .padding(12.dp)
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(text = item.chapterName, color = Color.Black)
-                            }
-                            Column(
-                                verticalArrangement = Arrangement.Bottom,
-                                horizontalAlignment = Alignment.End
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (listeningViewModel.selectedSurah == item) {
-                                        Image(painter = painterResource(R.drawable.playing),
-                                            contentDescription = "pause",
-                                            modifier = Modifier
-                                                .padding(10.dp, 0.dp)
-                                                .clickable { listeningViewModel.pause() }
-                                                .size(35.dp)
-                                        )
-                                    }
-                                    if (!listeningViewModel.checkIfChapterDownloaded(item.surahId
-                                        )
-                                    ) {
-                                        Image(painter = painterResource(R.drawable.download),
-                                            contentDescription = "download",
-                                            modifier = Modifier
-                                                .padding(10.dp, 0.dp)
-                                                .clickable {
-                                                    listeningViewModel.downloadChapter(item.surahId)
-                                                }
-                                                .size(35.dp),
-                                            colorFilter = ColorFilter.tint(
-                                                MaterialTheme.colorScheme.primary
-                                            )
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        ListHorizontalDivider()
-                    }
-                }
-            }*/
-
             MediaController(
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .clickable(
