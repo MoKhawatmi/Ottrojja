@@ -1,6 +1,7 @@
 package com.ottrojja.screens.listeningScreen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,8 +21,8 @@ import com.ottrojja.screens.mainScreen.ChapterData
 @Composable
 fun RangeSelectionItem(surahItem: ChapterData?,
                        selectSurahClicked: () -> Unit,
-                       verseItem: Int=1,
-                       selectVerseClicked: () -> Unit={},
+                       verseItem: Int = 1,
+                       selectVerseClicked: () -> Unit = {},
                        header: String,
                        withVerseSelection: Boolean = true
 ) {
@@ -40,40 +41,40 @@ fun RangeSelectionItem(surahItem: ChapterData?,
         Text(header, color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.bodyMedium
         )
-        Text(
-            "${surahItem?.surahId}.\n${surahItem?.chapterName}",
-            modifier = Modifier
-                .padding(vertical = 12.dp)
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .padding(8.dp)
-                .clickable { selectSurahClicked() },
-            color = MaterialTheme.colorScheme.onPrimary,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyMedium
+        RangeSelectionClickable(
+            text = "${surahItem?.surahId}.\n${surahItem?.chapterName}",
+            onClick = { selectSurahClicked() }
         )
-
         if (withVerseSelection) {
             Text("الاية", color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.bodyMedium
             )
-            Text(
-                "${verseItem}",
-                modifier = Modifier
-                    .padding(vertical = 12.dp)
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    .padding(8.dp)
-                    .clickable { selectVerseClicked() },
-                color = MaterialTheme.colorScheme.onPrimary,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-
-                )
+            RangeSelectionClickable(
+                text = verseItem.toString(),
+                onClick = { selectVerseClicked() }
+            )
         }
     }
+}
+
+@Composable
+fun RangeSelectionClickable(text: String, onClick: () -> Unit) {
+    Text(
+        text,
+        modifier = Modifier
+            .padding(vertical = 12.dp)
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .border(6.dp, color = MaterialTheme.colorScheme.secondary,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(horizontal = 8.dp, vertical = 16.dp)
+            .clickable { onClick() },
+        color = MaterialTheme.colorScheme.onPrimary,
+        style = MaterialTheme.typography.bodyMedium,
+        textAlign = TextAlign.Center,
+    )
+
 }
