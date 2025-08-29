@@ -30,9 +30,15 @@ import androidx.core.net.toUri
 import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.Player.STATE_ENDED
+import com.ottrojja.classes.ConnectivityMonitor
 import com.ottrojja.classes.Helpers.repetitionOptionsMap
 import com.ottrojja.classes.QuranListeningMode
 import com.ottrojja.screens.mainScreen.ChapterData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 interface QuranServiceInterface {
     fun playTrack(parameters: QuranPlayingParameters)
@@ -72,12 +78,29 @@ class QuranPlayerService : Service(), QuranServiceInterface {
     var rangeRepeatedTimes = 0;
     var currentPlayingIndex = 0;
     var currentPlayList = emptyList<MediaItem>();
+    var networkConnected = false;
 
     lateinit var exoPlayer: ExoPlayer;
 
     private lateinit var notificationManager: NotificationManager
 
     private val handler = Handler(Looper.getMainLooper())
+
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private lateinit var connectivityMonitor: ConnectivityMonitor
+
+    override fun onCreate() {
+        super.onCreate()
+        connectivityMonitor = ConnectivityMonitor(this)
+        connectivityMonitor.start()
+
+        serviceScope.launch {
+            connectivityMonitor.online.collect { isOnline ->
+                println("online status $isOnline")
+                networkConnected = isOnline;
+            }
+        }
+    }
 
 
     inner class YourBinder : Binder() {
@@ -134,8 +157,12 @@ class QuranPlayerService : Service(), QuranServiceInterface {
                             }
 
                         } else if (_currentPlayingParameters.value!!.listeningMode == QuranListeningMode.مقطع_ايات) {
-                            if (verseRepeatedTimes < repetitionOptionsMap.getOrDefault(_currentPlayingParameters.value?.verseRepetitions, 0)
-                                && _currentPlayingParameters.value!!.playListItems!!.get(currentPlayingIndex).split("/").last() != "basmalah.mp3") {
+                            if (verseRepeatedTimes < repetitionOptionsMap.getOrDefault(
+                                    _currentPlayingParameters.value?.verseRepetitions, 0
+                                )
+                                && _currentPlayingParameters.value!!.playListItems!!.get(
+                                    currentPlayingIndex
+                                ).split("/").last() != "basmalah.mp3") {
                                 verseRepeatedTimes++;
                                 exoPlayer.seekTo(0)
                                 exoPlayer.play()
@@ -298,11 +325,13 @@ class QuranPlayerService : Service(), QuranServiceInterface {
         currentlyPlaying = "${parameters.startingSurah?.chapterName} ${parameters.startingVerse} - ${parameters.endSurah?.chapterName} ${parameters.endVerse}";
         updatePlaybackSpeed()
 
+        val externalFilesDir = this.getExternalFilesDir(null);
+
         val mediaItems = parameters.playListItems!!.map { url ->
             //check offline playing possiblity
             val path = url.split("/").last()
-            val localFile = File(this.getExternalFilesDir(null), path)
-            if (!localFile.exists() && !Helpers.checkNetworkConnectivity(this)) {
+            val localFile = File(externalFilesDir, path)
+            if (!localFile.exists() && !networkConnected) {
                 Toast.makeText(this, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG).show()
                 prepareForNewTrack();
                 return;
@@ -316,12 +345,6 @@ class QuranPlayerService : Service(), QuranServiceInterface {
         }
 
         currentPlayList = mediaItems;
-
-        /*if (parameters.listeningMode == QuranListeningMode.مقطع_ايات) {
-            exoPlayer.repeatMode = REPEAT_MODE_ONE
-        } else {
-            exoPlayer.repeatMode = REPEAT_MODE_OFF
-        }*/
 
         _isPlaying.value = true;
         playItem(currentPlayList.get(currentPlayingIndex));
@@ -421,6 +444,8 @@ class QuranPlayerService : Service(), QuranServiceInterface {
                         _isPlaying.value = false;
                         _isPaused.value = false;
                         _destroyed.value = true;
+                        connectivityMonitor.stop()
+                        serviceScope.cancel()
                         stopForeground(true)
                         stopSelf()
                     }

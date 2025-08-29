@@ -34,6 +34,8 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
+// LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+
 class ListeningViewModel(private val repository: QuranRepository, application: Application) :
     AndroidViewModel(application) {
     val context = application.applicationContext;

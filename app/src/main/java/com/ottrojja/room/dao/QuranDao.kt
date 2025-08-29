@@ -54,7 +54,6 @@ interface QuranDao {
 """)
     fun getPagesContentRange(startingSurah: Int, startingVerse: Int, endSurah: Int, endVerse: Int): List<PageContent>
 
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertPageContent(pageContent: PageContent)
 

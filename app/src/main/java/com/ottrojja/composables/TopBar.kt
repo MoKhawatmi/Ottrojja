@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ottrojja.R
 import com.ottrojja.classes.ButtonAction
+import com.ottrojja.classes.Helpers.truncate
 import com.ottrojja.classes.ModalFormMode
 
 @Composable
@@ -73,7 +74,7 @@ fun TopBar(customContent: Boolean = false,
                     .padding(4.dp, 0.dp)
             ) {
                 Text(
-                    text = title,
+                    text = title.truncate(20),
                     style = MaterialTheme.typography.displayLarge.copy(fontSize = 28.sp),
                     textAlign = TextAlign.Center,
                     color = Color.White

@@ -539,10 +539,15 @@ private fun getCityFromLocation(context: Context, latitude: Double?, longitude: 
 
 fun getCityFromLocationAsync(context: Context, location: Location): Flow<String?> = flow {
     val geocoder = Geocoder(context, Locale.getDefault())
-    val addresses = withContext(Dispatchers.IO) {
-        geocoder.getFromLocation(location.latitude, location.longitude, 1)
+    try {
+        val addresses = withContext(Dispatchers.IO) {
+            geocoder.getFromLocation(location.latitude, location.longitude, 1)
+        }
+        emit(addresses?.firstOrNull()?.locality ?: "")
+    } catch (e: Exception) {
+        e.printStackTrace()
+        emit("")
     }
-    emit(addresses?.firstOrNull()?.locality)
 }
 
 

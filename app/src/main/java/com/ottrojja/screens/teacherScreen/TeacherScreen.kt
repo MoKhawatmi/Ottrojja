@@ -14,11 +14,20 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.outlined.Pending
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.AnswerStatus
+import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.composables.TopBar
@@ -39,6 +49,10 @@ import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
+import com.ottrojja.screens.listeningScreen.ListeningViewModel
+import com.ottrojja.screens.listeningScreen.SurahSelectionDialog
+import com.ottrojja.screens.listeningScreen.VerseSelectionDialog
+import com.ottrojja.screens.mainScreen.ChapterData
 
 @Composable
 fun TeacherScreen(
@@ -51,153 +65,129 @@ fun TeacherScreen(
         factory = TeacherScreenViewModelFactory(repository, application)
     )
 
+    var filteredChapters by remember { mutableStateOf(emptyList<ChapterData>()) }
+
+    LaunchedEffect(Unit) {
+        teacherScreenViewModel.initChaptersList()
+    }
+
+    LaunchedEffect(teacherScreenViewModel.searchFilter) {
+        filteredChapters = teacherScreenViewModel.getChaptersList()
+    }
+
     DisposableEffect(Unit) {
         onDispose {
             teacherScreenViewModel.releasePlayer();
         }
     }
-    //ToDO
-        Column() {
-            when (teacherScreenViewModel.mode) {
-                TeacherScreenViewModel.TeacherMode.PAGE_SELECTION -> PageSelection(
-                    searchFilter = teacherScreenViewModel.searchFilter,
-                    searchFilterChanged = { value ->
-                        teacherScreenViewModel.searchFilter = value
-                    },
-                    pagesList = teacherScreenViewModel.getPagesList(),
-                    pageSelected = { value -> teacherScreenViewModel.pageSelected(value) }
-                )
 
-                TeacherScreenViewModel.TeacherMode.PAGE_TRAINING -> PageTraining(
-                    currentVerse = teacherScreenViewModel.currentVerse,
-                    checkVerse = { teacherScreenViewModel.checkVerse() },
-                    currentTry = teacherScreenViewModel.currentTry,
-                    proceedVerse = { teacherScreenViewModel.proceedVerse() },
-                    currentPage = teacherScreenViewModel.selectedPage!!,
-                    startTeaching = { teacherScreenViewModel.startTeaching() },
-                    hasStarted = teacherScreenViewModel.hasStarted,
-                    solutionMap = teacherScreenViewModel.solutionMap,
-                    inputSolutions = teacherScreenViewModel.inputSolutions,
-                    onInputSolutionChanged = { value, index ->
-                        teacherScreenViewModel.inputSolutions.set(
-                            index,
-                            TeacherAnswer(value, AnswerStatus.UNCHECKED)
-                        )
-                    },
-                    maxTries = teacherScreenViewModel.maxTries,
-                    maxTriesReached = teacherScreenViewModel.reachedMaxTries,
-                    allRight = teacherScreenViewModel.allRight,
-                    backToPageSelection = {
-                        teacherScreenViewModel.backToPages()
-                    },
-                    correctVersesAnswered = teacherScreenViewModel.correctVersesAnswered,
-                    lastVerseReached = teacherScreenViewModel.lastVerseReached,
-                    isDownloading = teacherScreenViewModel.isDownloading,
-                    playVerse = { teacherScreenViewModel.playVerse() },
-                    isPlaying = teacherScreenViewModel.isPlaying,
-                    onPauseClicked = { teacherScreenViewModel.pauseVerse() },
-                    onDispose = { teacherScreenViewModel.resetMedia(); },
-                    showInstructions = teacherScreenViewModel.showInstructionsDialog,
-                    infoClicked = { teacherScreenViewModel.showInstructionsDialog = true },
-                    hideInstructions = { teacherScreenViewModel.showInstructionsDialog = false }
-
-                )
-        }
+    if (teacherScreenViewModel.showSurahSelectionDialog) {
+        SurahSelectionDialog(
+            onDismiss = { teacherScreenViewModel.showSurahSelectionDialog = false },
+            chapters = filteredChapters,
+            searchFilter = teacherScreenViewModel.searchFilter,
+            searchFilterChanged = { value -> teacherScreenViewModel.searchFilter = value },
+            selectSurah = { value ->
+                teacherScreenViewModel.surahSelected(value);
+                teacherScreenViewModel.searchFilter = ""
+            },
+            selectionPhase = teacherScreenViewModel.selectionPhase,
+            checkIfChapterDownloaded = { false },
+            downloadChapter = { },
+            isDownloading = false
+        )
     }
-}
+
+    if (teacherScreenViewModel.showVerseSelectionDialog) {
+        VerseSelectionDialog(
+            onDismiss = { teacherScreenViewModel.showVerseSelectionDialog = false },
+            versesNum = if (teacherScreenViewModel.selectionPhase == ListeningViewModel.SelectionPhase.START) {
+                teacherScreenViewModel.startingSurah!!.verseCount
+            } else {
+                teacherScreenViewModel.endSurah!!.verseCount
+            },
+            selectVerse = { value -> teacherScreenViewModel.verseSelected(value) })
+    }
+
+    if (teacherScreenViewModel.showInstructionsDialog) {
+        InstructionsDialog(onDismiss = { teacherScreenViewModel.showInstructionsDialog = false })
+    }
 
 
-@Composable
-fun PageSelection(
-    searchFilter: String,
-    searchFilterChanged: (String) -> Unit,
-    pagesList: List<String>,
-    pageSelected: (String) -> (Unit)
-) {
-    Column(modifier = Modifier, verticalArrangement = Arrangement.Top) {
-        TopBar(title = "المعلم")
-        SecondaryTopBar {
-            Column {
-                Row(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "إختر صفحة",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.primary
+    Column() {
+        TopBar(
+            title = "المعلم",
+            mainAction = ButtonAction(
+                icon = Icons.Default.Info,
+                action = { teacherScreenViewModel.showInstructionsDialog = true }
+            ),
+            secondaryActions = if (teacherScreenViewModel.mode == TeacherScreenViewModel.TeacherMode.TRAINING) {
+                listOf(
+                    ButtonAction(
+                        icon = Icons.Filled.ArrowBack,
+                        action = { teacherScreenViewModel.backToPages() },
+                        title = "إنهاء"
                     )
-                }
-                Row(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.Bottom
                 )
-                {
-                    PillShapedTextFieldWithIcon(
-                        value = searchFilter,
-                        onValueChange = { newValue -> searchFilterChanged(newValue) },
-                        leadingIcon = painterResource(id = R.drawable.search),
-                        modifier = Modifier.fillMaxWidth(0.9f)
+            } else {
+                emptyList()
+            }
+        )
+
+        when (teacherScreenViewModel.mode) {
+            TeacherScreenViewModel.TeacherMode.SELECTION -> TrainingSelection(
+                setShowSurahSelectionDialog = { value -> teacherScreenViewModel.showSurahSelectionDialog = value },
+                setSelectionPhase = { value -> teacherScreenViewModel.selectionPhase = value },
+                setShowVerseSelectionDialog = { value -> teacherScreenViewModel.showVerseSelectionDialog = value },
+                startingSurah = teacherScreenViewModel.startingSurah,
+                startingVerse = teacherScreenViewModel.startingVerse,
+                endSurah = teacherScreenViewModel.endSurah,
+                endVerse = teacherScreenViewModel.endVerse,
+                startTraining = { teacherScreenViewModel.startTraining() }
+            )
+
+            TeacherScreenViewModel.TeacherMode.TRAINING -> PageTraining(
+                currentVerse = teacherScreenViewModel.currentVerse,
+                checkVerse = { teacherScreenViewModel.checkVerse() },
+                currentTry = teacherScreenViewModel.currentTry,
+                proceedVerse = { teacherScreenViewModel.proceedVerse() },
+                //startTeaching = { teacherScreenViewModel.startTeaching() },
+                //hasStarted = teacherScreenViewModel.hasStarted,
+                solutionMap = teacherScreenViewModel.solutionMap,
+                inputSolutions = teacherScreenViewModel.inputSolutions,
+                onInputSolutionChanged = { value, index ->
+                    teacherScreenViewModel.inputSolutions.set(
+                        index,
+                        TeacherAnswer(value, AnswerStatus.UNCHECKED)
                     )
-                }
-            }
-        }
-        BrowseMenu(
-            pagesList,
-            { value -> pageSelected(value) })
-
-    }
-
-}
-
-@Composable
-fun BrowseMenu(
-    items: List<String> = listOf<String>(),
-    pageSelected: (String) -> Unit
-) {
-    val keyboardController = LocalSoftwareKeyboardController.current;
-
-    LazyColumn(
-        Modifier
-            .fillMaxHeight()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        items(items) { item ->
-            Column(modifier = Modifier
-                .padding(12.dp, 2.dp)
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
-                .clickable {
-                    keyboardController!!.hide();
-                    pageSelected(item.split(" ")[1])
-                }
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp)
-                ) {
-                    Text(text = item, color = Color.Black)
-                }
-                ListHorizontalDivider()
-            }
+                },
+                maxTries = teacherScreenViewModel.MAX_TRIES,
+                maxTriesReached = teacherScreenViewModel.reachedMaxTries,
+                allRight = teacherScreenViewModel.allRight,
+                backToPageSelection = {
+                    teacherScreenViewModel.backToPages()
+                },
+                correctVersesAnswered = teacherScreenViewModel.correctVersesAnswered,
+                lastVerseReached = teacherScreenViewModel.lastVerseReached,
+                isDownloading = teacherScreenViewModel.isDownloading,
+                playVerse = { teacherScreenViewModel.playVerse() },
+                isPlaying = teacherScreenViewModel.isPlaying,
+                onPauseClicked = { teacherScreenViewModel.pauseVerse() },
+                onDispose = { teacherScreenViewModel.resetMedia(); },
+                selectedTrainingVerses = teacherScreenViewModel.selectedTrainingVerses
+            )
         }
     }
 }
-
 
 @Composable
 fun InstructionsDialog(onDismiss: () -> Unit) {
     val instructionsText = mutableListOf<String>("المعلم")
-    instructionsText.add("إختبر حفظك لصفحات وايات القرآن الكريم من خلال هذه الميزة")
+    instructionsText.add("إختبر حفظك للقرآن الكريم من خلال هذه الميزة")
     instructionsText.add("الإرشادات:")
-    instructionsText.add("بعد اختيار صفحة قم بالضغط على زر البدء")
+    instructionsText.add("بعد اختيار ايات التدريب قم بالضغط على زر البدء")
     instructionsText.add(
-        "سيتم عرض ايات الصفحة بالترتيب وبها فراغات لاكمالها حيث يمثل كل فراغ كلمة واحدة فقط من الاية"
+        "سيتم عرض الايات بالترتيب وبها فراغات لاكمالها حيث يمثل كل فراغ كلمة واحدة فقط من الاية"
     )
     instructionsText.add("قم بملئ الفراغات بالكلمات بدون استخدام اي تشكيل او حركات للحروف")
     instructionsText.add("ثم اضغط على زر التحقق للتحقق من اجاباتك")

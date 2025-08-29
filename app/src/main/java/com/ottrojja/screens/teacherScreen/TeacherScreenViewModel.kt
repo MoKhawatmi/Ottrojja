@@ -1,13 +1,10 @@
 package com.ottrojja.screens.teacherScreen
 
 import android.app.Application
-import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.Lifecycle
@@ -24,13 +21,15 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
-import com.ottrojja.services.MediaPlayerService
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.PageContentItemType
-import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.room.relations.QuranPageWithContent
+import com.ottrojja.screens.listeningScreen.ListeningViewModel
+import com.ottrojja.screens.listeningScreen.ListeningViewModel.SelectionPhase
+import com.ottrojja.screens.mainScreen.ChapterData
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -45,24 +44,28 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
     AndroidViewModel(application), LifecycleObserver {
     val context = application.applicationContext;
 
-    private val pagesList: List<String> = (1..604).map { "صفحة $it" };
+    private val chaptersList = CompletableDeferred<List<ChapterData>>()
 
-    private val _selectedPage = mutableStateOf<QuranPageWithContent?>(null)
-    var selectedPage: QuranPageWithContent?
-        get() = _selectedPage.value
-        set(value: QuranPageWithContent?) {
-            _selectedPage.value = value
+    suspend fun initChaptersList() {
+        println("Fetching chapters list")
+        viewModelScope.launch(Dispatchers.IO) {
+            val chapters = repository.getAllChapters()
+            chaptersList.complete(chapters)
+            if (_startingSurah.value == null) {
+                _startingSurah.value = chaptersList.await().get(0);
+            }
+            if (_endSurah.value == null) {
+                _endSurah.value = chaptersList.await().get(0);
+            }
         }
+    }
 
-    private val _selectedPageVerses = mutableStateOf(
-        emptyList<PageContent>()
-    )
-    var selectedPageVerses: List<PageContent>
-        get() = _selectedPageVerses.value
+    private val _selectedTrainingVerses = mutableStateOf(emptyList<PageContent>())
+    var selectedTrainingVerses: List<PageContent>
+        get() = _selectedTrainingVerses.value
         set(value: List<PageContent>) {
-            _selectedPageVerses.value = value
+            _selectedTrainingVerses.value = value
         }
-
 
     private val _currentVerse = mutableStateOf<PageContent?>(null)
     var currentVerse: PageContent?
@@ -93,22 +96,104 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         }
 
 
-    private val _mode = mutableStateOf(TeacherMode.PAGE_SELECTION)
+    private val _mode = mutableStateOf(TeacherMode.SELECTION)
     var mode: TeacherMode
         get() = _mode.value
         set(value) {
             _mode.value = value
         }
 
-
-    private var _searchFilter by mutableStateOf("")
+    private var _searchFilter = mutableStateOf("")
     var searchFilter: String
-        get() = this._searchFilter
+        get() = _searchFilter.value
         set(value) {
-            this._searchFilter = value
+            _searchFilter.value = value
         }
 
-    val maxTries = 3;
+    suspend fun getChaptersList(): List<ChapterData> {
+        return chaptersList.await().filter { chapter ->
+            chapter.chapterName.contains(_searchFilter.value)
+                    || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter.value)
+                    || chapter.surahId.toString() == _searchFilter.value
+        };
+    }
+
+    private var _showSurahSelectionDialog = mutableStateOf(false)
+    var showSurahSelectionDialog: Boolean
+        get() = _showSurahSelectionDialog.value
+        set(value) {
+            _showSurahSelectionDialog.value = value
+        }
+
+    private var _showVerseSelectionDialog = mutableStateOf(false)
+    var showVerseSelectionDialog: Boolean
+        get() = _showVerseSelectionDialog.value
+        set(value) {
+            _showVerseSelectionDialog.value = value
+        }
+
+    private var _selectionPhase = mutableStateOf(ListeningViewModel.SelectionPhase.START)
+    var selectionPhase: ListeningViewModel.SelectionPhase
+        get() = _selectionPhase.value
+        set(value) {
+            _selectionPhase.value = value
+        }
+
+    private var _startingSurah = mutableStateOf<ChapterData?>(null)
+    var startingSurah: ChapterData?
+        get() = _startingSurah.value
+        set(value) {
+            _startingSurah.value = value
+        }
+
+    private var _startingVerse = mutableStateOf(1)
+    var startingVerse: Int
+        get() = _startingVerse.value
+        set(value) {
+            _startingVerse.value = value
+        }
+
+    private var _endSurah = mutableStateOf<ChapterData?>(null)
+    var endSurah: ChapterData?
+        get() = _endSurah.value
+        set(value) {
+            _endSurah.value = value
+        }
+
+    private var _endVerse = mutableStateOf(1)
+    var endVerse: Int
+        get() = _endVerse.value
+        set(value) {
+            _endVerse.value = value
+        }
+
+    fun surahSelected(surah: ChapterData) {
+        when (_selectionPhase.value) {
+            SelectionPhase.START -> {
+                _startingSurah.value = surah;
+                _startingVerse.value = 1;
+            }
+
+            SelectionPhase.END -> {
+                _endSurah.value = surah;
+                _endVerse.value = 1;
+            }
+
+            SelectionPhase.PLAY -> {}
+
+        }
+    }
+
+    fun verseSelected(verse: Int) {
+        if (_selectionPhase.value == SelectionPhase.START) {
+            _startingVerse.value = verse;
+        } else {
+            _endVerse.value = verse;
+        }
+    }
+
+
+    val MAX_TRIES = 3;
 
     private var _reachedMaxTries = mutableStateOf(false)
     var reachedMaxTries: Boolean
@@ -132,31 +217,44 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             _currentTry.value = value
         }
 
-    fun getPagesList(): List<String> {
-        return pagesList.filter { page ->
-            page.contains(_searchFilter) || page.contains(convertToArabicNumbers(_searchFilter))
-        };
-    }
+    fun startTraining() {
 
-    fun pageSelected(pageNum: String) {
+        if (_startingSurah.value != null && _endSurah.value != null) {
+            if (_startingSurah.value!!.surahId > _endSurah.value!!.surahId
+                || (_startingSurah.value!!.surahId == _endSurah.value!!.surahId && _startingVerse.value > _endVerse.value)) {
+                Toast.makeText(context, "موضع البداية لا يجب ان يرد بعد موضع النهاية",
+                    Toast.LENGTH_LONG
+                ).show()
+                return;
+            }
+        }
+
         viewModelScope.launch(Dispatchers.IO) {
-            _selectedPage.value = repository.getPage(pageNum)
-            _selectedPageVerses.value =
-                _selectedPage.value?.pageContent!!.filter { it.type == PageContentItemType.verse }.toList()
-            println(_selectedPage.value)
-            println(_selectedPageVerses.value)
+            val versesRange = repository.getPagesContentRange(
+                startingSurah = _startingSurah.value!!.surahId,
+                startingVerse = _startingVerse.value,
+                endSurah = _endSurah.value!!.surahId,
+                endVerse = _endVerse.value,
+            )
+
+            _selectedTrainingVerses.value = versesRange; //  _selectedPage.value?.pageContent!!.filter { it.type == PageContentItemType.verse }.toList()
+
+            println(_selectedTrainingVerses.value)
             _currentVerseIndex.value = 0
-            _currentVerse.value = _selectedPageVerses.value[_currentVerseIndex.value]
+            _currentVerse.value = _selectedTrainingVerses.value[_currentVerseIndex.value]
             checkLastVerseReached()
-            _mode.value = TeacherMode.PAGE_TRAINING;
+          //  _hasStarted.value = true;
+            println("vm ${_lastVerseReached.value}")
+            generateCutVerse();
+            _mode.value = TeacherMode.TRAINING;
         }
     }
 
-    fun startTeaching() {
+    /*fun startTeaching() {
         _hasStarted.value = true;
         println("vm ${_lastVerseReached.value}")
         generateCutVerse();
-    }
+    }*/
 
     private var _allRight = mutableStateOf(false)
     var allRight: Boolean
@@ -208,7 +306,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             }
         }
 
-        if (_currentTry.value == maxTries) {
+        if (_currentTry.value == MAX_TRIES) {
             _reachedMaxTries.value = true;
         }
     }
@@ -221,20 +319,20 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             _currentTry.value = 0;
             _allRight.value = false;
             _currentVerseIndex.value++;
-            _currentVerse.value = _selectedPageVerses.value[_currentVerseIndex.value]
+            _currentVerse.value = _selectedTrainingVerses.value[_currentVerseIndex.value]
             generateCutVerse()
         }
         checkLastVerseReached()
     }
 
     fun checkLastVerseReached() {
-        if (_currentVerseIndex.value >= _selectedPageVerses.value.size - 1) {
+        if (_currentVerseIndex.value >= _selectedTrainingVerses.value.size - 1) {
             _lastVerseReached.value = true;
         }
     }
 
     fun backToPages() {
-        _mode.value = TeacherMode.PAGE_SELECTION
+        _mode.value = TeacherMode.SELECTION
         resetAll()
     }
 
@@ -245,8 +343,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         _currentTry.value = 0;
         _allRight.value = false;
         _currentVerseIndex.value = 0;
-        _selectedPage.value = null
-        _selectedPageVerses.value = emptyList<PageContent>();
+        _selectedTrainingVerses.value = emptyList<PageContent>();
         _hasStarted.value = false;
         _correctVersesAnswered.value = 0;
         _lastVerseReached.value = false;
@@ -328,7 +425,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         val client = OkHttpClient()
         val request = Request.Builder()
             .url(
-                "https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/${_selectedPage.value?.page?.pageNum}-${_currentVerse.value?.surahNum}-${_currentVerse.value?.verseNum}.mp3"
+                "https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/${_currentVerse.value?.pageNum}-${_currentVerse.value?.surahNum}-${_currentVerse.value?.verseNum}.mp3"
             )
             .build()
 
@@ -378,7 +475,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             return;
         }
         val path =
-            "${_selectedPage.value?.page?.pageNum}-${_currentVerse.value?.surahNum}-${_currentVerse.value?.verseNum}.mp3"
+            "${_currentVerse.value?.pageNum}-${_currentVerse.value?.surahNum}-${_currentVerse.value?.verseNum}.mp3"
         val localFile = File(
             context.getExternalFilesDir(null),
             path
@@ -461,7 +558,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
     }
 
     enum class TeacherMode {
-        PAGE_SELECTION, PAGE_TRAINING
+        SELECTION, TRAINING
     }
 }
 

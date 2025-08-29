@@ -62,6 +62,7 @@ class QuranRepository(private val quranDao: QuranDao,
     suspend fun searchPagesContent(query: String): List<PageContent> {
         return quranDao.searchPagesContent(query)
     }
+
     fun getPagesContentRange(startingSurah: Int, startingVerse: Int, endSurah: Int, endVerse: Int): List<PageContent> {
         return quranDao.getPagesContentRange(startingSurah, startingVerse, endSurah, endVerse);
     }

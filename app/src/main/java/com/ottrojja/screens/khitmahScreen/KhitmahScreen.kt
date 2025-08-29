@@ -108,11 +108,14 @@ fun KhitmahScreen(
                 action = { navController.popBackStack() }),
             secondaryActions = listOf(
                 if (khitmahViewModel.khitmah?.isComplete == true) {
-                    ButtonAction(icon = Icons.Outlined.Pending,
-                        action = { khitmahViewModel.toggleKhitmahStatus(); }, title = "تعيين كجارية"
+                    ButtonAction(
+                        icon = Icons.Outlined.Pending,
+                        action = { khitmahViewModel.toggleKhitmahStatus(); },
+                        title = "تعيين كجارية"
                     )
                 } else {
-                    ButtonAction(icon = Icons.Default.CheckCircle,
+                    ButtonAction(
+                        icon = Icons.Default.CheckCircle,
                         action = { khitmahViewModel.toggleKhitmahStatus(); },
                         title = "تعيين كمكتملة"
                     )

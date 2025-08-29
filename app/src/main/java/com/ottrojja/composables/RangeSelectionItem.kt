@@ -1,4 +1,4 @@
-package com.ottrojja.screens.listeningScreen
+package com.ottrojja.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -67,7 +67,7 @@ fun RangeSelectionClickable(text: String, onClick: () -> Unit) {
             .background(MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(12.dp)
             )
-            .border(6.dp, color = MaterialTheme.colorScheme.secondary,
+            .border(2.dp, color = MaterialTheme.colorScheme.secondary,
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(horizontal = 8.dp, vertical = 16.dp)

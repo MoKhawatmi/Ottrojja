@@ -38,7 +38,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers
-import com.ottrojja.classes.Helpers.truncate
 import com.ottrojja.composables.TopBar
 
 
@@ -116,9 +115,9 @@ fun GeneralSupplicationsScreen(generalSupplicationsViewModel: GeneralSupplicatio
                 }
             }
         } else {
-            TopBar(title = "${
-                generalSupplicationsViewModel.selectedSupplications?.category?.truncate(20)
-            }", mainAction = ButtonAction(Icons.Default.ArrowBack,
+            TopBar(
+                title = "${generalSupplicationsViewModel.selectedSupplications?.category}",
+                mainAction = ButtonAction(Icons.Default.ArrowBack,
                 action = { generalSupplicationsViewModel.clearSelectedSupplications() })
             )
             LazyColumn(

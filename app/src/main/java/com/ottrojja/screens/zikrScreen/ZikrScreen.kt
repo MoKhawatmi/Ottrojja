@@ -82,15 +82,39 @@ fun ZikrScreen(
                 icon = Icons.Filled.ArrowBack,
                 action = { navController.popBackStack() }
             ),
-            secondaryActions = listOf(
-                ButtonAction(icon = Icons.Default.ContentCopy, action = {
-                    copyToClipboard(context, zikr.value.azkarText, "تم تسخ الذكر بنجاح"
-                    );
-                }, title = "نسخ"),
-                ButtonAction(icon = Icons.Outlined.DownloadForOffline,
-                    action = { zikrViewModel.downloadZikr() }, title = "تحميل"
-                ),
-            )
+            secondaryActions = buildList {
+                add(
+                    ButtonAction(
+                        icon = Icons.Default.ContentCopy,
+                        action = { copyToClipboard(context, zikr.value.azkarText, "تم تسخ الذكر بنجاح") },
+                        title = "نسخ"
+                    )
+                )
+                if (!zikrViewModel.checkIfZikrDownloaded()) {
+                    add(
+                        ButtonAction(
+                            icon = Icons.Outlined.DownloadForOffline,
+                            action = { zikrViewModel.downloadZikr() },
+                            title = "تحميل"
+                        )
+                    )
+                }
+            }
+
+
+                /*listOf(
+                ButtonAction(
+                    icon = Icons.Default.ContentCopy,
+                    action = { copyToClipboard(context, zikr.value.azkarText, "تم تسخ الذكر بنجاح"); },
+                    title = "نسخ"),
+                if(zikrViewModel.checkIfZikrDownloaded()){
+                    ButtonAction(
+                        icon = Icons.Outlined.DownloadForOffline,
+                        action = { zikrViewModel.downloadZikr() },
+                        title = "تحميل"
+                    )
+                }
+            )*/
         )
 
         SecondaryTopBar {
