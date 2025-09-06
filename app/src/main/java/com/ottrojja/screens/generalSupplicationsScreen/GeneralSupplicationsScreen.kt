@@ -16,7 +16,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -25,20 +27,27 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.ottrojja.R
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers
+import com.ottrojja.composables.PillShapedTextFieldWithIcon
+import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.TopBar
+import com.ottrojja.screens.mainScreen.BrowsingOption
+import kotlinx.coroutines.launch
 
 
 @SuppressLint("ContextCastToActivity")
@@ -52,21 +61,44 @@ fun GeneralSupplicationsScreen(generalSupplicationsViewModel: GeneralSupplicatio
         generalSupplicationsViewModel.clearSelectedSupplications()
     }
 
+    val listState = rememberLazyGridState()
+    val scope = rememberCoroutineScope()
+
+
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Top) {
         if (generalSupplicationsViewModel.selectedSupplications == null) {
             TopBar(title = "أدعية مأثورة", mainAction = ButtonAction(Icons.Default.ArrowBack,
                 action = { navController.popBackStack() })
             )
+            SecondaryTopBar {
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    PillShapedTextFieldWithIcon(
+                        value = generalSupplicationsViewModel.searchFilter,
+                        onValueChange = { newText ->
+                            generalSupplicationsViewModel.searchFilter = newText;
+                            scope.launch {
+                                listState.scrollToItem(0)
+                            }
+                        },
+                        leadingIcon = painterResource(id = R.drawable.search),
+                        modifier = Modifier.fillMaxWidth(0.9f)
+                    )
+                }
+            }
             LazyVerticalGrid(
+                state = listState,
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.tertiary)
-                    .padding(top = 12.dp, end = 2.dp, start = 2.dp, bottom = 6.dp)
+                    .padding(top = 2.dp, end = 2.dp, start = 2.dp, bottom = 6.dp)
             ) {
-                items(generalSupplicationsViewModel.supplications, key = { it.id }) { item ->
+                items(/*generalSupplicationsViewModel.supplications*/ generalSupplicationsViewModel.getFilteredSupplications(), key = { it.id }) { item ->
                     Column(
                         modifier = Modifier
                             .shadow(
@@ -118,7 +150,7 @@ fun GeneralSupplicationsScreen(generalSupplicationsViewModel: GeneralSupplicatio
             TopBar(
                 title = "${generalSupplicationsViewModel.selectedSupplications?.category}",
                 mainAction = ButtonAction(Icons.Default.ArrowBack,
-                action = { generalSupplicationsViewModel.clearSelectedSupplications() })
+                    action = { generalSupplicationsViewModel.clearSelectedSupplications() })
             )
             LazyColumn(
                 modifier = Modifier

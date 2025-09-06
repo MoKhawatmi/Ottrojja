@@ -186,22 +186,30 @@ fun MainScreen(
                     }
 
                     MainScreenTab(title = "صفحات القرآن", imageId = R.drawable.q_image1,
-                        startColor = Color.Red, endColor = Color(0xDD660000), onClick = {
+                        startColor = Color.Red, endColor = Color(0xDD660000),
+                        onClick = {
+                            mainViewModel.searchFilter = "";
                             mainViewModel.selectedSection = BrowsingOption.الصفحات;
                             mainViewModel.showImageList = false;
                         })
                     MainScreenTab(title = "سور القرآن", imageId = R.drawable.q_image2,
-                        startColor = Color.Green, endColor = Color(0xDD006600), onClick = {
+                        startColor = Color.Green, endColor = Color(0xDD006600),
+                        onClick = {
+                            mainViewModel.searchFilter = "";
                             mainViewModel.selectedSection = BrowsingOption.السور;
                             mainViewModel.showImageList = false;
                         })
                     MainScreenTab(title = "اجزاء القرآن", imageId = R.drawable.q_image3,
-                        startColor = Color.Blue, endColor = Color(0xDD000066), onClick = {
+                        startColor = Color.Blue, endColor = Color(0xDD000066),
+                        onClick = {
+                            mainViewModel.searchFilter = "";
                             mainViewModel.selectedSection = BrowsingOption.الاجزاء;
                             mainViewModel.showImageList = false;
                         })
                     MainScreenTab(title = "البحث", imageId = R.drawable.q_image4,
-                        startColor = Color(0xFFD0B968), endColor = Color(0xFFA86809), onClick = {
+                        startColor = Color(0xFFD0B968), endColor = Color(0xFFA86809),
+                        onClick = {
+                            mainViewModel.searchFilter = "";
                             mainViewModel.selectedSection = BrowsingOption.البحث;
                             mainViewModel.invokeLatestSearchOperation();
                             mainViewModel.showImageList = false;

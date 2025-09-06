@@ -2,8 +2,10 @@ package com.ottrojja.screens.generalSupplicationsScreen
 
 import android.app.Application
 import android.widget.Toast
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.ottrojja.classes.GeneralSupplications
 import com.ottrojja.classes.JsonParser
@@ -24,10 +26,24 @@ class GeneralSupplicationsViewModel(application: Application) : AndroidViewModel
             _selectedSupplications.value = value
         }
 
+    private var _searchFilter = mutableStateOf("")
+    var searchFilter: String
+        get() = _searchFilter.value
+        set(value) {
+            _searchFilter.value = value
+        }
+
     fun clearSelectedSupplications() {
         _selectedSupplications.value = null;
     }
 
+    fun getFilteredSupplications(): MutableList<GeneralSupplications> {
+        if (_supplications.size > 0) {
+            return _supplications.filter { it.category.contains(_searchFilter.value)
+                    || it.array.any{it.text.contains(_searchFilter.value)} }.toMutableList()
+        }
+        return emptyList<GeneralSupplications>().toMutableList();
+    }
 
     init {
         try {
