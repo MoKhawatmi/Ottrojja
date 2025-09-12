@@ -30,8 +30,15 @@ interface TasabeehDao {
     fun deleteTasabeehList(tasabeehList: TasabeehList)
 
     @Delete
-    fun deleteCustomTasabeeh(customTasbeeh: CustomTasbeeh)
+    suspend fun deleteCustomTasabeeh(customTasbeeh: CustomTasbeeh)
 
     @Update
     fun updateTasabeehList(tasabeehList: TasabeehList)
+
+    @Update
+    suspend fun massUpdateCustomTasabeeh(items: List<CustomTasbeeh>)
+
+    @Query("SELECT COALESCE(MAX(position), 0) FROM CustomTasbeeh WHERE listId = :listId")
+    suspend fun getMaxPosition(listId: Int): Int
+
 }

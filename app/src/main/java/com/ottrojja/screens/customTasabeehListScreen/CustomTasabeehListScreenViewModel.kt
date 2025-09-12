@@ -48,7 +48,7 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
             _showImportTasbeehDialog.value = value;
         }
 
-    private val _tasbeehInWork = mutableStateOf(CustomTasbeeh(text = "", count = 0, listId = 0))
+    private val _tasbeehInWork = mutableStateOf(CustomTasbeeh(text = "", count = 0, listId = 0, position = 0))
     var tasbeehInWork: CustomTasbeeh
         get() = _tasbeehInWork.value
         set(value) {
@@ -59,13 +59,14 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 repository.getTasabeehList(id).collect { state ->
-                    withContext(Dispatchers.Main){
+                    withContext(Dispatchers.Main) {
                         _customTasabeeh.clear()
                     }
                     if (state != null) {
-                        withContext(Dispatchers.Main){
+                        withContext(Dispatchers.Main) {
                             _customTasabeehList.value = state.tasabeehList;
-                            _customTasabeeh.addAll(state.customTasabeeh)
+                            // i'd like to use this line to that roomdb dev team for not adding order by functionality to @relation queries, which led us to this wonderful moment
+                            _customTasabeeh.addAll(state.customTasabeeh.sortedBy { it.position })
                         }
                     }
                 }
@@ -81,9 +82,16 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
     fun upsertCustomTasbeeh() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                repository.insertCustomTasbeeh(
-                    tasbeehInWork.copy(listId = _customTasabeehList.value!!.id)
-                )
+                if(customTasbeehModalMode == ModalFormMode.ADD){
+                    val nextPos = repository.getMaxPosition(_customTasabeehList.value!!.id) + 1
+                    repository.insertCustomTasbeeh(
+                        tasbeehInWork.copy(listId = _customTasabeehList.value!!.id, position = nextPos)
+                    )
+                }else{
+                    repository.insertCustomTasbeeh(
+                        tasbeehInWork.copy(listId = _customTasabeehList.value!!.id)
+                    )
+                }
                 withContext(Dispatchers.Main) {
                     if (customTasbeehModalMode == ModalFormMode.ADD) {
                         Toast.makeText(context, "تمت الإضافة بنجاح", Toast.LENGTH_LONG).show()
@@ -168,10 +176,33 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
         customTasabeeh.forEach { put(it.id, it.count) }
     }
 
-    fun closeCustomTasbeehModal(){
+    fun closeCustomTasbeehModal() {
         _addTasbeehDialog.value = false;
         // reset form
-        _tasbeehInWork.value = CustomTasbeeh(text = "", count = 0, listId = 0);
+        _tasbeehInWork.value = CustomTasbeeh(text = "", count = 0, listId = 0, position = 0);
+    }
+
+    suspend fun updateUIListOnDrag(toIndex: Int, fromIndex: Int) {
+        _customTasabeeh.apply {
+            add(toIndex, removeAt(fromIndex))
+        }
+    }
+
+    fun updateTasabeehListPositions(){
+        _customTasabeeh.forEachIndexed { index, item ->
+            if (item.position != index) {
+                _customTasabeeh[index] = item.copy(position = index)
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.massUpdateCustomTasabeeh(_customTasabeeh)
+            }
+            catch (e: Exception){
+                e.printStackTrace()
+                Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 }
 

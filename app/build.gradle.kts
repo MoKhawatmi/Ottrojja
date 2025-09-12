@@ -102,5 +102,7 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-location:21.3.0")
 
+    implementation("sh.calvin.reorderable:reorderable:3.0.0")
+
 
 }

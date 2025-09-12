@@ -20,4 +20,5 @@ data class CustomTasbeeh(
     @ColumnInfo(name = "listId") val listId: Int,
     @ColumnInfo(name = "text") val text: String,
     @ColumnInfo(name = "count") val count: Int,
+    @ColumnInfo(name = "position") val position: Int
 )

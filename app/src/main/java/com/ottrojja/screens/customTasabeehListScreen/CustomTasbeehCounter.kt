@@ -88,14 +88,13 @@ fun CustomTasbeehCounter(item: CustomTasbeeh,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .padding(vertical = 12.dp)
             .fillMaxWidth(0.95f)
             .border(
                 BorderStroke(4.dp, color = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp)
             )
             .clip(RoundedCornerShape(12))
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12))
             .padding(0.dp)
     ) {
         Row(verticalAlignment = Alignment.Bottom,

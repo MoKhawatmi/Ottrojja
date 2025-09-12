@@ -30,12 +30,18 @@ import com.ottrojja.room.entities.VerseMeanings
         TafseerData::class, E3rabData::class, Azkar::class,
         CauseOfRevelation::class, BookmarkEntity::class, Khitmah::class,
         KhitmahMark::class, CustomTasbeeh::class, TasabeehList::class, VerseMeanings::class],
-    version = 7
+    version = 8
 )
 abstract class QuranDatabase : RoomDatabase() {
     abstract fun quranDao(): QuranDao
     abstract fun khitmahDao(): KhitmahDao
     abstract fun tasabeehDao(): TasabeehDao
+}
+
+val MIGRATION_7_8 = object : Migration(7, 8) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE CustomTasbeeh ADD COLUMN position INTEGER NOT NULL DEFAULT 0")
+    }
 }
 
 
@@ -56,7 +62,8 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
                 appliance TEXT NOT NULL,
                 guidance TEXT NOT NULL
             )
-        """.trimIndent())
+        """.trimIndent()
+        )
 
         database.execSQL(
             """
@@ -161,7 +168,9 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
 
 val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE PartData ADD COLUMN firstWords TEXT NOT NULL DEFAULT ''".trimIndent())
+        database.execSQL(
+            "ALTER TABLE PartData ADD COLUMN firstWords TEXT NOT NULL DEFAULT ''".trimIndent()
+        )
         database.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `CauseOfRevelation` (

@@ -3,6 +3,7 @@ package com.ottrojja.classes
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.dao.KhitmahDao
@@ -259,6 +260,16 @@ class QuranRepository(private val quranDao: QuranDao,
     suspend fun updateTasabeehList(tasabeehList: TasabeehList) {
         tasabeehDao.updateTasabeehList(tasabeehList)
     }
+
+    suspend fun massUpdateCustomTasabeeh(items: List<CustomTasbeeh>){
+        tasabeehDao.massUpdateCustomTasabeeh(items)
+    }
+
+    suspend fun getMaxPosition(listId: Int): Int{
+        return tasabeehDao.getMaxPosition(listId)
+    }
+
+
 
     /*******************VERSE MEANINGS MANAGEMENT*************************/
 

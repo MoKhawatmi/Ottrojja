@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -93,12 +94,13 @@ fun GeneralSupplicationsScreen(generalSupplicationsViewModel: GeneralSupplicatio
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(top = 4.dp, bottom = 6.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.tertiary)
-                    .padding(top = 2.dp, end = 2.dp, start = 2.dp, bottom = 6.dp)
+                    .padding(end = 2.dp, start = 2.dp)
             ) {
-                items(/*generalSupplicationsViewModel.supplications*/ generalSupplicationsViewModel.getFilteredSupplications(), key = { it.id }) { item ->
+                items(generalSupplicationsViewModel.getFilteredSupplications(), key = { it.id }) { item ->
                     Column(
                         modifier = Modifier
                             .shadow(

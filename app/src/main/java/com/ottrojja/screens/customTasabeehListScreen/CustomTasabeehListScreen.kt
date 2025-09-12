@@ -2,20 +2,29 @@ package com.ottrojja.screens.customTasabeehListScreen
 
 import android.app.AlertDialog
 import android.app.Application
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.DragHandle
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,6 +36,8 @@ import com.ottrojja.classes.ModalFormMode
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.composables.EmptyListMessage
 import com.ottrojja.composables.TopBar
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
 fun CustomTasabeehListScreen(
@@ -40,6 +51,13 @@ fun CustomTasabeehListScreen(
     val customTasabeehListScreenViewModel: CustomTasabeehListScreenViewModel = viewModel(
         factory = CustomTasabeehListScreenViewModelFactory(repository, application)
     )
+
+    val lazyListState = rememberLazyListState()
+    val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
+        // Update the list
+        customTasabeehListScreenViewModel.updateUIListOnDrag(to.index, from.index)
+    }
+
 
     LaunchedEffect(Unit) {
         customTasabeehListScreenViewModel.fetchCustomTasabeehList(id)
@@ -107,9 +125,9 @@ fun CustomTasabeehListScreen(
             secondaryActions = listOf(
                 ButtonAction(icon = Icons.Default.Add, title = "إضافة ذكر",
                     action = {
-                    customTasabeehListScreenViewModel.customTasbeehModalMode = ModalFormMode.ADD;
-                    customTasabeehListScreenViewModel.addTasbeehDialog = true;
-                }),
+                        customTasabeehListScreenViewModel.customTasbeehModalMode = ModalFormMode.ADD;
+                        customTasabeehListScreenViewModel.addTasbeehDialog = true;
+                    }),
                 ButtonAction(icon = Icons.Default.Close,
                     title = "حذف القائمة",
                     action = { confirmDeleteList(); }
@@ -117,10 +135,13 @@ fun CustomTasabeehListScreen(
             )
         )
 
-        LazyColumn(horizontalAlignment = Alignment.CenterHorizontally,
+        LazyColumn(
+            state = lazyListState,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(top = 10.dp, bottom = 10.dp),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 12.dp)
         ) {
             if (customTasabeehListScreenViewModel.customTasabeeh.isEmpty()) {
                 item {
@@ -128,22 +149,41 @@ fun CustomTasabeehListScreen(
                 }
             } else {
                 items(customTasabeehListScreenViewModel.customTasabeeh, key = { it.id }) { item ->
-                    CustomTasbeehCounter(
-                        item = item,
-                        deleteCustomTasbeeh = {
-                            customTasabeehListScreenViewModel.deleteCustomTasbeeh(item)
-                        },
-                        editCustomTasbeeh = {
-                            customTasabeehListScreenViewModel.customTasbeehModalMode = ModalFormMode.EDIT
-                            customTasabeehListScreenViewModel.tasbeehInWork = item;
-                            customTasabeehListScreenViewModel.addTasbeehDialog = true;
-                        },
-                        tasbeehCount = customTasabeehListScreenViewModel.itemCounts.get(item.id)
-                            ?: item.count,
-                        onCountChanged = { value ->
-                            customTasabeehListScreenViewModel.itemCounts.put(item.id, value)
-                        },
-                    )
+
+                    ReorderableItem(reorderableLazyListState, key = item.id) { isDragging ->
+                        val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
+
+                        Surface(shadowElevation = elevation, shape = RoundedCornerShape(12.dp)) {
+                            CustomTasbeehCounter(
+                                item = item,
+                                deleteCustomTasbeeh = {
+                                    customTasabeehListScreenViewModel.deleteCustomTasbeeh(item)
+                                },
+                                editCustomTasbeeh = {
+                                    customTasabeehListScreenViewModel.customTasbeehModalMode = ModalFormMode.EDIT
+                                    customTasabeehListScreenViewModel.tasbeehInWork = item;
+                                    customTasabeehListScreenViewModel.addTasbeehDialog = true;
+                                },
+                                tasbeehCount = customTasabeehListScreenViewModel.itemCounts.get(item.id) ?: item.count,
+                                onCountChanged = { value ->
+                                    customTasabeehListScreenViewModel.itemCounts.put(item.id, value)
+                                },
+                            )
+                            IconButton(
+                                modifier = Modifier.draggableHandle(
+                                    onDragStarted = {
+                                    },
+                                    onDragStopped = {
+                                        customTasabeehListScreenViewModel.updateTasabeehListPositions()
+                                    },
+                                ),
+                                onClick = {},
+                            ) {
+                                Icon(Icons.Rounded.DragHandle, contentDescription = "Reorder")
+                            }
+
+                        }
+                    }
                 }
             }
         }
