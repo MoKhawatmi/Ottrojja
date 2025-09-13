@@ -1,7 +1,6 @@
 package com.ottrojja.classes
 
 import android.app.ActivityManager
-import android.app.Service
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -14,7 +13,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
-import com.ottrojja.services.MediaPlayerService
+import com.ottrojja.services.AzkarPlayerService
 import com.ottrojja.services.PagePlayerService
 import com.ottrojja.services.QuranPlayerService
 
@@ -104,7 +103,7 @@ object Helpers {
     }
 
     fun terminateAllServices(context: Context, except: Class<*>? = null) {
-        val servicesList = listOf(MediaPlayerService::class.java, PagePlayerService::class.java,
+        val servicesList = listOf(AzkarPlayerService::class.java, PagePlayerService::class.java,
             QuranPlayerService::class.java
         )
         servicesList.forEach {

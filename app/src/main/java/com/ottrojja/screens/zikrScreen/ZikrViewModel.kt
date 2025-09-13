@@ -18,11 +18,9 @@ import com.ottrojja.services.AudioServiceInterface
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.Helpers.terminateAllServices
-import com.ottrojja.services.MediaPlayerService
+import com.ottrojja.services.AzkarPlayerService
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.room.entities.Azkar
-import com.ottrojja.services.PagePlayerService
-import com.ottrojja.services.QuranPlayerService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -111,10 +109,10 @@ class ZikrViewModel(
 
     fun playClicked() {
         // stop other services
-        terminateAllServices(context, MediaPlayerService::class.java)
+        terminateAllServices(context, AzkarPlayerService::class.java)
 
 
-        if (isMyServiceRunning(MediaPlayerService::class.java, context)) {
+        if (isMyServiceRunning(AzkarPlayerService::class.java, context)) {
             playZikr()
         } else {
             clickedPlay = true;
@@ -135,7 +133,7 @@ class ZikrViewModel(
     }
 
     fun startAndBind() {
-        val serviceIntent = Intent(context, MediaPlayerService::class.java)
+        val serviceIntent = Intent(context, AzkarPlayerService::class.java)
         serviceIntent.setAction("START")
         context.startService(serviceIntent)
         bindToService()
@@ -151,7 +149,7 @@ class ZikrViewModel(
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             try {
-                val binder = service as MediaPlayerService.YourBinder
+                val binder = service as AzkarPlayerService.YourBinder
                 audioService = binder.getService()
                 println("in binder get service")
                 println(audioService)
@@ -231,7 +229,7 @@ class ZikrViewModel(
     private var audioService: AudioServiceInterface? = null
 
     fun bindToService() {
-        val intent = Intent(context, MediaPlayerService::class.java)
+        val intent = Intent(context, AzkarPlayerService::class.java)
         context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
     }
 
@@ -327,7 +325,7 @@ class ZikrViewModel(
     }
 
     init {
-        val sr = isMyServiceRunning(MediaPlayerService::class.java, context);
+        val sr = isMyServiceRunning(AzkarPlayerService::class.java, context);
         println("service running $sr")
         if (sr) {
             bindToService()

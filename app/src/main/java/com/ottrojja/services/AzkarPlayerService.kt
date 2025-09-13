@@ -25,8 +25,8 @@ import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 
 interface AudioServiceInterface {
-    fun getPlayingState(link: String = "", playingChapter: Boolean = false): StateFlow<Boolean>
-    fun playChapter(link: String)
+    fun getPlayingState(link: String = ""/*, playingChapter: Boolean = false*/): StateFlow<Boolean>
+   // fun playChapter(link: String)
     fun playZiker(link: String)
     fun pause()
     fun increaseSpeed()
@@ -36,19 +36,19 @@ interface AudioServiceInterface {
     fun setSliderPosition(value: Float)
     fun getPaused(): StateFlow<Boolean>
     fun getDestroyed(): StateFlow<Boolean>
-    fun getIsChapterPlaying(): StateFlow<Boolean>
+   // fun getIsChapterPlaying(): StateFlow<Boolean>
     fun getIsZikrPlaying(): StateFlow<Boolean>
-    fun getSelectedChapterId(): StateFlow<String>
+    /*fun getSelectedChapterId(): StateFlow<String>
     fun setSelectedChapterId(id: String)
     fun playNextChapter()
-    fun playPreviousChapter()
+    fun playPreviousChapter()*/
     fun resumeClicked(): StateFlow<Int> //to serve as a notification to viewmodels that the resume was clicked, nothing more
     fun getPlaybackSpeed(): StateFlow<Float>
     fun setCurrentPlayingTitle(value: String)
 }
 
 
-class MediaPlayerService : Service(), AudioServiceInterface {
+class AzkarPlayerService : Service(), AudioServiceInterface {
     var length: Long = 0;
     var currentlyPlaying = "";
     private var _playbackSpeed = MutableStateFlow<Float>(1.0f)
@@ -57,8 +57,8 @@ class MediaPlayerService : Service(), AudioServiceInterface {
     private val _isPaused = MutableStateFlow<Boolean>(false)
     private val _sliderPosition = MutableStateFlow<Float>(0f)
     private val _maxDuration = MutableStateFlow<Float>(0f)
-    private val _selectedChapterId = MutableStateFlow<String>("")
-    private val _playingChapter = MutableStateFlow<Boolean>(false)
+   // private val _selectedChapterId = MutableStateFlow<String>("")
+   // private val _playingChapter = MutableStateFlow<Boolean>(false)
     private val _playingZikr = MutableStateFlow<Boolean>(false)
     private val _destroyed = MutableStateFlow<Boolean>(false)
     private val resumeFlag = MutableStateFlow<Int>(0)
@@ -72,7 +72,7 @@ class MediaPlayerService : Service(), AudioServiceInterface {
 
     inner class YourBinder : Binder() {
         fun getService(): AudioServiceInterface {
-            return this@MediaPlayerService;
+            return this@AzkarPlayerService;
         }
     }
 
@@ -110,19 +110,19 @@ class MediaPlayerService : Service(), AudioServiceInterface {
                         resetPlayer()
                         _isPlaying.value = false;
                         handler.removeCallbacksAndMessages(null)
-                        if (_playingChapter.value) {
+                        /*if (_playingChapter.value) {
                             if (_selectedChapterId.value != "114") {
                                 playNextChapter();
                             } else {
                                 prepareForNewTrack()
                             }
-                        }
+                        }*/
                     }
                 }
 
                 override fun onPlayerError(error: PlaybackException) {
                     super.onPlayerError(error)
-                    println(error.printStackTrace())
+                    error.printStackTrace()
                     Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
                         .show()
                 }
@@ -130,14 +130,14 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         )
     }
 
-    override fun getSelectedChapterId(): StateFlow<String> {
+    /*override fun getSelectedChapterId(): StateFlow<String> {
         return _selectedChapterId;
     }
 
     override fun setSelectedChapterId(id: String) {
         _selectedChapterId.value = id;
         println("set chapter ${_selectedChapterId.value}")
-    }
+    }*/
 
     override fun getSliderPosition(): StateFlow<Float> {
         return _sliderPosition;
@@ -151,9 +151,9 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         return _destroyed;
     }
 
-    override fun getIsChapterPlaying(): StateFlow<Boolean> {
+    /*override fun getIsChapterPlaying(): StateFlow<Boolean> {
         return _playingChapter;
-    }
+    }*/
 
     override fun getIsZikrPlaying(): StateFlow<Boolean> {
         return _playingZikr;
@@ -179,12 +179,11 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         updateNotification()
     }
 
-    override fun getPlayingState(link: String, playingChapter: Boolean): StateFlow<Boolean> {
-        //println("media player playing ${mediaPlayer?.value?.isPlaying}")
+    override fun getPlayingState(link: String/*, playingChapter: Boolean*/): StateFlow<Boolean> {
+
         println("exo player playing ${exoPlayer.isPlaying}")
-        if (/*mediaPlayer?.value?.isPlaying*/ exoPlayer.isPlaying == true) {
-            _isPlaying.value =
-                (!currentlyPlaying.contains("azkar") && playingChapter) || (currentlyPlaying == link)
+        if (exoPlayer.isPlaying == true) {
+            _isPlaying.value = /*(!currentlyPlaying.contains("azkar") && playingChapter) ||*/ (currentlyPlaying == link)
         } else {
             _isPlaying.value = false;
         }
@@ -192,7 +191,7 @@ class MediaPlayerService : Service(), AudioServiceInterface {
     }
 
 
-    override fun playChapter(link: String) {
+    /*override fun playChapter(link: String) {
         if (_playingZikr.value) {
             _playingZikr.value = false;
             _playingChapter.value = true;
@@ -210,10 +209,11 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         }
         _isPlaying.value = true;
         _isPaused.value = false;
-    }
+    }*/
 
     override fun playZiker(link: String) {
-        if (_playingChapter.value) {
+
+        /*if (_playingChapter.value) {
             _playingZikr.value = true;
             _playingChapter.value = false;
             playNewTrack(link)
@@ -221,14 +221,14 @@ class MediaPlayerService : Service(), AudioServiceInterface {
             _playingZikr.value = true;
             _playingChapter.value = false;
             playNewTrack(link)
-        } else if (_playingZikr.value && _isPaused.value && length != 0L && currentlyPlaying == link) {
+        } else */if (_playingZikr.value && _isPaused.value && length != 0L && currentlyPlaying == link) {
             resumeTrack();
         } else {
             _playingZikr.value = true;
-            _playingChapter.value = false;
+           // _playingChapter.value = false;
             playNewTrack(link)
         }
-        _selectedChapterId.value = "";
+        //_selectedChapterId.value = "";
         _isPlaying.value = true;
         _isPaused.value = false;
     }
@@ -237,9 +237,9 @@ class MediaPlayerService : Service(), AudioServiceInterface {
         _isPlaying.value = false;
         _isPaused.value = false;
         _playingZikr.value = false;
-        _playingChapter.value = false;
+        //_playingChapter.value = false;
         _sliderPosition.value = 0F;
-        _selectedChapterId.value = "";
+        //_selectedChapterId.value = "";
         resetPlayer()
     }
 
@@ -333,9 +333,9 @@ class MediaPlayerService : Service(), AudioServiceInterface {
                         resetPlayer()
                         _isPlaying.value = false;
                         _isPaused.value = false;
-                        _playingChapter.value = false;
+                      //  _playingChapter.value = false;
                         _playingZikr.value = false;
-                        _selectedChapterId.value = "";
+                       // _selectedChapterId.value = "";
                     }
 
                     Actions.TERMINATE.toString() -> {
@@ -346,9 +346,9 @@ class MediaPlayerService : Service(), AudioServiceInterface {
                         }
                         _isPlaying.value = false;
                         _isPaused.value = false;
-                        _playingChapter.value = false;
+                      //  _playingChapter.value = false;
                         _playingZikr.value = false;
-                        _selectedChapterId.value = "";
+                      //  _selectedChapterId.value = "";
                         _destroyed.value = true;
                         stopForeground(true)
                         stopSelf()
@@ -421,7 +421,7 @@ class MediaPlayerService : Service(), AudioServiceInterface {
     }
 
 
-    override fun playNextChapter() {
+    /*override fun playNextChapter() {
         if (_selectedChapterId.value != "114") {
             _selectedChapterId.value = "${_selectedChapterId.value.toInt() + 1}"
             playChapter("https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/${_selectedChapterId.value}.mp3")
@@ -433,7 +433,7 @@ class MediaPlayerService : Service(), AudioServiceInterface {
             _selectedChapterId.value = "${_selectedChapterId.value.toInt() - 1}"
             playChapter("https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/${_selectedChapterId.value}.mp3")
         }
-    }
+    }*/
 
 
     enum class Actions {
@@ -441,7 +441,7 @@ class MediaPlayerService : Service(), AudioServiceInterface {
     }
 
     private fun getPendingIntentForAction(action: String): PendingIntent {
-        val intent = Intent(this, MediaPlayerService::class.java)
+        val intent = Intent(this, AzkarPlayerService::class.java)
         intent.action = action
         return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
     }
