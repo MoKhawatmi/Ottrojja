@@ -174,7 +174,8 @@ fun TeacherScreen(
                 isPlaying = teacherScreenViewModel.isPlaying,
                 onPauseClicked = { teacherScreenViewModel.pauseVerse() },
                 onDispose = { teacherScreenViewModel.resetMedia(); },
-                selectedTrainingVerses = teacherScreenViewModel.selectedTrainingVerses
+                selectedTrainingVerses = teacherScreenViewModel.selectedTrainingVerses,
+                getChapterName= {chapterId-> teacherScreenViewModel.getChapterName(chapterId)}
             )
         }
     }

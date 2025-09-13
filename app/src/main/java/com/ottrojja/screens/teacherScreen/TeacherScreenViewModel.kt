@@ -45,12 +45,14 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
     val context = application.applicationContext;
 
     private val chaptersList = CompletableDeferred<List<ChapterData>>()
+    private var completedChaptersList = emptyList<ChapterData>()
 
     suspend fun initChaptersList() {
         println("Fetching chapters list")
         viewModelScope.launch(Dispatchers.IO) {
             val chapters = repository.getAllChapters()
             chaptersList.complete(chapters)
+            completedChaptersList = chaptersList.await()
             if (_startingSurah.value == null) {
                 _startingSurah.value = chaptersList.await().get(0);
             }
@@ -116,6 +118,10 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
                     || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter.value)
                     || chapter.surahId.toString() == _searchFilter.value
         };
+    }
+
+     fun getChapterName(id: Int): String {
+        return completedChaptersList.find { chapter -> chapter.surahId == id }?.chapterName ?: "";
     }
 
     private var _showSurahSelectionDialog = mutableStateOf(false)
@@ -243,7 +249,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             _currentVerseIndex.value = 0
             _currentVerse.value = _selectedTrainingVerses.value[_currentVerseIndex.value]
             checkLastVerseReached()
-          //  _hasStarted.value = true;
+            //  _hasStarted.value = true;
             println("vm ${_lastVerseReached.value}")
             generateCutVerse();
             _mode.value = TeacherMode.TRAINING;

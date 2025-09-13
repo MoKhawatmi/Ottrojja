@@ -97,7 +97,6 @@ class MediaPlayerService : Service(), AudioServiceInterface {
                         val updateProgressAction = object : Runnable {
                             override fun run() {
                                 val currPosition = exoPlayer.currentPosition.toFloat()
-                                // println("i run $currPosition")
                                 _sliderPosition.value = currPosition;
                                 handler.postDelayed(this, 400)
                             }

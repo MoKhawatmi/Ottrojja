@@ -87,7 +87,8 @@ fun PageTraining(
     isPlaying: Boolean,
     onPauseClicked: () -> Unit,
     onDispose: () -> Unit,
-    selectedTrainingVerses: List<PageContent>
+    selectedTrainingVerses: List<PageContent>,
+    getChapterName: (Int) -> String
 ) {
     val hiddenIndecies = solutionMap.keys;
     val focusManager: FocusManager = LocalFocusManager.current
@@ -138,6 +139,21 @@ fun PageTraining(
             .verticalScroll(rememberScrollState())
             .padding(12.dp, 2.dp, 12.dp, 8.dp)
     ) {
+        //show surah name on first verse
+        if (currentVerse?.verseNum == 1) {
+            Row(horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "سورة ${getChapterName(currentVerse.surahNum)}",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(2.dp, 2.dp),
+                )
+            }
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
