@@ -19,6 +19,7 @@ import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData
 import com.ottrojja.room.entities.PageContent
+import com.ottrojja.room.entities.Quarter
 import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.VerseMeanings
 import kotlinx.coroutines.Dispatchers
@@ -51,6 +52,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     val causesOfRevelationJsonVersion = sharedPreferences.getInt("causesOfRevelationJsonVersion", 0)
     val tafaseerJsonVersion = sharedPreferences.getInt("tafaseerJsonVersion", 0)
     val pagesContentJsonVersion = sharedPreferences.getInt("pagesContentJsonVersion", 0)
+    val ahzabJsonVersion = sharedPreferences.getInt("ahzabJsonVersion", 0)
 
     private var _loaded = mutableStateOf(false)
     var loaded: Boolean
@@ -140,6 +142,17 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                         repository.insertAllAzkar(it)
                         sharedPreferences.edit().putInt("azkarJsonVersion", versions.get("azkar")!!
                         ).apply()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+
+            if (versions.get("ahzab")!! > ahzabJsonVersion) {
+                jsonParser.parseJsonArrayFile<Quarter>("ahzab.json")?.let {
+                    try {
+                        repository.insertQuarters(it)
+                        sharedPreferences.edit().putInt("ahzabJsonVersion", versions.get("ahzab")!!).apply()
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }

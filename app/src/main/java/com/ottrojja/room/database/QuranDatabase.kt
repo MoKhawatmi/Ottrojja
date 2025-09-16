@@ -21,6 +21,7 @@ import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData
 import com.ottrojja.room.entities.PageContent
+import com.ottrojja.room.entities.Quarter
 import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.VerseMeanings
 
@@ -29,7 +30,7 @@ import com.ottrojja.room.entities.VerseMeanings
     entities = [QuranPage::class, PageContent::class, ChapterData::class, PartData::class,
         TafseerData::class, E3rabData::class, Azkar::class,
         CauseOfRevelation::class, BookmarkEntity::class, Khitmah::class,
-        KhitmahMark::class, CustomTasbeeh::class, TasabeehList::class, VerseMeanings::class],
+        KhitmahMark::class, CustomTasbeeh::class, TasabeehList::class, VerseMeanings::class, Quarter::class],
     version = 8
 )
 abstract class QuranDatabase : RoomDatabase() {
@@ -41,6 +42,19 @@ abstract class QuranDatabase : RoomDatabase() {
 val MIGRATION_7_8 = object : Migration(7, 8) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE CustomTasbeeh ADD COLUMN position INTEGER NOT NULL DEFAULT 0")
+
+        database.execSQL("""
+            CREATE TABLE IF NOT EXISTS Quarter (
+                id TEXT NOT NULL PRIMARY KEY,
+                sura TEXT NOT NULL,
+                aya TEXT NOT NULL,
+                pageNum TEXT NOT NULL,
+                part TEXT NOT NULL
+                hizb TEXT NOT NULL
+            )
+        """.trimIndent()
+        )
+
     }
 }
 

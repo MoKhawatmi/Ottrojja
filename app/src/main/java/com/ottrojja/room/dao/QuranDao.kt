@@ -13,8 +13,10 @@ import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData
 import com.ottrojja.room.entities.PageContent
+import com.ottrojja.room.entities.Quarter
 import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.VerseMeanings
+import com.ottrojja.room.relations.PartWithQuarters
 import com.ottrojja.room.relations.QuranPageWithContent
 
 @Dao
@@ -76,8 +78,14 @@ interface QuranDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertParts(parts: List<PartData>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertQuarters(quarters: List<Quarter>)
+
     @Query("SELECT * FROM PartData")
     fun getAllParts(): List<PartData>
+
+    @Query("SELECT * FROM PartData")
+    fun getAllPartsWithQuarters(): List<PartWithQuarters>
 
     @Query("SELECT count(*) FROM PartData")
     fun getPartsCount(): Int

@@ -20,9 +20,11 @@ import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData
 import com.ottrojja.room.entities.PageContent
+import com.ottrojja.room.entities.Quarter
 import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.VerseMeanings
+import com.ottrojja.room.relations.PartWithQuarters
 import com.ottrojja.room.relations.QuranPageWithContent
 import kotlinx.coroutines.flow.Flow
 
@@ -100,8 +102,16 @@ class QuranRepository(private val quranDao: QuranDao,
         quranDao.insertParts(parts)
     }
 
+    fun insertQuarters(quarters: List<Quarter>){
+        quranDao.insertQuarters(quarters)
+    }
+
     suspend fun getAllParts(): List<PartData> {
         return quranDao.getAllParts()
+    }
+
+    suspend fun getAllPartsWithQuarters(): List<PartWithQuarters>{
+        return quranDao.getAllPartsWithQuarters();
     }
 
     suspend fun getPartsCount(): Int {

@@ -19,6 +19,7 @@ import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
+import com.ottrojja.room.relations.PartWithQuarters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -33,11 +34,14 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
     private val pagesList: List<String> = (1..604).map { "صفحة $it" };
     lateinit private var partsList: List<PartData>;
     lateinit private var chaptersList: List<ChapterData>;
+    lateinit private var partsWithQuartersList: List<PartWithQuarters>;
+
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
             partsList = repository.getAllParts()
             chaptersList = repository.getAllChapters()
+            partsWithQuartersList=repository.getAllPartsWithQuarters()
         }
     }
 
@@ -116,13 +120,14 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
         };
     }
 
-    fun getPartsList(): List<PartData> {
-        return partsList.filter { part ->
+    fun getPartsList(): List<PartWithQuarters> {
+        /*return partsList.filter { part ->
             part.partName.contains(_searchFilter) || part.partId.contains(_searchFilter
             ) || part.partId.contains(
                 convertToArabicNumbers(_searchFilter)
             )
-        };
+        };*/
+        return partsWithQuartersList;
     }
 
     fun getChaptersList(): List<ChapterData> {

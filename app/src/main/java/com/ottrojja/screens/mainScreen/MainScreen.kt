@@ -67,6 +67,7 @@ import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
+import com.ottrojja.room.relations.PartWithQuarters
 
 @Composable
 fun MainScreen(
@@ -129,7 +130,7 @@ fun MainScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             Column {
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    TopBar(customContent = true){
+                    TopBar(customContent = true) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center,
@@ -168,7 +169,9 @@ fun MainScreen(
                                 )
                                 .clip(RoundedCornerShape(12))
                                 .clickable {
-                                    navController.navigate(Screen.QuranScreen.invokeRoute(mainViewModel.mostRecentPage))
+                                    navController.navigate(
+                                        Screen.QuranScreen.invokeRoute(mainViewModel.mostRecentPage)
+                                    )
                                 }
                                 .padding(12.dp, 8.dp)
                         ) {
@@ -343,49 +346,6 @@ fun BrowseMenu(
     }
 }
 
-@Composable
-fun PartsMenu(
-    items: List<PartData> = listOf<PartData>(),
-    navController: NavController
-) {
-    val keyboardController = LocalSoftwareKeyboardController.current;
-
-    LazyColumn(
-        Modifier
-            .fillMaxHeight()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        items(items) { item ->
-            Column(modifier = Modifier
-                .padding(12.dp, 2.dp)
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
-                .clickable {
-                    keyboardController!!.hide();
-                    navController.navigate(Screen.QuranScreen.invokeRoute(item.partStartPage))
-                }
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp, 12.dp, 12.dp, 0.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = item.partName, color = Color.Black)
-                }
-                Row(
-                    modifier = Modifier.padding(12.dp, 0.dp, 0.dp, 0.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Text(
-                        text = "{${item.firstWords}}",
-                        color = Color.Black,
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
-                ListHorizontalDivider()
-            }
-        }
-    }
-}
 
 @Composable
 fun ChaptersMenu(
@@ -515,7 +475,10 @@ fun SearchMenu(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "{${item.verseText}} ${convertToIndianNumbers("${item.verseNum}")} - ${item.surahName}",
+                        text = "{${item.verseText}} ${
+                            convertToIndianNumbers("${item.verseNum}"
+                            )
+                        } - ${item.surahName}",
                         color = Color.Black,
                         style = MaterialTheme.typography.bodyMedium
                     )

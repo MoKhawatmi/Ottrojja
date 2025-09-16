@@ -61,6 +61,7 @@ class JsonParser(private val context: Context) {
             "causesOfRevelation" to jsonObject.getInt("causesOfRevelation"),
             "tafaseer" to jsonObject.getInt("tafaseer"),
             "pagesContent" to jsonObject.getInt("pagesContent"),
+            "ahzab" to jsonObject.getInt("ahzab")
         )
     }
 
