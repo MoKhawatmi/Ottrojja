@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahMark
@@ -44,6 +45,7 @@ class KhitmahListViewModel(private val repository: QuranRepository, application:
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            reportException(exception = e, file = "KhitmahListViewModel")
             Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
         }
     }
@@ -62,6 +64,7 @@ class KhitmahListViewModel(private val repository: QuranRepository, application:
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            reportException(exception = e, file = "KhitmahListViewModel")
             Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
         }
     }

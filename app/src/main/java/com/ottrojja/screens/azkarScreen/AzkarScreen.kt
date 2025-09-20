@@ -63,10 +63,6 @@ fun AzkarScreen(
                             .padding(4.dp)
                             .fillMaxWidth()
                             .background(Helpers.ottrojjaBrush, shape = RoundedCornerShape(12.dp))
-                            /*.border(
-                                BorderStroke(1.dp, color = MaterialTheme.colorScheme.primary),
-                                shape = RoundedCornerShape(12.dp)
-                            )*/
                             .clip(RoundedCornerShape(12))
                             .clickable {
                                 navController.navigate(

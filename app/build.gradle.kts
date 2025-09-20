@@ -21,6 +21,10 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String", "SUPABASE_URL", "\"${project.property("SUPABASE_URL")}\"")
+        buildConfigField("String", "SUPABASE_PUBLIC_KEY", "\"${project.property("SUPABASE_PUBLIC_KEY")}\"")
+
     }
 
     buildTypes {
@@ -41,6 +45,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.2"
@@ -56,16 +61,16 @@ android {
 dependencies {
 
     implementation("androidx.core:core-ktx:1.17.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.3")
-    implementation("androidx.activity:activity-compose:1.10.1")
-    implementation(platform("androidx.compose:compose-bom:2025.08.01"))
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
+    implementation("androidx.activity:activity-compose:1.11.0")
+    implementation(platform("androidx.compose:compose-bom:2025.09.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3:1.3.2")
-    implementation("androidx.compose.foundation:foundation:1.9.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.3")
-    implementation("androidx.lifecycle:lifecycle-process:2.9.3")
+    implementation("androidx.compose.foundation:foundation:1.9.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
+    implementation("androidx.lifecycle:lifecycle-process:2.9.4")
     implementation("androidx.compose.material3:material3-window-size-class-android:1.3.2")
     testImplementation("junit:junit:4.13.2")
     debugImplementation("androidx.compose.ui:ui-tooling")
@@ -73,7 +78,7 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
     implementation("androidx.navigation:navigation-compose:2.7.7")
-    implementation("com.google.code.gson:gson:2.13.1")
+    implementation("com.google.code.gson:gson:2.13.2")
     implementation("com.caverock:androidsvg-aar:1.4")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.2")
@@ -86,17 +91,17 @@ dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
 
-    implementation("androidx.room:room-runtime:2.7.2")
-    implementation("androidx.room:room-ktx:2.7.2")
-    ksp("androidx.room:room-compiler:2.7.2")
+    implementation("androidx.room:room-runtime:2.8.0")
+    implementation("androidx.room:room-ktx:2.8.0")
+    ksp("androidx.room:room-compiler:2.8.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 
     implementation("androidx.media3:media3-exoplayer:1.8.0")
 
-    implementation(platform("io.github.jan-tennert.supabase:bom:3.2.2"))
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.2.3"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
-    implementation("io.ktor:ktor-client-android:3.2.3")
+    implementation("io.ktor:ktor-client-android:3.3.0")
 
     implementation("com.github.binayshaw7777:KotStep:3.0.1")
 

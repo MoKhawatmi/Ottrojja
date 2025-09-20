@@ -9,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.JsonParser
 import com.ottrojja.classes.ModalFormMode
 import com.ottrojja.classes.QuranRepository
@@ -72,6 +73,7 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 }
@@ -103,6 +105,7 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
                 closeCustomTasbeehModal()
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 }
@@ -121,6 +124,7 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 }
@@ -137,6 +141,7 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 }
@@ -167,6 +172,7 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
                 }
         } catch (e: Exception) {
             e.printStackTrace()
+            reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
             Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
         }
     }
@@ -200,6 +206,7 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
             }
             catch (e: Exception){
                 e.printStackTrace()
+                reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
                 Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
             }
         }

@@ -29,6 +29,7 @@ import com.ottrojja.screens.settingsScreen.SettingsScreen
 import com.ottrojja.screens.tasbeehScreen.TasbeehScreen
 import com.ottrojja.screens.zikrScreen.ZikrScreen
 
+
 @Composable
 fun NavGraph(navController: NavHostController,
              repository: QuranRepository,

@@ -17,6 +17,7 @@ import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
 import com.ottrojja.classes.QuranListeningMode
 import com.ottrojja.classes.QuranPlayingParameters
@@ -315,7 +316,8 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
 
 
             } catch (e: Exception) {
-                println(e)
+                e.printStackTrace()
+                reportException(exception = e, file = "ListeningViewModel")
             }
         }
 
@@ -336,6 +338,7 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
             try { //this just keeps causing crashes
                 context.unbindService(serviceConnection)
             } catch (e: Exception) {
+                reportException(exception = e, file = "ListeningViewModel")
                 e.printStackTrace()
             }
         }
@@ -386,6 +389,7 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
                 } catch (e: Exception) {
                     println("error in download")
                     e.printStackTrace()
+                    reportException(exception = e, file = "ListeningViewModel")
                     withContext(Dispatchers.Main) {
                         Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
                     }

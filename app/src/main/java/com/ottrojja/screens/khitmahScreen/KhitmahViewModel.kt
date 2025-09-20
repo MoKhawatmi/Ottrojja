@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.ExpandableItem
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
 import com.ottrojja.room.entities.Khitmah
@@ -53,6 +54,7 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
                 println(khitmahWithMarks.marks)
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "KhitmahViewModel")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 }
@@ -87,6 +89,7 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "KhitmahViewModel")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 }
@@ -109,6 +112,7 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "KhitmahViewModel")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 }
@@ -128,6 +132,7 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
                 fetchKhitmah(_khitmah.value!!.id)
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "KhitmahViewModel")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 }

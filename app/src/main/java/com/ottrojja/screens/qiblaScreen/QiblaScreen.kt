@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.ui.theme.complete_green
 import com.ottrojja.ui.theme.md_theme_light_primary
@@ -279,6 +280,7 @@ private fun CompassContent(showPositionDialog: Boolean,
             //nothing
         } catch (e: Exception) {
             e.printStackTrace()
+            reportException(exception = e, file = "QiblaScreen")
             Toast.makeText(context, "حصل خطأ", Toast.LENGTH_LONG).show()
         }
     }
@@ -531,6 +533,7 @@ private fun getCityFromLocation(context: Context, latitude: Double?, longitude: 
             addresses[0].locality ?: ""
         } catch (e: Exception) {
             Log.e("Geocoder Error", e.message.toString())
+            reportException(exception = e, file = "QiblaScreen")
             ""
         }
     }
@@ -546,6 +549,7 @@ fun getCityFromLocationAsync(context: Context, location: Location): Flow<String?
         emit(addresses?.firstOrNull()?.locality ?: "")
     } catch (e: Exception) {
         e.printStackTrace()
+        reportException(exception = e, file = "QiblaScreen")
         emit("")
     }
 }

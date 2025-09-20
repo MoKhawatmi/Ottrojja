@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.room.entities.Azkar
@@ -24,15 +25,11 @@ import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.VerseMeanings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.TimeZone
 
 class LoadingScreenViewModel(private val repository: QuranRepository, application: Application) :
     AndroidViewModel(application) {
@@ -61,10 +58,8 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             _loaded.value = value
         }
 
-
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-
+    suspend fun initialize() {
+        withContext(Dispatchers.IO) {
             var versions = hashMapOf<String, Int>()
 
             withContext(Dispatchers.IO) {
@@ -72,7 +67,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 versions = jsonParser.getFilesVersions()
 
                 println("checking leftover temp files...")
-                // delete any left over temp files from variant download operations
+                // delete any left over temp files from various download operations
                 val dir = context.getExternalFilesDir(null)
                 dir?.listFiles { file ->
                     file.name.startsWith("temp_")
@@ -92,6 +87,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                             ).apply()
                         } catch (e: Exception) {
                             e.printStackTrace()
+                            reportException(exception = e, file = "LoadingScreenViewModel")
                         }
                     }
             }
@@ -106,6 +102,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                             ).apply()
                         } catch (e: Exception) {
                             e.printStackTrace()
+                            reportException(exception = e, file = "LoadingScreenViewModel")
                         }
                     }
             }
@@ -118,6 +115,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                         ).apply()
                     } catch (e: Exception) {
                         e.printStackTrace()
+                        reportException(exception = e, file = "LoadingScreenViewModel")
                     }
                 }
             }
@@ -131,6 +129,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                         ).apply()
                     } catch (e: Exception) {
                         e.printStackTrace()
+                        reportException(exception = e, file = "LoadingScreenViewModel")
                     }
                 }
             }
@@ -144,6 +143,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                         ).apply()
                     } catch (e: Exception) {
                         e.printStackTrace()
+                        reportException(exception = e, file = "LoadingScreenViewModel")
                     }
                 }
             }
@@ -152,15 +152,16 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 jsonParser.parseJsonArrayFile<Quarter>("ahzab.json")?.let {
                     try {
                         repository.insertQuarters(it)
-                        sharedPreferences.edit().putInt("ahzabJsonVersion", versions.get("ahzab")!!).apply()
+                        sharedPreferences.edit().putInt("ahzabJsonVersion", versions.get("ahzab")!!
+                        ).apply()
                     } catch (e: Exception) {
                         e.printStackTrace()
+                        reportException(exception = e, file = "LoadingScreenViewModel")
                     }
                 }
             }
 
-            if (repository.getCauseOfRevelationCount() == 0 || versions.get("causesOfRevelation"
-                )!! > causesOfRevelationJsonVersion
+            if (repository.getCauseOfRevelationCount() == 0 || versions.get("causesOfRevelation")!! > causesOfRevelationJsonVersion
             ) {
                 jsonParser.parseJsonArrayFile<CauseOfRevelation>("causesOfRevelation.json")?.let {
                     try {
@@ -170,12 +171,12 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                         ).apply()
                     } catch (e: Exception) {
                         e.printStackTrace()
+                        reportException(exception = e, file = "LoadingScreenViewModel")
                     }
                 }
             }
 
-            if (repository.getTafseersCount() != 6236 * 7 || versions.get("tafaseer"
-                )!! > tafaseerJsonVersion
+            if (repository.getTafseersCount() != 6236 * 7 || versions.get("tafaseer")!! > tafaseerJsonVersion
             ) {
                 //insert the available tafseer files to db
                 val tafaseerList = listOf(
@@ -197,40 +198,46 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                             ).apply()
                         } catch (e: Exception) {
                             e.printStackTrace()
+                            reportException(exception = e, file = "LoadingScreenViewModel")
                         }
                     }
                 }
             }
 
-            runBlocking {
-                val quranFile = File(context.filesDir, "quran.json")
+            val quranFile = File(context.filesDir, "quran.json")
 
-                if (!Helpers.checkNetworkConnectivity(context)) {
-                    handleLocalQuranFile(quranFile)
-                } else {
-                    downloadAndUpdateQuranFile(quranFile)
-                }
+            if (!Helpers.checkNetworkConnectivity(context)) {
+                handleLocalQuranFile(quranFile)
+            } else {
+                downloadAndUpdateQuranFile(quranFile)
+            }
 
-                if(versions.get("pagesContent")!! > pagesContentJsonVersion){
-                    jsonParser.parseJsonArrayFile<PageContent>("pagesContent.json")?.let {
-                        try {
-                            repository.insertPagesContent(it)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
+            if (versions.get("pagesContent")!! > pagesContentJsonVersion) {
+                jsonParser.parseJsonArrayFile<PageContent>("pagesContent.json")?.let {
+                    try {
+                        repository.insertPagesContent(it)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        reportException(exception = e, file = "LoadingScreenViewModel")
                     }
                 }
             }
-
         }
     }
 
-    private fun handleLocalQuranFile(quranFile: File) {
+    init {
+        viewModelScope.launch() {
+            initialize()
+        }
+    }
+
+    suspend private fun handleLocalQuranFile(quranFile: File) {
         if (quranFile.exists()) {
             try {
                 parseAndSetQuranData(quranFile)
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "LoadingScreenViewModel")
                 Log.d("E", "Faulty File")
                 quranFile.delete()
                 setQuranDataFromLocalFile()
@@ -252,7 +259,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
         }
     }
 
-    private fun downloadAndUpdateQuranFile(quranFile: File) {
+    suspend private fun downloadAndUpdateQuranFile(quranFile: File) {
         val client = OkHttpClient()
         val request = Request.Builder()
             .url(QURAN_FILE_URL)
@@ -268,8 +275,8 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 println("file last modified $fileLastModified")
                 if (fileLastModified > quranFileCreateTime) {
                     println("updating file from online")
-                    updateFileCreationTime(fileLastModified)
                     downloadFile(quranFile)
+                    updateFileCreationTime(fileLastModified)
                 } else {
                     useLocalQuranFile(quranFile)
                 }
@@ -279,6 +286,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             }
         } catch (e: IOException) {
             e.printStackTrace()
+            reportException(exception = e, file = "LoadingScreenViewModel")
             handleDownloadError(quranFile, e)
         }
     }
@@ -308,6 +316,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             }
         } catch (e: IOException) {
             e.printStackTrace()
+            reportException(exception = e, file = "LoadingScreenViewModel")
             println("failed download: ${e.message}")
             handleDownloadError(quranFile, e)
         }
@@ -319,6 +328,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             parseAndSetQuranData(quranFile)
         } catch (e: Exception) {
             Log.d("E", "Error using filesdir file: ${e.message}")
+            reportException(exception = e, file = "LoadingScreenViewModel")
             setQuranDataFromLocalFile()
         } finally {
             loadingFile = false
@@ -341,6 +351,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
         } catch (e: Exception) {
             println("assets file failed")
             e.printStackTrace()
+            reportException(exception = e, file = "LoadingScreenViewModel")
         }
     }
 
@@ -349,14 +360,19 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             try {
                 if (!updatingData) {
                     if (repository.getPagesCount() == 604) {
-                        _loaded.value = true;
+                        withContext(Dispatchers.Main){
+                            _loaded.value = true;
+                        }
                         return@launch
                     }
                 }
                 repository.insertAllPages(quranData)
-                _loaded.value = true;
+                withContext(Dispatchers.Main){
+                    _loaded.value = true;
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "LoadingScreenViewModel")
             }
         }
     }

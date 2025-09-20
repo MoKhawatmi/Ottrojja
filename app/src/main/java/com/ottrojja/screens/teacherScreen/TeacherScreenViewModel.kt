@@ -21,6 +21,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
@@ -460,6 +461,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
                 } catch (e: Exception) {
                     println("error in download")
                     e.printStackTrace()
+                    reportException(exception = e, file = "TeacherScreenViewModel")
                     withContext(Dispatchers.Main) {
                         Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
                     }
@@ -504,6 +506,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            reportException(exception = e, file = "TeacherScreenViewModel")
             Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
                 .show()
         }

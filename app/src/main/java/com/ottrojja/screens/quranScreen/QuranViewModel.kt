@@ -22,6 +22,7 @@ import com.ottrojja.R
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
@@ -119,6 +120,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 editor.apply()
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "QuranViewModel")
             }
         }
     }
@@ -446,6 +448,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 } catch (e: Exception) {
                     println("error in download")
                     e.printStackTrace()
+                    reportException(exception = e, file = "QuranViewModel")
                     withContext(Dispatchers.Main) {
                         Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
                     }
@@ -474,6 +477,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 _isBookmarked.value = repository.isBookmarked(currentPageObject?.page?.pageNum!!)
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "QuranViewModel")
             }
         }
     }
@@ -494,6 +498,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 isPageBookmarked();
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "QuranViewModel")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 }
@@ -532,6 +537,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             }
         } catch (e: IOException) {
             e.printStackTrace()
+            reportException(exception = e, file = "QuranViewModel")
             return
         }
         val imageUri = FileProvider.getUriForFile(
@@ -824,7 +830,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 }
 
             } catch (e: Exception) {
-                println(e)
+                e.printStackTrace()
+                reportException(exception = e, file = "QuranViewModel")
             }
         }
 
@@ -846,6 +853,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 context.unbindService(serviceConnection)
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "QuranViewModel")
             }
         }
     }
@@ -939,6 +947,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            reportException(exception = e, file = "QuranViewModel")
             Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
         }
     }
@@ -960,6 +969,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            reportException(exception = e, file = "QuranViewModel")
             Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
         }
     }

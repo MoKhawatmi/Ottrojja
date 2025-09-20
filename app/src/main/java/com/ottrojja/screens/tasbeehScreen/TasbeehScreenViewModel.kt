@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.ExpandableItem
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Tasabeeh
 import com.ottrojja.room.entities.TasabeehList
@@ -42,14 +43,6 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
 
-    /*private val _tasbeehCount = mutableStateOf(0)
-    var tasbeehCount: Int
-        get() = _tasbeehCount.value
-        set(value) {
-            _tasbeehCount.value = value
-        }*/
-
-
     private val _selectedTab = mutableStateOf(TasbeehTab.المسبحة)
     var selectedTab: TasbeehTab
         get() = _selectedTab.value
@@ -74,6 +67,7 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
                 }
         } catch (e: Exception) {
             e.printStackTrace()
+            reportException(exception = e, file = "TasbeehScreenViewModel")
             Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
         }
     }
@@ -134,6 +128,7 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "TasbeehScreenViewModel")
                 withContext(Dispatchers.Main){
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 }
@@ -152,6 +147,7 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            reportException(exception = e, file = "TasbeehScreenViewModel")
             Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
         }
     }

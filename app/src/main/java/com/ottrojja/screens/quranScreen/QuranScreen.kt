@@ -88,10 +88,13 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.ottrojja.BuildConfig
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
@@ -113,6 +116,7 @@ import com.ottrojja.screens.mainScreen.BrowsingOption
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFramePlayerOptions
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 
 
@@ -144,6 +148,7 @@ fun QuranScreen(
             quranViewModel.fetchKhitmahList()
         } catch (e: Exception) {
             Log.e("error", "Error getting current page in quran screen: $e")
+            reportException(exception = e, file = "QuranScreen")
         }
     }
 
@@ -1090,58 +1095,6 @@ fun Benefits(
     }
 }
 
-@Composable
-fun YouTube(link: String) {
-    val context = LocalContext.current
-    println(link)
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.primary)
-            .padding(10.dp)
-    ) {
-        if (!Helpers.checkNetworkConnectivity(context)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Text(
-                    text = "تعذر عرض المقطع لعدم توفر اتصال بالشبكة",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center
-                )
-            }
-        } else {
-            YoutubeScreen(videoId = link, modifier = Modifier)
-        }
-    }
-}
-
-
-@Composable
-fun YoutubeScreen(
-    videoId: String, modifier: Modifier
-) {
-    val context = LocalContext.current
-    AndroidView(factory = {
-        var view = YouTubePlayerView(it)
-        val fragment = view.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
-            override fun onReady(youTubePlayer: YouTubePlayer) {
-                super.onReady(youTubePlayer)
-                youTubePlayer.cueVideo(videoId, 0f)
-            }
-
-            override fun onStateChange(
-                youTubePlayer: YouTubePlayer, state: PlayerConstants.PlayerState
-            ) {
-                super.onStateChange(youTubePlayer, state)
-                if (state.toString() == "PLAYING") {
-                    Helpers.terminateAllServices(context)
-                }
-                println(state)
-            }
-        })
-        view
-    })
-}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

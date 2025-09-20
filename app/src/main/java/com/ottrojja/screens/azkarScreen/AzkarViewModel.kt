@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.room.entities.Azkar
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +20,12 @@ class AzkarViewModel(private val repository: QuranRepository) : ViewModel() {
 
     fun fetchAzakr(){
         viewModelScope.launch(Dispatchers.IO) {
-            _azkarData.value = repository.getAllAzkar()
+            try {
+                _azkarData.value = repository.getAllAzkar()
+            }catch (e: Exception){
+                e.printStackTrace()
+                reportException(exception = e, file = "AzkarViewModel")
+            }
         }
     }
 }

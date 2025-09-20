@@ -79,16 +79,6 @@ fun KhitmahScreen(
             khitmahViewModel.deleteKhitmah()
             dialog.dismiss()
             navController.popBackStack()
-            /*val currentDestination = navController.currentBackStackEntry?.destination?.route
-            currentDestination?.let {
-                navController.navigate(Screen.KhitmahListScreen.route) {
-                    popUpTo(it) { inclusive = true }
-                }
-            }
-
-            navController.navigate(Screen.KhitmahListScreen.route){
-                popUpTo("current_destination") { inclusive = true }
-            }*/
         }
         alertDialogBuilder.setNegativeButton("لا") { dialog, which ->
             dialog.dismiss()
@@ -214,7 +204,6 @@ fun KhitmahScreen(
                         ),
                     ),
                 ) {
-                    // Do something...
                     println("clicked")
                 }
 

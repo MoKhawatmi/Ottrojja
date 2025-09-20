@@ -16,7 +16,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
-import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
 import com.ottrojja.room.relations.PartWithQuarters
@@ -41,7 +40,7 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
         viewModelScope.launch(Dispatchers.IO) {
             partsList = repository.getAllParts()
             chaptersList = repository.getAllChapters()
-            partsWithQuartersList=repository.getAllPartsWithQuarters()
+            partsWithQuartersList = repository.getAllPartsWithQuarters()
         }
     }
 
@@ -121,13 +120,13 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
     }
 
     fun getPartsList(): List<PartWithQuarters> {
-        /*return partsList.filter { part ->
-            part.partName.contains(_searchFilter) || part.partId.contains(_searchFilter
-            ) || part.partId.contains(
-                convertToArabicNumbers(_searchFilter)
-            )
-        };*/
-        return partsWithQuartersList;
+        return partsWithQuartersList.filter {
+            (it.part.partName.contains(_searchFilter)
+                    || it.part.partId.contains(_searchFilter)
+                    || it.part.partId.contains(convertToArabicNumbers(_searchFilter)))
+                    || (it.quarters.any { it.hizb.equals(_searchFilter) }
+                    || it.quarters.any { it.hizb.equals(convertToArabicNumbers(_searchFilter)) })
+        };
     }
 
     fun getChaptersList(): List<ChapterData> {
@@ -185,7 +184,6 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
             quranSearchResults.clear()
             invokeLatestSearchOperation()
         }
-
     }
 }
 

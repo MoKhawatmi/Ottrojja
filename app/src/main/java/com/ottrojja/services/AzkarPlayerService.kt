@@ -20,6 +20,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.Helpers.reportException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
@@ -369,6 +370,7 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "AzkarPlayerService")
             }
         }
 

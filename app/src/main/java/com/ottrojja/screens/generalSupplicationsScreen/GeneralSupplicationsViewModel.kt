@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.ottrojja.classes.GeneralSupplications
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.JsonParser
 import com.ottrojja.screens.mainScreen.ChapterData
 
@@ -52,6 +53,7 @@ class GeneralSupplicationsViewModel(application: Application) : AndroidViewModel
             )?.let { _supplications.addAll(it) }
         } catch (e: Exception) {
             e.printStackTrace()
+            reportException(exception = e, file = "GeneralSupplicationsViewModel")
             Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
         }
     }

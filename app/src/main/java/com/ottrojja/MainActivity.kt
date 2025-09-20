@@ -32,6 +32,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.BottomNavigation
@@ -246,6 +247,7 @@ class MainActivity : ComponentActivity() {
             Helpers.terminateAllServices(this)
         } catch (e: Exception) {
             e.printStackTrace()
+            reportException(exception = e, file = "MainActivity")
         }
     }
 }

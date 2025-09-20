@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.Bookmark
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.room.entities.BookmarkEntity
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +40,7 @@ class BookmarksViewModel(private val repository: QuranRepository, application: A
                 })
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "BookmarksViewModel")
                 Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
             }
         }
@@ -56,7 +58,10 @@ class BookmarksViewModel(private val repository: QuranRepository, application: A
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+                reportException(exception = e, file = "BookmarksViewModel")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }

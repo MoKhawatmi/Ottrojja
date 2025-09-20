@@ -17,6 +17,7 @@ import androidx.lifecycle.viewModelScope
 import com.ottrojja.services.AudioServiceInterface
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
 import com.ottrojja.services.AzkarPlayerService
 import com.ottrojja.classes.QuranRepository
@@ -44,7 +45,12 @@ class ZikrViewModel(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            _zikr.value = repository.getAzkarByTitle(zikrTitle)
+            try {
+                _zikr.value = repository.getAzkarByTitle(zikrTitle)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                reportException(exception = e, file = "ZikrViewModel")
+            }
         }
     }
 
@@ -158,7 +164,7 @@ class ZikrViewModel(
                     audioService?.getPlayingState(_zikr.value.firebaseAddress)?.collect { state ->
                         println("is same zikr playing: $state")
                         _isPlaying.value = state;
-                        if(state){
+                        if (state) {
                             //TODO placed here this statement will also be called unnecessarily, find a better solution
                             audioService?.setCurrentPlayingTitle(_zikr.value.azkarTitle);
                         }
@@ -216,7 +222,8 @@ class ZikrViewModel(
 
 
             } catch (e: Exception) {
-                println(e)
+                e.printStackTrace()
+                reportException(exception = e, file = "ZikrViewModel")
             }
         }
 
@@ -312,6 +319,7 @@ class ZikrViewModel(
                 } catch (e: Exception) {
                     println("error in download")
                     e.printStackTrace()
+                    reportException(exception = e, file = "ZikrViewModel")
                     withContext(Dispatchers.Main) {
                         Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
                     }

@@ -8,6 +8,7 @@ import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -16,6 +17,12 @@ import com.google.android.gms.common.GoogleApiAvailability
 import com.ottrojja.services.AzkarPlayerService
 import com.ottrojja.services.PagePlayerService
 import com.ottrojja.services.QuranPlayerService
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 object Helpers {
     fun convertToIndianNumbers(arabicNumber: String): String {
@@ -151,6 +158,24 @@ object Helpers {
         "10" to 10,
         "بلا توقف" to Integer.MAX_VALUE, //smart, right?!
     )
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    fun reportException(exception: Exception, file: String) {
+        var supabase: SupabaseClient = SupabaseProvider.client;
+        val report = ExceptionReport(
+            stacktrace = exception.stackTraceToString(),
+            file = file,
+        )
+
+        scope.launch {
+            try {
+                supabase.postgrest["exceptions"].insert(report)
+                Log.d("Supabase", "Message inserted successfully")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
 
 }

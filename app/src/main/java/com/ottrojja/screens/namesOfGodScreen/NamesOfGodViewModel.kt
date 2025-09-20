@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.AndroidViewModel
 import com.ottrojja.classes.ExpandableItem
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.JsonParser
 import com.ottrojja.classes.NameOfGod
 
@@ -25,6 +26,7 @@ class NamesOfGodViewModel(application: Application) : AndroidViewModel(applicati
                 }
         } catch (e: Exception) {
             e.printStackTrace()
+            reportException(exception = e, file = "NamesOfGodViewModel")
             Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
         }
     }

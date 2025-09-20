@@ -10,13 +10,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,8 +36,6 @@ import com.ottrojja.classes.Screen
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.room.entities.Quarter
 import com.ottrojja.room.relations.PartWithQuarters
-import kotlin.math.exp
-import kotlin.rem
 
 @Composable
 fun PartsMenu(
@@ -165,7 +161,7 @@ fun QuarterItem(quarter: Quarter,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = hizbText, color = MaterialTheme.colorScheme.primary,
+            Text(text = "\u06DE $hizbText", color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(text = convertToIndianNumbers(quarter.pageNum),

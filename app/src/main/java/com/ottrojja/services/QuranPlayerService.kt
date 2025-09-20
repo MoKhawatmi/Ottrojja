@@ -32,6 +32,7 @@ import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.Player.STATE_ENDED
 import com.ottrojja.classes.ConnectivityMonitor
 import com.ottrojja.classes.Helpers.repetitionOptionsMap
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.QuranListeningMode
 import com.ottrojja.screens.mainScreen.ChapterData
 import kotlinx.coroutines.CoroutineScope
@@ -465,6 +466,7 @@ class QuranPlayerService : Service(), QuranServiceInterface {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                reportException(exception = e, file = "PagePlayerService")
             }
         }
 
