@@ -10,7 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,17 +17,9 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults.elevatedButtonElevation
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -41,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
@@ -58,12 +48,9 @@ import androidx.compose.ui.unit.sp
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.room.entities.PageContent
-import com.ottrojja.room.entities.PageContentItemType
-import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.classes.TeacherAnswer
+import com.ottrojja.classes.VerseWithAnswer
 import com.ottrojja.composables.LoadingDialog
-import com.ottrojja.composables.SecondaryTopBar
-import com.ottrojja.room.relations.QuranPageWithContent
 
 @Composable
 fun PageTraining(
@@ -79,7 +66,7 @@ fun PageTraining(
     maxTries: Int,
     maxTriesReached: Boolean,
     allRight: Boolean,
-    backToPageSelection: () -> Unit,
+    showResults: () -> Unit,
     correctVersesAnswered: Int,
     lastVerseReached: Boolean,
     isDownloading: Boolean,
@@ -87,7 +74,7 @@ fun PageTraining(
     isPlaying: Boolean,
     onPauseClicked: () -> Unit,
     onDispose: () -> Unit,
-    selectedTrainingVerses: List<PageContent>,
+    selectedTrainingVerses: List<VerseWithAnswer>,
     getChapterName: (Int) -> String
 ) {
     val hiddenIndecies = solutionMap.keys;
@@ -115,8 +102,7 @@ fun PageTraining(
             targetValue = if (selectedTrainingVerses.size <= 1) {
                 1f
             } else {
-                selectedTrainingVerses.indexOf(currentVerse
-                ) / (selectedTrainingVerses.size - 1).toFloat()
+                selectedTrainingVerses.indexOfFirst { it.verse==currentVerse }  / (selectedTrainingVerses.size - 1).toFloat()
             },
             animationSpec = tween(durationMillis = 500) // Customize the duration as needed
         )
@@ -349,7 +335,7 @@ fun PageTraining(
                         .padding(16.dp)
                         .fillMaxWidth()
                 ) {
-                    Button(onClick = { backToPageSelection() }) {
+                    Button(onClick = { showResults() }) {
                         Text(
                             text = "إنهاء",
                             style = MaterialTheme.typography.bodyLarge,
@@ -372,7 +358,7 @@ fun PageTraining(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "${correctVersesAnswered} ايات صحيحة من اصل ${selectedTrainingVerses.filter { it.type == PageContentItemType.verse }.size}",
+                text = "${selectedTrainingVerses.filter { it.answerCorrect }.size} ايات صحيحة من اصل ${selectedTrainingVerses.size}",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.primary
             )

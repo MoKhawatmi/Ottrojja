@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -120,14 +121,11 @@ fun BookmarksScreen(
                             )
                         }
 
-
-                        Image(
-                            painter = painterResource(id = R.drawable.more_vert),
-                            contentDescription = "",
+                        Icon(
+                            Icons.Default.MoreVert,
+                            contentDescription = "Expand Bookmark",
                             modifier = Modifier.clickable {
-                                bookmarksViewModel.updateExpanded(
-                                    item
-                                )
+                                bookmarksViewModel.updateExpanded(item)
                             }
                         )
                     }

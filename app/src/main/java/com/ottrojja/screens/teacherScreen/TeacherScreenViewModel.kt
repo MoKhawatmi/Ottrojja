@@ -3,6 +3,7 @@ package com.ottrojja.screens.teacherScreen
 import android.app.Application
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -23,10 +24,9 @@ import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.room.entities.PageContent
-import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
-import com.ottrojja.room.relations.QuranPageWithContent
+import com.ottrojja.classes.VerseWithAnswer
 import com.ottrojja.screens.listeningScreen.ListeningViewModel
 import com.ottrojja.screens.listeningScreen.ListeningViewModel.SelectionPhase
 import com.ottrojja.screens.mainScreen.ChapterData
@@ -63,12 +63,17 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         }
     }
 
-    private val _selectedTrainingVerses = mutableStateOf(emptyList<PageContent>())
+    /*private val _selectedTrainingVerses = mutableStateOf(emptyList<PageContent>())
     var selectedTrainingVerses: List<PageContent>
         get() = _selectedTrainingVerses.value
         set(value: List<PageContent>) {
             _selectedTrainingVerses.value = value
-        }
+        }*/
+
+    private val _selectedTrainingVerses = mutableStateListOf<VerseWithAnswer>()
+    val selectedTrainingVerses: MutableList<VerseWithAnswer>
+        get() = _selectedTrainingVerses
+
 
     private val _currentVerse = mutableStateOf<PageContent?>(null)
     var currentVerse: PageContent?
@@ -121,7 +126,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         };
     }
 
-     fun getChapterName(id: Int): String {
+    fun getChapterName(id: Int): String {
         return completedChaptersList.find { chapter -> chapter.surahId == id }?.chapterName ?: "";
     }
 
@@ -244,24 +249,18 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
                 endVerse = _endVerse.value,
             )
 
-            _selectedTrainingVerses.value = versesRange; //  _selectedPage.value?.pageContent!!.filter { it.type == PageContentItemType.verse }.toList()
+            _selectedTrainingVerses.addAll(
+                versesRange.map { VerseWithAnswer(verse = it, answerCorrect = false) });
 
-            println(_selectedTrainingVerses.value)
+            println(_selectedTrainingVerses)
             _currentVerseIndex.value = 0
-            _currentVerse.value = _selectedTrainingVerses.value[_currentVerseIndex.value]
+            _currentVerse.value = _selectedTrainingVerses.get(_currentVerseIndex.value).verse
             checkLastVerseReached()
-            //  _hasStarted.value = true;
             println("vm ${_lastVerseReached.value}")
             generateCutVerse();
             _mode.value = TeacherMode.TRAINING;
         }
     }
-
-    /*fun startTeaching() {
-        _hasStarted.value = true;
-        println("vm ${_lastVerseReached.value}")
-        generateCutVerse();
-    }*/
 
     private var _allRight = mutableStateOf(false)
     var allRight: Boolean
@@ -306,12 +305,13 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         if (allRight) {
             _allRight.value = true;
             _correctVersesAnswered.value++;
-        } else if (!allRight) {
+            _selectedTrainingVerses.set(_currentVerseIndex.value, VerseWithAnswer(verse = _currentVerse.value!!, answerCorrect = true))
+        }/* else if (!allRight) {
 
             if (_reachedMaxTries.value) {
 
             }
-        }
+        }*/
 
         if (_currentTry.value == MAX_TRIES) {
             _reachedMaxTries.value = true;
@@ -326,21 +326,25 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             _currentTry.value = 0;
             _allRight.value = false;
             _currentVerseIndex.value++;
-            _currentVerse.value = _selectedTrainingVerses.value[_currentVerseIndex.value]
+            _currentVerse.value = _selectedTrainingVerses.get(_currentVerseIndex.value).verse
             generateCutVerse()
         }
         checkLastVerseReached()
     }
 
     fun checkLastVerseReached() {
-        if (_currentVerseIndex.value >= _selectedTrainingVerses.value.size - 1) {
+        if (_currentVerseIndex.value >= _selectedTrainingVerses.size - 1) {
             _lastVerseReached.value = true;
         }
     }
 
-    fun backToPages() {
+    fun backToSelection() {
         _mode.value = TeacherMode.SELECTION
         resetAll()
+    }
+
+    fun showResults() {
+        _mode.value = TeacherMode.RESULTS
     }
 
     fun resetAll() {
@@ -350,7 +354,8 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         _currentTry.value = 0;
         _allRight.value = false;
         _currentVerseIndex.value = 0;
-        _selectedTrainingVerses.value = emptyList<PageContent>();
+        //_selectedTrainingVerses.value = emptyList<PageContent>();
+        _selectedTrainingVerses.clear()
         _hasStarted.value = false;
         _correctVersesAnswered.value = 0;
         _lastVerseReached.value = false;
@@ -389,7 +394,6 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         println(solutionMap)
     }
 
-    // i really don't understand how this works
     private var _inputSolutions = mutableStateMapOf<Int, TeacherAnswer>()
     var inputSolutions: SnapshotStateMap<Int, TeacherAnswer>
         get() = _inputSolutions
@@ -479,11 +483,9 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
     fun playVerse() {
         if (length > 0) {
             exoPlayer.play()
-            //_isPlaying.value = true;
             return;
         }
-        val path =
-            "${_currentVerse.value?.pageNum}-${_currentVerse.value?.surahNum}-${_currentVerse.value?.verseNum}.mp3"
+        val path = "${_currentVerse.value?.pageNum}-${_currentVerse.value?.surahNum}-${_currentVerse.value?.verseNum}.mp3"
         val localFile = File(
             context.getExternalFilesDir(null),
             path
@@ -515,13 +517,10 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
     fun pauseVerse() {
         length = exoPlayer.currentPosition;
         println(length)
-        //_mediaPlayer.pause()
         exoPlayer.pause()
-        // _isPlaying.value = false;
     }
 
     fun resetMedia() {
-        //_mediaPlayer.reset()
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
         _isPlaying.value = false;
@@ -566,8 +565,9 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         )
     }
 
+
     enum class TeacherMode {
-        SELECTION, TRAINING
+        SELECTION, TRAINING, RESULTS
     }
 }
 

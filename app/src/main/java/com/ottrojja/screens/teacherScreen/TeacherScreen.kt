@@ -2,7 +2,6 @@ package com.ottrojja.screens.teacherScreen
 
 import android.app.Application
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.outlined.Pending
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,9 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -45,10 +41,7 @@ import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.composables.TopBar
-import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaDialog
-import com.ottrojja.composables.SecondaryTopBar
-import com.ottrojja.composables.PillShapedTextFieldWithIcon
 import com.ottrojja.screens.listeningScreen.ListeningViewModel
 import com.ottrojja.screens.listeningScreen.SurahSelectionDialog
 import com.ottrojja.screens.listeningScreen.VerseSelectionDialog
@@ -121,11 +114,11 @@ fun TeacherScreen(
                 icon = Icons.Default.Info,
                 action = { teacherScreenViewModel.showInstructionsDialog = true }
             ),
-            secondaryActions = if (teacherScreenViewModel.mode == TeacherScreenViewModel.TeacherMode.TRAINING) {
+            secondaryActions = if (teacherScreenViewModel.mode != TeacherScreenViewModel.TeacherMode.SELECTION) {
                 listOf(
                     ButtonAction(
                         icon = Icons.Filled.ArrowBack,
-                        action = { teacherScreenViewModel.backToPages() },
+                        action = { teacherScreenViewModel.backToSelection() },
                         title = "إنهاء"
                     )
                 )
@@ -164,8 +157,8 @@ fun TeacherScreen(
                 maxTries = teacherScreenViewModel.MAX_TRIES,
                 maxTriesReached = teacherScreenViewModel.reachedMaxTries,
                 allRight = teacherScreenViewModel.allRight,
-                backToPageSelection = {
-                    teacherScreenViewModel.backToPages()
+                showResults = {
+                    teacherScreenViewModel.showResults()
                 },
                 correctVersesAnswered = teacherScreenViewModel.correctVersesAnswered,
                 lastVerseReached = teacherScreenViewModel.lastVerseReached,
@@ -175,7 +168,12 @@ fun TeacherScreen(
                 onPauseClicked = { teacherScreenViewModel.pauseVerse() },
                 onDispose = { teacherScreenViewModel.resetMedia(); },
                 selectedTrainingVerses = teacherScreenViewModel.selectedTrainingVerses,
-                getChapterName= {chapterId-> teacherScreenViewModel.getChapterName(chapterId)}
+                getChapterName = { chapterId -> teacherScreenViewModel.getChapterName(chapterId) }
+            )
+
+            TeacherScreenViewModel.TeacherMode.RESULTS -> FinalResults(
+                selectedTrainingVerses = teacherScreenViewModel.selectedTrainingVerses,
+                backToSelection = { teacherScreenViewModel.backToSelection() }
             )
         }
     }
@@ -196,6 +194,10 @@ fun InstructionsDialog(onDismiss: () -> Unit) {
     instructionsText.add(
         "امامك ثلاث محاولات للوصول للاجابات الصحيحة وبعدها يتم إظهار النص الصحيح لمقارنته بالحل ويمكنك عندها الاستماع للاية صوتيا"
     )
+    instructionsText.add(
+        "بعد الانتهاء من الاجابة على جميع الايات سيتم عرض قائمة بالايات وإن كانت الاجابة عليها صحيحة ام لا"
+    )
+
 
     OttrojjaDialog(
         contentModifier = Modifier

@@ -52,15 +52,11 @@ fun SolutionInputTextField(
         .padding(horizontal = 2.dp, vertical = 1.dp)
         .width(desiredWidth)
         .background(
-            if (value.status == AnswerStatus.UNCHECKED) MaterialTheme.colorScheme.background else if (value.status == AnswerStatus.RIGHT) Color(
-                0xFFE2FFD6
-            ) else MaterialTheme.colorScheme.errorContainer
+            if (value.status == AnswerStatus.UNCHECKED) MaterialTheme.colorScheme.background else if (value.status == AnswerStatus.RIGHT) Color(0xFFE2FFD6) else MaterialTheme.colorScheme.errorContainer
         )
         .border(
             1.dp,
-            if (value.status == AnswerStatus.UNCHECKED) MaterialTheme.colorScheme.primary else if (value.status == AnswerStatus.RIGHT) Color(
-                0xFF29712C
-            ) else MaterialTheme.colorScheme.error,
+            if (value.status == AnswerStatus.UNCHECKED) MaterialTheme.colorScheme.primary else if (value.status == AnswerStatus.RIGHT) Color(0xFF29712C) else MaterialTheme.colorScheme.error,
             shape = RoundedCornerShape(6.dp)
         )
         .onFocusChanged { isFocused = it.isFocused }
