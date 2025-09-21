@@ -66,7 +66,7 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
                     if (state != null) {
                         withContext(Dispatchers.Main) {
                             _customTasabeehList.value = state.tasabeehList;
-                            // i'd like to use this line to that roomdb dev team for not adding order by functionality to @relation queries, which led us to this wonderful moment
+                            // i'd like to use this line to thank the roomdb dev team for not adding order by functionality to @relation queries, which led us to this wonderful moment
                             _customTasabeeh.addAll(state.customTasabeeh.sortedBy { it.position })
                         }
                     }

@@ -32,7 +32,7 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
     AndroidViewModel(application) {
     val context = application.applicationContext;
 
-   // val sharedPreferences: SharedPreferences = application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
+    // val sharedPreferences: SharedPreferences = application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
 
     private val dataStore = application.dataStore
     private val COUNT_KEY = intPreferencesKey("tasbeehCount")
@@ -57,13 +57,11 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
 
 
     init {
-      //  _tasbeehCount.value = sharedPreferences.getInt("tasbeehCount", 0)
+        //  _tasbeehCount.value = sharedPreferences.getInt("tasbeehCount", 0)
         try {
             JsonParser(context).parseJsonArrayFile<Tasabeeh>("tasabeeh.json")
                 ?.let {
-                    it.forEach { item ->
-                        _tasabeeh.add(ExpandableItem(data = item, expanded = false))
-                    }
+                    _tasabeeh.addAll(it.map { item -> ExpandableItem(data = item) })
                 }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -129,7 +127,7 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "TasbeehScreenViewModel")
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 }
             }

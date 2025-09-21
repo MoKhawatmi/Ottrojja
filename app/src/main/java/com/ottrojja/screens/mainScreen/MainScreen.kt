@@ -299,7 +299,11 @@ fun MainScreen(
                 }
 
                 BrowsingOption.الاجزاء -> {
-                    PartsMenu(mainViewModel.getPartsList(), navController)
+                    PartsMenu(
+                        items = mainViewModel.getPartsList(),
+                        navController = navController,
+                        updateExpanded = { item -> mainViewModel.updateExpandedPartItem(item) }
+                    )
                 }
 
                 BrowsingOption.البحث -> {

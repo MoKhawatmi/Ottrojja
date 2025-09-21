@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,9 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -31,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.Helpers.convertToIndianNumbers
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.ListHorizontalDivider
@@ -39,8 +39,9 @@ import com.ottrojja.room.relations.PartWithQuarters
 
 @Composable
 fun PartsMenu(
-    items: List<PartWithQuarters> = listOf<PartWithQuarters>(),
-    navController: NavController
+    items: List<ExpandableItem<PartWithQuarters>> = listOf(),
+    navController: NavController,
+    updateExpanded: (ExpandableItem<PartWithQuarters>) -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current;
 
@@ -51,7 +52,9 @@ fun PartsMenu(
             .background(MaterialTheme.colorScheme.background)
     ) {
         items(items) { item ->
-            PartItem(part = item,
+            PartItem(part = item.data,
+                expanded = item.expanded,
+                toggleExpanded = { updateExpanded(item) },
                 itemClicked = { pageNum ->
                     keyboardController!!.hide();
                     navController.navigate(Screen.QuranScreen.invokeRoute(pageNum))
@@ -62,9 +65,11 @@ fun PartsMenu(
 
 
 @Composable
-fun PartItem(part: PartWithQuarters, itemClicked: (String) -> Unit) {
+fun PartItem(part: PartWithQuarters,
+             expanded: Boolean,
+             toggleExpanded: () -> Unit,
+             itemClicked: (String) -> Unit) {
 
-    var expanded by remember { mutableStateOf(false) }
     val rotation by animateFloatAsState(
         targetValue = if (expanded) 90f else 0f,
         animationSpec = tween(durationMillis = 200)
@@ -77,7 +82,11 @@ fun PartItem(part: PartWithQuarters, itemClicked: (String) -> Unit) {
 
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.primaryContainer)
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    MaterialTheme.colorScheme.primaryContainer
+                )
         ) {
             Column(modifier = Modifier
                 .padding(0.dp, 2.dp)
@@ -109,14 +118,16 @@ fun PartItem(part: PartWithQuarters, itemClicked: (String) -> Unit) {
                     .rotate(rotation)
                     .padding(6.dp, 0.dp)
                     .size(32.dp)
-                    .clickable(onClick = { expanded = !expanded })
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { toggleExpanded() })
             )
         }
         ListHorizontalDivider()
 
 
         AnimatedVisibility(expanded) {
-
             Column {
                 part.quarters.forEachIndexed { index, it ->
                     var hizbText = "";
@@ -133,9 +144,7 @@ fun PartItem(part: PartWithQuarters, itemClicked: (String) -> Unit) {
                         isLastItem = (index == 7)
                     )
                 }
-
             }
-
         }
     }
 }

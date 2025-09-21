@@ -1,5 +1,6 @@
 package com.ottrojja.screens.customTasabeehListScreen
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -41,6 +43,8 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                            onTasbeehChange: (CustomTasbeeh) -> Unit,
                            mode: ModalFormMode
 ) {
+    val context = LocalContext.current
+
     OttrojjaDialog(
         contentModifier = Modifier
             .padding(8.dp)
@@ -55,8 +59,11 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
 
         Column(modifier = Modifier.wrapContentHeight()) {
             Row(modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center) {
-                Text(text = if(mode==ModalFormMode.ADD) "إضافة ذكر" else "تعديل الذكر", textAlign = TextAlign.Center)
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(text = if (mode == ModalFormMode.ADD) "إضافة ذكر" else "تعديل الذكر",
+                    textAlign = TextAlign.Center
+                )
             }
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 6.dp),
@@ -121,7 +128,7 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
             ) {
                 OutlinedTextField(
                     value = "${tasbeehInWork.count}",
-                    onValueChange = { newText:String ->
+                    onValueChange = { newText: String ->
                         val filteredText = newText.filter { it.isDigit() } // Allow only digits
                         val intValue = filteredText.toIntOrNull() ?: 0 // Convert to integer safely
                         if (intValue <= 1000000) {
@@ -157,6 +164,8 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                     onClick = {
                         if (tasbeehInWork.text.isNotBlank() && tasbeehInWork.count.toString().isNotBlank()) {
                             onConfirm()
+                        } else {
+                            Toast.makeText(context, "يرجى التأكد من البيانات المدخلة", Toast.LENGTH_LONG).show()
                         }
                     },
                     modifier = Modifier
@@ -164,7 +173,7 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                         .padding(vertical = 2.dp)
                 ) {
                     Text(
-                        text = if(mode==ModalFormMode.ADD) "إضافة" else "تعديل",
+                        text = if (mode == ModalFormMode.ADD) "إضافة" else "تعديل",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }

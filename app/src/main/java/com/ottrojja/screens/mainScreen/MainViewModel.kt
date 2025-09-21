@@ -15,14 +15,17 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
+import com.ottrojja.classes.Tasabeeh
 import com.ottrojja.room.relations.PartWithQuarters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.exp
 
 
 class MainViewModel(private val repository: QuranRepository, application: Application) :
@@ -31,16 +34,19 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
         application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
 
     private val pagesList: List<String> = (1..604).map { "صفحة $it" };
-    lateinit private var partsList: List<PartData>;
     lateinit private var chaptersList: List<ChapterData>;
-    lateinit private var partsWithQuartersList: List<PartWithQuarters>;
+    private val partsWithQuartersList = mutableStateListOf<ExpandableItem<PartWithQuarters>>()
 
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            partsList = repository.getAllParts()
             chaptersList = repository.getAllChapters()
-            partsWithQuartersList = repository.getAllPartsWithQuarters()
+            val partsWithQuarters = repository.getAllPartsWithQuarters().map {
+                ExpandableItem(data = it)
+            };
+            withContext(Dispatchers.Main) {
+                partsWithQuartersList.addAll(partsWithQuarters)
+            }
         }
     }
 
@@ -119,13 +125,16 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
         };
     }
 
-    fun getPartsList(): List<PartWithQuarters> {
+    fun getPartsList(): List<ExpandableItem<PartWithQuarters>> {
         return partsWithQuartersList.filter {
-            (it.part.partName.contains(_searchFilter)
-                    || it.part.partId.contains(_searchFilter)
-                    || it.part.partId.contains(convertToArabicNumbers(_searchFilter)))
-                    || (it.quarters.any { it.hizb.equals(_searchFilter) }
-                    || it.quarters.any { it.hizb.equals(convertToArabicNumbers(_searchFilter)) })
+            (it.data.part.partName.contains(_searchFilter)
+                    || it.data.part.partId.contains(_searchFilter)
+                    || it.data.part.partId.contains(convertToArabicNumbers(_searchFilter)))
+                    || (it.data.quarters.any { it.hizb.equals(_searchFilter) }
+                    || it.data.quarters.any {
+                it.hizb.equals(convertToArabicNumbers(_searchFilter)
+                )
+            })
         };
     }
 
@@ -135,10 +144,6 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
                     || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter)
                     || chapter.surahId.toString() == _searchFilter
         };
-    }
-
-    fun findPartStart(inputValue: String): String {
-        return partsList.find { data -> data.partId == inputValue }!!.partStartPage
     }
 
     fun shareVerse(context: Context, verseItem: SearchResult) {
@@ -184,6 +189,11 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
             quranSearchResults.clear()
             invokeLatestSearchOperation()
         }
+    }
+
+    fun updateExpandedPartItem(item: ExpandableItem<PartWithQuarters>) {
+        val findItemIndex = partsWithQuartersList.indexOfFirst { it.data.part.partId == item.data.part.partId }
+        partsWithQuartersList.set(findItemIndex, item.copy(expanded = !item.expanded))
     }
 }
 

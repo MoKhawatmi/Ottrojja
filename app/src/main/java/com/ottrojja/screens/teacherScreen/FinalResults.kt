@@ -131,6 +131,7 @@ fun FinalResults(selectedTrainingVerses: List<VerseWithAnswer>,
                     Text(
                         text = "إنهاء",
                         style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(bottom = 2.dp)
                     )
                 }
             }
