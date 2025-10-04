@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,7 +41,6 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.ottrojja.R
-import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Screen
 
 
@@ -159,7 +159,11 @@ fun BottomNavigation(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FixedHeightModalBottomSheet(onDismissRequest: () -> Unit, content: @Composable () -> Unit) {
+fun NavigationModalBottomSheet(navController: NavController ,onDismissRequest: () -> Unit, onItemClick:(String)->Unit) {
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
+
+
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
         confirmValueChange = { newValue ->
@@ -168,6 +172,7 @@ fun FixedHeightModalBottomSheet(onDismissRequest: () -> Unit, content: @Composab
         }
     )
 
+
     ModalBottomSheet(
         onDismissRequest = { onDismissRequest() },
         sheetState = sheetState,
@@ -175,11 +180,86 @@ fun FixedHeightModalBottomSheet(onDismissRequest: () -> Unit, content: @Composab
     ) {
         Column(modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background
-            )
+            .background(MaterialTheme.colorScheme.background)
             .padding(vertical = 20.dp, horizontal = 12.dp)
         ) {
-            content()
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                maxItemsInEachRow = 3,
+            ) {
+                BottomNavigationOption(
+                    optionText = "إشراقات",
+                    isCurrent = Screen.BlessingsScreen.route == currentRoute,
+                    onClick = {
+                        onItemClick(Screen.BlessingsScreen.route)
+                    },
+                    iconId = R.drawable.twilight,
+                    alternateIcon = null,
+                    modifier = Modifier.weight(1f)
+
+                )
+
+                BottomNavigationOption(
+                    optionText = "القبلة",
+                    isCurrent = Screen.QiblaScreen.route == currentRoute,
+                    onClick = {
+                        onItemClick(Screen.QiblaScreen.route)
+                    },
+                    iconId = R.drawable.qibla,
+                    alternateIcon = null,
+                    modifier = Modifier.weight(1f)
+
+                )
+
+                BottomNavigationOption(
+                    optionText = "المعلم",
+                    isCurrent = Screen.TeacherScreen.route == currentRoute,
+                    onClick = {
+                        onItemClick(Screen.TeacherScreen.route)
+                    },
+                    iconId = R.drawable.teacher,
+                    alternateIcon = null,
+                    modifier = Modifier.weight(1f)
+
+                )
+
+                BottomNavigationOption(
+                    optionText = "الختمات",
+                    isCurrent = Screen.KhitmahListScreen.route == currentRoute,
+                    onClick = {
+                        onItemClick(Screen.KhitmahListScreen.route)
+                    },
+                    iconId = R.drawable.khitmah,
+                    alternateIcon = null,
+                    modifier = Modifier.weight(1f)
+
+                )
+
+                BottomNavigationOption(
+                    optionText = "المرجعيات",
+                    isCurrent = Screen.BookmarksScreen.route == currentRoute,
+                    onClick = {
+                        onItemClick(Screen.BookmarksScreen.route)
+                    },
+                    iconId = R.drawable.bookmarks,
+                    alternateIcon = null,
+                    modifier = Modifier.weight(1f)
+
+                )
+
+                BottomNavigationOption(
+                    optionText = "الاعدادات",
+                    isCurrent = Screen.SettingsScreen.route == currentRoute,
+                    onClick = {
+                        onItemClick(Screen.SettingsScreen.route)
+                    },
+                    iconId = R.drawable.settings,
+                    alternateIcon = null,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 
