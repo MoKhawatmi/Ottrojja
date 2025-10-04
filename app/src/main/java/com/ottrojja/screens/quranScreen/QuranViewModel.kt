@@ -450,7 +450,11 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                     e.printStackTrace()
                     reportException(exception = e, file = "QuranViewModel")
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
+                        if (e.message?.contains("ENOSPC") == true) {
+                            Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
+                        }
                     }
                     localFile.delete()
                     allVersesExist = false;

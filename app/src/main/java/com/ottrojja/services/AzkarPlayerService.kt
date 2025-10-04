@@ -124,6 +124,7 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
                 override fun onPlayerError(error: PlaybackException) {
                     super.onPlayerError(error)
                     error.printStackTrace()
+                    reportException(exception = error, file = "AzkarPlayerService")
                     Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
                         .show()
                 }
@@ -131,14 +132,6 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
         )
     }
 
-    /*override fun getSelectedChapterId(): StateFlow<String> {
-        return _selectedChapterId;
-    }
-
-    override fun setSelectedChapterId(id: String) {
-        _selectedChapterId.value = id;
-        println("set chapter ${_selectedChapterId.value}")
-    }*/
 
     override fun getSliderPosition(): StateFlow<Float> {
         return _sliderPosition;
@@ -347,9 +340,7 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
                         }
                         _isPlaying.value = false;
                         _isPaused.value = false;
-                      //  _playingChapter.value = false;
                         _playingZikr.value = false;
-                      //  _selectedChapterId.value = "";
                         _destroyed.value = true;
                         stopForeground(true)
                         stopSelf()

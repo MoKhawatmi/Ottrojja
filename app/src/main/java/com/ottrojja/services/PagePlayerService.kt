@@ -191,8 +191,8 @@ class PagePlayerService : Service(), PageServiceInterface {
                     super.onPlayerError(error)
                     logDebug("Error in player; PagePlayerService")
                     error.printStackTrace()
-                    Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
-                        .show()
+                    reportException(exception = error, file = "PagePlayerService")
+                    Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG).show()
                 }
             }
         )
@@ -421,7 +421,6 @@ class PagePlayerService : Service(), PageServiceInterface {
                     Actions.NOTI_PLAY.toString() -> {
                         if (!_isPlaying.value) {
                             resumeTrack()
-                            //resumeFlag.value++;
                         }
                     }
 
@@ -507,8 +506,6 @@ class PagePlayerService : Service(), PageServiceInterface {
         _startPlayingIndex.value = 0;
         _startPlayingItem.value = null;
         _endPlayingItem.value = null;
-        /*_selectedRepetition.value = "0";
-        selectedMappedRepetitions = 0;*/
         repeatedTimes = 0;
         length = 0;
     }

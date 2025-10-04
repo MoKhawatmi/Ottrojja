@@ -49,12 +49,11 @@ val MIGRATION_7_8 = object : Migration(7, 8) {
                 sura TEXT NOT NULL,
                 aya TEXT NOT NULL,
                 pageNum TEXT NOT NULL,
-                part TEXT NOT NULL
+                part TEXT NOT NULL,
                 hizb TEXT NOT NULL
             )
         """.trimIndent()
         )
-
     }
 }
 

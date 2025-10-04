@@ -6,6 +6,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -59,10 +60,11 @@ fun NamesOfGod(namesOfGodViewModel: NamesOfGodViewModel = viewModel(), navContro
                 columns = GridCells.Fixed(3),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(top = 10.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.tertiary)
-                    .padding(top = 12.dp, end = 2.dp, start = 2.dp, bottom = 6.dp)
+                    .padding(top = 0.dp, end = 2.dp, start = 2.dp, bottom = 6.dp)
             ) {
                 items(namesOfGodViewModel.namesOfGod, key = { it.data.id }) { item ->
                     NamesOfGodItem(name = item.data.name,

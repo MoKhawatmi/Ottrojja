@@ -14,6 +14,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.ottrojja.R
 import com.ottrojja.services.AudioServiceInterface
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
@@ -321,7 +322,11 @@ class ZikrViewModel(
                     e.printStackTrace()
                     reportException(exception = e, file = "ZikrViewModel")
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
+                        if (e.message?.contains("ENOSPC") == true) {
+                            Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
+                        }
                     }
                     localFile.delete()
                 } finally {

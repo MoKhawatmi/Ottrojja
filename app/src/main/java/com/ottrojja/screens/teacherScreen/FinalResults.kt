@@ -2,12 +2,10 @@ package com.ottrojja.screens.teacherScreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -39,11 +37,10 @@ fun FinalResults(selectedTrainingVerses: List<VerseWithAnswer>,
     Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
+                .weight(1f)
                 .fillMaxWidth()
-                .fillMaxHeight(0.75f)
                 .background(MaterialTheme.colorScheme.background),
             contentPadding = PaddingValues(all = 10.dp),
-
             ) {
             items(selectedTrainingVerses) { item ->
                 Column(modifier = Modifier
@@ -100,7 +97,7 @@ fun FinalResults(selectedTrainingVerses: List<VerseWithAnswer>,
             }
         }
 
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
             Row(
                 modifier = Modifier
                     .padding(10.dp)
@@ -130,8 +127,7 @@ fun FinalResults(selectedTrainingVerses: List<VerseWithAnswer>,
                 Button(onClick = { backToSelection() }) {
                     Text(
                         text = "إنهاء",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(bottom = 2.dp)
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
             }

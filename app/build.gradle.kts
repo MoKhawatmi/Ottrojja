@@ -14,8 +14,8 @@ android {
         applicationId = "com.ottrojja"
         minSdk = 24
         targetSdk = 36
-        versionCode = 37
-        versionName = "1.8.4"
+        versionCode = 40
+        versionName = "1.8.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -24,7 +24,6 @@ android {
 
         buildConfigField("String", "SUPABASE_URL", "\"${project.property("SUPABASE_URL")}\"")
         buildConfigField("String", "SUPABASE_PUBLIC_KEY", "\"${project.property("SUPABASE_PUBLIC_KEY")}\"")
-
     }
 
     buildTypes {
@@ -68,7 +67,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3:1.3.2")
-    implementation("androidx.compose.foundation:foundation:1.9.1")
+    implementation("androidx.compose.foundation:foundation:1.9.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
     implementation("androidx.lifecycle:lifecycle-process:2.9.4")
     implementation("androidx.compose.material3:material3-window-size-class-android:1.3.2")
@@ -91,15 +90,15 @@ dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
 
-    implementation("androidx.room:room-runtime:2.8.0")
-    implementation("androidx.room:room-ktx:2.8.0")
-    ksp("androidx.room:room-compiler:2.8.0")
+    implementation("androidx.room:room-runtime:2.8.1")
+    implementation("androidx.room:room-ktx:2.8.1")
+    ksp("androidx.room:room-compiler:2.8.1")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 
     implementation("androidx.media3:media3-exoplayer:1.8.0")
 
-    implementation(platform("io.github.jan-tennert.supabase:bom:3.2.3"))
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.2.4"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.ktor:ktor-client-android:3.3.0")
 

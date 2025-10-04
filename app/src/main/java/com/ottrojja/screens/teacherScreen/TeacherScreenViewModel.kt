@@ -19,6 +19,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.ottrojja.R
 import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
@@ -467,7 +468,11 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
                     e.printStackTrace()
                     reportException(exception = e, file = "TeacherScreenViewModel")
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
+                        if (e.message?.contains("ENOSPC") == true) {
+                            Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
+                        }
                     }
                     localFile.delete()
                 } finally {

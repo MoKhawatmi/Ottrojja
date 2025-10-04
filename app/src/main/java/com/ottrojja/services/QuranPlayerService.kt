@@ -131,7 +131,6 @@ class QuranPlayerService : Service(), QuranServiceInterface {
                         val updateProgressAction = object : Runnable {
                             override fun run() {
                                 val currPosition = exoPlayer.currentPosition.toFloat()
-                                // println("i run $currPosition")
                                 _sliderPosition.value = currPosition;
                                 handler.postDelayed(this, 400)
                             }
@@ -190,68 +189,10 @@ class QuranPlayerService : Service(), QuranServiceInterface {
                     }
                 }
 
-
-                /*override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                    super.onMediaItemTransition(mediaItem, reason)
-
-                    if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) {
-                        exoPlayer.pause()
-                        println("verse repeated")
-                        if (_currentPlayingParameters.value?.listeningMode == QuranListeningMode.مقطع_ايات &&
-                            verseRepeatedTimes < repetitionOptionsMap.getOrDefault(
-                                _currentPlayingParameters.value?.verseRepetitions, 0
-                            )) {
-                            verseRepeatedTimes++;
-                            exoPlayer.play();
-                        } else if (_currentPlayingParameters.value?.listeningMode == QuranListeningMode.مقطع_ايات &&
-                            verseRepeatedTimes >= repetitionOptionsMap.getOrDefault(
-                                _currentPlayingParameters.value?.verseRepetitions, 0
-                            )) {
-                            verseRepeatedTimes = 0;
-                            if (exoPlayer.hasNextMediaItem()) {
-                                exoPlayer.seekToNextMediaItem()
-                                exoPlayer.play()
-                            } else {
-                                if (rangeRepeatedTimes < repetitionOptionsMap.getOrDefault(
-                                        _currentPlayingParameters.value?.verseRangeRepetitions, 0
-                                    )) {
-                                    rangeRepeatedTimes++;
-                                    exoPlayer.seekTo(0, 0)
-                                    exoPlayer.play()
-                                } else {
-                                    prepareForNewTrack()
-                                }
-                            }
-                        }
-                    }
-                }*/
-
-
-                /*override fun onPositionDiscontinuity(
-                    oldPosition: Player.PositionInfo,
-                    newPosition: Player.PositionInfo,
-                    reason: Int
-                ) {
-                    if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION) {
-                        exoPlayer.pause()
-                        val previousIndex = oldPosition.mediaItemIndex
-                        val repeatCount = verseRepeatedTimes
-
-                        if (repeatCount < repetitionOptionsMap.getOrDefault(_currentPlayingParameters.value?.verseRepetitions,0)) {
-                            verseRepeatedTimes++;
-                            exoPlayer.seekTo(previousIndex, 0L)
-                        } else {
-                            verseRepeatedTimes = 0
-                            // Proceed to the next item as usual
-                        }
-                        exoPlayer.play()
-                    }
-                }*/
-
-
                 override fun onPlayerError(error: PlaybackException) {
                     super.onPlayerError(error)
-                    println(error.printStackTrace())
+                    error.printStackTrace()
+                    reportException(exception = error, file = "QuranPlayerService")
                     Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
                         .show()
                 }

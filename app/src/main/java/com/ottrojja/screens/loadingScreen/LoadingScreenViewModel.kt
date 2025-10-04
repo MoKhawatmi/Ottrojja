@@ -51,6 +51,8 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     val pagesContentJsonVersion = sharedPreferences.getInt("pagesContentJsonVersion", 0)
     val ahzabJsonVersion = sharedPreferences.getInt("ahzabJsonVersion", 0)
 
+    private val httpClient: OkHttpClient by lazy { OkHttpClient() }
+
     private var _loaded = mutableStateOf(false)
     var loaded: Boolean
         get() = _loaded.value
@@ -260,14 +262,13 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     }
 
     suspend private fun downloadAndUpdateQuranFile(quranFile: File) {
-        val client = OkHttpClient()
         val request = Request.Builder()
             .url(QURAN_FILE_URL)
             .head()  // HEAD request to get metadata
             .build()
         try {
             loadingFile = true
-            val response = client.newCall(request).execute()
+            val response = httpClient.newCall(request).execute()
             if (response.isSuccessful) {
                 println("success meta")
                 println(response.headers)
@@ -296,15 +297,16 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     }
 
     private fun downloadFile(quranFile: File) {
-        val client = OkHttpClient()
+        val tempFile = File.createTempFile("temp_", ".json", context.getExternalFilesDir(null))
         val request = Request.Builder()
             .url(QURAN_FILE_URL)
             .build()
         try {
-            val response = client.newCall(request).execute()
+            val response = httpClient.newCall(request).execute()
             if (response.isSuccessful) {
                 response.body?.string()?.let { jsonData ->
-                    quranFile.writeText(jsonData)
+                    tempFile.writeText(jsonData)
+                    tempFile.copyTo(quranFile, overwrite = true)
                     println("success download")
                     parseAndSetQuranData(quranFile, true)
                     loadingFile = false
@@ -319,6 +321,8 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             reportException(exception = e, file = "LoadingScreenViewModel")
             println("failed download: ${e.message}")
             handleDownloadError(quranFile, e)
+        } finally {
+            tempFile.delete()
         }
     }
 

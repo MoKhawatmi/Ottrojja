@@ -69,8 +69,10 @@ import com.ottrojja.ui.theme.md_theme_light_primary
 import com.ottrojja.ui.theme.md_theme_light_secondary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.abs
@@ -260,22 +262,30 @@ private fun CompassContent(showPositionDialog: Boolean,
 
     LaunchedEffect(Unit) {
         try {
-            LocationProvider.getLocationUpdates(context).collectLatest { location ->
-                //println("new location $location")
-                locationState.value = location
-                val userLoc = Location("service Provider");
-                //get longitudeM Latitude and altitude of current location with gps class and  set in userLoc
-                userLoc.setLongitude(location.longitude);
-                userLoc.setLatitude(location.latitude);
-                userLoc.setAltitude(location.altitude);
+            LocationProvider.getLocationUpdates(context)
+                .onCompletion { cause ->
+                    if (cause is CancellationException) {
+                        // do nothing
+                    }
+                }
+                .catch { e ->
+                    e.printStackTrace()
+                    Toast.makeText(context, "حصل خطأ", Toast.LENGTH_LONG).show()
+                }
+                .collectLatest { location ->
+                    locationState.value = location
+                    val userLoc = Location("service Provider");
+                    //get longitudeM Latitude and altitude of current location with gps class and  set in userLoc
+                    userLoc.setLongitude(location.longitude);
+                    userLoc.setLatitude(location.latitude);
+                    userLoc.setAltitude(location.altitude);
 
-                val destinationLoc = Location("service Provider");
-                destinationLoc.setLatitude(21.422487); //kaaba latitude setting
-                destinationLoc.setLongitude(39.826206); //kaaba longitude setting
-                val bearTo = userLoc.bearingTo(destinationLoc);
-                bearing = normalizeAngle(bearTo)
-
-            }
+                    val destinationLoc = Location("service Provider");
+                    destinationLoc.setLatitude(21.422487); //kaaba latitude setting
+                    destinationLoc.setLongitude(39.826206); //kaaba longitude setting
+                    val bearTo = userLoc.bearingTo(destinationLoc);
+                    bearing = normalizeAngle(bearTo)
+                }
         } catch (e: CancellationException) {
             //nothing
         } catch (e: Exception) {

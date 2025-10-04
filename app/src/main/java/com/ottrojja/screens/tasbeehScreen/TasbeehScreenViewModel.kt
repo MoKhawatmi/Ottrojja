@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 
 private val Application.dataStore by preferencesDataStore(name = "ottrojja")
 
@@ -57,7 +58,6 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
 
 
     init {
-        //  _tasbeehCount.value = sharedPreferences.getInt("tasbeehCount", 0)
         try {
             JsonParser(context).parseJsonArrayFile<Tasabeeh>("tasabeeh.json")
                 ?.let {
@@ -71,10 +71,6 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
     }
 
     fun increaseTasbeeh() {
-        /*_tasbeehCount.value++;
-        val editor: SharedPreferences.Editor = sharedPreferences.edit()
-        editor.putInt("tasbeehCount", _tasbeehCount.value)
-        editor.apply()*/
 
         viewModelScope.launch {
             dataStore.edit { preferences ->
@@ -86,10 +82,6 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
     }
 
     fun resetTasbeeh() {
-        /*_tasbeehCount.value = 0
-        val editor: SharedPreferences.Editor = sharedPreferences.edit()
-        editor.putInt("tasbeehCount", _tasbeehCount.value)
-        editor.apply()*/
         viewModelScope.launch {
             dataStore.edit { preferences ->
                 preferences[COUNT_KEY] = 0
@@ -124,7 +116,10 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
                 repository.getTasabeehLists().collect { state ->
                     _tasabeehLists.value = state;
                 }
-            } catch (e: Exception) {
+            }
+            catch (e: CancellationException) {
+                //nothing
+            }catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "TasbeehScreenViewModel")
                 withContext(Dispatchers.Main) {
