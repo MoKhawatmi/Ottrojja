@@ -378,6 +378,10 @@ fun ListeningScreen(
                     )
                 }
                 if (listeningViewModel.isPlaying && listeningViewModel.listeningMode == listeningViewModel.currentPlayingParameters?.listeningMode && listeningViewModel.listeningMode == QuranListeningMode.سورة_كاملة) {
+                    Text(listeningViewModel.progressTimeCodeDisplay,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     MediaSlider(
                         sliderPosition = listeningViewModel.sliderPosition,
                         setSliderPosition = { value -> listeningViewModel.sliderChanged(value) },

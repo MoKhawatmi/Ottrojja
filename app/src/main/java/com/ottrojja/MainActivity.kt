@@ -49,10 +49,7 @@ class MainActivity : ComponentActivity() {
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun isNotificationPermissionGranted() =
-        ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.POST_NOTIFICATIONS
-        ) == PERMISSION_GRANTED
+        ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PERMISSION_GRANTED
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -136,13 +133,13 @@ class MainActivity : ComponentActivity() {
                     }
 
                     if (showNavPopUp == true) {
-                        NavigationModalBottomSheet(navController = navController, onDismissRequest = { showNavPopUp = false },
+                        NavigationModalBottomSheet(navController = navController,
+                            onDismissRequest = { showNavPopUp = false },
                             onItemClick = { route ->
                                 navController.navigate(route);
                                 showNavPopUp = false;
                             })
                     }
-
                 }
             }
         }
@@ -151,7 +148,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        println("configured");
+        println("configuration changed");
     }
 
     override fun onDestroy() {

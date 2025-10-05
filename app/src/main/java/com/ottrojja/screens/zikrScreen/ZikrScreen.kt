@@ -12,25 +12,19 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.outlined.DownloadForOffline
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -86,7 +80,9 @@ fun ZikrScreen(
                 add(
                     ButtonAction(
                         icon = Icons.Default.ContentCopy,
-                        action = { copyToClipboard(context, zikr.value.azkarText, "تم تسخ الذكر بنجاح") },
+                        action = {
+                            copyToClipboard(context, zikr.value.azkarText, "تم تسخ الذكر بنجاح")
+                        },
                         title = "نسخ"
                     )
                 )
@@ -102,19 +98,19 @@ fun ZikrScreen(
             }
 
 
-                /*listOf(
+            /*listOf(
+            ButtonAction(
+                icon = Icons.Default.ContentCopy,
+                action = { copyToClipboard(context, zikr.value.azkarText, "تم تسخ الذكر بنجاح"); },
+                title = "نسخ"),
+            if(zikrViewModel.checkIfZikrDownloaded()){
                 ButtonAction(
-                    icon = Icons.Default.ContentCopy,
-                    action = { copyToClipboard(context, zikr.value.azkarText, "تم تسخ الذكر بنجاح"); },
-                    title = "نسخ"),
-                if(zikrViewModel.checkIfZikrDownloaded()){
-                    ButtonAction(
-                        icon = Icons.Outlined.DownloadForOffline,
-                        action = { zikrViewModel.downloadZikr() },
-                        title = "تحميل"
-                    )
-                }
-            )*/
+                    icon = Icons.Outlined.DownloadForOffline,
+                    action = { zikrViewModel.downloadZikr() },
+                    title = "تحميل"
+                )
+            }
+        )*/
         )
 
         SecondaryTopBar {
@@ -130,7 +126,6 @@ fun ZikrScreen(
                 zikr = zikr.value,
                 zikrViewModel.showController,
                 zikrViewModel.isPlaying,
-                zikrViewModel.isZikrPlaying,
                 { dragAmount -> zikrViewModel.showController = dragAmount <= 0 },
                 { zikrViewModel.showController = !zikrViewModel.showController },
                 { zikrViewModel.playClicked() },
@@ -140,7 +135,8 @@ fun ZikrScreen(
                 zikrViewModel.maxDuration,
                 zikrViewModel.sliderPosition,
                 { value -> zikrViewModel.sliderChanged(value) },
-                zikrViewModel.playbackSpeed
+                zikrViewModel.playbackSpeed,
+                zikrViewModel.progressTimeCodeDisplay
             );
             ZikrViewModel.ZikrTab.الفيديو -> YouTube(link = zikr.value.ytLink.split("v=").last())
         }
@@ -152,7 +148,6 @@ fun ZikrSection(
     zikr: Azkar,
     showController: Boolean,
     isPlaying: Boolean,
-    isZikrPlaying: Boolean,
     checkDrag: (Float) -> Unit,
     toggleController: () -> Unit,
     onPlayClicked: () -> Unit,
@@ -162,7 +157,8 @@ fun ZikrSection(
     sliderMaxDuration: Float,
     sliderPosition: Float,
     setSliderPosition: (Float) -> Unit,
-    playbackSpeed: Float
+    playbackSpeed: Float,
+    progressTimeCodeDisplay: String
 ) {
     Box(modifier = Modifier
         .fillMaxSize()
@@ -211,7 +207,7 @@ fun ZikrSection(
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
             MediaController(
-                isPlaying = isPlaying && isZikrPlaying,
+                isPlaying = isPlaying,
                 playbackSpeed = playbackSpeed,
                 isDownloading = false,
                 onFasterClicked = { onFasterClicked() },
@@ -220,7 +216,11 @@ fun ZikrSection(
                 onSlowerClicked = { onSlowerClicked() },
                 hasNextPreviousControl = false,
             ) {
-                if (isPlaying && isZikrPlaying) {
+                if (isPlaying) {
+                    Text(progressTimeCodeDisplay,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     MediaSlider(
                         sliderPosition,
                         { value -> setSliderPosition(value) },

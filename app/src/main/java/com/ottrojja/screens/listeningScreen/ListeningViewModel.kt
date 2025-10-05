@@ -17,6 +17,7 @@ import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
+import com.ottrojja.classes.Helpers.formatTime
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
@@ -195,6 +196,13 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
             _maxDuration.value = value
         }
 
+    private var _progressTimeCodeDisplay = mutableStateOf("")
+    var progressTimeCodeDisplay: String
+        get() = _progressTimeCodeDisplay.value
+        set(value) {
+            _progressTimeCodeDisplay.value = value
+        }
+
     fun sliderChanged(value: Float) {
         //  println("vm changing position to $value")
         _sliderPosition.value = value;
@@ -242,6 +250,7 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
                 viewModelScope.launch {
                     audioService?.getSliderPosition()?.collect { state ->
                         _sliderPosition.value = state;
+                        _progressTimeCodeDisplay.value = "${formatTime(state.toLong())}/${formatTime(_maxDuration.value.toLong())}"
                     }
                 }
 

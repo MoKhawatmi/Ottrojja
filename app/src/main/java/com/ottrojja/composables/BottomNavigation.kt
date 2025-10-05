@@ -172,11 +172,10 @@ fun NavigationModalBottomSheet(navController: NavController ,onDismissRequest: (
         }
     )
 
-
     ModalBottomSheet(
         onDismissRequest = { onDismissRequest() },
         sheetState = sheetState,
-        dragHandle = null // Optional: removes the drag handle
+        dragHandle = null // removes the drag handle
     ) {
         Column(modifier = Modifier
             .fillMaxWidth()
@@ -258,11 +257,11 @@ fun NavigationModalBottomSheet(navController: NavController ,onDismissRequest: (
                     iconId = R.drawable.settings,
                     alternateIcon = null,
                     modifier = Modifier.weight(1f)
+
                 )
             }
         }
     }
-
 }
 
 

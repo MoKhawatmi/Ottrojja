@@ -26,8 +26,7 @@ import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 
 interface AudioServiceInterface {
-    fun getPlayingState(link: String = ""/*, playingChapter: Boolean = false*/): StateFlow<Boolean>
-   // fun playChapter(link: String)
+    fun getPlayingState(link: String = ""): StateFlow<Boolean>
     fun playZiker(link: String)
     fun pause()
     fun increaseSpeed()
@@ -37,12 +36,6 @@ interface AudioServiceInterface {
     fun setSliderPosition(value: Float)
     fun getPaused(): StateFlow<Boolean>
     fun getDestroyed(): StateFlow<Boolean>
-   // fun getIsChapterPlaying(): StateFlow<Boolean>
-    fun getIsZikrPlaying(): StateFlow<Boolean>
-    /*fun getSelectedChapterId(): StateFlow<String>
-    fun setSelectedChapterId(id: String)
-    fun playNextChapter()
-    fun playPreviousChapter()*/
     fun resumeClicked(): StateFlow<Int> //to serve as a notification to viewmodels that the resume was clicked, nothing more
     fun getPlaybackSpeed(): StateFlow<Float>
     fun setCurrentPlayingTitle(value: String)
@@ -53,14 +46,10 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
     var length: Long = 0;
     var currentlyPlaying = "";
     private var _playbackSpeed = MutableStateFlow<Float>(1.0f)
-
     private val _isPlaying = MutableStateFlow<Boolean>(false)
     private val _isPaused = MutableStateFlow<Boolean>(false)
     private val _sliderPosition = MutableStateFlow<Float>(0f)
     private val _maxDuration = MutableStateFlow<Float>(0f)
-   // private val _selectedChapterId = MutableStateFlow<String>("")
-   // private val _playingChapter = MutableStateFlow<Boolean>(false)
-    private val _playingZikr = MutableStateFlow<Boolean>(false)
     private val _destroyed = MutableStateFlow<Boolean>(false)
     private val resumeFlag = MutableStateFlow<Int>(0)
     private var _currentPlayingTitle: String = "";
@@ -69,7 +58,6 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
     private lateinit var notificationManager: NotificationManager
 
     private val handler = Handler(Looper.getMainLooper())
-
 
     inner class YourBinder : Binder() {
         fun getService(): AudioServiceInterface {
@@ -111,13 +99,6 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
                         resetPlayer()
                         _isPlaying.value = false;
                         handler.removeCallbacksAndMessages(null)
-                        /*if (_playingChapter.value) {
-                            if (_selectedChapterId.value != "114") {
-                                playNextChapter();
-                            } else {
-                                prepareForNewTrack()
-                            }
-                        }*/
                     }
                 }
 
@@ -145,15 +126,6 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
         return _destroyed;
     }
 
-    /*override fun getIsChapterPlaying(): StateFlow<Boolean> {
-        return _playingChapter;
-    }*/
-
-    override fun getIsZikrPlaying(): StateFlow<Boolean> {
-        return _playingZikr;
-    }
-
-
     override fun getSliderMaxDuration(): StateFlow<Float> {
         println("max duratuin $_maxDuration")
         return _maxDuration
@@ -173,56 +145,23 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
         updateNotification()
     }
 
-    override fun getPlayingState(link: String/*, playingChapter: Boolean*/): StateFlow<Boolean> {
+    override fun getPlayingState(link: String): StateFlow<Boolean> {
 
         println("exo player playing ${exoPlayer.isPlaying}")
         if (exoPlayer.isPlaying == true) {
-            _isPlaying.value = /*(!currentlyPlaying.contains("azkar") && playingChapter) ||*/ (currentlyPlaying == link)
+            _isPlaying.value = (currentlyPlaying == link)
         } else {
             _isPlaying.value = false;
         }
         return _isPlaying
     }
 
-
-    /*override fun playChapter(link: String) {
-        if (_playingZikr.value) {
-            _playingZikr.value = false;
-            _playingChapter.value = true;
-            playNewTrack(link)
-        } else if (!_playingChapter.value && !_playingZikr.value) {
-            _playingZikr.value = false;
-            _playingChapter.value = true;
-            playNewTrack(link)
-        } else if (_playingChapter.value && _isPaused.value && length != 0L && currentlyPlaying == link) {
-            resumeTrack();
-        } else {
-            _playingZikr.value = false;
-            _playingChapter.value = true;
-            playNewTrack(link)
-        }
-        _isPlaying.value = true;
-        _isPaused.value = false;
-    }*/
-
     override fun playZiker(link: String) {
-
-        /*if (_playingChapter.value) {
-            _playingZikr.value = true;
-            _playingChapter.value = false;
-            playNewTrack(link)
-        } else if (!_playingChapter.value && !_playingZikr.value) {
-            _playingZikr.value = true;
-            _playingChapter.value = false;
-            playNewTrack(link)
-        } else */if (_playingZikr.value && _isPaused.value && length != 0L && currentlyPlaying == link) {
+        if (_isPaused.value && length != 0L && currentlyPlaying == link) {
             resumeTrack();
         } else {
-            _playingZikr.value = true;
-           // _playingChapter.value = false;
             playNewTrack(link)
         }
-        //_selectedChapterId.value = "";
         _isPlaying.value = true;
         _isPaused.value = false;
     }
@@ -230,10 +169,7 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
     private fun resetAll() {
         _isPlaying.value = false;
         _isPaused.value = false;
-        _playingZikr.value = false;
-        //_playingChapter.value = false;
         _sliderPosition.value = 0F;
-        //_selectedChapterId.value = "";
         resetPlayer()
     }
 
@@ -327,9 +263,6 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
                         resetPlayer()
                         _isPlaying.value = false;
                         _isPaused.value = false;
-                      //  _playingChapter.value = false;
-                        _playingZikr.value = false;
-                       // _selectedChapterId.value = "";
                     }
 
                     Actions.TERMINATE.toString() -> {
@@ -340,7 +273,6 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
                         }
                         _isPlaying.value = false;
                         _isPaused.value = false;
-                        _playingZikr.value = false;
                         _destroyed.value = true;
                         stopForeground(true)
                         stopSelf()

@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 object Helpers {
     fun convertToIndianNumbers(arabicNumber: String): String {
@@ -177,5 +178,17 @@ object Helpers {
         }
     }
 
+    fun formatTime(millis: Long): String {
+        val totalSeconds = millis / 1000
+        val seconds = (totalSeconds % 60).toInt()
+        val minutes = ((totalSeconds / 60) % 60).toInt()
+        val hours = (totalSeconds / 3600).toInt()
+
+        return if (hours > 0) {
+            String.format(Locale.ENGLISH, "%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            String.format(Locale.ENGLISH, "%02d:%02d", minutes, seconds)
+        }
+    }
 
 }

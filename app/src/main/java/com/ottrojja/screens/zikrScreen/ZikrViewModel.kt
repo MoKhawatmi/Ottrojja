@@ -17,6 +17,7 @@ import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
 import com.ottrojja.services.AudioServiceInterface
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.Helpers.formatTime
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
@@ -76,13 +77,6 @@ class ZikrViewModel(
             this._isPlaying.value = value
         }
 
-    private var _isZikrPlaying = mutableStateOf(false) //for service binding issues
-    var isZikrPlaying: Boolean
-        get() = this._isZikrPlaying.value
-        set(value) {
-            this._isZikrPlaying.value = value
-        }
-
 
     private var _isPaused = mutableStateOf(false)
     var isPaused: Boolean
@@ -104,6 +98,13 @@ class ZikrViewModel(
         get() = this._maxDuration.value
         set(value) {
             this._maxDuration.value = value
+        }
+
+    private var _progressTimeCodeDisplay = mutableStateOf("")
+    var progressTimeCodeDisplay: String
+        get() = _progressTimeCodeDisplay.value
+        set(value) {
+            _progressTimeCodeDisplay.value = value
         }
 
     private var _playbackSpeed by mutableStateOf(1.0f)
@@ -150,7 +151,6 @@ class ZikrViewModel(
 
     fun playZikr() {
         audioService?.playZiker(_zikr.value.firebaseAddress);
-        // clean architicture and code? don't even try
     }
 
     private val serviceConnection = object : ServiceConnection {
@@ -173,13 +173,6 @@ class ZikrViewModel(
                 }
 
                 viewModelScope.launch {
-                    audioService?.getIsZikrPlaying()?.collect { state ->
-                        println("is zikr playing: $state")
-                        _isZikrPlaying.value = state;
-                    }
-                }
-
-                viewModelScope.launch {
                     audioService?.getPaused()!!.collect { state ->
                         _isPaused.value = state;
                     }
@@ -194,6 +187,7 @@ class ZikrViewModel(
                 viewModelScope.launch {
                     audioService?.getSliderPosition()?.collect { state ->
                         _sliderPosition.value = state;
+                        _progressTimeCodeDisplay.value = "${formatTime(state.toLong())}/${formatTime(_maxDuration.value.toLong())}"
                     }
                 }
 
