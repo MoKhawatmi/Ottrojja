@@ -64,22 +64,22 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
         withContext(Dispatchers.IO) {
             var versions = hashMapOf<String, Int>()
 
-            withContext(Dispatchers.IO) {
-                // fetch json file versions
-                versions = jsonParser.getFilesVersions()
+            // fetch json file versions
+            versions = jsonParser.getFilesVersions()
 
-                println("checking leftover temp files...")
-                // delete any left over temp files from various download operations
-                val dir = context.getExternalFilesDir(null)
-                dir?.listFiles { file ->
-                    file.name.startsWith("temp_")
-                }?.forEach { tempFile ->
-                    println("deleting ${tempFile.path}")
-                    tempFile.delete()
-                }
+            println("checking leftover temp files...")
+            // delete any left over temp files from various download operations
+            val dir = context.getExternalFilesDir(null)
+            dir?.listFiles { file ->
+                file.name.startsWith("temp_")
+            }?.forEach { tempFile ->
+                println("deleting ${tempFile.path}")
+                tempFile.delete()
             }
 
-            if (repository.getChaptersCount() != 114 || versions.get("chapters")!! > chaptersJsonVersion) {
+
+            if (repository.getChaptersCount() != 114 || versions.get("chapters"
+                )!! > chaptersJsonVersion) {
                 jsonParser.parseJsonArrayFile<ChapterData>("chaptersList.json")
                     ?.let {
                         try {
@@ -163,7 +163,8 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 }
             }
 
-            if (repository.getCauseOfRevelationCount() == 0 || versions.get("causesOfRevelation")!! > causesOfRevelationJsonVersion
+            if (repository.getCauseOfRevelationCount() == 0 || versions.get("causesOfRevelation"
+                )!! > causesOfRevelationJsonVersion
             ) {
                 jsonParser.parseJsonArrayFile<CauseOfRevelation>("causesOfRevelation.json")?.let {
                     try {
@@ -178,7 +179,8 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 }
             }
 
-            if (repository.getTafseersCount() != 6236 * 7 || versions.get("tafaseer")!! > tafaseerJsonVersion
+            if (repository.getTafseersCount() != 6236 * 7 || versions.get("tafaseer"
+                )!! > tafaseerJsonVersion
             ) {
                 //insert the available tafseer files to db
                 val tafaseerList = listOf(
@@ -233,7 +235,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
         }
     }
 
-    suspend private fun handleLocalQuranFile(quranFile: File) {
+    private suspend fun handleLocalQuranFile(quranFile: File) {
         if (quranFile.exists()) {
             try {
                 parseAndSetQuranData(quranFile)
@@ -248,10 +250,12 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             setQuranDataFromLocalFile()
         }
         loadingFile = false
-        _loaded.value = true
+        withContext(Dispatchers.Main) {
+            _loaded.value = true
+        }
     }
 
-    private fun parseAndSetQuranData(file: File, updatingData: Boolean = false) {
+    private suspend fun parseAndSetQuranData(file: File, updatingData: Boolean = false) {
         jsonParser.parseJsonArrayFileFromFilesDir(file.name)?.let {
             if (it.isNotEmpty()) {
                 insertQuranDataInDb(it, updatingData)
@@ -261,7 +265,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
         }
     }
 
-    suspend private fun downloadAndUpdateQuranFile(quranFile: File) {
+    private suspend fun downloadAndUpdateQuranFile(quranFile: File) {
         val request = Request.Builder()
             .url(QURAN_FILE_URL)
             .head()  // HEAD request to get metadata
@@ -296,7 +300,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
         sharedPreferences.edit().putLong("quranFileCreateTime", timeMillis).apply()
     }
 
-    private fun downloadFile(quranFile: File) {
+    private suspend fun downloadFile(quranFile: File) {
         val tempFile = File.createTempFile("temp_", ".json", context.getExternalFilesDir(null))
         val request = Request.Builder()
             .url(QURAN_FILE_URL)
@@ -326,7 +330,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
         }
     }
 
-    private fun useLocalQuranFile(quranFile: File) {
+    private suspend fun useLocalQuranFile(quranFile: File) {
         println("using filesdir file")
         try {
             parseAndSetQuranData(quranFile)
@@ -336,17 +340,20 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             setQuranDataFromLocalFile()
         } finally {
             loadingFile = false
-            _loaded.value = true
+            withContext(Dispatchers.Main) {
+                _loaded.value = true
+            }
+
         }
     }
 
-    private fun handleDownloadError(quranFile: File, exception: Exception) {
+    private suspend fun handleDownloadError(quranFile: File, exception: Exception) {
         Log.d("E", "Error downloading JSON file: $exception")
         useLocalQuranFile(quranFile)
         loadingFile = false
     }
 
-    fun setQuranDataFromLocalFile() {
+    private suspend fun setQuranDataFromLocalFile() {
         println("use assets file")
         try {
             val jsonParser = JsonParser(context)
@@ -359,25 +366,23 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
         }
     }
 
-    private fun insertQuranDataInDb(quranData: List<QuranPage>, updatingData: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                if (!updatingData) {
-                    if (repository.getPagesCount() == 604) {
-                        withContext(Dispatchers.Main){
-                            _loaded.value = true;
-                        }
-                        return@launch
+    private suspend fun insertQuranDataInDb(quranData: List<QuranPage>, updatingData: Boolean) {
+        try {
+            if (!updatingData) {
+                if (repository.getPagesCount() == 604) {
+                    withContext(Dispatchers.Main) {
+                        _loaded.value = true;
                     }
+                    return
                 }
-                repository.insertAllPages(quranData)
-                withContext(Dispatchers.Main){
-                    _loaded.value = true;
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                reportException(exception = e, file = "LoadingScreenViewModel")
             }
+            repository.insertAllPages(quranData)
+            withContext(Dispatchers.Main) {
+                _loaded.value = true;
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            reportException(exception = e, file = "LoadingScreenViewModel")
         }
     }
 }

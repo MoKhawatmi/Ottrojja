@@ -66,7 +66,7 @@ class QuranRepository(private val quranDao: QuranDao,
         return quranDao.searchPagesContent(query)
     }
 
-    fun getPagesContentRange(startingSurah: Int, startingVerse: Int, endSurah: Int, endVerse: Int): List<PageContent> {
+    suspend fun getPagesContentRange(startingSurah: Int, startingVerse: Int, endSurah: Int, endVerse: Int): List<PageContent> {
         return quranDao.getPagesContentRange(startingSurah, startingVerse, endSurah, endVerse);
     }
 
@@ -102,7 +102,7 @@ class QuranRepository(private val quranDao: QuranDao,
         quranDao.insertParts(parts)
     }
 
-    fun insertQuarters(quarters: List<Quarter>){
+    suspend fun insertQuarters(quarters: List<Quarter>){
         quranDao.insertQuarters(quarters)
     }
 

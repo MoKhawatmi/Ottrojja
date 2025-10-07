@@ -99,6 +99,7 @@ class ZikrViewModel(
         set(value) {
             this._maxDuration.value = value
         }
+    private var _maxDurationFormatted="";
 
     private var _progressTimeCodeDisplay = mutableStateOf("")
     var progressTimeCodeDisplay: String
@@ -181,13 +182,14 @@ class ZikrViewModel(
                 viewModelScope.launch {
                     audioService?.getSliderMaxDuration()?.collect { state ->
                         _maxDuration.value = state;
+                        _maxDurationFormatted= formatTime(state.toLong());
                     }
                 }
 
                 viewModelScope.launch {
                     audioService?.getSliderPosition()?.collect { state ->
                         _sliderPosition.value = state;
-                        _progressTimeCodeDisplay.value = "${formatTime(state.toLong())}/${formatTime(_maxDuration.value.toLong())}"
+                        _progressTimeCodeDisplay.value = "${formatTime(state.toLong())}/${_maxDurationFormatted}"
                     }
                 }
 

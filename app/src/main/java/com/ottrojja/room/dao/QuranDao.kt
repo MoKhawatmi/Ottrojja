@@ -25,146 +25,146 @@ interface QuranDao {
     /****************************Pages*********************************/
 
     @Query("SELECT * FROM QuranPage")
-    fun getAllPages(): List<QuranPage>
+    suspend fun getAllPages(): List<QuranPage>
 
     @Query("SELECT * FROM QuranPage WHERE pageNum=:pageNum")
-    fun getPage(pageNum: String): QuranPageWithContent
+    suspend fun getPage(pageNum: String): QuranPageWithContent
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertQuranPage(quranPage: QuranPage)
+    suspend fun insertQuranPage(quranPage: QuranPage)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertQuranPages(quranPages: List<QuranPage>)
+    suspend fun insertQuranPages(quranPages: List<QuranPage>)
 
     @Query("SELECT count(*) FROM QuranPage")
-    fun getPagesCount(): Int
+    suspend fun getPagesCount(): Int
 
     /****************************Page Content*********************************/
 
     @Query("SELECT * FROM PageContent")
-    fun getAllPagesContent(): List<PageContent>
+    suspend fun getAllPagesContent(): List<PageContent>
 
     @Query(
         "SELECT * FROM PageContent WHERE verseText LIKE '%' || :query || '%' OR verseTextPlain LIKE '%' || :query || '%'"
     )
-    fun searchPagesContent(query: String): List<PageContent>
+    suspend fun searchPagesContent(query: String): List<PageContent>
 
     @Query("""
     SELECT * FROM PageContent
     WHERE (surahNum > :startingSurah OR (surahNum = :startingSurah AND verseNum >= :startingVerse))
       AND (surahNum < :endSurah OR (surahNum = :endSurah AND verseNum <= :endVerse)) AND type = "verse"
 """)
-    fun getPagesContentRange(startingSurah: Int, startingVerse: Int, endSurah: Int, endVerse: Int): List<PageContent>
+    suspend fun getPagesContentRange(startingSurah: Int, startingVerse: Int, endSurah: Int, endVerse: Int): List<PageContent>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertPageContent(pageContent: PageContent)
+    suspend fun insertPageContent(pageContent: PageContent)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertPagesContent(pagesContent: List<PageContent>)
+    suspend fun insertPagesContent(pagesContent: List<PageContent>)
 
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertChapters(chapters: List<ChapterData>)
+    suspend fun insertChapters(chapters: List<ChapterData>)
 
     @Query("SELECT * FROM ChapterData")
-    fun getAllChapters(): List<ChapterData>
+    suspend fun getAllChapters(): List<ChapterData>
 
     @Query("SELECT * FROM ChapterData WHERE surahId=:surahNum")
-    fun getChapter(surahNum: Int): ChapterData
+    suspend fun getChapter(surahNum: Int): ChapterData
 
     @Query("SELECT count(*) FROM ChapterData")
-    fun getChaptersCount(): Int
+    suspend fun getChaptersCount(): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertParts(parts: List<PartData>)
+    suspend fun insertParts(parts: List<PartData>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertQuarters(quarters: List<Quarter>)
+    suspend fun insertQuarters(quarters: List<Quarter>)
 
     @Query("SELECT * FROM PartData")
-    fun getAllParts(): List<PartData>
+    suspend fun getAllParts(): List<PartData>
 
     @Query("SELECT * FROM PartData")
-    fun getAllPartsWithQuarters(): List<PartWithQuarters>
+    suspend fun getAllPartsWithQuarters(): List<PartWithQuarters>
 
     @Query("SELECT count(*) FROM PartData")
-    fun getPartsCount(): Int
+    suspend fun getPartsCount(): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertE3rabData(e3rabData: List<E3rabData>)
+    suspend fun insertE3rabData(e3rabData: List<E3rabData>)
 
     @Query("SELECT * FROM E3rabData")
-    fun getAllE3rabData(): List<E3rabData>
+    suspend fun getAllE3rabData(): List<E3rabData>
 
     @Query("SELECT * FROM E3rabData WHERE sura=:surahNum AND aya=:verseNum")
-    fun getVerseE3rabData(surahNum: String, verseNum: String): E3rabData
+    suspend fun getVerseE3rabData(surahNum: String, verseNum: String): E3rabData
 
     @Query("SELECT count(*) FROM E3rabData")
-    fun getE3rabsCount(): Int
+    suspend fun getE3rabsCount(): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertTafseerData(tafseers: List<TafseerData>)
+    suspend fun insertTafseerData(tafseers: List<TafseerData>)
 
     @Query("SELECT * FROM TafseerData")
-    fun getAllTafseerData(): List<TafseerData>
+    suspend fun getAllTafseerData(): List<TafseerData>
 
     @Query("SELECT * FROM TafseerData WHERE sura=:surahNum AND aya=:verseNum AND tafseer=:tafseer")
-    fun getVerseTafseerData(surahNum: String, verseNum: String, tafseer: String): TafseerData
+    suspend fun getVerseTafseerData(surahNum: String, verseNum: String, tafseer: String): TafseerData
 
     @Query("SELECT count(*) FROM TafseerData")
-    fun getTafseersCount(): Int
+    suspend fun getTafseersCount(): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAllAzkar(azkar: List<Azkar>)
+    suspend fun insertAllAzkar(azkar: List<Azkar>)
 
 
     @Query("SELECT * FROM Azkar")
-    fun getAllAzkar(): List<Azkar>
+    suspend fun getAllAzkar(): List<Azkar>
 
     @Query("SELECT * FROM Azkar WHERE azkarTitle=:title")
-    fun getAzkarByTitle(title: String): Azkar
+    suspend fun getAzkarByTitle(title: String): Azkar
 
     @Query("SELECT count(*) FROM Azkar")
-    fun getAzkarCount(): Int
+    suspend fun getAzkarCount(): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertCausesOfRevelationData(causesOfRevelation: List<CauseOfRevelation>)
+    suspend fun insertCausesOfRevelationData(causesOfRevelation: List<CauseOfRevelation>)
 
     @Query("SELECT * FROM CauseOfRevelation")
-    fun getAllCausesOfRevelationData(): List<CauseOfRevelation>
+    suspend fun getAllCausesOfRevelationData(): List<CauseOfRevelation>
 
     @Query(
         "SELECT * FROM CauseOfRevelation WHERE sura=:surahNum AND (verses LIKE '%' || :verseNum || ',%' OR verses LIKE '%,' || :verseNum || '%' OR verses = :verseNum)"
     )
-    fun getCauseOfRevelationData(surahNum: String, verseNum: String): List<CauseOfRevelation>
+    suspend fun getCauseOfRevelationData(surahNum: String, verseNum: String): List<CauseOfRevelation>
 
     @Query("SELECT count(*) FROM CauseOfRevelation")
-    fun getCausesOfRevelationCount(): Int
+    suspend fun getCausesOfRevelationCount(): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertBookmark(bookmark: BookmarkEntity)
+    suspend fun insertBookmark(bookmark: BookmarkEntity)
 
     @Query("SELECT * FROM BookmarkEntity")
-    fun getBookmarks(): List<BookmarkEntity>
+    suspend fun getBookmarks(): List<BookmarkEntity>
 
     @Query("SELECT EXISTS (SELECT 1 FROM BookmarkEntity WHERE pageNum=:pageNum)")
-    fun isBookmarked(pageNum: String): Boolean
+    suspend fun isBookmarked(pageNum: String): Boolean
 
     @Delete
-    fun deleteBookmark(bookmark: BookmarkEntity)
+    suspend fun deleteBookmark(bookmark: BookmarkEntity)
 
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertVerseMeanings(verseMeanings: List<VerseMeanings>)
+    suspend fun insertVerseMeanings(verseMeanings: List<VerseMeanings>)
 
     @Query("SELECT * FROM VerseMeanings")
-    fun getAllVerseMeanings(): List<VerseMeanings>
+    suspend fun getAllVerseMeanings(): List<VerseMeanings>
 
     @Query("SELECT * FROM VerseMeanings WHERE sura=:surahNum AND aya=:verseNum")
-    fun getSingleVerseMeanings(surahNum: String, verseNum: String): VerseMeanings?
+    suspend fun getSingleVerseMeanings(surahNum: String, verseNum: String): VerseMeanings?
 
     @Query("SELECT count(*) FROM VerseMeanings")
-    fun getVerseMeaningsCount(): Int
+    suspend fun getVerseMeaningsCount(): Int
 
 
 }
