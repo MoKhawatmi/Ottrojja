@@ -2,7 +2,6 @@ package com.ottrojja.screens.quranScreen
 
 import android.app.Application
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.classes.TafseerSheetMode
 import com.ottrojja.room.entities.PageContent
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -131,7 +129,7 @@ fun VersesSection(
                                     .clickable {
                                         onSheetRequest(
                                             "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
-                                            TafseerSheetMode.TAFSEER
+                                            TafseerSheetMode.التفسير
                                         )
                                     }
                                     .padding(4.dp, 6.dp)
@@ -150,7 +148,7 @@ fun VersesSection(
                                     .clickable {
                                         onSheetRequest(
                                             "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
-                                            TafseerSheetMode.E3RAB
+                                            TafseerSheetMode.الإعراب
                                         )
                                     }
                                     .padding(4.dp, 6.dp)
@@ -169,7 +167,7 @@ fun VersesSection(
                                     .clickable {
                                         onSheetRequest(
                                             "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
-                                            TafseerSheetMode.CAUSES_OF_REVELATION
+                                            TafseerSheetMode.أسباب_النزول
                                         )
                                     }
                                     .padding(4.dp, 6.dp)
@@ -188,7 +186,7 @@ fun VersesSection(
                                     .clickable {
                                         onSheetRequest(
                                             "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
-                                            TafseerSheetMode.VERSE_MEANINGS
+                                            TafseerSheetMode.معاني_المفردات
                                         )
                                     }
                                     .padding(4.dp, 6.dp)

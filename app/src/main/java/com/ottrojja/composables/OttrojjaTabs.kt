@@ -1,5 +1,6 @@
 package com.ottrojja.composables
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
@@ -45,18 +47,22 @@ fun <T : Enum<T>> OttrojjaTabs(
                     color = if (selectedItem == option) MaterialTheme.colorScheme.onPrimary else primaryColor,
                     modifier = Modifier
                         .padding(2.dp, 0.dp)
-                        .clip(shape = RoundedCornerShape(50))
-                        .drawBehind {
+                        .clip(shape = RoundedCornerShape(12.dp))
+                        /*.drawBehind {
                             if (selectedItem == option) {
                                 drawCircle(
                                     color = primaryColor,
                                     radius = this.size.maxDimension
                                 )
                             }
-                        }
+                        }*/
+                        .background(
+                            if (selectedItem != option) Color.Transparent else MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(12.dp)
+                        )
                         .clickable { onClickTab(option) }
                         .defaultMinSize(minWidth = 90.dp)
-                        .padding(0.dp, 6.dp, 0.dp, 6.dp)
+                        .padding(6.dp)
                 )
             }
         }

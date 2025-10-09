@@ -26,7 +26,6 @@ import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.classes.TafseerSheetMode
 import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahMark
@@ -82,7 +81,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             _shouldAutoPlay.value = value
         }
 
-    private var _tafseerSheetMode by mutableStateOf(TafseerSheetMode.TAFSEER)
+    private var _tafseerSheetMode by mutableStateOf(TafseerSheetMode.التفسير)
     var tafseerSheetMode: TafseerSheetMode
         get() = _tafseerSheetMode
         set(value) {
@@ -604,7 +603,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 val verse = value.split("-")[1]
                 val chapterName = repository.getChapter(surah.toInt()).chapterName
                 if (chapterName.isNotBlank()) {
-                    _tafseerChapterVerse = "الاية $verse من سورة $chapterName"
+                    _tafseerChapterVerse = "الاية ${Helpers.convertToIndianNumbers(verse)} من سورة $chapterName"
                 } else {
                     _tafseerChapterVerse = ""
                 }
@@ -981,8 +980,11 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 }
 
 enum class RepetitionTab {
-    الاية,
-    المقطع
+    الاية, المقطع
+}
+
+enum class TafseerSheetMode {
+    التفسير, الإعراب, أسباب_النزول, معاني_المفردات
 }
 
 class QuranScreenViewModelFactory(

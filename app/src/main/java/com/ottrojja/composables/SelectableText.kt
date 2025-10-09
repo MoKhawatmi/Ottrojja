@@ -1,5 +1,6 @@
 package com.ottrojja.composables
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -20,7 +21,7 @@ fun SelectableText(text: String) {
             text = text,
             color = Color.Black,
             modifier = Modifier
-                .padding(10.dp),
+                .padding(10.dp).fillMaxWidth(),
             style = MaterialTheme.typography.bodyMedium.copy(fontSize = 21.sp),
             textAlign = TextAlign.Right,
         )

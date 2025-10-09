@@ -19,13 +19,11 @@ import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
-import com.ottrojja.classes.Tasabeeh
 import com.ottrojja.room.relations.PartWithQuarters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.math.exp
 
 
 class MainViewModel(private val repository: QuranRepository, application: Application) :

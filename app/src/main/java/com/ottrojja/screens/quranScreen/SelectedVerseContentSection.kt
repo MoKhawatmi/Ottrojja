@@ -1,4 +1,4 @@
-package com.ottrojja.composables
+package com.ottrojja.screens.quranScreen
 
 import android.content.Context
 import androidx.compose.foundation.background
@@ -7,17 +7,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.Helpers.copyToClipboard
+import com.ottrojja.composables.OttrojjaElevatedButton
+import com.ottrojja.composables.OttrojjaTabs
+import com.ottrojja.composables.SelectableText
 
 @Composable
 fun SelectedVerseContentSection(
@@ -29,53 +35,77 @@ fun SelectedVerseContentSection(
     targetNextVerse: () -> Unit,
     targetPreviousVerse: () -> Unit,
     tafseerChapterVerse: String,
-    content: @Composable() () -> Unit = {},
+    tafseerSheetMode: TafseerSheetMode,
+    changeTafseerSheetMode: (TafseerSheetMode) -> Unit,
+    content: @Composable() () -> Unit = {}
 ) {
-    Column(
+    Column(horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.tertiary)
     ) {
-        content()
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top,
             modifier = Modifier.fillMaxWidth()
-
         ) {
-            Row(
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.Top,
-            ) {
+            Column {
                 if (!atFirstVerse) {
                     OttrojjaElevatedButton(
                         onClick = { targetPreviousVerse() },
                         icon = Icons.Default.ChevronRight,
-                        iconSize = 30.dp
-                    )
-                }
-                if (!atLastVerse) {
-                    OttrojjaElevatedButton(
-                        onClick = { targetNextVerse() },
-                        icon = Icons.Default.ChevronLeft,
-                        iconSize = 30.dp
+                        iconSize = 32.dp
                     )
                 }
             }
 
-            Row(
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.Top,
-            ) {
-                OttrojjaElevatedButton(onClick = {
-                    copyToClipboard(
-                        context,
-                        text,
-                        copiedMessage
+            Column {
+                if (!atLastVerse) {
+                    OttrojjaElevatedButton(
+                        onClick = { targetNextVerse() },
+                        icon = Icons.Default.ChevronLeft,
+                        iconSize = 32.dp
                     )
-                }, icon = Icons.Default.ContentCopy)
+                }
             }
         }
-        SelectableText("$tafseerChapterVerse\n\n$text" )
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)
+        ) {
+            Text(text = tafseerChapterVerse,
+                style = MaterialTheme.typography.displayLarge,
+                color = MaterialTheme.colorScheme.secondary,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        OttrojjaTabs(
+            items = TafseerSheetMode.entries,
+            selectedItem = tafseerSheetMode,
+            onClickTab = { changeTafseerSheetMode(it) }
+        )
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp)
+        )
+
+        Row(
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.Top,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OttrojjaElevatedButton(onClick = {
+                copyToClipboard(
+                    context,
+                    text,
+                    copiedMessage
+                )
+            }, icon = Icons.Default.ContentCopy)
+        }
+
+        content()
+
+        SelectableText(text)
     }
 }

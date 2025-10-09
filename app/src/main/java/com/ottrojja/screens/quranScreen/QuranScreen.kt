@@ -3,7 +3,6 @@ package com.ottrojja.screens.quranScreen
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.Application
-import android.content.Context
 import android.content.res.Configuration
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -39,7 +38,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
@@ -70,7 +68,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.input.pointer.pointerInput
@@ -93,7 +90,6 @@ import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
-import com.ottrojja.classes.TafseerSheetMode
 import com.ottrojja.composables.BenefitItem
 import com.ottrojja.composables.BenefitSectionTitle
 import com.ottrojja.composables.IsTablet
@@ -104,7 +100,6 @@ import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.RepetitionOptionsDialog
 import com.ottrojja.composables.SecondaryTopBar
-import com.ottrojja.composables.SelectedVerseContentSection
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.screens.mainScreen.BrowsingOption
 
@@ -360,6 +355,7 @@ fun QuranScreen(
                 targetNextVerse = { quranViewModel.targetNextVerse() },
                 targetPreviousVerse = { quranViewModel.targetPreviousVerse() },
                 tafseerChapterVerse = quranViewModel.tafseerChapterVerse,
+                changeTafseerSheetMode = { mode -> quranViewModel.tafseerSheetMode = mode }
             )
         }
     }
@@ -428,82 +424,6 @@ fun QuranScreen(
             khitmahList = quranViewModel.khitmahList,
             assignPageToKhitmah = { khitmah -> quranViewModel.assignPageToKhitmah(khitmah) }
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TafseerBottomSheet(
-    context: Context,
-    showTafseerSheet: Boolean,
-    onDismiss: () -> Unit,
-    tafseer: String,
-    e3rab: String,
-    causeOfRevelation: String,
-    verseMeanings: String,
-    selectedTafseer: String,
-    onClickTafseerOptions: () -> Unit,
-    mode: TafseerSheetMode,
-    atFirstVerse: Boolean,
-    atLastVerse: Boolean,
-    targetNextVerse: () -> Unit,
-    targetPreviousVerse: () -> Unit,
-    tafseerChapterVerse: String
-) {
-    val modalBottomSheetState = rememberModalBottomSheetState()
-
-    if (showTafseerSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { onDismiss() },
-            sheetState = modalBottomSheetState,
-            dragHandle = { BottomSheetDefaults.DragHandle() },
-        ) {
-
-            SelectedVerseContentSection(
-                context = context,
-                text = when (mode) {
-                    TafseerSheetMode.TAFSEER -> tafseer
-                    TafseerSheetMode.E3RAB -> e3rab
-                    TafseerSheetMode.CAUSES_OF_REVELATION -> causeOfRevelation
-                    TafseerSheetMode.VERSE_MEANINGS -> verseMeanings
-                    else -> ""
-                },
-                copiedMessage = when (mode) {
-                    TafseerSheetMode.TAFSEER -> "تم تسخ التفسير بنجاح"
-                    TafseerSheetMode.E3RAB -> "تم تسخ الإعراب بنجاح"
-                    TafseerSheetMode.CAUSES_OF_REVELATION -> "تم تسخ سبب النزول بنجاح"
-                    TafseerSheetMode.VERSE_MEANINGS -> "تم تسخ معاني المفردات بنجاح"
-                    else -> ""
-                },
-                atFirstVerse = atFirstVerse,
-                atLastVerse = atLastVerse,
-                targetNextVerse = { targetNextVerse() },
-                targetPreviousVerse = { targetPreviousVerse() },
-                tafseerChapterVerse = tafseerChapterVerse
-            ) {
-                if (mode == TafseerSheetMode.TAFSEER) {
-                    Row(horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.secondary)
-                            .clickable { onClickTafseerOptions() }) {
-                        Text(
-                            text = selectedTafseer,
-                            color = MaterialTheme.colorScheme.onSecondary,
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Right,
-                            modifier = Modifier.padding(6.dp, 8.dp)
-                        )
-                        Icon(
-                            Icons.Default.ArrowDropDown,
-                            contentDescription = "",
-                            tint = MaterialTheme.colorScheme.onSecondary
-                        )
-                    }
-                }
-            }
-        }
     }
 }
 
