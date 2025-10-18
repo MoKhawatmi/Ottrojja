@@ -50,6 +50,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         Context.MODE_PRIVATE
     )
 
+    val quranPagesNumbers = Array(604) { (it + 1).toString() }
+
     private var _versesPlayList: Array<PageContent> = emptyArray();
 
     private var _isPlaying = mutableStateOf(false)
@@ -230,13 +232,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     fun decreasePlaybackSpeed() {
         audioService?.decreaseSpeed();
     }
-
-    private var _showVersesSheet by mutableStateOf(false)
-    var showVersesSheet: Boolean
-        get() = _showVersesSheet
-        set(value) {
-            _showVersesSheet = value
-        }
 
     private var _showRepOptions by mutableStateOf(false)
     var showRepOptions: Boolean
@@ -715,6 +710,28 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             tafseerTargetVerse = "${previousVerse.surahNum}-${previousVerse.verseNum}"
         }
     }
+
+    private var _showPageSelectionDialog = mutableStateOf(false)
+    var showPageSelectionDialog: Boolean
+        get() = _showPageSelectionDialog.value
+        set(value) {
+            _showPageSelectionDialog.value = value
+        }
+
+    private var _startPlayingPage = mutableStateOf(1)
+    var startPlayingPage: Int
+        get() = _startPlayingPage.value
+        set(value) {
+            _startPlayingPage.value = value
+        }
+
+    private var _endPlayingPage = mutableStateOf(1)
+    var endPlayingPage: Int
+        get() = _endPlayingPage.value
+        set(value) {
+            _endPlayingPage.value = value
+        }
+
 
     /*****************************SERVICE COMMUNICATION***********************************/
 

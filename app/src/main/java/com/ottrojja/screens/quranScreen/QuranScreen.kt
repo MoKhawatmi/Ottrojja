@@ -26,9 +26,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
@@ -43,20 +40,11 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -67,7 +55,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.input.pointer.pointerInput
@@ -75,33 +62,30 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.reportException
-import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
-import com.ottrojja.composables.BenefitItem
-import com.ottrojja.composables.BenefitSectionTitle
 import com.ottrojja.composables.IsTablet
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.MediaController
-import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
-import com.ottrojja.composables.RepetitionOptionsDialog
+import com.ottrojja.screens.quranScreen.dialogs.RepetitionOptionsDialog
 import com.ottrojja.composables.SecondaryTopBar
-import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.screens.mainScreen.BrowsingOption
+import com.ottrojja.screens.quranScreen.composables.Benefits
+import com.ottrojja.screens.quranScreen.composables.TafseerBottomSheet
+import com.ottrojja.screens.quranScreen.composables.YouTube
+import com.ottrojja.screens.quranScreen.dialogs.AddToKhitmahDialog
+import com.ottrojja.screens.quranScreen.dialogs.ListeningOptionsDialog
+import com.ottrojja.screens.quranScreen.dialogs.PageSelectionDialog
+import com.ottrojja.screens.quranScreen.dialogs.SelectTafseerDialog
+import com.ottrojja.screens.quranScreen.dialogs.SelectVerseDialog
 
 
 @SuppressLint("UnrememberedMutableState", "DiscouragedApi")
@@ -302,7 +286,8 @@ fun QuranScreen(
                         nightReadingMode = quranViewModel.nightReadingMode,
                         listeningOptionsClicked = { quranViewModel.showListeningOptionsDialog = true },
                         vmChangedPage = quranViewModel.vmChangedPage,
-                        setVmChangedPage = { value -> quranViewModel.vmChangedPage = value }
+                        setVmChangedPage = { value -> quranViewModel.vmChangedPage = value },
+                        quranPagesNumbers = quranViewModel.quranPagesNumbers
                     )
                 }
 
@@ -329,15 +314,6 @@ fun QuranScreen(
                     ).last()
                 )
             }
-
-            VersesBottomSheet(quranViewModel.showVersesSheet,
-                { quranViewModel.showVersesSheet = false },
-                { targetVerse ->
-                    quranViewModel.tafseerTargetVerse = targetVerse;
-                    quranViewModel.showVersesSheet = false;
-                    quranViewModel.showTafseerSheet = true
-                },
-                quranViewModel.currentPageObject?.pageContent!!.filter { item -> item.type == PageContentItemType.verse });
 
             TafseerBottomSheet(
                 context,
@@ -366,9 +342,14 @@ fun QuranScreen(
             selectedVerse = quranViewModel.selectedVerse,
             selectedEndVerse = quranViewModel.selectedEndVerse,
             onSelectVerseClicked = { quranViewModel.showVerseOptions = true },
+            onSelectStartPageClicked = { quranViewModel.showPageSelectionDialog = true },
             onSelectEndVerseClicked = {
                 quranViewModel.selectingEndVerse = true;
                 quranViewModel.showVerseOptions = true;
+            },
+            onSelectEndPageClicked = {
+                quranViewModel.selectingEndVerse = true;
+                quranViewModel.showPageSelectionDialog = true;
             },
             continuousPlay = quranViewModel.continuousPlay,
             selectedRepetition = quranViewModel.selectedRepetition,
@@ -376,7 +357,9 @@ fun QuranScreen(
             setContPlay = { value -> quranViewModel.continuousPlay = value },
             repetitionTabs = RepetitionTab.entries,
             selectedRepetitionTab = quranViewModel.selectedRepetitionTab,
-            onSelectRepetitionTab = { value -> quranViewModel.selectedRepetitionTab = value }
+            onSelectRepetitionTab = { value -> quranViewModel.selectedRepetitionTab = value },
+            startPlayingPage = quranViewModel.startPlayingPage,
+            endPlayingPage = quranViewModel.endPlayingPage
         )
     }
 
@@ -425,310 +408,22 @@ fun QuranScreen(
             assignPageToKhitmah = { khitmah -> quranViewModel.assignPageToKhitmah(khitmah) }
         )
     }
-}
 
-@Composable
-fun SelectTafseerDialog(
-    onDismissRequest: () -> Unit,
-    onOptionClick: (String) -> Unit,
-    tafseerMap: HashMap<String, String>
-) {
-    Dialog(onDismissRequest = { onDismissRequest() }) {
-
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
-            ),
-        ) {
-            Box(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .background(MaterialTheme.colorScheme.secondary)
-                    .padding(8.dp)
-                    .clip(shape = RoundedCornerShape(12.dp))
-            ) {
-                Column() {
-                    tafseerMap.keys.forEach { tafseer ->
-                        Row(modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onOptionClick(tafseer) }
-                            .padding(6.dp)) {
-                            Text(
-                                text = tafseer,
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Right,
-                                color = MaterialTheme.colorScheme.onSecondary
-                            )
-                        }
-                    }
+    if (quranViewModel.showPageSelectionDialog) {
+        //TODO onSelect needs to trigger fetching of the corresponding page verses so that we can select start/end verse in the correct page
+        PageSelectionDialog(onDismissRequest = { quranViewModel.showPageSelectionDialog = false },
+            pages = quranViewModel.quranPagesNumbers,
+            onSelect = { value ->
+                if (quranViewModel.selectingEndVerse) {
+                    quranViewModel.endPlayingPage = value.toInt();
+                    quranViewModel.selectingEndVerse = false;
+                    quranViewModel.showPageSelectionDialog = false;
+                } else {
+                    quranViewModel.startPlayingPage = value.toInt();
+                    quranViewModel.showPageSelectionDialog = false;
                 }
             }
-        }
-    }
-}
-
-/*
-@Composable
-fun SelectRepDialog(
-    repOptions: Array<String>,
-    onDismissRequest: () -> Unit,
-    onOptionClick: (String) -> Unit
-) {
-    Dialog(onDismissRequest = { onDismissRequest() }) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
-            ),
-        ) {
-            Box(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .fillMaxHeight(0.4f)
-                    .background(MaterialTheme.colorScheme.secondary)
-                    .padding(8.dp)
-                    .clip(shape = RoundedCornerShape(12.dp))
-            ) {
-                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    repOptions.forEach { option ->
-                        Row(modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onOptionClick(option) }
-                            .padding(6.dp)) {
-                            Text(
-                                text = option,
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Right,
-                                color = MaterialTheme.colorScheme.onSecondary
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-*/
-@Composable
-fun SelectVerseDialog(
-    onDismissRequest: () -> Unit,
-    onOptionClick: (PageContent) -> Unit,
-    versesList: List<PageContent>
-) {
-    Dialog(onDismissRequest = { onDismissRequest() }) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
-            ),
-        ) {
-            Box(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .fillMaxHeight(0.4f)
-                    .background(MaterialTheme.colorScheme.secondary)
-                    .padding(8.dp)
-                    .clip(shape = RoundedCornerShape(12.dp))
-            ) {
-                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    versesList.forEach { option ->
-                        if (option.type == PageContentItemType.verse) {
-                            Row(modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onOptionClick(option) }
-                                .padding(6.dp)) {
-                                Text(
-                                    text = "الاية ${option.verseNum}",
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Right,
-                                    color = MaterialTheme.colorScheme.onSecondary,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-                        } else {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(MaterialTheme.colorScheme.primary)
-                                    .padding(6.dp)
-                            ) {
-                                Text(
-                                    text = " سورة " + "${option.surahName}",
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Right,
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ListeningOptionsDialog(
-    onDismissRequest: () -> Unit,
-    selectedVerse: PageContent?,
-    selectedEndVerse: PageContent?,
-    onSelectVerseClicked: () -> Unit,
-    onSelectEndVerseClicked: () -> Unit,
-    selectedRepetition: String,
-    onSelectRepetitionClicked: () -> Unit,
-    continuousPlay: Boolean,
-    setContPlay: (Boolean) -> Unit,
-    repetitionTabs: List<RepetitionTab>,
-    selectedRepetitionTab: RepetitionTab,
-    onSelectRepetitionTab: (RepetitionTab) -> Unit
-) {
-    OttrojjaDialog(
-        contentModifier = Modifier
-            .padding(8.dp)
-            .wrapContentHeight()
-            .fillMaxWidth(0.9f)
-            .background(MaterialTheme.colorScheme.secondary)
-            .padding(8.dp)
-            .clip(shape = RoundedCornerShape(12.dp)),
-        onDismissRequest = onDismissRequest,
-        useDefaultWidth = false,
-    ) {
-        Column(modifier = Modifier.wrapContentHeight()) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Text(text = "خيارات التشغيل", textAlign = TextAlign.Center)
-            }
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 6.dp),
-                color = MaterialTheme.colorScheme.onTertiary
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSelectVerseClicked() },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                println("start $selectedVerse")
-                Text("من اية", style = MaterialTheme.typography.bodyMedium)
-                Row(
-                    modifier = Modifier
-                        .padding(0.dp, 6.dp, 6.dp, 5.dp)
-                        .fillMaxWidth(0.5f)
-                        .clip(shape = RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                ) {
-                    Text(
-                        text = if (selectedVerse != null) "اية: ${selectedVerse.verseNum}" else "الاية",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxWidth()
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSelectEndVerseClicked() },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                println("end $selectedEndVerse")
-                Text("الى اية", style = MaterialTheme.typography.bodyMedium)
-                Row(
-                    modifier = Modifier
-                        .padding(0.dp, 6.dp, 6.dp, 5.dp)
-                        .fillMaxWidth(0.5f)
-                        .clip(shape = RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                ) {
-                    Text(
-                        text = if (selectedEndVerse != null) "اية: ${selectedEndVerse.verseNum}" else "الاية",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxWidth()
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSelectRepetitionClicked() },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("مرات التكرار", style = MaterialTheme.typography.bodyMedium)
-                Row(
-                    modifier = Modifier
-                        .padding(0.dp, 6.dp, 6.dp, 5.dp)
-                        .fillMaxWidth(0.5f)
-                        .clip(shape = RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                ) {
-                    Text(
-                        text = selectedRepetition,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxWidth()
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSelectEndVerseClicked() },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                OttrojjaTabs(
-                    items = repetitionTabs,
-                    selectedItem = selectedRepetitionTab,
-                    onClickTab = { value -> onSelectRepetitionTab(value) },
-                    tabPrefix = "تكرار "
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .padding(vertical = 6.dp)
-                    .fillMaxWidth()
-                    .clickable { setContPlay(!continuousPlay) },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text("تشغيل متتال للصفحات", style = MaterialTheme.typography.bodyMedium)
-                    Text("(غير متوفر في الخلفية حاليا)", style = MaterialTheme.typography.bodySmall)
-                }
-                Checkbox(
-                    checked = continuousPlay,
-                    onCheckedChange = { newCheckedState -> setContPlay(newCheckedState) }
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(onClick = { onDismissRequest() }) {
-                    Text(
-                        text = "إغلاق",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-        }
+        )
     }
 }
 
@@ -749,9 +444,9 @@ fun PagesContainer(
     nightReadingMode: Boolean,
     listeningOptionsClicked: () -> Unit,
     vmChangedPage: Boolean,
-    setVmChangedPage: (Boolean) -> Unit
+    setVmChangedPage: (Boolean) -> Unit,
+    quranPagesNumbers: Array<String>
 ) {
-    val quranPagesNumbers = Array(604) { (it + 1).toString() }
 
     val pagerState = rememberPagerState(
         initialPage = Integer.parseInt(pageNum) - 1,
@@ -759,11 +454,11 @@ fun PagesContainer(
     ) {
         quranPagesNumbers.size //number of the pages of quran
     }
-    var showController by remember {
-        mutableStateOf(true)
-    }
-    val hasPageChanged =
-        remember { mutableStateOf(false) } // To track if the page has changed at least once
+    var showController by remember { mutableStateOf(true) }
+    val hasPageChanged = remember {
+        mutableStateOf(false
+        )
+    } // To track if the page has changed at least once
 
 
     LaunchedEffect(pageNum) {
@@ -775,6 +470,7 @@ fun PagesContainer(
             pagerState.scrollToPage(pageNum!!.toInt() - 1)
         }
     }
+
     val vmForceChangePage by rememberUpdatedState(vmChangedPage)
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
@@ -834,13 +530,7 @@ fun PagesContainer(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    /*Icon(
-                        Icons.Default.Settings,
-                        contentDescription = "More Options",
-                        modifier = Modifier.clickable { listeningOptionsClicked() },
-                        tint = MaterialTheme.colorScheme.primary
-                    )*/
-                    Text(text = "خيارات التشغيل",
+                    Text(text = "خيارات الإستماع",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier
@@ -918,238 +608,6 @@ fun SinglePage(pageNum: String, nightReadingMode: Boolean) {
                     .weight(0.5f)
                     .background(MaterialTheme.colorScheme.secondary)
             ) {}
-        }
-    }
-}
-
-@Composable
-fun BenefitSectionSeparator() {
-    Image(painter = painterResource(R.drawable.benefit_seperator),
-        contentDescription = "",
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
-@Composable
-fun Benefits(
-    benefits: Array<String>,
-    appliance: Array<String>,
-    guidance: Array<String>,
-    pageNum: String
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        LazyColumn() {
-            if (benefits.size != 0) {
-                item {
-                    BenefitSectionTitle("فوائد الصفحة");
-                    BenefitSectionSeparator()
-                }
-            }
-            items(benefits) { benefit ->
-                BenefitItem(
-                    benefitContent = benefit,
-                    shareSubject = "فائدة قرآنية",
-                    shareTitle = "مشاركة الفائدة",
-                    shareContent = "من الفوائد القرآنية للصفحة $pageNum \n $benefit\n${
-                        stringResource(
-                            R.string.share_app
-                        )
-                    }"
-                )
-            }
-
-            if (guidance.size != 0) {
-                item {
-                    BenefitSectionTitle("توجيهات الصفحة");
-                    BenefitSectionSeparator()
-                }
-            }
-            items(guidance) { guidanceItem ->
-                BenefitItem(
-                    benefitContent = guidanceItem,
-                    shareSubject = "توجيه قرآني",
-                    shareTitle = "مشاركة التوجيه",
-                    shareContent = "من التوجيهات القرآنية للصفحة $pageNum \n $guidanceItem\n${
-                        stringResource(
-                            R.string.share_app
-                        )
-                    }"
-                )
-            }
-
-            if (appliance.size != 0) {
-                item {
-                    BenefitSectionTitle("الجانب التطبيقي");
-                    BenefitSectionSeparator()
-                }
-            }
-            items(appliance) { applianceItem ->
-                BenefitItem(
-                    benefitContent = applianceItem,
-                    shareSubject = "تطبيق قرآني",
-                    shareTitle = "مشاركة التطبيق",
-                    shareContent = "من التطبيقات القرآنية للصفحة $pageNum \n $applianceItem\n${
-                        stringResource(
-                            R.string.share_app
-                        )
-                    }"
-                )
-            }
-        }
-    }
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun VersesBottomSheet(
-    showVersesSheet: Boolean,
-    onDismiss: () -> Unit,
-    onVerseClicked: (String) -> Unit,
-    items: List<PageContent>
-) {
-    val modalBottomSheetState = rememberModalBottomSheetState()
-
-    if (showVersesSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { onDismiss() },
-            sheetState = modalBottomSheetState,
-            dragHandle = { BottomSheetDefaults.DragHandle() },
-        ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primary)
-            ) {
-                items(items) { item ->
-                    Column(modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.primary)
-                        .clickable {
-                            onVerseClicked("${item.surahNum}-${item.verseNum}")
-                        }) {
-                        Row(
-                            modifier = Modifier
-                                .padding(12.dp)
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "{${item.verseNum}}  ${item.verseText}",
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                style = TextStyle(textDirection = TextDirection.Rtl),
-                                textAlign = TextAlign.Right,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .height(2.dp)
-                                .background(MaterialTheme.colorScheme.onPrimary)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun AddToKhitmahDialog(
-    onDismiss: () -> Unit,
-    khitmahList: List<Khitmah>,
-    assignPageToKhitmah: (Khitmah) -> Unit
-) {
-    OttrojjaDialog(
-        contentModifier = Modifier
-            .padding(8.dp)
-            .wrapContentHeight()
-            .fillMaxWidth(0.9f)
-            .background(MaterialTheme.colorScheme.secondary)
-            .padding(8.dp)
-            .clip(shape = RoundedCornerShape(12.dp)),
-        onDismissRequest = { onDismiss() },
-        useDefaultWidth = false,
-    ) {
-
-
-        Column(modifier = Modifier.wrapContentHeight()) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Text(text = "إضافة الى ختمة", textAlign = TextAlign.Center)
-            }
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 6.dp),
-                color = MaterialTheme.colorScheme.onTertiary
-            )
-
-            LazyColumn(modifier = Modifier.fillMaxHeight(0.4f)) {
-                if (khitmahList.isEmpty()) {
-                    item {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(20.dp)
-                        ) {
-                            Text(
-                                text = "لا يوجد ختمات حاليا",
-                                style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onSecondary
-                            )
-                        }
-                    }
-                }
-
-                items(khitmahList, key = { it.id }) { item ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { assignPageToKhitmah(item); onDismiss() }
-                            .padding(vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = item.title,
-                            color = MaterialTheme.colorScheme.onSecondary,
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 2.dp),
-                        color = MaterialTheme.colorScheme.onSecondary
-                    )
-                }
-            }
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Button(
-                    onClick = { onDismiss() },
-                    modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .padding(vertical = 6.dp)
-                ) {
-                    Text(
-                        text = "إلغاء",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
         }
     }
 }

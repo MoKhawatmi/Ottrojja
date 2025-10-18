@@ -48,7 +48,7 @@ import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.TopBar
 import com.ottrojja.room.entities.Azkar
-import com.ottrojja.screens.quranScreen.YouTube
+import com.ottrojja.screens.quranScreen.composables.YouTube
 
 @Composable
 fun ZikrScreen(

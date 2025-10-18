@@ -1,4 +1,4 @@
-package com.ottrojja.screens.quranScreen
+package com.ottrojja.screens.quranScreen.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

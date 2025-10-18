@@ -42,6 +42,8 @@ interface PageServiceInterface {
     fun getSelectedRepetition(): StateFlow<String>
     fun getPlayNextPage(): StateFlow<Boolean>
     fun getPlayingPageNum(): String?
+    fun getStartPlayingPage(): StateFlow<Int>
+    fun getEndPlayingPage(): StateFlow<Int>
     fun playNextVerse()
     fun playPreviousVerse()
     fun decreaseSpeed()
@@ -63,6 +65,8 @@ interface PageServiceInterface {
     fun setSelectedRepetition(value: String)
     fun setSelectedMappedRepetition(value: Int)
     fun setPlayNextPage(value: Boolean)
+    fun setStartPlayingPage(value: Int)
+    fun setEndPlayingPage(value: Int)
 }
 
 class PagePlayerService : Service(), PageServiceInterface {
@@ -85,6 +89,8 @@ class PagePlayerService : Service(), PageServiceInterface {
     private val _selectedRepetition = MutableStateFlow<String>("0")
     private val _selectedRepetitionTab = MutableStateFlow<RepetitionTab>(RepetitionTab.الاية)
     private val _playNextPage = MutableStateFlow<Boolean>(false) //this will act as a flag, when changed it shall signal the viewmodel to play next page
+    private val _startPlayingPage = MutableStateFlow<Int>(1)
+    private val _endPlayingPage = MutableStateFlow<Int>(1)
 
     private lateinit var notificationManager: NotificationManager
 
@@ -192,7 +198,8 @@ class PagePlayerService : Service(), PageServiceInterface {
                     logDebug("Error in player; PagePlayerService")
                     error.printStackTrace()
                     reportException(exception = error, file = "PagePlayerService")
-                    Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         )
@@ -337,6 +344,23 @@ class PagePlayerService : Service(), PageServiceInterface {
         _playNextPage.value = value;
     }
 
+    override fun getStartPlayingPage(): StateFlow<Int> {
+        return _startPlayingPage;
+    }
+
+    override fun setStartPlayingPage(value: Int) {
+        _startPlayingPage.value = value;
+    }
+
+    override fun getEndPlayingPage(): StateFlow<Int> {
+        return _endPlayingPage;
+    }
+
+    override fun setEndPlayingPage(value: Int) {
+        _endPlayingPage.value = value;
+    }
+
+
     override fun playAudio() {
         logDebug("play audio")
         if (_isPaused.value && length > 0) {
@@ -358,7 +382,9 @@ class PagePlayerService : Service(), PageServiceInterface {
             } else {
                 try {
                     _exoPlayer.apply {
-                        val mediaItem = MediaItem.fromUri(Uri.fromFile(File(context.getExternalFilesDir(null), urlParam)))
+                        val mediaItem = MediaItem.fromUri(
+                            Uri.fromFile(File(context.getExternalFilesDir(null), urlParam))
+                        )
                         setMediaItem(mediaItem)
                         prepare()
                         play()
@@ -432,7 +458,7 @@ class PagePlayerService : Service(), PageServiceInterface {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                reportException(exception = e, file = "PagePlayerService")
+                reportException(exception = e, file = "PagePlayerService", details = "Intent Action: ${intent.action}")
             }
         }
 
@@ -442,7 +468,8 @@ class PagePlayerService : Service(), PageServiceInterface {
     fun startService() {
         logDebug("starting service")
         if (!::notificationManager.isInitialized) {
-            notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager = getSystemService(Context.NOTIFICATION_SERVICE
+            ) as NotificationManager
         }
 
         if (::_exoPlayer.isInitialized) {
@@ -450,7 +477,9 @@ class PagePlayerService : Service(), PageServiceInterface {
         }
         initializePlayer()
 
-        val notificationLayout = buildNotificationLayout("الصفحة $currentPlayingPageNum من القرآن الكريم")
+        val notificationLayout = buildNotificationLayout(
+            "الصفحة $currentPlayingPageNum من القرآن الكريم"
+        )
 
 
         val notification = NotificationCompat.Builder(this, "PLAYER_CHANNEL")
@@ -466,7 +495,9 @@ class PagePlayerService : Service(), PageServiceInterface {
     }
 
     fun updateNotification() {
-        val notificationLayout = buildNotificationLayout("الصفحة $currentPlayingPageNum من القرآن الكريم")
+        val notificationLayout = buildNotificationLayout(
+            "الصفحة $currentPlayingPageNum من القرآن الكريم"
+        )
 
 
         val notification = NotificationCompat.Builder(this, "PLAYER_CHANNEL")
@@ -567,6 +598,4 @@ class PagePlayerService : Service(), PageServiceInterface {
     override fun onBind(p0: Intent?): IBinder {
         return PageServiceBinder();
     }
-
-
 }

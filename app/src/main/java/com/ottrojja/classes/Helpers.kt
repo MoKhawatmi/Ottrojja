@@ -145,6 +145,7 @@ object Helpers {
         else this.take(maxLength) + ".."
     }
 
+    // used in multiple composables and services
     val repetitionOptionsMap = linkedMapOf<String, Int>(
         "0" to 0,
         "1" to 1,
@@ -161,11 +162,12 @@ object Helpers {
     )
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    fun reportException(exception: Exception, file: String) {
+    fun reportException(exception: Exception, file: String, details: String = "") {
         var supabase: SupabaseClient = SupabaseProvider.client;
         val report = ExceptionReport(
             stacktrace = exception.stackTraceToString(),
             file = file,
+            details = details
         )
 
         scope.launch {

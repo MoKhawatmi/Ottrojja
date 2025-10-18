@@ -47,7 +47,7 @@ import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.RangeSelectionItem
-import com.ottrojja.composables.RepetitionOptionsDialog
+import com.ottrojja.screens.quranScreen.dialogs.RepetitionOptionsDialog
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.screens.mainScreen.ChapterData
 

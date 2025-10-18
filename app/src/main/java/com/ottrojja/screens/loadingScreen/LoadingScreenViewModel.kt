@@ -29,7 +29,6 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
-import java.io.IOException
 
 class LoadingScreenViewModel(private val repository: QuranRepository, application: Application) :
     AndroidViewModel(application) {
@@ -289,7 +288,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 println("Failed to fetch metadata: ${response.code}")
                 useLocalQuranFile(quranFile)
             }
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             e.printStackTrace()
             reportException(exception = e, file = "LoadingScreenViewModel")
             handleDownloadError(quranFile, e)
@@ -320,7 +319,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 useLocalQuranFile(quranFile)
                 loadingFile = false
             }
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             e.printStackTrace()
             reportException(exception = e, file = "LoadingScreenViewModel")
             println("failed download: ${e.message}")

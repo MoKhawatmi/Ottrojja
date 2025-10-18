@@ -1,4 +1,4 @@
-package com.ottrojja.screens.quranScreen
+package com.ottrojja.screens.quranScreen.composables
 
 import android.content.Context
 import androidx.compose.foundation.background
@@ -24,6 +24,7 @@ import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.SelectableText
+import com.ottrojja.screens.quranScreen.TafseerSheetMode
 
 @Composable
 fun SelectedVerseContentSection(
@@ -49,24 +50,36 @@ fun SelectedVerseContentSection(
             verticalAlignment = Alignment.Top,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column {
-                if (!atFirstVerse) {
-                    OttrojjaElevatedButton(
-                        onClick = { targetPreviousVerse() },
-                        icon = Icons.Default.ChevronRight,
-                        iconSize = 32.dp
-                    )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column {
+                    if (!atFirstVerse) {
+                        OttrojjaElevatedButton(
+                            onClick = { targetPreviousVerse() },
+                            icon = Icons.Default.ChevronRight,
+                            iconSize = 32.dp
+                        )
+                    }
+                }
+
+                Column {
+                    if (!atLastVerse) {
+                        OttrojjaElevatedButton(
+                            onClick = { targetNextVerse() },
+                            icon = Icons.Default.ChevronLeft,
+                            iconSize = 32.dp
+                        )
+                    }
                 }
             }
 
-            Column {
-                if (!atLastVerse) {
-                    OttrojjaElevatedButton(
-                        onClick = { targetNextVerse() },
-                        icon = Icons.Default.ChevronLeft,
-                        iconSize = 32.dp
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                OttrojjaElevatedButton(onClick = {
+                    copyToClipboard(
+                        context,
+                        text,
+                        copiedMessage
                     )
-                }
+                }, icon = Icons.Default.ContentCopy)
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically,
@@ -86,23 +99,9 @@ fun SelectedVerseContentSection(
             onClickTab = { changeTafseerSheetMode(it) }
         )
 
-        HorizontalDivider(color = MaterialTheme.colorScheme.primary,
+        HorizontalDivider(color = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp)
         )
-
-        Row(
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.Top,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            OttrojjaElevatedButton(onClick = {
-                copyToClipboard(
-                    context,
-                    text,
-                    copiedMessage
-                )
-            }, icon = Icons.Default.ContentCopy)
-        }
 
         content()
 
