@@ -7,8 +7,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -17,7 +20,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.rounded.DragHandle
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -58,6 +64,11 @@ fun CustomTasabeehListScreen(
         customTasabeehListScreenViewModel.updateUIListOnDrag(to.index, from.index)
     }
 
+
+    fun triggerAddTasbeehDialog() {
+        customTasabeehListScreenViewModel.customTasbeehModalMode = ModalFormMode.ADD;
+        customTasabeehListScreenViewModel.addTasbeehDialog = true;
+    }
 
     LaunchedEffect(Unit) {
         customTasabeehListScreenViewModel.fetchCustomTasabeehList(id)
@@ -115,8 +126,7 @@ fun CustomTasabeehListScreen(
             secondaryActions = listOf(
                 ButtonAction(icon = Icons.Default.Add, title = "إضافة ذكر",
                     action = {
-                        customTasabeehListScreenViewModel.customTasbeehModalMode = ModalFormMode.ADD;
-                        customTasabeehListScreenViewModel.addTasbeehDialog = true;
+                        triggerAddTasbeehDialog()
                     }),
                 ButtonAction(icon = Icons.Default.Close,
                     title = "حذف القائمة",
@@ -125,13 +135,35 @@ fun CustomTasabeehListScreen(
             )
         )
 
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            ElevatedButton(
+                onClick = { triggerAddTasbeehDialog() },
+                elevation = ButtonDefaults.elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
+                shape = RoundedCornerShape(4.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add Tasbeeh",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+        }
+
+
         LazyColumn(
             state = lazyListState,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(top = 10.dp, bottom = 10.dp),
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .weight(1f)
         ) {
             if (customTasabeehListScreenViewModel.customTasabeeh.isEmpty()) {
                 item {
@@ -154,7 +186,8 @@ fun CustomTasabeehListScreen(
                                     customTasabeehListScreenViewModel.tasbeehInWork = item;
                                     customTasabeehListScreenViewModel.addTasbeehDialog = true;
                                 },
-                                tasbeehCount = customTasabeehListScreenViewModel.itemCounts.get(item.id) ?: item.count,
+                                tasbeehCount = customTasabeehListScreenViewModel.itemCounts.get(item.id)
+                                    ?: item.count,
                                 onCountChanged = { value ->
                                     customTasabeehListScreenViewModel.itemCounts.put(item.id, value)
                                 },

@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.PageContentItemType
 import kotlin.collections.forEach
@@ -28,58 +29,49 @@ import kotlin.collections.forEach
 @Composable
 fun SelectVerseDialog(
     onDismissRequest: () -> Unit,
-    onOptionClick: (PageContent) -> Unit,
+    onSelect: (PageContent) -> Unit,
     versesList: List<PageContent>
 ) {
-    Dialog(onDismissRequest = { onDismissRequest() }) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
-            ),
-        ) {
-            Box(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .fillMaxHeight(0.4f)
-                    .background(MaterialTheme.colorScheme.secondary)
-                    .padding(8.dp)
-                    .clip(shape = RoundedCornerShape(12.dp))
-            ) {
-                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    versesList.forEach { option ->
-                        if (option.type == PageContentItemType.verse) {
-                            Row(modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onOptionClick(option) }
-                                .padding(6.dp)) {
-                                Text(
-                                    text = "الاية ${option.verseNum}",
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Right,
-                                    color = MaterialTheme.colorScheme.onSecondary,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-                        } else {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(MaterialTheme.colorScheme.primary)
-                                    .padding(6.dp)
-                            ) {
-                                Text(
-                                    text = " سورة " + "${option.surahName}",
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Right,
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-                        }
+    OttrojjaDialog(onDismissRequest = { onDismissRequest() }, contentModifier = Modifier
+        .padding(8.dp)
+        .fillMaxHeight(0.4f)
+        .background(MaterialTheme.colorScheme.secondary)
+        .padding(8.dp)
+        .clip(shape = RoundedCornerShape(12.dp))
+    ) {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            versesList.forEach { option ->
+                if (option.type == PageContentItemType.verse) {
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(option) }
+                        .padding(6.dp)) {
+                        Text(
+                            text = "الاية ${option.verseNum}",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Right,
+                            color = MaterialTheme.colorScheme.onSecondary,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.primary)
+                            .padding(6.dp)
+                    ) {
+                        Text(
+                            text = " سورة " + "${option.surahName}",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Right,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
                     }
                 }
             }
         }
+
     }
 }

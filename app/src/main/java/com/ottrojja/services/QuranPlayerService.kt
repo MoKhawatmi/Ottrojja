@@ -367,17 +367,8 @@ class QuranPlayerService : Service(), QuranServiceInterface {
                         startService()
                     }
 
-                    Actions.STOP.toString() -> {
-                        println("stopping media inside app")
-                        handler.removeCallbacksAndMessages(null)
-                        resetPlayer()
-                        _currentPlayingParameters.value = null;
-                        _isPlaying.value = false;
-                        _isPaused.value = false;
-                    }
-
                     Actions.TERMINATE.toString() -> {
-                        println("stopping self")
+                        println("QuranPlayerService stopping self")
                         handler.removeCallbacksAndMessages(null)
                         if (::exoPlayer.isInitialized) {
                             releasePlayer()

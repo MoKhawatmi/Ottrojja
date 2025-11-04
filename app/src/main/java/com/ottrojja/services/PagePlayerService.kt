@@ -22,8 +22,13 @@ import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.screens.quranScreen.RepetitionTab
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.io.File
 
 interface PageServiceInterface {
@@ -32,18 +37,20 @@ interface PageServiceInterface {
     fun getPaused(): StateFlow<Boolean>
     fun getContinuousPlay(): StateFlow<Boolean>
     fun getDestroyed(): StateFlow<Boolean>
-    fun getPlayingIndex(): StateFlow<Int> //is it needed to be passed to vm?
-    fun getStartPlayingIndex(): StateFlow<Int?>
-    fun getStartPlayingItem(): StateFlow<PageContent?>
-    fun getEndPlayingIndex(): StateFlow<Int?>
-    fun getEndPlayingItem(): StateFlow<PageContent?>
+
+    //fun getPlayingIndex(): StateFlow<Int> //is it needed to be passed to vm?
+    // fun getStartPlayingIndex(): StateFlow<Int?>
+    //fun getStartPlayingItem(): StateFlow<PageContent?>
+    //fun getEndPlayingIndex(): StateFlow<Int?>
+    //fun getEndPlayingItem(): StateFlow<PageContent?>
     fun getPlaybackSpeed(): StateFlow<Float>
     fun getSelectedRepetitionTab(): StateFlow<RepetitionTab>
     fun getSelectedRepetition(): StateFlow<String>
     fun getPlayNextPage(): StateFlow<Boolean>
-    fun getPlayingPageNum(): String?
+    fun getPlayingPageNum(): StateFlow<String?>
     fun getStartPlayingPage(): StateFlow<Int>
     fun getEndPlayingPage(): StateFlow<Int>
+    fun getVersesPlayList(): StateFlow<List<PageContent>>
     fun playNextVerse()
     fun playPreviousVerse()
     fun decreaseSpeed()
@@ -53,11 +60,12 @@ interface PageServiceInterface {
     fun resetPlayer()
     fun releasePlayer()
     fun playingParameterUpdated()
-    fun setPlayingIndex(index: Int)
-    fun setStartPlayingIndex(index: Int)
-    fun setStartPlayingItem(item: PageContent?)
-    fun setEndPlayingIndex(index: Int?)
-    fun setEndPlayingItem(item: PageContent?)
+
+    //fun setPlayingIndex(index: Int)
+    // fun setStartPlayingIndex(index: Int)
+    //fun setStartPlayingItem(item: PageContent?)
+    //fun setEndPlayingIndex(index: Int?)
+    //fun setEndPlayingItem(item: PageContent?)
     fun setVersesPlayList(versesPlayList: List<PageContent>)
     fun setPlayingPageNum(value: String)
     fun setContinuousPlay(value: Boolean)
@@ -73,22 +81,24 @@ class PagePlayerService : Service(), PageServiceInterface {
     lateinit var _exoPlayer: ExoPlayer;
     var length: Long = 0;
     var repeatedTimes = 0;
-    var currentPlayingPageNum: String? = null;
+    var currentPlayingPageNum = MutableStateFlow<String?>(null);
     var selectedMappedRepetitions: Int = 0;
-    private var _versesPlayList: List<PageContent> = emptyList()
+    private var _versesPlayList = MutableStateFlow<List<PageContent>>(emptyList())
     private var _playbackSpeed = MutableStateFlow<Float>(1.0f)
     private val _isPlaying = MutableStateFlow<Boolean>(false)
     private val _isPaused = MutableStateFlow<Boolean>(false)
     private val _continuousPlay = MutableStateFlow<Boolean>(false)
     private val _destroyed = MutableStateFlow<Boolean>(false)
     private val _currentPlayingIndex = MutableStateFlow<Int>(0)
-    private val _startPlayingIndex = MutableStateFlow<Int?>(null)
+
+    /*private val _startPlayingIndex = MutableStateFlow<Int?>(null)
     private val _startPlayingItem = MutableStateFlow<PageContent?>(null)
     private val _endPlayingIndex = MutableStateFlow<Int?>(null)
-    private val _endPlayingItem = MutableStateFlow<PageContent?>(null)
+    private val _endPlayingItem = MutableStateFlow<PageContent?>(null)*/
     private val _selectedRepetition = MutableStateFlow<String>("0")
     private val _selectedRepetitionTab = MutableStateFlow<RepetitionTab>(RepetitionTab.الاية)
-    private val _playNextPage = MutableStateFlow<Boolean>(false) //this will act as a flag, when changed it shall signal the viewmodel to play next page
+    private val _playNextPage = MutableStateFlow<Boolean>(false
+    ) //this will act as a flag, when changed it shall signal the viewmodel to play next page
     private val _startPlayingPage = MutableStateFlow<Int>(1)
     private val _endPlayingPage = MutableStateFlow<Int>(1)
 
@@ -99,6 +109,27 @@ class PagePlayerService : Service(), PageServiceInterface {
             return this@PagePlayerService;
         }
     }
+    /*
+        // A SupervisorJob so one child failure doesn't cancel all coroutines
+        private val serviceJob = SupervisorJob()
+
+        // Define a scope tied to the service lifecycle
+        private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
+
+
+        override fun onCreate() {
+            super.onCreate()
+
+            serviceScope.launch {
+                _currentPlayingIndex.collect { index ->
+                    if(_versesPlayList.value.isEmpty()){
+                        return@collect
+                    }
+
+                }
+            }
+        }*/
+
 
     fun initializePlayer() {
         val context = this
@@ -125,13 +156,13 @@ class PagePlayerService : Service(), PageServiceInterface {
                             println("size - 1: ${_versesPlayList.size - 1}")*/
                             // Repetition logic
 
-                            if (repeatActive && _versesPlayList[_currentPlayingIndex.value].type == PageContentItemType.verse) {
+                            if (repeatActive && _versesPlayList.value[_currentPlayingIndex.value].type == PageContentItemType.verse) {
                                 if (_selectedRepetitionTab.value == RepetitionTab.الاية) {
                                     if (repeatedTimes < selectedMappedRepetitions) {
                                         repeatedTimes++;
                                         playAudio()
-                                    } else if (_currentPlayingIndex.value < _versesPlayList.size - 1) {
-                                        if (_currentPlayingIndex.value != _endPlayingIndex.value) {
+                                    } else if (_currentPlayingIndex.value < _versesPlayList.value.size - 1) {
+                                        if (_currentPlayingIndex.value != _versesPlayList.value.size - 1) {
                                             repeatedTimes = 0;
                                             playNextVerse()
                                         } else {
@@ -142,26 +173,26 @@ class PagePlayerService : Service(), PageServiceInterface {
                                         // done playing, done looping
                                         resetPlayer()
                                         resetUIStates();
-                                        if (currentPlayingPageNum != "604" && _continuousPlay.value) {
+                                        if (currentPlayingPageNum.value != "604" && _continuousPlay.value) {
                                             //playNextPage()
                                             _playNextPage.value = true;
                                         }
                                     }
                                 } else if (_selectedRepetitionTab.value == RepetitionTab.المقطع) {
-                                    if (_currentPlayingIndex.value != _endPlayingIndex.value) {
-                                        if (_currentPlayingIndex.value < _versesPlayList.size - 1) {
+                                    if (_currentPlayingIndex.value != _versesPlayList.value.size - 1) {
+                                        if (_currentPlayingIndex.value < _versesPlayList.value.size - 1) {
                                             playNextVerse();
                                         } else {
                                             resetPlayer()
                                             resetUIStates();
-                                            if (currentPlayingPageNum != "604" && _continuousPlay.value) {
+                                            if (currentPlayingPageNum.value != "604" && _continuousPlay.value) {
                                                 //playNextPage()
                                                 _playNextPage.value = true;
                                             }
                                         }
                                     } else if (repeatedTimes < selectedMappedRepetitions) {
                                         repeatedTimes++;
-                                        _currentPlayingIndex.value = _startPlayingIndex.value ?: 0;
+                                        _currentPlayingIndex.value = 0;
                                         playAudio()
                                         logDebug("repeat times increased $repeatedTimes")
                                     } else {
@@ -172,8 +203,8 @@ class PagePlayerService : Service(), PageServiceInterface {
                                 }
                             }
                             // Play next verse
-                            else if (_currentPlayingIndex.value < _versesPlayList.size - 1) {
-                                if (_currentPlayingIndex.value != _endPlayingIndex.value) {
+                            else if (_currentPlayingIndex.value < _versesPlayList.value.size - 1) {
+                                if (_currentPlayingIndex.value != _versesPlayList.value.size - 1) {
                                     playNextVerse();
                                 } else {
                                     resetPlayer();
@@ -184,7 +215,7 @@ class PagePlayerService : Service(), PageServiceInterface {
                             else {
                                 resetPlayer()
                                 resetUIStates();
-                                if (currentPlayingPageNum != "604" && _continuousPlay.value) {
+                                if (currentPlayingPageNum.value != "604" && _continuousPlay.value) {
                                     //playNextPage()
                                     _playNextPage.value = true;
                                 }
@@ -250,25 +281,25 @@ class PagePlayerService : Service(), PageServiceInterface {
         repeatedTimes = 0;
     }
 
-    override fun getPlayingIndex(): StateFlow<Int> {
+    /*override fun getPlayingIndex(): StateFlow<Int> {
         return _currentPlayingIndex;
     }
 
     override fun setPlayingIndex(index: Int) {
         logDebug("setting service current playing index to $index")
         _currentPlayingIndex.value = index;
-    }
+    }*/
 
-    override fun getStartPlayingIndex(): StateFlow<Int?> {
+    /*override fun getStartPlayingIndex(): StateFlow<Int?> {
         return _startPlayingIndex;
     }
 
     override fun setStartPlayingIndex(index: Int) {
         logDebug("setting service start playing index to $index")
         _startPlayingIndex.value = index;
-    }
+    }*/
 
-    override fun getStartPlayingItem(): StateFlow<PageContent?> {
+    /*override fun getStartPlayingItem(): StateFlow<PageContent?> {
         return _startPlayingItem;
     }
 
@@ -290,22 +321,27 @@ class PagePlayerService : Service(), PageServiceInterface {
 
     override fun setEndPlayingItem(item: PageContent?) {
         _endPlayingItem.value = item;
-    }
+    }*/
 
     override fun getPlaybackSpeed(): StateFlow<Float> {
         return _playbackSpeed;
     }
 
+    override fun getVersesPlayList(): StateFlow<List<PageContent>> {
+        return _versesPlayList
+    }
+
     override fun setVersesPlayList(versesPlayList: List<PageContent>) {
         logDebug("updating verses playlist")
-        _versesPlayList = versesPlayList;
-        logDebug("new size ${_versesPlayList.size}")
+        _versesPlayList.value = versesPlayList;
+        logDebug("new size ${_versesPlayList.value.size}")
+        logDebug("updating notification")
+        updateNotification()
     }
 
     override fun setPlayingPageNum(value: String) {
         logDebug("service playing page num $value")
-        currentPlayingPageNum = value;
-        updateNotification()
+        currentPlayingPageNum.value = value;
     }
 
     override fun setContinuousPlay(value: Boolean) {
@@ -332,7 +368,7 @@ class PagePlayerService : Service(), PageServiceInterface {
         selectedMappedRepetitions = value;
     }
 
-    override fun getPlayingPageNum(): String? {
+    override fun getPlayingPageNum(): StateFlow<String?> {
         return currentPlayingPageNum;
     }
 
@@ -360,19 +396,19 @@ class PagePlayerService : Service(), PageServiceInterface {
         _endPlayingPage.value = value;
     }
 
-
     override fun playAudio() {
         logDebug("play audio")
+        checkPage()
         if (_isPaused.value && length > 0) {
             resumeTrack()
         } else {
             val context: Context = this;
-            val item: PageContent = _versesPlayList[_currentPlayingIndex.value]
+            val item: PageContent = _versesPlayList.value[_currentPlayingIndex.value]
             var urlParam: String;
             if (item.type == PageContentItemType.surah) {
                 urlParam = "1-1-1.mp3"
             } else {
-                urlParam = "${currentPlayingPageNum}-${item.surahNum}-${item.verseNum}.mp3"
+                urlParam = "${item.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
             }
 
             //skip basmallah for surah 1 and 9
@@ -397,18 +433,21 @@ class PagePlayerService : Service(), PageServiceInterface {
         }
     }
 
-
-    private fun resetAll() {
-        resetPlayer()
-        resetUIStates()
-    }
-
     private fun resumeTrack() {
         logDebug("resuming")
         _exoPlayer.play()
         _isPlaying.value = true;
         _isPaused.value = false;
     }
+
+    fun checkPage() {
+        val nextVersePageNum = _versesPlayList.value.get(_currentPlayingIndex.value).pageNum
+        println("current page ${currentPlayingPageNum.value}, next page $nextVersePageNum")
+        if (currentPlayingPageNum.value != nextVersePageNum) {
+            setPlayingPageNum(nextVersePageNum)
+        }
+    }
+
 
     fun updatePlaybackSpeed() {
         _exoPlayer.playbackParameters = PlaybackParameters(_playbackSpeed.value)
@@ -424,17 +463,11 @@ class PagePlayerService : Service(), PageServiceInterface {
                         startService()
                     }
 
-                    Actions.STOP.toString() -> {
-                        logDebug("stopping media inside app")
-                        resetPlayer()
-                        resetUIStates()
-                        _isPlaying.value = false;
-                        _isPaused.value = false;
-                    }
-
                     Actions.TERMINATE.toString() -> {
                         logDebug("stopping self")
                         if (::_exoPlayer.isInitialized) {
+                            resetUIStates()
+                            resetPlayer()
                             releasePlayer()
                         }
                         _isPlaying.value = false;
@@ -458,7 +491,9 @@ class PagePlayerService : Service(), PageServiceInterface {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                reportException(exception = e, file = "PagePlayerService", details = "Intent Action: ${intent.action}")
+                reportException(exception = e, file = "PagePlayerService",
+                    details = "Intent Action: ${intent.action}"
+                )
             }
         }
 
@@ -495,9 +530,12 @@ class PagePlayerService : Service(), PageServiceInterface {
     }
 
     fun updateNotification() {
-        val notificationLayout = buildNotificationLayout(
-            "الصفحة $currentPlayingPageNum من القرآن الكريم"
-        )
+        val firstVerse = _versesPlayList.value.first { it.type == PageContentItemType.verse };
+        val lastVerse = _versesPlayList.value.last { it.type == PageContentItemType.verse };
+
+        val firstVerseAnnotation = "${firstVerse.pageNum}:${firstVerse.surahNum}:${firstVerse.verseNum}";
+        val lastVerseAnnotation = "${lastVerse.pageNum}:${lastVerse.surahNum}:${lastVerse.verseNum}";
+        val notificationLayout = buildNotificationLayout("$firstVerseAnnotation - $lastVerseAnnotation")
 
 
         val notification = NotificationCompat.Builder(this, "PLAYER_CHANNEL")
@@ -515,7 +553,7 @@ class PagePlayerService : Service(), PageServiceInterface {
     }
 
     override fun playNextVerse() {
-        if (_currentPlayingIndex.value == _versesPlayList.size - 1) {
+        if (_currentPlayingIndex.value == _versesPlayList.value.size - 1) {
             return;
         }
         _currentPlayingIndex.value++;
@@ -528,20 +566,17 @@ class PagePlayerService : Service(), PageServiceInterface {
         }
         _currentPlayingIndex.value--;
         playAudio()
-
     }
 
     override fun resetUIStates() {
         _currentPlayingIndex.value = 0;
-        _endPlayingIndex.value = null;
-        _startPlayingIndex.value = 0;
-        _startPlayingItem.value = null;
-        _endPlayingItem.value = null;
+        _playbackSpeed.value = 1f;
         repeatedTimes = 0;
         length = 0;
     }
 
     override fun resetPlayer() {
+        logDebug("Resetting player")
         _exoPlayer.stop();
         _exoPlayer.seekTo(0);
         _exoPlayer.clearMediaItems();
@@ -555,9 +590,8 @@ class PagePlayerService : Service(), PageServiceInterface {
         _exoPlayer.release()
     }
 
-
     enum class Actions {
-        START, TERMINATE, STOP, NOTI_PLAY, NOTI_PAUSE
+        START, TERMINATE, NOTI_PLAY, NOTI_PAUSE
     }
 
     private fun getPendingIntentForAction(action: String): PendingIntent {
@@ -565,7 +599,6 @@ class PagePlayerService : Service(), PageServiceInterface {
         intent.action = action
         return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
     }
-
 
     private fun buildNotificationLayout(title: String): RemoteViews {
         val remoteViews = RemoteViews(packageName, R.layout.notification_layout)

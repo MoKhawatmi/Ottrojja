@@ -52,16 +52,20 @@ interface QuranDao {
     @Query("""
     SELECT * FROM PageContent
     WHERE (surahNum > :startingSurah OR (surahNum = :startingSurah AND verseNum >= :startingVerse))
-      AND (surahNum < :endSurah OR (surahNum = :endSurah AND verseNum <= :endVerse)) AND type = "verse"
-""")
+      AND (surahNum < :endSurah OR (surahNum = :endSurah AND verseNum <= :endVerse)) AND type = 'verse'
+"""
+    )
     suspend fun getPagesContentRange(startingSurah: Int, startingVerse: Int, endSurah: Int, endVerse: Int): List<PageContent>
+
+
+    @Query("SELECT * FROM PageContent WHERE pageNum = :pageNum")
+    suspend fun fetchPageVerses(pageNum: String): List<PageContent>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPageContent(pageContent: PageContent)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPagesContent(pagesContent: List<PageContent>)
-
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChapters(chapters: List<ChapterData>)
@@ -109,7 +113,9 @@ interface QuranDao {
     suspend fun getAllTafseerData(): List<TafseerData>
 
     @Query("SELECT * FROM TafseerData WHERE sura=:surahNum AND aya=:verseNum AND tafseer=:tafseer")
-    suspend fun getVerseTafseerData(surahNum: String, verseNum: String, tafseer: String): TafseerData
+    suspend fun getVerseTafseerData(surahNum: String,
+                                    verseNum: String,
+                                    tafseer: String): TafseerData
 
     @Query("SELECT count(*) FROM TafseerData")
     suspend fun getTafseersCount(): Int
@@ -136,7 +142,8 @@ interface QuranDao {
     @Query(
         "SELECT * FROM CauseOfRevelation WHERE sura=:surahNum AND (verses LIKE '%' || :verseNum || ',%' OR verses LIKE '%,' || :verseNum || '%' OR verses = :verseNum)"
     )
-    suspend fun getCauseOfRevelationData(surahNum: String, verseNum: String): List<CauseOfRevelation>
+    suspend fun getCauseOfRevelationData(surahNum: String,
+                                         verseNum: String): List<CauseOfRevelation>
 
     @Query("SELECT count(*) FROM CauseOfRevelation")
     suspend fun getCausesOfRevelationCount(): Int

@@ -257,16 +257,8 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
                         startService()
                     }
 
-                    Actions.STOP.toString() -> {
-                        println("stopping media inside app")
-                        handler.removeCallbacksAndMessages(null)
-                        resetPlayer()
-                        _isPlaying.value = false;
-                        _isPaused.value = false;
-                    }
-
                     Actions.TERMINATE.toString() -> {
-                        println("stopping self")
+                        println("AzkarPlayerService stopping self")
                         handler.removeCallbacksAndMessages(null)
                         if (::exoPlayer.isInitialized) {
                             releasePlayer()

@@ -291,7 +291,7 @@ fun QuranScreen(
                     )
                 }
 
-                QuranViewModel.PageTab.الآيات -> VersesSection(
+                QuranViewModel.PageTab.التفسير -> VersesSection(
                     quranViewModel.currentPageObject?.pageContent!!.filter { item -> item.type == PageContentItemType.verse },
                     onSheetRequest = { targetVerse, mode ->
                         quranViewModel.tafseerTargetVerse = targetVerse;
@@ -309,9 +309,7 @@ fun QuranScreen(
                 )
 
                 QuranViewModel.PageTab.الفيديو -> YouTube(
-                    quranViewModel.currentPageObject?.page?.ytLink!!.split(
-                        "v="
-                    ).last()
+                    quranViewModel.currentPageObject?.page?.ytLink!!.split("v=").last()
                 )
             }
 
@@ -341,14 +339,20 @@ fun QuranScreen(
             onDismissRequest = { quranViewModel.showListeningOptionsDialog = false },
             selectedVerse = quranViewModel.selectedVerse,
             selectedEndVerse = quranViewModel.selectedEndVerse,
-            onSelectVerseClicked = { quranViewModel.showVerseOptions = true },
-            onSelectStartPageClicked = { quranViewModel.showPageSelectionDialog = true },
+            onSelectVerseClicked = {
+                quranViewModel.versesSelectionMode = VersesSelectionMode.START
+                quranViewModel.showVerseOptions = true
+            },
+            onSelectStartPageClicked = {
+                quranViewModel.versesSelectionMode = VersesSelectionMode.START
+                quranViewModel.showPageSelectionDialog = true
+            },
             onSelectEndVerseClicked = {
-                quranViewModel.selectingEndVerse = true;
+                quranViewModel.versesSelectionMode = VersesSelectionMode.END
                 quranViewModel.showVerseOptions = true;
             },
             onSelectEndPageClicked = {
-                quranViewModel.selectingEndVerse = true;
+                quranViewModel.versesSelectionMode = VersesSelectionMode.END
                 quranViewModel.showPageSelectionDialog = true;
             },
             continuousPlay = quranViewModel.continuousPlay,
@@ -373,20 +377,37 @@ fun QuranScreen(
         )
     }
 
+    if (quranViewModel.showPageSelectionDialog) {
+        PageSelectionDialog(
+            onDismissRequest = { quranViewModel.showPageSelectionDialog = false },
+            pages = quranViewModel.getPagesList(),
+            onSelect = { value ->
+                if (quranViewModel.versesSelectionMode == VersesSelectionMode.END) {
+                    quranViewModel.endPlayingPage = value.toInt();
+                } else {
+                    quranViewModel.startPlayingPage = value.toInt();
+                }
+                quranViewModel.updateSelectionVersesList(value)
+                quranViewModel.pagesSearchFilter = "";
+                quranViewModel.showPageSelectionDialog = false;
+            },
+            searchFilter = quranViewModel.pagesSearchFilter,
+            searchFilterChanged = { value -> quranViewModel.pagesSearchFilter = value }
+        )
+    }
+
     if (quranViewModel.showVerseOptions) {
         SelectVerseDialog(
-            { quranViewModel.showVerseOptions = false },
-            { selectedVerse ->
-                if (quranViewModel.selectingEndVerse) {
+            onDismissRequest = { quranViewModel.showVerseOptions = false },
+            onSelect = { selectedVerse ->
+                if (quranViewModel.versesSelectionMode == VersesSelectionMode.END) {
                     quranViewModel.selectedEndVerse = selectedVerse;
-                    quranViewModel.selectingEndVerse = false;
-                    quranViewModel.showVerseOptions = false;
                 } else {
                     quranViewModel.selectedVerse = selectedVerse;
-                    quranViewModel.showVerseOptions = false;
                 }
+                quranViewModel.showVerseOptions = false;
             },
-            quranViewModel.getCurrentPageVerses()
+            versesList = if (quranViewModel.versesSelectionMode == VersesSelectionMode.END) quranViewModel.selectionEndVersesList else quranViewModel.selectionVersesList
         )
     }
 
@@ -409,22 +430,6 @@ fun QuranScreen(
         )
     }
 
-    if (quranViewModel.showPageSelectionDialog) {
-        //TODO onSelect needs to trigger fetching of the corresponding page verses so that we can select start/end verse in the correct page
-        PageSelectionDialog(onDismissRequest = { quranViewModel.showPageSelectionDialog = false },
-            pages = quranViewModel.quranPagesNumbers,
-            onSelect = { value ->
-                if (quranViewModel.selectingEndVerse) {
-                    quranViewModel.endPlayingPage = value.toInt();
-                    quranViewModel.selectingEndVerse = false;
-                    quranViewModel.showPageSelectionDialog = false;
-                } else {
-                    quranViewModel.startPlayingPage = value.toInt();
-                    quranViewModel.showPageSelectionDialog = false;
-                }
-            }
-        )
-    }
 }
 
 @Composable
@@ -445,7 +450,7 @@ fun PagesContainer(
     listeningOptionsClicked: () -> Unit,
     vmChangedPage: Boolean,
     setVmChangedPage: (Boolean) -> Unit,
-    quranPagesNumbers: Array<String>
+    quranPagesNumbers: List<String>
 ) {
 
     val pagerState = rememberPagerState(
@@ -455,17 +460,14 @@ fun PagesContainer(
         quranPagesNumbers.size //number of the pages of quran
     }
     var showController by remember { mutableStateOf(true) }
-    val hasPageChanged = remember {
-        mutableStateOf(false
-        )
-    } // To track if the page has changed at least once
+    val hasPageChanged = remember { mutableStateOf(false) } // To track if the page has changed at least once
 
 
     LaunchedEffect(pageNum) {
         if (shouldAutoPlay) {
             println("should auto play ${pageNum!!.toInt()}")
             pagerState.animateScrollToPage(pageNum!!.toInt() - 1)
-            onPlayClicked()
+            // onPlayClicked()
         } else {
             pagerState.scrollToPage(pageNum!!.toInt() - 1)
         }

@@ -213,7 +213,7 @@ fun ListeningOptionsDialog(
                 )
             }
 
-            Row(
+            /*Row(
                 modifier = Modifier
                     .padding(vertical = 6.dp)
                     .fillMaxWidth()
@@ -229,7 +229,7 @@ fun ListeningOptionsDialog(
                     checked = continuousPlay,
                     onCheckedChange = { newCheckedState -> setContPlay(newCheckedState) }
                 )
-            }
+            }*/
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

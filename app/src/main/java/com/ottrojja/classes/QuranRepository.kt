@@ -66,9 +66,18 @@ class QuranRepository(private val quranDao: QuranDao,
         return quranDao.searchPagesContent(query)
     }
 
-    suspend fun getPagesContentRange(startingSurah: Int, startingVerse: Int, endSurah: Int, endVerse: Int): List<PageContent> {
+    suspend fun getPagesContentRange(startingSurah: Int,
+                                     startingVerse: Int,
+                                     endSurah: Int,
+                                     endVerse: Int): List<PageContent> {
         return quranDao.getPagesContentRange(startingSurah, startingVerse, endSurah, endVerse);
     }
+
+
+    suspend fun fetchPageVerses(pageNum: String): List<PageContent> {
+        return quranDao.fetchPageVerses(pageNum)
+    }
+
 
     suspend fun insertPageContent(pageContent: PageContent) {
         quranDao.insertPageContent(pageContent)
@@ -102,7 +111,7 @@ class QuranRepository(private val quranDao: QuranDao,
         quranDao.insertParts(parts)
     }
 
-    suspend fun insertQuarters(quarters: List<Quarter>){
+    suspend fun insertQuarters(quarters: List<Quarter>) {
         quranDao.insertQuarters(quarters)
     }
 
@@ -110,7 +119,7 @@ class QuranRepository(private val quranDao: QuranDao,
         return quranDao.getAllParts()
     }
 
-    suspend fun getAllPartsWithQuarters(): List<PartWithQuarters>{
+    suspend fun getAllPartsWithQuarters(): List<PartWithQuarters> {
         return quranDao.getAllPartsWithQuarters();
     }
 
@@ -271,14 +280,13 @@ class QuranRepository(private val quranDao: QuranDao,
         tasabeehDao.updateTasabeehList(tasabeehList)
     }
 
-    suspend fun massUpdateCustomTasabeeh(items: List<CustomTasbeeh>){
+    suspend fun massUpdateCustomTasabeeh(items: List<CustomTasbeeh>) {
         tasabeehDao.massUpdateCustomTasabeeh(items)
     }
 
-    suspend fun getMaxPosition(listId: Int): Int{
+    suspend fun getMaxPosition(listId: Int): Int {
         return tasabeehDao.getMaxPosition(listId)
     }
-
 
 
     /*******************VERSE MEANINGS MANAGEMENT*************************/

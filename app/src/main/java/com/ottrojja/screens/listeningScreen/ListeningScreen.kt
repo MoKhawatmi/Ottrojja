@@ -133,8 +133,13 @@ fun ListeningScreen(
                 selectedItem = listeningViewModel.listeningMode,
                 onClickTab = { value -> listeningViewModel.switchListeningMode(value) })
         }
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.8f).verticalScroll(rememberScrollState())) {
+        //Box(modifier = Modifier.fillMaxSize()) {
+        Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+            ) {
                 if (listeningViewModel.listeningMode == QuranListeningMode.مقطع_ايات) {
                     Column {
                         Row(modifier = Modifier
@@ -355,7 +360,7 @@ fun ListeningScreen(
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
                     .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
+                    //.align(Alignment.BottomCenter)
                     .clickable(
                         interactionSource = interactionSource,
                         indication = null
@@ -389,6 +394,7 @@ fun ListeningScreen(
                     )
                 }
             }
+        //}
         }
     }
 }

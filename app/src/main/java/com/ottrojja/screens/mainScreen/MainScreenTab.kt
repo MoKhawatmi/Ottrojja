@@ -56,10 +56,10 @@ fun MainScreenTab(title: String,
         Image(
             painter = painterResource(id = imageId),
             contentDescription = "",
-            contentScale = ContentScale.Crop,
+            /*contentScale = ContentScale.Crop,*/
             modifier = Modifier
                 .size(60.dp)
-                .clip(CircleShape)
+                /*.clip(CircleShape)*/
         )
     }
 }
