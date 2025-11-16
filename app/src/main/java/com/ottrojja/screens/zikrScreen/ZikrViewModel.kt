@@ -21,6 +21,7 @@ import com.ottrojja.classes.Helpers.formatTime
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
+import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.services.AzkarPlayerService
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.room.entities.Azkar
@@ -283,7 +284,6 @@ class ZikrViewModel(
         )
         val tempFile = File.createTempFile("temp_", ".mp3", context.getExternalFilesDir(null))
 
-        val client = OkHttpClient()
         val request = Request.Builder()
             .url(_zikr.value.firebaseAddress)
             .build()
@@ -292,13 +292,13 @@ class ZikrViewModel(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 try {
-                    client.newCall(request).execute().use { response ->
+                    ottrojjaClient.newCall(request).execute().use { response ->
                         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
                         response.body?.let { responseBody ->
                             FileOutputStream(tempFile).use { outputStream ->
                                 responseBody.byteStream().use { inputStream ->
-                                    inputStream.copyTo(outputStream)
+                                    inputStream.copyTo(outputStream, bufferSize = 8 * 1024)
                                 }
                             }
                         }
@@ -311,12 +311,11 @@ class ZikrViewModel(
                                 Toast.LENGTH_LONG
                             ).show()
                         }
-
                     }
                 } catch (e: Exception) {
                     println("error in download")
                     e.printStackTrace()
-                    reportException(exception = e, file = "ZikrViewModel")
+                    reportException(exception = e, file = "ZikrViewModel", details = "link: ${_zikr.value.firebaseAddress}")
                     withContext(Dispatchers.Main) {
                         if (e.message?.contains("ENOSPC") == true) {
                             Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()

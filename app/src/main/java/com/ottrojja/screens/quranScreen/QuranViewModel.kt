@@ -25,6 +25,7 @@ import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
+import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.room.entities.BookmarkEntity
@@ -84,6 +85,13 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             _shouldAutoPlay.value = value
         }
 
+    private var _autoSwipePagesWithAudio = mutableStateOf(false)
+    var autoSwipePagesWithAudio: Boolean
+        get() = _autoSwipePagesWithAudio.value
+        set(value: Boolean) {
+            _autoSwipePagesWithAudio.value = value
+        }
+
     private var _tafseerSheetMode by mutableStateOf(TafseerSheetMode.التفسير)
     var tafseerSheetMode: TafseerSheetMode
         get() = _tafseerSheetMode
@@ -103,12 +111,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _currentPageObject = repository.getPage(value)
-                //println(_currentPageObject)
 
-                if (isMyServiceRunning(PagePlayerService::class.java, context)) {
-                    println("service running")
-                    fetchPlayingUIParams()
-                } else {
+                if (!isMyServiceRunning(PagePlayerService::class.java, context)) {
                     withContext(Dispatchers.Main) {
                         _selectionVersesList.value = _currentPageObject?.pageContent!!
                         _selectionEndVersesList.value = _currentPageObject?.pageContent!!
@@ -277,6 +281,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         }
 
     fun updateSelectionVersesList(pageNum: String) {
+        println("fetching verses list for selection for page $pageNum")
         viewModelScope.launch(Dispatchers.IO) {
             val verses = repository.fetchPageVerses(pageNum)
             withContext(Dispatchers.Main) {
@@ -347,6 +352,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         // stop other services
         terminateAllServices(context, PagePlayerService::class.java)
         _shouldAutoPlay.value = false;
+        _autoSwipePagesWithAudio.value = true;
         viewModelScope.launch(Dispatchers.IO) {
             val versesList = repository.getPagesContentRange(
                 _selectedVerse?.surahNum!!,
@@ -388,14 +394,11 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     var clickedPlay = false;
     fun startPlaying() {
         if (isMyServiceRunning(PagePlayerService::class.java, context)) {
-            if (!_isPlaying.value/*!_isCurrentPagePlaying.value*/) {
+            if (!_isPlaying.value) {
                 println("preparing for a new page")
                 audioService?.resetPlayer();
                 audioService?.resetUIStates();
-                // audioService?.setPlayingPageNum(_currentPageObject?.page?.pageNum!!)
-                // updateIsCurrentPagePlaying();
                 updateServicePlayingParameters();
-                // updateServicePlayingIndex();
             }
             audioService?.setVersesPlayList(_versesPlayList)
             audioService?.playAudio();
@@ -459,7 +462,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         )
         val tempFile = File.createTempFile("temp_", ".mp3", context.getExternalFilesDir(null))
 
-        val client = OkHttpClient()
         val request = Request.Builder()
             .url("https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/$path")
             .build()
@@ -468,13 +470,13 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 try {
-                    client.newCall(request).execute().use { response ->
+                    ottrojjaClient.newCall(request).execute().use { response ->
                         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
                         response.body?.let { responseBody ->
                             FileOutputStream(tempFile).use { outputStream ->
                                 responseBody.byteStream().use { inputStream ->
-                                    inputStream.copyTo(outputStream)
+                                    inputStream.copyTo(outputStream, bufferSize = 8 * 1024)
                                 }
                             }
                         }
@@ -494,7 +496,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 } catch (e: Exception) {
                     println("error in download")
                     e.printStackTrace()
-                    reportException(exception = e, file = "QuranViewModel")
+                    reportException(exception = e, file = "QuranViewModel", details = "link: /verses/$path")
                     withContext(Dispatchers.Main) {
                         if (e.message?.contains("ENOSPC") == true) {
                             Toast.makeText(context, context.resources.getString(R.string.enospc),
@@ -707,7 +709,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             _verseMeanings = value
         }
 
-
     private var _showTafseerSheet by mutableStateOf(false)
     var showTafseerSheet: Boolean
         get() = _showTafseerSheet
@@ -785,7 +786,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 val binder = service as PagePlayerService.PageServiceBinder
                 audioService = binder.getService()
 
-                if(clickedPlay){
+                if (clickedPlay) {
                     updateServicePlayingParameters()
                     moveToPlayPage(_startPlayingPage.value.toString())
                 }
@@ -799,8 +800,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
                 viewModelScope.launch {
                     audioService?.getPlayingPageNum()?.collect { state ->
-                        // TODO source of swiping to first playing page issue, find fix
-                        if (state != null && _isPlaying.value) {
+                        if (state != null && _isPlaying.value && _autoSwipePagesWithAudio.value) {
                             println("current page playing in service $state")
                             moveToPlayPage(state)
                         }
@@ -871,12 +871,24 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                     }
                 }
 
-                viewModelScope.launch {
+                /*viewModelScope.launch {
                     audioService?.getPlayNextPage()?.collect { state ->
                         if (state) {
                             //moveToPlayPage()
                             audioService?.setPlayNextPage(false);
                         }
+                    }
+                }*/
+
+                viewModelScope.launch {
+                    audioService?.getSelectionVersesList()?.collect { state ->
+                        _selectionVersesList.value = state;
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getSelectionEndVersesList()?.collect { state ->
+                        _selectionEndVersesList.value = state;
                     }
                 }
 
@@ -936,47 +948,14 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         audioService?.setSelectedRepetition(_selectedRepetition)
         audioService?.setSelectedMappedRepetition(Helpers.repetitionOptionsMap.get(_selectedRepetition)!!)
         audioService?.setSelectedRepetitionTab(_selectedRepetitionTab.value)
-        audioService?.setStartPlayingPage(_startPlayingPage.value)
-        audioService?.setEndPlayingPage(_endPlayingPage.value)
-
-        /*audioService?.setStartPlayingItem(_selectedVerse)
-        audioService?.setEndPlayingIndex(endPlayingIndex)
-        audioService?.setEndPlayingItem(_selectedEndVerse)*/
+        audioService?.setSelectionVersesList(_selectionVersesList.value)
+        audioService?.setSelectionEndVersesList(_selectionEndVersesList.value)
     }
 
-    /*fun updateServicePlayingIndex() {
-        // update service playing index only when the page that is being played is updating them
-        if (!_isCurrentPagePlaying.value) {
-            return;
-        }
-        println("updating service playing index")
-        audioService?.setPlayingIndex(startPlayingIndex ?: 0)
-        audioService?.setStartPlayingIndex(startPlayingIndex ?: 0)
-    }*/
-    /*
-        // reset params like first and end verses and repetitions etc only in viewmodel while preserving them in service
-        fun resetPlayingUIParams() {
-            // TODO This should only be done if the page player service is not playing
-            println("resetting ui params")
-            _selectedRepetitionTab.value = RepetitionTab.الاية
-            startPlayingIndex = 0
-            _selectedVerse = null
-            endPlayingIndex = null
-            _selectedEndVerse = null
-        }*/
-
-    // fetch params like first and end verses and repetitions from service
-    fun fetchPlayingUIParams() {
-        println("fetching ui params")
-        println("selected rep from service ${audioService?.getSelectedRepetition()?.value}")
-        println("selected rep tab from service ${audioService?.getSelectedRepetitionTab()?.value}")
-        _selectedRepetition = audioService?.getSelectedRepetition()?.value ?: "0"
-        _selectedRepetitionTab.value = audioService?.getSelectedRepetitionTab()?.value
-            ?: RepetitionTab.الاية
-        //startPlayingIndex = audioService?.getStartPlayingIndex()?.value ?: 0
-        //_selectedVerse = audioService?.getStartPlayingItem()?.value
-        //endPlayingIndex = audioService?.getEndPlayingIndex()?.value
-        //_selectedEndVerse = audioService?.getEndPlayingItem()?.value
+    fun terminatePagePlayerService() {
+        val stopServiceIntent = Intent(context, PagePlayerService::class.java)
+        stopServiceIntent.setAction("TERMINATE")
+        context.startService(stopServiceIntent)
     }
 
     init {

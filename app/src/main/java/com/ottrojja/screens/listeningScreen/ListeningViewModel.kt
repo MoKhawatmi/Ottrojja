@@ -21,6 +21,7 @@ import com.ottrojja.classes.Helpers.formatTime
 import com.ottrojja.classes.Helpers.isMyServiceRunning
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
+import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.classes.QuranListeningMode
 import com.ottrojja.classes.QuranPlayingParameters
 import com.ottrojja.classes.QuranRepository
@@ -375,7 +376,7 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
             "$surahId.mp3"
         )
         val tempFile = File.createTempFile("temp_", ".mp3", context.getExternalFilesDir(null))
-        val client = OkHttpClient()
+
         val request = Request.Builder()
             .url("https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/$surahId.mp3")
             .build()
@@ -383,13 +384,13 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 try {
-                    client.newCall(request).execute().use { response ->
+                    ottrojjaClient.newCall(request).execute().use { response ->
                         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
                         response.body?.let { responseBody ->
                             FileOutputStream(tempFile).use { outputStream ->
                                 responseBody.byteStream().use { inputStream ->
-                                    inputStream.copyTo(outputStream)
+                                    inputStream.copyTo(outputStream, bufferSize = 8 * 1024)
                                 }
                             }
                         }
@@ -402,7 +403,7 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
                 } catch (e: Exception) {
                     println("error in download")
                     e.printStackTrace()
-                    reportException(exception = e, file = "ListeningViewModel")
+                    reportException(exception = e, file = "ListeningViewModel", details = "link: /chapters/$surahId.mp3")
                     withContext(Dispatchers.Main) {
                         if (e.message?.contains("ENOSPC") == true) {
                             Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()

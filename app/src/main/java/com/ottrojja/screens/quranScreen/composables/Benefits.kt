@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,71 +36,66 @@ fun Benefits(
     guidance: Array<String>,
     pageNum: String
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
+    LazyColumn(modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background),
+        contentPadding = PaddingValues(10.dp)
     ) {
-        LazyColumn() {
-            if (benefits.size != 0) {
-                item {
-                    BenefitSectionTitle("فوائد الصفحة");
-                    BenefitSectionSeparator()
-                }
+        if (benefits.size != 0) {
+            item {
+                BenefitSectionTitle("فوائد الصفحة");
+                BenefitSectionSeparator()
             }
-            items(benefits) { benefit ->
-                BenefitItem(
-                    benefitContent = benefit,
-                    shareSubject = "فائدة قرآنية",
-                    shareTitle = "مشاركة الفائدة",
-                    shareContent = "من الفوائد القرآنية للصفحة $pageNum \n $benefit\n${
-                        stringResource(
-                            R.string.share_app
-                        )
-                    }"
-                )
-            }
+        }
+        items(benefits) { benefit ->
+            BenefitItem(
+                benefitContent = benefit,
+                shareSubject = "فائدة قرآنية",
+                shareTitle = "مشاركة الفائدة",
+                shareContent = "من الفوائد القرآنية للصفحة $pageNum \n $benefit\n${
+                    stringResource(
+                        R.string.share_app
+                    )
+                }"
+            )
+        }
 
-            if (guidance.size != 0) {
-                item {
-                    BenefitSectionTitle("توجيهات الصفحة");
-                    BenefitSectionSeparator()
-                }
+        if (guidance.size != 0) {
+            item {
+                BenefitSectionTitle("توجيهات الصفحة");
+                BenefitSectionSeparator()
             }
-            items(guidance) { guidanceItem ->
-                BenefitItem(
-                    benefitContent = guidanceItem,
-                    shareSubject = "توجيه قرآني",
-                    shareTitle = "مشاركة التوجيه",
-                    shareContent = "من التوجيهات القرآنية للصفحة $pageNum \n $guidanceItem\n${
-                        stringResource(
-                            R.string.share_app
-                        )
-                    }"
-                )
-            }
+        }
+        items(guidance) { guidanceItem ->
+            BenefitItem(
+                benefitContent = guidanceItem,
+                shareSubject = "توجيه قرآني",
+                shareTitle = "مشاركة التوجيه",
+                shareContent = "من التوجيهات القرآنية للصفحة $pageNum \n $guidanceItem\n${
+                    stringResource(
+                        R.string.share_app
+                    )
+                }"
+            )
+        }
 
-            if (appliance.size != 0) {
-                item {
-                    BenefitSectionTitle("الجانب التطبيقي");
-                    BenefitSectionSeparator()
-                }
+        if (appliance.size != 0) {
+            item {
+                BenefitSectionTitle("الجانب التطبيقي");
+                BenefitSectionSeparator()
             }
-            items(appliance) { applianceItem ->
-                BenefitItem(
-                    benefitContent = applianceItem,
-                    shareSubject = "تطبيق قرآني",
-                    shareTitle = "مشاركة التطبيق",
-                    shareContent = "من التطبيقات القرآنية للصفحة $pageNum \n $applianceItem\n${
-                        stringResource(
-                            R.string.share_app
-                        )
-                    }"
-                )
-            }
+        }
+        items(appliance) { applianceItem ->
+            BenefitItem(
+                benefitContent = applianceItem,
+                shareSubject = "تطبيق قرآني",
+                shareTitle = "مشاركة التطبيق",
+                shareContent = "من التطبيقات القرآنية للصفحة $pageNum \n $applianceItem\n${
+                    stringResource(
+                        R.string.share_app
+                    )
+                }"
+            )
         }
     }
 }

@@ -36,6 +36,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
@@ -287,7 +288,9 @@ fun QuranScreen(
                         listeningOptionsClicked = { quranViewModel.showListeningOptionsDialog = true },
                         vmChangedPage = quranViewModel.vmChangedPage,
                         setVmChangedPage = { value -> quranViewModel.vmChangedPage = value },
-                        quranPagesNumbers = quranViewModel.quranPagesNumbers
+                        quranPagesNumbers = quranViewModel.quranPagesNumbers,
+                        terminatePagePlayerService = { quranViewModel.terminatePagePlayerService() },
+                        disableAutoPageSwiping = { quranViewModel.autoSwipePagesWithAudio = false }
                     )
                 }
 
@@ -321,7 +324,7 @@ fun QuranScreen(
                 quranViewModel.verseE3rab,
                 quranViewModel.verseCauseOfRevelation,
                 verseMeanings = quranViewModel.verseMeanings,
-                quranViewModel.selectedTafseer,
+                selectedTafseer = quranViewModel.selectedTafseer,
                 onClickTafseerOptions = { quranViewModel.showTafseerOptions = true },
                 mode = quranViewModel.tafseerSheetMode,
                 atFirstVerse = quranViewModel.atFirstVerse(),
@@ -333,6 +336,7 @@ fun QuranScreen(
             )
         }
     }
+
 
     if (quranViewModel.showListeningOptionsDialog) {
         ListeningOptionsDialog(
@@ -429,7 +433,6 @@ fun QuranScreen(
             assignPageToKhitmah = { khitmah -> quranViewModel.assignPageToKhitmah(khitmah) }
         )
     }
-
 }
 
 @Composable
@@ -450,7 +453,9 @@ fun PagesContainer(
     listeningOptionsClicked: () -> Unit,
     vmChangedPage: Boolean,
     setVmChangedPage: (Boolean) -> Unit,
-    quranPagesNumbers: List<String>
+    quranPagesNumbers: List<String>,
+    terminatePagePlayerService: () -> Unit,
+    disableAutoPageSwiping: () -> Unit
 ) {
 
     val pagerState = rememberPagerState(
@@ -484,6 +489,8 @@ fun PagesContainer(
                 } else {
                     hasPageChanged.value = true // Skip the first value
                 }
+                // when user manually swipes pages when audio is playing, disable the auto swiping
+                disableAutoPageSwiping()
             } else {
                 setVmChangedPage(false)
             }
@@ -529,9 +536,19 @@ fun PagesContainer(
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Column {
+                        if (isPlaying) {
+                            Icon(Icons.Filled.Cancel,
+                                tint = MaterialTheme.colorScheme.primary,
+                                contentDescription = "cancel playing",
+                                modifier = Modifier.clickable { terminatePagePlayerService() }
+                            )
+                        }
+                    }
+
                     Text(text = "خيارات الإستماع",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimary,

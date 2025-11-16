@@ -24,6 +24,7 @@ import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.Helpers.reportException
+import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
@@ -434,18 +435,16 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
 
         _isDownloading.value = true;
 
-        val client = OkHttpClient()
         val request = Request.Builder()
             .url(
                 "https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/${_currentVerse.value?.pageNum}-${_currentVerse.value?.surahNum}-${_currentVerse.value?.verseNum}.mp3"
             )
             .build()
 
-
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 try {
-                    client.newCall(request).execute().use { response ->
+                    ottrojjaClient.newCall(request).execute().use { response ->
                         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
                         response.body?.let { responseBody ->

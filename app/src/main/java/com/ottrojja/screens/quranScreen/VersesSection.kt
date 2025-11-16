@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -54,167 +55,167 @@ fun VersesSection(
     }
     val versesList = versesSectionViewModel.items.collectAsState();
 
-    Column() {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.tertiary)
-                .padding(10.dp)
-        ) {
-            items(versesList.value) { item ->
-                Column(modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
-                    .clickable {
-                        versesSectionViewModel.updateExpanded(
-                            item
-                        )
-                    }) {
-                    Row(
-                        modifier = Modifier
-                            .padding(12.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "${
-                                Helpers.convertToIndianNumbers("${item.pageContent.verseNum!!}")
-                            } ${item.pageContent.verseText}",
-                            color = Color.Black,
-                            style = MaterialTheme.typography.titleLarge,
-                            textAlign = TextAlign.Right,
-                            modifier = Modifier.fillMaxWidth(0.9f),
-                        )
 
-                        Icon(
-                            Icons.Default.MoreVert,
-                            contentDescription = "Expand Verse Options",
-                            modifier = Modifier.clickable {
-                                versesSectionViewModel.updateExpanded(item)
-                            }
-                        )
-                    }
-                    AnimatedVisibility(
-                        visible = item.expanded,
-                    ) {
-                        FlowRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.background)
-                                .padding(8.dp), maxItemsInEachRow = 3
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier
-                                    .weight(1.0f)
-                                    .background(MaterialTheme.colorScheme.tertiary)
-                                    .clickable {
-                                        versesSectionViewModel.shareVerse(item.pageContent
-                                        )
-                                    }
-                                    .padding(4.dp, 6.dp)
-                            ) {
-                                Text(
-                                    text = "مشاركة",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.Black
-                                )
-                            }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier
-                                    .weight(1.0f)
-                                    .background(MaterialTheme.colorScheme.primary)
-                                    .clickable {
-                                        onSheetRequest(
-                                            "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
-                                            TafseerSheetMode.التفسير
-                                        )
-                                    }
-                                    .padding(4.dp, 6.dp)
-                            ) {
-                                Text(
-                                    text = "التفسير",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier
-                                    .weight(1.0f)
-                                    .background(MaterialTheme.colorScheme.tertiary)
-                                    .clickable {
-                                        onSheetRequest(
-                                            "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
-                                            TafseerSheetMode.الإعراب
-                                        )
-                                    }
-                                    .padding(4.dp, 6.dp)
-                            ) {
-                                Text(
-                                    text = "الإعراب",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.Black
-                                )
-                            }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier
-                                    .weight(1.0f)
-                                    .background(MaterialTheme.colorScheme.primary)
-                                    .clickable {
-                                        onSheetRequest(
-                                            "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
-                                            TafseerSheetMode.أسباب_النزول
-                                        )
-                                    }
-                                    .padding(4.dp, 6.dp)
-                            ) {
-                                Text(
-                                    text = "سبب النزول",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier
-                                    .weight(1.0f)
-                                    .background(MaterialTheme.colorScheme.tertiary)
-                                    .clickable {
-                                        onSheetRequest(
-                                            "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
-                                            TafseerSheetMode.معاني_المفردات
-                                        )
-                                    }
-                                    .padding(4.dp, 6.dp)
-                            ) {
-                                Text(
-                                    text = "المفردات",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.Black
-                                )
-                            }
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier
-                                    .weight(1.0f)
-                                    .background(Color.Transparent)
-                                    .padding(4.dp, 6.dp)
-                            ) {}
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.tertiary),
+        contentPadding = PaddingValues(10.dp)
+    ) {
+        items(versesList.value) { item ->
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
+                .clickable {
+                    versesSectionViewModel.updateExpanded(
+                        item
+                    )
+                }) {
+                Row(
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${
+                            Helpers.convertToIndianNumbers("${item.pageContent.verseNum!!}")
+                        } ${item.pageContent.verseText}",
+                        color = Color.Black,
+                        style = MaterialTheme.typography.titleLarge,
+                        textAlign = TextAlign.Right,
+                        modifier = Modifier.fillMaxWidth(0.9f),
+                    )
+
+                    Icon(
+                        Icons.Default.MoreVert,
+                        contentDescription = "Expand Verse Options",
+                        modifier = Modifier.clickable {
+                            versesSectionViewModel.updateExpanded(item)
                         }
+                    )
+                }
+                AnimatedVisibility(
+                    visible = item.expanded,
+                ) {
+                    FlowRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background)
+                            .padding(8.dp), maxItemsInEachRow = 3
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .weight(1.0f)
+                                .background(MaterialTheme.colorScheme.tertiary)
+                                .clickable {
+                                    versesSectionViewModel.shareVerse(item.pageContent
+                                    )
+                                }
+                                .padding(4.dp, 6.dp)
+                        ) {
+                            Text(
+                                text = "مشاركة",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Black
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .weight(1.0f)
+                                .background(MaterialTheme.colorScheme.primary)
+                                .clickable {
+                                    onSheetRequest(
+                                        "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
+                                        TafseerSheetMode.التفسير
+                                    )
+                                }
+                                .padding(4.dp, 6.dp)
+                        ) {
+                            Text(
+                                text = "التفسير",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .weight(1.0f)
+                                .background(MaterialTheme.colorScheme.tertiary)
+                                .clickable {
+                                    onSheetRequest(
+                                        "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
+                                        TafseerSheetMode.الإعراب
+                                    )
+                                }
+                                .padding(4.dp, 6.dp)
+                        ) {
+                            Text(
+                                text = "الإعراب",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Black
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .weight(1.0f)
+                                .background(MaterialTheme.colorScheme.primary)
+                                .clickable {
+                                    onSheetRequest(
+                                        "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
+                                        TafseerSheetMode.أسباب_النزول
+                                    )
+                                }
+                                .padding(4.dp, 6.dp)
+                        ) {
+                            Text(
+                                text = "سبب النزول",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .weight(1.0f)
+                                .background(MaterialTheme.colorScheme.tertiary)
+                                .clickable {
+                                    onSheetRequest(
+                                        "${item.pageContent.surahNum}-${item.pageContent.verseNum}",
+                                        TafseerSheetMode.معاني_المفردات
+                                    )
+                                }
+                                .padding(4.dp, 6.dp)
+                        ) {
+                            Text(
+                                text = "المفردات",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Black
+                            )
+                        }
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .weight(1.0f)
+                                .background(Color.Transparent)
+                                .padding(4.dp, 6.dp)
+                        ) {}
                     }
                 }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(14.dp),
-                    thickness = 1.dp,
-                    color = Color.Black.copy(alpha = 0.1f)
-                )
             }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(14.dp),
+                thickness = 1.dp,
+                color = Color.Black.copy(alpha = 0.1f)
+            )
         }
     }
+
 }

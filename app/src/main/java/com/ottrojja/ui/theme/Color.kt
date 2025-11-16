@@ -3,7 +3,6 @@ package com.ottrojja.ui.theme
 import androidx.compose.ui.graphics.Color
 
 //icon text color C1DB3F
-val complete_green= Color(0xFF50C878)
 val md_theme_light_primary = Color(0xFF194D65)
 val md_theme_light_onPrimary = Color(0xFFFFFFFF)
 val md_theme_light_primaryContainer = Color(0xFFDBE1FF)
@@ -68,3 +67,6 @@ val md_theme_dark_scrim = Color(0xFF000000)
 
 
 val seed = Color(0xFF194D65)
+
+val complete_green= Color(0xFF50C878)
+val okay_green= Color(0xFF29712C);

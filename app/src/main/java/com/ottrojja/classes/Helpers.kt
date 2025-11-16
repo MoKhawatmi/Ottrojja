@@ -12,6 +12,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.ottrojja.services.AzkarPlayerService
@@ -192,5 +195,12 @@ object Helpers {
             String.format(Locale.ENGLISH, "%02d:%02d", minutes, seconds)
         }
     }
+
+    val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+        .setConnectTimeoutMs(20_000)
+        .setReadTimeoutMs(20_000)
+        .setAllowCrossProtocolRedirects(true)
+
+    val mediaSourceFactory = DefaultMediaSourceFactory(httpDataSourceFactory)
 
 }

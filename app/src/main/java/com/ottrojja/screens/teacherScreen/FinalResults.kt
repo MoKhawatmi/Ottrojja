@@ -29,6 +29,7 @@ import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.VerseWithAnswer
 import androidx.compose.material3.Icon
 import androidx.compose.ui.Alignment
+import com.ottrojja.ui.theme.okay_green
 
 
 @Composable
@@ -59,8 +60,7 @@ fun FinalResults(selectedTrainingVerses: List<VerseWithAnswer>,
                                 )
                                 .border(
                                     1.dp,
-                                    if (item.answerCorrect) Color(0xFF29712C
-                                    ) else MaterialTheme.colorScheme.error,
+                                    if (item.answerCorrect) okay_green else MaterialTheme.colorScheme.error,
                                     shape = RoundedCornerShape(6.dp)
                                 )
                                 .padding(12.dp),
@@ -70,8 +70,7 @@ fun FinalResults(selectedTrainingVerses: List<VerseWithAnswer>,
                                 text = "${
                                     Helpers.convertToIndianNumbers("${item.verse.verseNum!!}")
                                 } ${item.verse.verseText}",
-                                color = if (item.answerCorrect) Color(0xFF29712C
-                                ) else MaterialTheme.colorScheme.error,
+                                color = if (item.answerCorrect) okay_green else MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.titleLarge,
                                 textAlign = TextAlign.Right,
                                 modifier = Modifier.fillMaxWidth(0.9f),
@@ -81,8 +80,7 @@ fun FinalResults(selectedTrainingVerses: List<VerseWithAnswer>,
                         Icon(
                             imageVector = if (item.answerCorrect) Icons.Default.Check else Icons.Default.Close,
                             contentDescription = "Answer Icon",
-                            tint = if (item.answerCorrect) Color(0xFF29712C
-                            ) else MaterialTheme.colorScheme.error,
+                            tint = if (item.answerCorrect) okay_green else MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(32.dp)
                         )
 

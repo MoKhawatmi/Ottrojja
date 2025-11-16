@@ -5,7 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -63,115 +65,133 @@ fun ListeningOptionsDialog(
                 modifier = Modifier.padding(vertical = 6.dp),
                 color = MaterialTheme.colorScheme.onTertiary
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSelectStartPageClicked() },
+
+            Row(modifier = Modifier
+                .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.Center
             ) {
-                println("start $selectedVerse")
-                Text("من صفحة", style = MaterialTheme.typography.bodyMedium)
-                Row(
+
+                Column(
                     modifier = Modifier
-                        .padding(0.dp, 6.dp, 6.dp, 5.dp)
-                        .fillMaxWidth(0.5f)
-                        .clip(shape = RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.primary)
+                        .weight(1f)
+                        .clickable { onSelectStartPageClicked() },
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Top
                 ) {
-                    Text(
-                        text = "ص${startPlayingPage}",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Right,
+                    Text("من صفحة", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+                    Row(
                         modifier = Modifier
-                            .padding(8.dp)
+                            .padding(0.dp, 6.dp, 6.dp, 5.dp)
                             .fillMaxWidth()
-                    )
+                            .clip(shape = RoundedCornerShape(4.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text(
+                            text = "ص${startPlayingPage}",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Right,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .fillMaxWidth()
+                        )
+                    }
                 }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSelectVerseClicked() },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                println("start $selectedVerse")
-                Text("من اية", style = MaterialTheme.typography.bodyMedium)
-                Row(
+
+                Column(
                     modifier = Modifier
-                        .padding(0.dp, 6.dp, 6.dp, 5.dp)
-                        .fillMaxWidth(0.5f)
-                        .clip(shape = RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.primary)
+                        .weight(1f)
+                        .clickable { onSelectVerseClicked() },
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Top
                 ) {
-                    Text(
-                        text = if (selectedVerse != null) "اية: ${selectedVerse.verseNum}" else "الاية",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Right,
+                    Text("من اية", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+                    Row(
                         modifier = Modifier
-                            .padding(8.dp)
+                            .padding(0.dp, 6.dp, 6.dp, 5.dp)
                             .fillMaxWidth()
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSelectEndPageClicked() },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                println("end $selectedEndVerse")
-                Text("الى صفحة", style = MaterialTheme.typography.bodyMedium)
-                Row(
-                    modifier = Modifier
-                        .padding(0.dp, 6.dp, 6.dp, 5.dp)
-                        .fillMaxWidth(0.5f)
-                        .clip(shape = RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                ) {
-                    Text(
-                        text = "ص${endPlayingPage}",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxWidth()
-                    )
+                            .clip(shape = RoundedCornerShape(4.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text(
+                            text = if (selectedVerse != null) "اية: ${selectedVerse.verseNum}" else "الاية",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Right,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .fillMaxWidth()
+                        )
+                    }
                 }
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSelectEndVerseClicked() },
+            Spacer(modifier = Modifier.height(12.dp))
+
+
+            Row(modifier = Modifier
+                .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.Center
             ) {
-                println("end $selectedEndVerse")
-                Text("الى اية", style = MaterialTheme.typography.bodyMedium)
-                Row(
+                Column(
                     modifier = Modifier
-                        .padding(0.dp, 6.dp, 6.dp, 5.dp)
-                        .fillMaxWidth(0.5f)
-                        .clip(shape = RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.primary)
+                        .weight(1f)
+                        .clickable { onSelectEndPageClicked() },
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Top
                 ) {
-                    Text(
-                        text = if (selectedEndVerse != null) "اية: ${selectedEndVerse.verseNum}" else "الاية",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Right,
+                    Text("الى صفحة", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+                    Row(
                         modifier = Modifier
-                            .padding(8.dp)
+                            .padding(0.dp, 6.dp, 6.dp, 5.dp)
                             .fillMaxWidth()
-                    )
+                            .clip(shape = RoundedCornerShape(4.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text(
+                            text = "ص${endPlayingPage}",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Right,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .fillMaxWidth()
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onSelectEndVerseClicked() },
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    Text("الى اية", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+                    Row(
+                        modifier = Modifier
+                            .padding(0.dp, 6.dp, 6.dp, 5.dp)
+                            .fillMaxWidth()
+                            .clip(shape = RoundedCornerShape(4.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text(
+                            text = if (selectedEndVerse != null) "اية: ${selectedEndVerse.verseNum}" else "الاية",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Right,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .fillMaxWidth()
+                        )
+                    }
                 }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -198,6 +218,7 @@ fun ListeningOptionsDialog(
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -212,6 +233,7 @@ fun ListeningOptionsDialog(
                     tabPrefix = "تكرار "
                 )
             }
+            Spacer(modifier = Modifier.height(12.dp))
 
             /*Row(
                 modifier = Modifier

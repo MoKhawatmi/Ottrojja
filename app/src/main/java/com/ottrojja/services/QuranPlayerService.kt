@@ -31,6 +31,7 @@ import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.Player.STATE_ENDED
 import com.ottrojja.classes.ConnectivityMonitor
+import com.ottrojja.classes.Helpers.mediaSourceFactory
 import com.ottrojja.classes.Helpers.repetitionOptionsMap
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.QuranListeningMode
@@ -112,7 +113,9 @@ class QuranPlayerService : Service(), QuranServiceInterface {
 
     fun initializePlayer() {
         val context = this
-        exoPlayer = ExoPlayer.Builder(this).build();
+        exoPlayer = ExoPlayer.Builder(this)
+            .setMediaSourceFactory(mediaSourceFactory)
+            .build();
 
         exoPlayer.addListener(
             object : Player.Listener {

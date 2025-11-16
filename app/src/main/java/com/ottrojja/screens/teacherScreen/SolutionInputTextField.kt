@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.TeacherAnswer
+import com.ottrojja.ui.theme.okay_green
 
 @Composable
 fun SolutionInputTextField(
@@ -56,7 +57,7 @@ fun SolutionInputTextField(
         )
         .border(
             1.dp,
-            if (value.status == AnswerStatus.UNCHECKED) MaterialTheme.colorScheme.primary else if (value.status == AnswerStatus.RIGHT) Color(0xFF29712C) else MaterialTheme.colorScheme.error,
+            if (value.status == AnswerStatus.UNCHECKED) MaterialTheme.colorScheme.primary else if (value.status == AnswerStatus.RIGHT) okay_green else MaterialTheme.colorScheme.error,
             shape = RoundedCornerShape(6.dp)
         )
         .onFocusChanged { isFocused = it.isFocused }
@@ -71,7 +72,7 @@ fun SolutionInputTextField(
             textStyle = MaterialTheme.typography.labelLarge.copy(
                 fontSize = 24.sp,
                 color = if (value.status == AnswerStatus.UNCHECKED) MaterialTheme.colorScheme.primary else if (value.status == AnswerStatus.RIGHT)
-                    Color(0xFF29712C) else MaterialTheme.colorScheme.error
+                    okay_green else MaterialTheme.colorScheme.error
             ),
             visualTransformation = VisualTransformation.None,
             singleLine = true,

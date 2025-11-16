@@ -20,6 +20,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.Helpers.mediaSourceFactory
 import com.ottrojja.classes.Helpers.reportException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -67,7 +68,9 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
 
     fun initializePlayer() {
         val context = this
-        exoPlayer = ExoPlayer.Builder(this).build();
+        exoPlayer = ExoPlayer.Builder(this)
+            .setMediaSourceFactory(mediaSourceFactory)
+            .build();
 
         exoPlayer.addListener(
             object : Player.Listener {
@@ -336,21 +339,6 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
             notificationManager.notify(1, notification)
         }
     }
-
-
-    /*override fun playNextChapter() {
-        if (_selectedChapterId.value != "114") {
-            _selectedChapterId.value = "${_selectedChapterId.value.toInt() + 1}"
-            playChapter("https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/${_selectedChapterId.value}.mp3")
-        }
-    }
-
-    override fun playPreviousChapter() {
-        if (_selectedChapterId.value != "1") {
-            _selectedChapterId.value = "${_selectedChapterId.value.toInt() - 1}"
-            playChapter("https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/${_selectedChapterId.value}.mp3")
-        }
-    }*/
 
 
     enum class Actions {

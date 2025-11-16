@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -40,6 +39,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,12 +50,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
@@ -158,6 +160,8 @@ private fun CompassContent(showPositionDialog: Boolean,
     var positionCoolDown by remember { mutableStateOf(false) }
     var locationCity by remember { mutableStateOf("") }
 
+    var magneticFieldValue by remember { mutableStateOf(0f) }
+
 
     val calibrationHandler = Handler(Looper.getMainLooper())
     fun triggerCalibrationWarning() {
@@ -169,8 +173,7 @@ private fun CompassContent(showPositionDialog: Boolean,
         calibrationCoolDown = true;
         calibrationHandler.removeCallbacksAndMessages(null)
         val runnable = Runnable {
-            println("reset calibration cooldown"
-            ); calibrationCoolDown = false
+             calibrationCoolDown = false
         }
         calibrationHandler.postDelayed(runnable, 1000 * 30)
     }
@@ -221,7 +224,8 @@ private fun CompassContent(showPositionDialog: Boolean,
 
                         // Calculate total magnetic field strength (in micro-Tesla, μT)
                         val magneticFieldStrength = kotlin.math.sqrt(x * x + y * y + z * z)
-                        if (magneticFieldStrength > 60f) {
+                        magneticFieldValue = magneticFieldStrength;
+                        if (magneticFieldStrength >= 60f) {
                             triggerCalibrationWarning()
                         }
 
@@ -519,6 +523,31 @@ private fun CompassContent(showPositionDialog: Boolean,
                     )
                 }
             }
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 6.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "تأثير المجال المغناطيسي: ",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center
+                )
+                Text("${magneticFieldValue.toInt()}",
+                    color = when(magneticFieldValue){
+                        in 0f..45f -> complete_green
+                        in 45f..60f -> MaterialTheme.colorScheme.secondary
+                        else -> MaterialTheme.colorScheme.error
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.clickable(onClick = { calibrationRequired = true; }),
+                    textDecoration = TextDecoration.Underline
+                )
+            }
+
         }
     }
 }

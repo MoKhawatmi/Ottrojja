@@ -13,6 +13,7 @@ import androidx.lifecycle.viewModelScope
 import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.reportException
+import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.room.entities.Azkar
@@ -50,7 +51,6 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     val pagesContentJsonVersion = sharedPreferences.getInt("pagesContentJsonVersion", 0)
     val ahzabJsonVersion = sharedPreferences.getInt("ahzabJsonVersion", 0)
 
-    private val httpClient: OkHttpClient by lazy { OkHttpClient() }
 
     private var _loaded = mutableStateOf(false)
     var loaded: Boolean
@@ -271,7 +271,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             .build()
         try {
             loadingFile = true
-            val response = httpClient.newCall(request).execute()
+            val response = ottrojjaClient.newCall(request).execute()
             if (response.isSuccessful) {
                 println("success meta")
                 println(response.headers)
@@ -305,7 +305,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             .url(QURAN_FILE_URL)
             .build()
         try {
-            val response = httpClient.newCall(request).execute()
+            val response = ottrojjaClient.newCall(request).execute()
             if (response.isSuccessful) {
                 response.body?.string()?.let { jsonData ->
                     tempFile.writeText(jsonData)
@@ -342,7 +342,6 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             withContext(Dispatchers.Main) {
                 _loaded.value = true
             }
-
         }
     }
 

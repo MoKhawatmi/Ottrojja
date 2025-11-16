@@ -18,6 +18,7 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.R
+import com.ottrojja.classes.Helpers.mediaSourceFactory
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.PageContentItemType
@@ -37,20 +38,14 @@ interface PageServiceInterface {
     fun getPaused(): StateFlow<Boolean>
     fun getContinuousPlay(): StateFlow<Boolean>
     fun getDestroyed(): StateFlow<Boolean>
-
-    //fun getPlayingIndex(): StateFlow<Int> //is it needed to be passed to vm?
-    // fun getStartPlayingIndex(): StateFlow<Int?>
-    //fun getStartPlayingItem(): StateFlow<PageContent?>
-    //fun getEndPlayingIndex(): StateFlow<Int?>
-    //fun getEndPlayingItem(): StateFlow<PageContent?>
     fun getPlaybackSpeed(): StateFlow<Float>
     fun getSelectedRepetitionTab(): StateFlow<RepetitionTab>
     fun getSelectedRepetition(): StateFlow<String>
     fun getPlayNextPage(): StateFlow<Boolean>
     fun getPlayingPageNum(): StateFlow<String?>
-    fun getStartPlayingPage(): StateFlow<Int>
-    fun getEndPlayingPage(): StateFlow<Int>
     fun getVersesPlayList(): StateFlow<List<PageContent>>
+    fun getSelectionVersesList(): StateFlow<List<PageContent>>
+    fun getSelectionEndVersesList(): StateFlow<List<PageContent>>
     fun playNextVerse()
     fun playPreviousVerse()
     fun decreaseSpeed()
@@ -60,12 +55,6 @@ interface PageServiceInterface {
     fun resetPlayer()
     fun releasePlayer()
     fun playingParameterUpdated()
-
-    //fun setPlayingIndex(index: Int)
-    // fun setStartPlayingIndex(index: Int)
-    //fun setStartPlayingItem(item: PageContent?)
-    //fun setEndPlayingIndex(index: Int?)
-    //fun setEndPlayingItem(item: PageContent?)
     fun setVersesPlayList(versesPlayList: List<PageContent>)
     fun setPlayingPageNum(value: String)
     fun setContinuousPlay(value: Boolean)
@@ -73,8 +62,8 @@ interface PageServiceInterface {
     fun setSelectedRepetition(value: String)
     fun setSelectedMappedRepetition(value: Int)
     fun setPlayNextPage(value: Boolean)
-    fun setStartPlayingPage(value: Int)
-    fun setEndPlayingPage(value: Int)
+    fun setSelectionVersesList(value: List<PageContent>)
+    fun setSelectionEndVersesList(value: List<PageContent>)
 }
 
 class PagePlayerService : Service(), PageServiceInterface {
@@ -90,17 +79,11 @@ class PagePlayerService : Service(), PageServiceInterface {
     private val _continuousPlay = MutableStateFlow<Boolean>(false)
     private val _destroyed = MutableStateFlow<Boolean>(false)
     private val _currentPlayingIndex = MutableStateFlow<Int>(0)
-
-    /*private val _startPlayingIndex = MutableStateFlow<Int?>(null)
-    private val _startPlayingItem = MutableStateFlow<PageContent?>(null)
-    private val _endPlayingIndex = MutableStateFlow<Int?>(null)
-    private val _endPlayingItem = MutableStateFlow<PageContent?>(null)*/
     private val _selectedRepetition = MutableStateFlow<String>("0")
     private val _selectedRepetitionTab = MutableStateFlow<RepetitionTab>(RepetitionTab.الاية)
-    private val _playNextPage = MutableStateFlow<Boolean>(false
-    ) //this will act as a flag, when changed it shall signal the viewmodel to play next page
-    private val _startPlayingPage = MutableStateFlow<Int>(1)
-    private val _endPlayingPage = MutableStateFlow<Int>(1)
+    private val _playNextPage = MutableStateFlow<Boolean>(false) //this will act as a flag, when changed it shall signal the viewmodel to play next page
+    private val _selectionVersesList = MutableStateFlow<List<PageContent>>(emptyList())
+    private val _selectionEndVersesList = MutableStateFlow<List<PageContent>>(emptyList())
 
     private lateinit var notificationManager: NotificationManager
 
@@ -109,31 +92,12 @@ class PagePlayerService : Service(), PageServiceInterface {
             return this@PagePlayerService;
         }
     }
-    /*
-        // A SupervisorJob so one child failure doesn't cancel all coroutines
-        private val serviceJob = SupervisorJob()
-
-        // Define a scope tied to the service lifecycle
-        private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
-
-
-        override fun onCreate() {
-            super.onCreate()
-
-            serviceScope.launch {
-                _currentPlayingIndex.collect { index ->
-                    if(_versesPlayList.value.isEmpty()){
-                        return@collect
-                    }
-
-                }
-            }
-        }*/
-
 
     fun initializePlayer() {
         val context = this
-        _exoPlayer = ExoPlayer.Builder(this).build();
+        _exoPlayer = ExoPlayer.Builder(this)
+            .setMediaSourceFactory(mediaSourceFactory)
+            .build();
 
         _exoPlayer.addListener(
             object : Player.Listener {
@@ -380,7 +344,23 @@ class PagePlayerService : Service(), PageServiceInterface {
         _playNextPage.value = value;
     }
 
-    override fun getStartPlayingPage(): StateFlow<Int> {
+    override fun getSelectionVersesList(): StateFlow<List<PageContent>> {
+        return _selectionVersesList
+    }
+
+    override fun setSelectionVersesList(value: List<PageContent>) {
+        _selectionVersesList.value = value
+    }
+
+    override fun getSelectionEndVersesList(): StateFlow<List<PageContent>> {
+        return _selectionEndVersesList
+    }
+
+    override fun setSelectionEndVersesList(value: List<PageContent>) {
+        _selectionEndVersesList.value = value
+    }
+
+    /*override fun getStartPlayingPage(): StateFlow<Int> {
         return _startPlayingPage;
     }
 
@@ -394,7 +374,7 @@ class PagePlayerService : Service(), PageServiceInterface {
 
     override fun setEndPlayingPage(value: Int) {
         _endPlayingPage.value = value;
-    }
+    }*/
 
     override fun playAudio() {
         logDebug("play audio")
