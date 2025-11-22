@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
+import android.hardware.GeomagneticField
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -78,6 +79,7 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.abs
+import kotlin.math.sqrt
 
 
 @Composable
@@ -150,7 +152,7 @@ private fun CompassContent(showPositionDialog: Boolean,
     )
 
     var calibrationRequired by remember { mutableStateOf(false) }
-    var sensorAccuracy by remember { mutableStateOf(SensorManager.SENSOR_STATUS_UNRELIABLE) }
+    // var sensorAccuracy by remember { mutableStateOf(SensorManager.SENSOR_STATUS_UNRELIABLE) }
 
     val locationState = remember { mutableStateOf<Location?>(null) }
     val locationManager =
@@ -161,6 +163,8 @@ private fun CompassContent(showPositionDialog: Boolean,
     var locationCity by remember { mutableStateOf("") }
 
     var magneticFieldValue by remember { mutableStateOf(0f) }
+    var expectedField_uT by remember { mutableStateOf(50f) }
+    var magneticFieldQuality by remember { mutableStateOf(MFSQuality.MEDIUM) }
 
 
     val calibrationHandler = Handler(Looper.getMainLooper())
@@ -173,7 +177,7 @@ private fun CompassContent(showPositionDialog: Boolean,
         calibrationCoolDown = true;
         calibrationHandler.removeCallbacksAndMessages(null)
         val runnable = Runnable {
-             calibrationCoolDown = false
+            calibrationCoolDown = false
         }
         calibrationHandler.postDelayed(runnable, 1000 * 30)
     }
@@ -193,6 +197,25 @@ private fun CompassContent(showPositionDialog: Boolean,
 
 
     val sensorEventListener = remember {
+        // rolling window for stddev
+        val windowSize = 30
+        val magnitudeWindow = FloatArray(windowSize)
+        var windowIndex = 0
+        var windowFilled = false
+
+        fun computeStdDev(): Float {
+            val size = if (windowFilled) windowSize else windowIndex
+            if (size == 0) return 0f
+
+            val mean = magnitudeWindow.take(size).average().toFloat()
+            var sum = 0f
+            for (i in 0 until size) {
+                val d = magnitudeWindow[i] - mean
+                sum += d * d
+            }
+            return kotlin.math.sqrt(sum / size)
+        }
+
         object : SensorEventListener {
             private val accelerometerReading = FloatArray(3)
             private val magnetometerReading = FloatArray(3)
@@ -222,21 +245,35 @@ private fun CompassContent(showPositionDialog: Boolean,
                         val y = event.values[1]
                         val z = event.values[2]
 
-                        // Calculate total magnetic field strength (in micro-Tesla, μT)
-                        val magneticFieldStrength = kotlin.math.sqrt(x * x + y * y + z * z)
-                        magneticFieldValue = magneticFieldStrength;
-                        if (magneticFieldStrength >= 60f) {
+                        val B = sqrt(x * x + y * y + z * z)
+                        magneticFieldValue = B
+
+                        // --- write into rolling window ---
+                        magnitudeWindow[windowIndex] = B
+                        windowIndex = (windowIndex + 1) % windowSize
+                        if (windowIndex == 0) windowFilled = true
+
+                        val stddev = computeStdDev()
+                        val deltaB = abs(B - expectedField_uT)
+
+                        // --- classify magnetic quality ---
+                        magneticFieldQuality = when {
+                            deltaB < 3f && stddev < 1f -> MFSQuality.GOOD
+                            deltaB < 10f && stddev < 5f -> MFSQuality.MEDIUM
+                            else -> MFSQuality.BAD
+                        }
+
+
+                        if (magneticFieldQuality == MFSQuality.BAD) {
                             triggerCalibrationWarning()
                         }
+
 
                         System.arraycopy(event.values, 0, magnetometerReading, 0, 3)
                     }
                 }
 
-                if (SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading,
-                        magnetometerReading
-                    )
-                ) {
+                if (SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading)) {
                     SensorManager.getOrientation(rotationMatrix, orientationAngles)
                     val azimuthRadians = orientationAngles[0]
                     val azimuthDegrees = Math.toDegrees(azimuthRadians.toDouble()).toFloat()
@@ -245,22 +282,13 @@ private fun CompassContent(showPositionDialog: Boolean,
             }
 
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-                sensorAccuracy = accuracy
+                // sensorAccuracy = accuracy
                 when (accuracy) {
-                    SensorManager.SENSOR_STATUS_ACCURACY_LOW -> {
+                    SensorManager.SENSOR_STATUS_ACCURACY_LOW, SensorManager.SENSOR_STATUS_UNRELIABLE -> {
                         triggerCalibrationWarning()
-                    }
-
-                    SensorManager.SENSOR_STATUS_UNRELIABLE -> {
-                        triggerCalibrationWarning()
-                    }
-
-                    else -> {
-                        // nothing
                     }
                 }
             }
-
         }
     }
 
@@ -268,8 +296,7 @@ private fun CompassContent(showPositionDialog: Boolean,
         try {
             LocationProvider.getLocationUpdates(context)
                 .onCompletion { cause ->
-                    if (cause is CancellationException) {
-                        // do nothing
+                    if (cause is CancellationException) { /* do nothing*/
                     }
                 }
                 .catch { e ->
@@ -289,6 +316,18 @@ private fun CompassContent(showPositionDialog: Boolean,
                     destinationLoc.setLongitude(39.826206); //kaaba longitude setting
                     val bearTo = userLoc.bearingTo(destinationLoc);
                     bearing = normalizeAngle(bearTo)
+
+
+                    // calculate Earth magnetic field strength at location
+                    val geomagnetic = GeomagneticField(
+                        location.latitude.toFloat(),
+                        location.longitude.toFloat(),
+                        location.altitude.toFloat(),
+                        System.currentTimeMillis()
+                    )
+
+                    expectedField_uT = geomagnetic.fieldStrength / 1000f
+
                 }
         } catch (e: CancellationException) {
             //nothing
@@ -536,10 +575,10 @@ private fun CompassContent(showPositionDialog: Boolean,
                     textAlign = TextAlign.Center
                 )
                 Text("${magneticFieldValue.toInt()}",
-                    color = when(magneticFieldValue){
-                        in 0f..45f -> complete_green
-                        in 45f..60f -> MaterialTheme.colorScheme.secondary
-                        else -> MaterialTheme.colorScheme.error
+                    color = when (magneticFieldQuality) {
+                        MFSQuality.GOOD -> complete_green
+                        MFSQuality.MEDIUM -> MaterialTheme.colorScheme.secondary
+                        MFSQuality.BAD -> MaterialTheme.colorScheme.error
                     },
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center,
@@ -704,4 +743,8 @@ private fun DevicePositionDialog(onDismiss: () -> Unit) {
             }
         }
     }
+}
+
+enum class MFSQuality {
+    GOOD, BAD, MEDIUM
 }

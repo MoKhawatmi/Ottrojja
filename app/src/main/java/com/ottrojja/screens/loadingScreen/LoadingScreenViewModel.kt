@@ -38,8 +38,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     val jsonParser = JsonParser(context)
     val QURAN_FILE_URL = "https://ottrojja.fra1.cdn.digitaloceanspaces.com/quran.json";
 
-    val sharedPreferences: SharedPreferences =
-        application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
+    val sharedPreferences: SharedPreferences = application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
     val quranFileCreateTime = sharedPreferences.getLong("quranFileCreateTime", 0L)
     val azkarJsonVersion = sharedPreferences.getInt("azkarJsonVersion", 0)
     val chaptersJsonVersion = sharedPreferences.getInt("chaptersJsonVersion", 0)
@@ -77,8 +76,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             }
 
 
-            if (repository.getChaptersCount() != 114 || versions.get("chapters"
-                )!! > chaptersJsonVersion) {
+            if (repository.getChaptersCount() != 114 || versions.get("chapters")!! > chaptersJsonVersion) {
                 jsonParser.parseJsonArrayFile<ChapterData>("chaptersList.json")
                     ?.let {
                         try {
@@ -178,9 +176,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                 }
             }
 
-            if (repository.getTafseersCount() != 6236 * 7 || versions.get("tafaseer"
-                )!! > tafaseerJsonVersion
-            ) {
+            if (repository.getTafseersCount() != 6236 * 7 || versions.get("tafaseer")!! > tafaseerJsonVersion) {
                 //insert the available tafseer files to db
                 val tafaseerList = listOf(
                     "saadi.json",
@@ -321,7 +317,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            reportException(exception = e, file = "LoadingScreenViewModel")
+            reportException(exception = e, file = "LoadingScreenViewModel", details = "Cancellation or Failure to download quran file")
             println("failed download: ${e.message}")
             handleDownloadError(quranFile, e)
         } finally {
