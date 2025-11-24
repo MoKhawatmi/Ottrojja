@@ -290,7 +290,7 @@ fun QuranScreen(
                         setVmChangedPage = { value -> quranViewModel.vmChangedPage = value },
                         quranPagesNumbers = quranViewModel.quranPagesNumbers,
                         terminatePagePlayerService = { quranViewModel.terminatePagePlayerService() },
-                        disableAutoPageSwiping = { quranViewModel.autoSwipePagesWithAudio = false }
+                        disableAutoPageSwiping = { quranViewModel.autoSwipePagesWithAudio = false; }
                     )
                 }
 
@@ -367,7 +367,8 @@ fun QuranScreen(
             selectedRepetitionTab = quranViewModel.selectedRepetitionTab,
             onSelectRepetitionTab = { value -> quranViewModel.selectedRepetitionTab = value },
             startPlayingPage = quranViewModel.startPlayingPage,
-            endPlayingPage = quranViewModel.endPlayingPage
+            endPlayingPage = quranViewModel.endPlayingPage,
+            takeOnCurrentPageParameters = { quranViewModel.takeOnCurrentPageVerses() }
         )
     }
 
@@ -472,7 +473,7 @@ fun PagesContainer(
         if (shouldAutoPlay) {
             println("should auto play ${pageNum!!.toInt()}")
             pagerState.animateScrollToPage(pageNum!!.toInt() - 1)
-            // onPlayClicked()
+             onPlayClicked()
         } else {
             pagerState.scrollToPage(pageNum!!.toInt() - 1)
         }
@@ -489,7 +490,7 @@ fun PagesContainer(
                 } else {
                     hasPageChanged.value = true // Skip the first value
                 }
-                // when user manually swipes pages when audio is playing, disable the auto swiping
+                // when user manually swipes pages while audio is playing, disable the auto swiping
                 disableAutoPageSwiping()
             } else {
                 setVmChangedPage(false)

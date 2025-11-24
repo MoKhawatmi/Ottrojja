@@ -8,6 +8,7 @@ import android.content.ServiceConnection
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.IBinder
 import android.widget.Toast
 import androidx.compose.runtime.getValue
@@ -19,6 +20,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
+import com.ottrojja.classes.ConnectivityMonitor
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
@@ -51,6 +53,11 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         "ottrojja",
         Context.MODE_PRIVATE
     )
+    private lateinit var connectivityMonitor: ConnectivityMonitor
+    var networkConnected = false;
+
+    val externalFilesDir = context.getExternalFilesDir(null);
+
 
     val quranPagesNumbers = List(604) { (it + 1).toString() }
 
@@ -76,6 +83,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         set(value: Boolean) {
             _continuousPlay.value = value
             updateServicePlayingParameters()
+            if(value){
+                takeOnCurrentPageVerses()
+            }
         }
 
     private var _shouldAutoPlay = mutableStateOf(false)
@@ -106,20 +116,15 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             _selectedTab = value
         }
 
-    fun setCurrentPage(value: String) {
+    fun setCurrentPage(value: String, takeOnSelectedPageVerses: Boolean = false) {
         println("setting current page to $value")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _currentPageObject = repository.getPage(value)
 
-                if (!isMyServiceRunning(PagePlayerService::class.java, context)) {
+                if (!isMyServiceRunning(PagePlayerService::class.java, context) || takeOnSelectedPageVerses) {
                     withContext(Dispatchers.Main) {
-                        _selectionVersesList.value = _currentPageObject?.pageContent!!
-                        _selectionEndVersesList.value = _currentPageObject?.pageContent!!
-                        _startPlayingPage.value = _currentPageObject?.page!!.pageNum.toInt();
-                        _endPlayingPage.value = _currentPageObject?.page!!.pageNum.toInt();
-                        _selectedVerse = _selectionVersesList.value.find { it.type == PageContentItemType.verse };
-                        _selectedEndVerse = _selectionEndVersesList.value.findLast { it.type == PageContentItemType.verse };
+                        takeOnCurrentPageVerses()
                     }
                 }
 
@@ -317,7 +322,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             } else {
                 path = "${item.pageNum}-${item.surahNum}-${item.verseNum}.mp3"
             }
-            val localFile = File(context.getExternalFilesDir(null), path)
+            val localFile = File(externalFilesDir, path)
             if (!localFile.exists()) {
                 println("audio files for selected verses range need downloading")
                 allVersesExist = false;
@@ -377,7 +382,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 checkVerseFilesExistance()
 
                 if (!allVersesExist) {
-                    if (Helpers.checkNetworkConnectivity(context)) {
+                    if (networkConnected) {
                         initializeDownload()
                     } else {
                         Toast.makeText(context, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG)
@@ -430,7 +435,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     private fun moveToPlayPage(pageNum: String) {
         _shouldAutoPlay.value = true;
         _vmChangedPage.value = true;
-        setCurrentPage(pageNum)
+        setCurrentPage(pageNum, true)
     }
 
     var downloadIndex = 0;
@@ -457,10 +462,10 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         }
 
         val localFile = File(
-            context.getExternalFilesDir(null),
+            externalFilesDir,
             path
         )
-        val tempFile = File.createTempFile("temp_", ".mp3", context.getExternalFilesDir(null))
+        val tempFile = File.createTempFile("temp_", ".mp3", externalFilesDir)
 
         val request = Request.Builder()
             .url("https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/$path")
@@ -638,6 +643,16 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             }
         }
 
+    fun takeOnCurrentPageVerses() {
+        println("Setting up current page parameters for page num ${_currentPageObject?.page?.pageNum}")
+        _selectionVersesList.value = _currentPageObject?.pageContent!!
+        _selectionEndVersesList.value = _currentPageObject?.pageContent!!
+        _startPlayingPage.value = _currentPageObject?.page!!.pageNum.toInt();
+        _endPlayingPage.value = _currentPageObject?.page!!.pageNum.toInt();
+        _selectedVerse = _selectionVersesList.value.find { it.type == PageContentItemType.verse };
+        _selectedEndVerse = _selectionEndVersesList.value.findLast { it.type == PageContentItemType.verse };
+    }
+
     /*****************************TAFSEER MODAL CONTROL***********************************/
 
     private var _tafseerChapterVerse by mutableStateOf("")
@@ -776,7 +791,11 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         val serviceIntent = Intent(context, PagePlayerService::class.java)
         serviceIntent.setAction("START")
         serviceIntent.putExtra("playingPageNum", _startPlayingPage.value.toString())
-        context.startService(serviceIntent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(serviceIntent)
+        } else {
+            context.startService(serviceIntent)
+        }
         bindToService()
     }
 
@@ -871,14 +890,14 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                     }
                 }
 
-                /*viewModelScope.launch {
+                viewModelScope.launch {
                     audioService?.getPlayNextPage()?.collect { state ->
                         if (state) {
-                            //moveToPlayPage()
+                            moveToPlayPage("${_currentPageObject!!.page.pageNum.toInt() + 1}")
                             audioService?.setPlayNextPage(false);
                         }
                     }
-                }*/
+                }
 
                 viewModelScope.launch {
                     audioService?.getSelectionVersesList()?.collect { state ->
@@ -931,6 +950,9 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     fun unbindFromService() {
+        // when we start playing with service, the auto swiping sets this to true, to restore normal
+        // functionality when the service is destroyed and unbound, we reset it to false
+        _vmChangedPage.value = false;
         if (audioService != null && serviceConnection != null) {
             try { //this just keeps causing crashes
                 context.unbindService(serviceConnection)
@@ -963,6 +985,15 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         println("PagePlayerService running $sr")
         if (sr) {
             bindToService()
+        }
+
+        connectivityMonitor = ConnectivityMonitor(context)
+        connectivityMonitor.start()
+
+        viewModelScope.launch {
+            connectivityMonitor.online.collect { isOnline ->
+                networkConnected = isOnline;
+            }
         }
     }
 

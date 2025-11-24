@@ -569,12 +569,12 @@ private fun CompassContent(showPositionDialog: Boolean,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "تأثير المجال المغناطيسي: ",
+                    text = "قوة المجال المغناطيسي: ",
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center
                 )
-                Text("${magneticFieldValue.toInt()}",
+                Text("${magneticFieldValue.toInt()} µT",
                     color = when (magneticFieldQuality) {
                         MFSQuality.GOOD -> complete_green
                         MFSQuality.MEDIUM -> MaterialTheme.colorScheme.secondary
@@ -586,7 +586,6 @@ private fun CompassContent(showPositionDialog: Boolean,
                     textDecoration = TextDecoration.Underline
                 )
             }
-
         }
     }
 }
@@ -598,24 +597,6 @@ private fun normalizeAngle(angle: Float): Float {
         angle >= 360 -> angle - 360
         else -> angle
     }
-}
-
-private fun getCityFromLocation(context: Context, latitude: Double?, longitude: Double?): String {
-    /*  println("getting city")
-      println(latitude)
-      println(longitude)*/
-    if (latitude != null && longitude != null) {
-        return try {
-            val geocoder = Geocoder(context, Locale.getDefault())
-            val addresses: List<Address> = geocoder.getFromLocation(latitude, longitude, 1)!!
-            addresses[0].locality ?: ""
-        } catch (e: Exception) {
-            Log.e("Geocoder Error", e.message.toString())
-            reportException(exception = e, file = "QiblaScreen")
-            ""
-        }
-    }
-    return ""
 }
 
 fun getCityFromLocationAsync(context: Context, location: Location): Flow<String?> = flow {

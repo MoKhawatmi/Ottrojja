@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.os.Build
 import android.os.IBinder
 import android.widget.Toast
 import androidx.compose.runtime.getValue
@@ -168,13 +169,14 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
         }
     }
 
+    /*
     fun goNextChapter() {
         audioService?.playNextChapter()
     }
 
     fun goPreviousChapter() {
         //audioService?.playPreviousChapter()
-    }
+    }*/
 
     private var _sliderPosition = mutableStateOf(0f)
     var sliderPosition: Float
@@ -221,7 +223,11 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
     fun startAndBind() {
         val serviceIntent = Intent(context, QuranPlayerService::class.java)
         serviceIntent.setAction("START")
-        context.startService(serviceIntent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(serviceIntent)
+        }else{
+            context.startService(serviceIntent)
+        }
         bindToService()
     }
 

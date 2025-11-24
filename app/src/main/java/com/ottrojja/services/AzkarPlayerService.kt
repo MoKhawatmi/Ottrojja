@@ -1,5 +1,6 @@
 package com.ottrojja.services
 
+import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
@@ -20,7 +21,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
-import com.ottrojja.classes.Helpers.mediaSourceFactory
+import com.ottrojja.classes.Helpers.getMediaSrcFactory
 import com.ottrojja.classes.Helpers.reportException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -69,7 +70,7 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
     fun initializePlayer() {
         val context = this
         exoPlayer = ExoPlayer.Builder(this)
-            .setMediaSourceFactory(mediaSourceFactory)
+            .setMediaSourceFactory(getMediaSrcFactory(this))
             .build();
 
         exoPlayer.addListener(
@@ -316,6 +317,7 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
             .setCustomContentView(notificationLayout)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setSilent(true)
+            .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
 
         startForeground(1, notification);
@@ -331,6 +333,7 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
             .setCustomContentView(notificationLayout)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setSilent(true)
+            .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
 
         println("noti manager ${::notificationManager.isInitialized}")

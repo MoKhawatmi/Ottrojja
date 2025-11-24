@@ -44,7 +44,8 @@ fun ListeningOptionsDialog(
     selectedRepetitionTab: RepetitionTab,
     onSelectRepetitionTab: (RepetitionTab) -> Unit,
     startPlayingPage: Int,
-    endPlayingPage: Int
+    endPlayingPage: Int,
+    takeOnCurrentPageParameters: () -> Unit
 ) {
     OttrojjaDialog(
         contentModifier = Modifier
@@ -66,65 +67,41 @@ fun ListeningOptionsDialog(
                 color = MaterialTheme.colorScheme.onTertiary
             )
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(onClick = { takeOnCurrentPageParameters() }) {
+                    Text(
+                        text = "الحالية",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+
+
             Row(modifier = Modifier
                 .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
 
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { onSelectStartPageClicked() },
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    Text("من صفحة", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
-                    Row(
-                        modifier = Modifier
-                            .padding(0.dp, 6.dp, 6.dp, 5.dp)
-                            .fillMaxWidth()
-                            .clip(shape = RoundedCornerShape(4.dp))
-                            .background(MaterialTheme.colorScheme.primary)
-                    ) {
-                        Text(
-                            text = "ص${startPlayingPage}",
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Right,
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .fillMaxWidth()
-                        )
-                    }
-                }
+                InteractiveSelection(
+                    onClick = { onSelectStartPageClicked() },
+                    titleText = "من صفحة",
+                    contentText = "ص${startPlayingPage}",
+                    disabled = continuousPlay,
+                    modifier = Modifier.weight(1f)
+                )
 
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { onSelectVerseClicked() },
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    Text("من اية", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
-                    Row(
-                        modifier = Modifier
-                            .padding(0.dp, 6.dp, 6.dp, 5.dp)
-                            .fillMaxWidth()
-                            .clip(shape = RoundedCornerShape(4.dp))
-                            .background(MaterialTheme.colorScheme.primary)
-                    ) {
-                        Text(
-                            text = if (selectedVerse != null) "اية: ${selectedVerse.verseNum}" else "الاية",
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Right,
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .fillMaxWidth()
-                        )
-                    }
-                }
+                InteractiveSelection(
+                    onClick = { onSelectVerseClicked() },
+                    titleText = "من اية",
+                    contentText = if (selectedVerse != null) "اية: ${selectedVerse.verseNum}" else "الاية",
+                    disabled = continuousPlay,
+                    modifier = Modifier.weight(1f)
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -135,59 +112,21 @@ fun ListeningOptionsDialog(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { onSelectEndPageClicked() },
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    Text("الى صفحة", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
-                    Row(
-                        modifier = Modifier
-                            .padding(0.dp, 6.dp, 6.dp, 5.dp)
-                            .fillMaxWidth()
-                            .clip(shape = RoundedCornerShape(4.dp))
-                            .background(MaterialTheme.colorScheme.primary)
-                    ) {
-                        Text(
-                            text = "ص${endPlayingPage}",
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Right,
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .fillMaxWidth()
-                        )
-                    }
-                }
+                InteractiveSelection(
+                    onClick = { onSelectEndPageClicked() },
+                    titleText = "الى صفحة",
+                    contentText = "ص${endPlayingPage}",
+                    disabled = continuousPlay,
+                    modifier = Modifier.weight(1f)
+                )
 
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { onSelectEndVerseClicked() },
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    Text("الى اية", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
-                    Row(
-                        modifier = Modifier
-                            .padding(0.dp, 6.dp, 6.dp, 5.dp)
-                            .fillMaxWidth()
-                            .clip(shape = RoundedCornerShape(4.dp))
-                            .background(MaterialTheme.colorScheme.primary)
-                    ) {
-                        Text(
-                            text = if (selectedEndVerse != null) "اية: ${selectedEndVerse.verseNum}" else "الاية",
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Right,
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .fillMaxWidth()
-                        )
-                    }
-                }
+                InteractiveSelection(
+                    onClick = { onSelectEndVerseClicked() },
+                    titleText = "الى اية",
+                    contentText = if (selectedEndVerse != null) "اية: ${selectedEndVerse.verseNum}" else "الاية",
+                    disabled = continuousPlay,
+                    modifier = Modifier.weight(1f)
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -235,7 +174,7 @@ fun ListeningOptionsDialog(
             }
             Spacer(modifier = Modifier.height(12.dp))
 
-            /*Row(
+            Row(
                 modifier = Modifier
                     .padding(vertical = 6.dp)
                     .fillMaxWidth()
@@ -251,7 +190,7 @@ fun ListeningOptionsDialog(
                     checked = continuousPlay,
                     onCheckedChange = { newCheckedState -> setContPlay(newCheckedState) }
                 )
-            }*/
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -265,6 +204,39 @@ fun ListeningOptionsDialog(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun InteractiveSelection(onClick: () -> Unit,
+                         titleText: String,
+                         contentText: String,
+                         disabled: Boolean,
+                         modifier: Modifier) {
+    Column(
+        modifier = modifier
+            .clickable { if(!disabled) onClick(); },
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Top
+    ) {
+        Text(titleText, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+        Row(
+            modifier = Modifier
+                .padding(0.dp, 6.dp, 6.dp, 5.dp)
+                .fillMaxWidth()
+                .clip(shape = RoundedCornerShape(4.dp))
+                .background(if (!disabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
+        ) {
+            Text(
+                text = contentText,
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Right,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth()
+            )
         }
     }
 }

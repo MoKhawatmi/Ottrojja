@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.os.Build
 import android.os.IBinder
 import android.widget.Toast
 import androidx.compose.runtime.getValue
@@ -100,7 +101,7 @@ class ZikrViewModel(
         set(value) {
             this._maxDuration.value = value
         }
-    private var _maxDurationFormatted="";
+    private var _maxDurationFormatted = "";
 
     private var _progressTimeCodeDisplay = mutableStateOf("")
     var progressTimeCodeDisplay: String
@@ -145,7 +146,11 @@ class ZikrViewModel(
     fun startAndBind() {
         val serviceIntent = Intent(context, AzkarPlayerService::class.java)
         serviceIntent.setAction("START")
-        context.startService(serviceIntent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(serviceIntent)
+        } else {
+            context.startService(serviceIntent)
+        }
         bindToService()
     }
 
@@ -183,7 +188,7 @@ class ZikrViewModel(
                 viewModelScope.launch {
                     audioService?.getSliderMaxDuration()?.collect { state ->
                         _maxDuration.value = state;
-                        _maxDurationFormatted= formatTime(state.toLong());
+                        _maxDurationFormatted = formatTime(state.toLong());
                     }
                 }
 

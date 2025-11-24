@@ -1,5 +1,6 @@
 package com.ottrojja.services
 
+import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
@@ -10,10 +11,8 @@ import android.os.Binder
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import android.util.Log
 import android.widget.RemoteViews
 import android.widget.Toast
-import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -21,17 +20,14 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.R
-import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranPlayingParameters
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 import androidx.core.net.toUri
-import androidx.media3.common.Player.REPEAT_MODE_OFF
-import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.Player.STATE_ENDED
 import com.ottrojja.classes.ConnectivityMonitor
-import com.ottrojja.classes.Helpers.mediaSourceFactory
+import com.ottrojja.classes.Helpers.getMediaSrcFactory
 import com.ottrojja.classes.Helpers.repetitionOptionsMap
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.QuranListeningMode
@@ -114,7 +110,7 @@ class QuranPlayerService : Service(), QuranServiceInterface {
     fun initializePlayer() {
         val context = this
         exoPlayer = ExoPlayer.Builder(this)
-            .setMediaSourceFactory(mediaSourceFactory)
+            .setMediaSourceFactory(getMediaSrcFactory(this))
             .build();
 
         exoPlayer.addListener(
@@ -430,6 +426,7 @@ class QuranPlayerService : Service(), QuranServiceInterface {
             .setCustomContentView(notificationLayout)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setSilent(true)
+            .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
 
         startForeground(1, notification);
@@ -445,6 +442,7 @@ class QuranPlayerService : Service(), QuranServiceInterface {
             .setCustomContentView(notificationLayout)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setSilent(true)
+            .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
 
         println("noti manager ${::notificationManager.isInitialized}")

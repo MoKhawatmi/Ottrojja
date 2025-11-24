@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.google.android.gms.common.ConnectionResult
@@ -197,11 +198,20 @@ object Helpers {
         }
     }
 
-    val httpDataSourceFactory = DefaultHttpDataSource.Factory()
-        .setConnectTimeoutMs(20_000)
-        .setReadTimeoutMs(20_000)
-        .setAllowCrossProtocolRedirects(true)
+    fun getMediaSrcFactory(context: Context): DefaultMediaSourceFactory{
+        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+            .setConnectTimeoutMs(20000)
+            .setReadTimeoutMs(20000)
+            .setAllowCrossProtocolRedirects(true)
 
-    val mediaSourceFactory = DefaultMediaSourceFactory(httpDataSourceFactory)
+        // DefaultDataSource automatically chooses based on URI type:
+        val defaultDataSourceFactory = DefaultDataSource.Factory(
+            context,
+            httpDataSourceFactory
+        )
+
+        return DefaultMediaSourceFactory(defaultDataSourceFactory);
+    }
+
 
 }
