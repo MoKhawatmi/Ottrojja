@@ -139,17 +139,8 @@ class PagePlayerService : Service(), PageServiceInterface {
                                         }
                                     }
                                 } else if (_selectedRepetitionTab.value == RepetitionTab.المقطع) {
-                                    if (_currentPlayingIndex.value != _versesPlayList.value.size - 1) {
-                                        if (_currentPlayingIndex.value < _versesPlayList.value.size - 1) {
-                                            playNextVerse();
-                                        } else {
-                                            resetPlayer()
-                                            resetUIStates();
-                                            if (currentPlayingPageNum.value != "604" && _continuousPlay.value) {
-                                                //playNextPage()
-                                                _playNextPage.value = true;
-                                            }
-                                        }
+                                    if (_currentPlayingIndex.value < _versesPlayList.value.size - 1) {
+                                        playNextVerse();
                                     } else if (repeatedTimes < selectedMappedRepetitions) {
                                         repeatedTimes++;
                                         _currentPlayingIndex.value = 0;
@@ -157,8 +148,11 @@ class PagePlayerService : Service(), PageServiceInterface {
                                         logDebug("repeat times increased $repeatedTimes")
                                     } else {
                                         // done playing, done looping
-                                        resetPlayer()
-                                        resetUIStates();
+                                        resetPlayer();
+                                        resetUIStates()
+                                        if (currentPlayingPageNum.value != "604" && _continuousPlay.value) {
+                                            _playNextPage.value = true;
+                                        }
                                     }
                                 }
                             }
@@ -548,7 +542,7 @@ class PagePlayerService : Service(), PageServiceInterface {
 
     override fun resetUIStates() {
         _currentPlayingIndex.value = 0;
-        _playbackSpeed.value = 1f;
+     //   _playbackSpeed.value = 1f;
         repeatedTimes = 0;
         length = 0;
     }

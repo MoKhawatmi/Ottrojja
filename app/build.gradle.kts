@@ -84,23 +84,23 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
-    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation("androidx.datastore:datastore-preferences:1.2.0")
+    implementation("androidx.core:core-splashscreen:1.2.0")
     implementation("com.google.accompanist:accompanist-drawablepainter:0.37.3")
 
-    implementation("com.squareup.okhttp3:okhttp:5.3.0")
+    implementation("com.squareup.okhttp3:okhttp:5.3.2")
 
-    implementation("androidx.room:room-runtime:2.8.1")
-    implementation("androidx.room:room-ktx:2.8.1")
-    ksp("androidx.room:room-compiler:2.8.1")
+    implementation("androidx.room:room-runtime:2.8.4")
+    implementation("androidx.room:room-ktx:2.8.4")
+    ksp("androidx.room:room-compiler:2.8.4")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 
     implementation("androidx.media3:media3-exoplayer:1.8.0")
 
-    implementation(platform("io.github.jan-tennert.supabase:bom:3.2.4"))
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.2.6"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
-    implementation("io.ktor:ktor-client-android:3.3.0")
+    implementation("io.ktor:ktor-client-android:3.3.3")
 
     implementation("com.github.binayshaw7777:KotStep:3.0.1")
 

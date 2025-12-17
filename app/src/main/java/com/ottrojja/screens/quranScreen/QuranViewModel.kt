@@ -83,7 +83,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         set(value: Boolean) {
             _continuousPlay.value = value
             updateServicePlayingParameters()
-            if(value){
+            if (value) {
                 takeOnCurrentPageVerses()
             }
         }
@@ -121,6 +121,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _currentPageObject = repository.getPage(value)
+                _currentPage.value = value.toInt();
 
                 if (!isMyServiceRunning(PagePlayerService::class.java, context) || takeOnSelectedPageVerses) {
                     withContext(Dispatchers.Main) {
@@ -425,17 +426,21 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         audioService?.playPreviousVerse();
     }
 
-    private var _vmChangedPage = mutableStateOf(false)
+    /*private var _vmChangedPage = mutableStateOf(false)
     var vmChangedPage: Boolean
         get() = _vmChangedPage.value;
         set(value: Boolean) {
             _vmChangedPage.value = value;
-        }
+        }*/
 
-    private fun moveToPlayPage(pageNum: String) {
-        _shouldAutoPlay.value = true;
-        _vmChangedPage.value = true;
-        setCurrentPage(pageNum, true)
+    private val _currentPage = mutableStateOf(1)
+    val currentPage: Int get() = _currentPage.value
+
+    private fun moveToPlayPage(pageNum: String, shouldAutoPlay: Boolean = false, takeOnSelectedPageVerses: Boolean = false) {
+       // _vmChangedPage.value = true;
+        println("moving to page $pageNum")
+        _shouldAutoPlay.value = shouldAutoPlay
+        setCurrentPage(pageNum, takeOnSelectedPageVerses)
     }
 
     var downloadIndex = 0;
@@ -819,6 +824,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
                 viewModelScope.launch {
                     audioService?.getPlayingPageNum()?.collect { state ->
+                        println("auto swipe ${_autoSwipePagesWithAudio.value}")
                         if (state != null && _isPlaying.value && _autoSwipePagesWithAudio.value) {
                             println("current page playing in service $state")
                             moveToPlayPage(state)
@@ -893,7 +899,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 viewModelScope.launch {
                     audioService?.getPlayNextPage()?.collect { state ->
                         if (state) {
-                            moveToPlayPage("${_currentPageObject!!.page.pageNum.toInt() + 1}")
+                            println("play next page")
+                            moveToPlayPage("${_currentPageObject!!.page.pageNum.toInt() + 1}", true, true)
                             audioService?.setPlayNextPage(false);
                         }
                     }
@@ -952,7 +959,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     fun unbindFromService() {
         // when we start playing with service, the auto swiping sets this to true, to restore normal
         // functionality when the service is destroyed and unbound, we reset it to false
-        _vmChangedPage.value = false;
+     //   _vmChangedPage.value = false;
         if (audioService != null && serviceConnection != null) {
             try { //this just keeps causing crashes
                 context.unbindService(serviceConnection)
