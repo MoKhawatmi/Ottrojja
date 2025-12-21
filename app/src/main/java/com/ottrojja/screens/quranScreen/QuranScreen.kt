@@ -275,7 +275,7 @@ fun QuranScreen(
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     PagesContainer(
-                        currentPage = quranViewModel.currentPageObject?.page?.pageNum?.toInt()!!,
+                        pageNum = quranViewModel.currentPageObject?.page?.pageNum,
                         onPageChanged = { newPage -> quranViewModel.setCurrentPage(newPage) },
                         onPlayClicked = { quranViewModel.prepareForPlaying() },
                         onPauseClicked = { quranViewModel.pausePlaying() },
@@ -289,8 +289,8 @@ fun QuranScreen(
                         playbackSpeed = quranViewModel.playbackSpeed,
                         nightReadingMode = quranViewModel.nightReadingMode,
                         listeningOptionsClicked = { quranViewModel.showListeningOptionsDialog = true },
-                        //vmChangedPage = quranViewModel.vmChangedPage,
-                        //setVmChangedPage = { value -> quranViewModel.vmChangedPage = value },
+                        vmChangedPage = quranViewModel.vmChangedPage,
+                        setVmChangedPage = { value -> quranViewModel.vmChangedPage = value },
                         quranPagesNumbers = quranViewModel.quranPagesNumbers,
                         terminatePagePlayerService = { quranViewModel.terminatePagePlayerService() },
                         disableAutoPageSwiping = { quranViewModel.autoSwipePagesWithAudio = false; }
@@ -441,7 +441,7 @@ fun QuranScreen(
 
 @Composable
 fun PagesContainer(
-    currentPage: Int,
+    pageNum: String?,
     onPageChanged: (String) -> Unit,
     onPlayClicked: () -> Unit,
     onPauseClicked: () -> Unit,
@@ -455,59 +455,37 @@ fun PagesContainer(
     playbackSpeed: Float,
     nightReadingMode: Boolean,
     listeningOptionsClicked: () -> Unit,
-    //vmChangedPage: Boolean,
-    //setVmChangedPage: (Boolean) -> Unit,
+    vmChangedPage: Boolean,
+    setVmChangedPage: (Boolean) -> Unit,
     quranPagesNumbers: List<String>,
     terminatePagePlayerService: () -> Unit,
     disableAutoPageSwiping: () -> Unit
 ) {
 
     val pagerState = rememberPagerState(
-        initialPage = currentPage - 1,
-        initialPageOffsetFraction = 0f,
-        pageCount = { quranPagesNumbers.size }
-    )
-
+        initialPage = Integer.parseInt(pageNum) - 1,
+        initialPageOffsetFraction = 0f
+    ) {
+        quranPagesNumbers.size //number of the pages of quran
+    }
     var showController by remember { mutableStateOf(true) }
+    val hasPageChanged = remember { mutableStateOf(false) } // To track if the page has changed at least once
 
 
-    LaunchedEffect(currentPage) {
-        if (pagerState.currentPage != currentPage - 1) {
-            pagerState.animateScrollToPage(currentPage - 1)
-            if (shouldAutoPlay) {
-                onPlayClicked()
-            }
-        }
-    }
-
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.isScrollInProgress }
-            .filter { it } // user started scrolling
-            .flatMapLatest {
-                snapshotFlow { pagerState.currentPage }
-            }
-            .distinctUntilChanged()
-            .collect { page ->
-                val newPage = page + 1
-                if (newPage != currentPage) {
-                    onPageChanged("$newPage")
-                }
-            }
-    }
-
-
-    /*LaunchedEffect(currentPage) {
-        println("swipe to $currentPage")
+    LaunchedEffect(pageNum) {
+        println("swipe to $pageNum")
         if (shouldAutoPlay) {
-            println("should auto play ${currentPage}")
-            pagerState.animateScrollToPage(currentPage - 1)
+            println("should auto play ${pageNum!!.toInt()}")
+            pagerState.animateScrollToPage(pageNum!!.toInt() - 1)
             onPlayClicked()
         } else {
-            pagerState.animateScrollToPage(currentPage - 1)
+            pagerState.animateScrollToPage(pageNum!!.toInt() - 1)
         }
-    }*/
+    }
 
-   /* val vmForceChangePage by rememberUpdatedState(vmChangedPage)
+    // check whether page swipe is done by viewmodel or user swipe and react accordingly
+    // this code might not look optimal but is thus far the best solution we could come up with
+    val vmForceChangePage by rememberUpdatedState(vmChangedPage)
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             println("vmChangedPage $vmForceChangePage")
@@ -519,11 +497,11 @@ fun PagesContainer(
                     hasPageChanged.value = true // Skip the first value
                 }
                 // when user manually swipes pages while audio is playing, disable the auto swiping
-                disableAutoPageSwiping()
+                // disableAutoPageSwiping()
             }
             setVmChangedPage(false)
         }
-    }*/
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(state = pagerState,
@@ -538,8 +516,7 @@ fun PagesContainer(
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                ) { showController = !showController })
-        { index ->
+                ) { showController = !showController }) { index ->
             SinglePage(quranPagesNumbers[index], nightReadingMode)
         }
 

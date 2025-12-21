@@ -37,6 +37,8 @@ import com.ottrojja.composables.ListHorizontalDivider
 fun BlessingItem(item: Blessing, onShareClick: () -> Unit) {
 
     var expanded by rememberSaveable { mutableStateOf(false) }
+    val lineBreaks = item.text.count { it == '\n' }
+    val canExpand = lineBreaks > 7 || item.text.length > 400
 
     Box(modifier = Modifier
         .padding(bottom = 12.dp)
@@ -48,9 +50,9 @@ fun BlessingItem(item: Blessing, onShareClick: () -> Unit) {
         )
         )
         .then(
-            if (expanded) Modifier.fillMaxHeight() else Modifier.height(250.dp)
+            if (expanded || !canExpand) Modifier.fillMaxHeight() else Modifier.height(250.dp)
         )
-        .clickable { expanded = !expanded }
+        .clickable(enabled = canExpand) { expanded = !expanded }
     ) {
         Column(
             modifier = Modifier
@@ -88,7 +90,7 @@ fun BlessingItem(item: Blessing, onShareClick: () -> Unit) {
             ListHorizontalDivider()
         }
 
-        if (!expanded) {
+        if (!expanded && canExpand) {
             Row(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.Center,

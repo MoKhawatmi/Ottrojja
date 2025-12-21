@@ -418,7 +418,6 @@ class PagePlayerService : Service(), PageServiceInterface {
         }
     }
 
-
     fun updatePlaybackSpeed() {
         _exoPlayer.playbackParameters = PlaybackParameters(_playbackSpeed.value)
     }
@@ -439,6 +438,7 @@ class PagePlayerService : Service(), PageServiceInterface {
                             resetUIStates()
                             resetPlayer()
                             releasePlayer()
+                            _playbackSpeed.value=1.0f
                         }
                         _isPlaying.value = false;
                         _isPaused.value = false;
