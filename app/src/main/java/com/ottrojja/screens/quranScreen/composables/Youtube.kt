@@ -93,7 +93,7 @@ fun YoutubeScreen(
                 lifecycleOwner.lifecycle.addObserver(this)
 
                 // Build iframe options with a custom origin
-                val iFramePlayerOptions = IFramePlayerOptions.Builder()
+                val iFramePlayerOptions = IFramePlayerOptions.Builder(context = context)
                     .origin("https://${BuildConfig.APPLICATION_ID}")
                     .controls(1)
                     .build()

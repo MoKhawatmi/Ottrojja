@@ -10,6 +10,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.ottrojja.classes.DownloadResult
+import com.ottrojja.classes.FileDownloader
 import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.reportException
@@ -221,6 +223,8 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
                     }
                 }
             }
+
+            _loaded.value = true;
         }
     }
 
@@ -296,32 +300,29 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     }
 
     private suspend fun downloadFile(quranFile: File) {
-        val tempFile = File.createTempFile("temp_", ".json", context.getExternalFilesDir(null))
         val request = Request.Builder()
             .url(QURAN_FILE_URL)
             .build()
-        try {
-            val response = ottrojjaClient.newCall(request).execute()
-            if (response.isSuccessful) {
-                response.body?.string()?.let { jsonData ->
-                    tempFile.writeText(jsonData)
-                    tempFile.copyTo(quranFile, overwrite = true)
-                    println("success download")
-                    parseAndSetQuranData(quranFile, true)
-                    loadingFile = false
-                } ?: println("Failed to get JSON content.")
-            } else {
-                println("Failed to download file: HTTP ${response.code}")
-                useLocalQuranFile(quranFile)
+
+        when (
+            val result = FileDownloader.download(
+                context,
+                request,
+                quranFile
+            )
+        ) {
+            is DownloadResult.Success -> {
+                println("success download")
+                parseAndSetQuranData(quranFile, true)
                 loadingFile = false
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            reportException(exception = e, file = "LoadingScreenViewModel", details = "Cancellation or Failure to download quran file")
-            println("failed download: ${e.message}")
-            handleDownloadError(quranFile, e)
-        } finally {
-            tempFile.delete()
+
+            is DownloadResult.Failure -> {
+               result.exception.printStackTrace()
+                reportException(exception = result.exception, file = "LoadingScreenViewModel", details = "Cancellation or Failure to download quran file")
+                println("failed download: ${result.exception.message}")
+                handleDownloadError(quranFile, result.exception)
+            }
         }
     }
 

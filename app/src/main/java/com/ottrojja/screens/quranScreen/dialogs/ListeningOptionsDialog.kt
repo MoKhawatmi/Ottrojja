@@ -67,26 +67,12 @@ fun ListeningOptionsDialog(
                 color = MaterialTheme.colorScheme.onTertiary
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(onClick = { takeOnCurrentPageParameters() }) {
-                    Text(
-                        text = "الحالية",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-
 
             Row(modifier = Modifier
                 .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-
                 InteractiveSelection(
                     onClick = { onSelectStartPageClicked() },
                     titleText = "من صفحة",
@@ -129,7 +115,21 @@ fun ListeningOptionsDialog(
                 )
             }
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(onClick = { takeOnCurrentPageParameters() }) {
+                    Text(
+                        text = "ايات الحالية",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(12.dp))
+
 
             Row(
                 modifier = Modifier

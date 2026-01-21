@@ -20,6 +20,9 @@ interface TasabeehDao {
     @Upsert
     fun insertCustomTasbeeh(customTasbeeh: CustomTasbeeh)
 
+    @Insert
+    fun insertMultCustomTasbeeh(customTasbeehList: List<CustomTasbeeh>)
+
     @Query("SELECT * FROM TasabeehList")
     fun getTasabeehLists(): Flow<List<TasabeehList>>
 

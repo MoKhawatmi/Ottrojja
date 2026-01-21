@@ -16,6 +16,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
+import com.ottrojja.classes.DownloadResult
+import com.ottrojja.classes.FileDownloader
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.Helpers.formatTime
@@ -198,7 +200,7 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
         set(value) {
             _maxDuration.value = value
         }
-    private var _maxDurationFormatted="";
+    private var _maxDurationFormatted = "";
 
     private var _progressTimeCodeDisplay = mutableStateOf("")
     var progressTimeCodeDisplay: String
@@ -225,7 +227,7 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
         serviceIntent.setAction("START")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(serviceIntent)
-        }else{
+        } else {
             context.startService(serviceIntent)
         }
         bindToService()
@@ -381,52 +383,37 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
             context.getExternalFilesDir(null),
             "$surahId.mp3"
         )
-        val tempFile = File.createTempFile("temp_", ".mp3", context.getExternalFilesDir(null))
 
         val request = Request.Builder()
             .url("https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/$surahId.mp3")
             .build()
 
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                try {
-                    ottrojjaClient.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
-                        response.body?.let { responseBody ->
-                            FileOutputStream(tempFile).use { outputStream ->
-                                responseBody.byteStream().use { inputStream ->
-                                    inputStream.copyTo(outputStream, bufferSize = 8 * 1024)
-                                }
-                            }
-                        }
-
-                        tempFile.copyTo(localFile, overwrite = true)
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "تم التحميل بنجاح!", Toast.LENGTH_LONG).show()
-                        }
-                    }
-                } catch (e: Exception) {
-                    println("error in download")
-                    e.printStackTrace()
-                    reportException(exception = e, file = "ListeningViewModel", details = "link: /chapters/$surahId.mp3")
+            when (val result = FileDownloader.download(context, request, localFile)) {
+                is DownloadResult.Success -> {
+                    _isDownloading.value = false
                     withContext(Dispatchers.Main) {
-                        if (e.message?.contains("ENOSPC") == true) {
+                        Toast.makeText(context, "تم التحميل بنجاح!", Toast.LENGTH_LONG).show()
+                    }
+                }
+
+                is DownloadResult.Failure -> {
+                    result.exception.printStackTrace()
+                    reportException(exception = result.exception, file = "ListeningViewModel", details = "link: /chapters/$surahId.mp3")
+                    withContext(Dispatchers.Main) {
+                        if (result.exception.message?.contains("ENOSPC") == true) {
                             Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
                         } else {
                             Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
                         }
                     }
-                    localFile.delete()
-                } finally {
-                    if (tempFile.exists()) {
-                        println("deleting temp")
-                        tempFile.delete()
-                    }
-                    _isDownloading.value = false;
                 }
             }
+
+            _isDownloading.value = false;
         }
+
     }
 
     suspend fun initChaptersList() {

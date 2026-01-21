@@ -1,14 +1,26 @@
 package com.ottrojja.screens.customTasabeehListScreen
 
+import android.Manifest
 import android.app.Application
+import android.content.ContentValues
+import android.content.Context
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.google.common.reflect.TypeToken
+import com.google.gson.Gson
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.JsonParser
 import com.ottrojja.classes.ModalFormMode
@@ -19,12 +31,15 @@ import com.ottrojja.room.entities.TasabeehList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
 class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
                                         application: Application) : AndroidViewModel(application) {
     val context = application.applicationContext;
 
+    // this refers to details (id and title etc) of the list that contains the tasabeeh
     private val _customTasabeehList = mutableStateOf<TasabeehList?>(null)
     var customTasabeehList: TasabeehList?
         get() = _customTasabeehList.value
@@ -32,6 +47,7 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
             _customTasabeehList.value = value;
         }
 
+    // this refers to the actual tasabeeh contained by the list
     private val _customTasabeeh = mutableStateListOf<CustomTasbeeh>()
     val customTasabeeh: MutableList<CustomTasbeeh>
         get() = _customTasabeeh
@@ -49,6 +65,26 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
         set(value) {
             _showImportTasbeehDialog.value = value;
         }
+
+    private val _exportListDialog = mutableStateOf(false)
+    var exportListDialog: Boolean
+        get() = _exportListDialog.value
+        set(value) {
+            _exportListDialog.value = value;
+        }
+
+    private val _exportFileTitle = mutableStateOf("")
+    var exportFileTitle: String
+        get() = _exportFileTitle.value
+        set(value) {
+            _exportFileTitle.value = value;
+        }
+
+    fun closeExportListDialog() {
+        showImportTasbeehDialog = false;
+        _exportFileTitle.value = "";
+    }
+
 
     private val _tasbeehInWork = mutableStateOf(
         CustomTasbeeh(text = "", count = 0, listId = 0, position = 0)
@@ -212,6 +248,113 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
                 e.printStackTrace()
                 reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
                 Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    fun exportListAsJson() {
+        val gson = com.google.gson.Gson()
+        val jsonString = gson.toJson(_customTasabeeh)
+
+        println(jsonString)
+        saveJsonToDownloads(context, _exportFileTitle.value, jsonString)
+    }
+
+    fun saveJsonToDownloads(context: Context, fileName: String, jsonString: String) {
+        try {
+            val resolver = context.contentResolver
+
+            val contentValues = ContentValues().apply {
+                put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+                put(MediaStore.Downloads.MIME_TYPE, "application/json")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // Android 10+
+                    put(
+                        MediaStore.MediaColumns.RELATIVE_PATH,
+                        Environment.DIRECTORY_DOWNLOADS
+                    )
+                } else {
+                    // Android 7–9 (REQUIRED)
+                    val downloadsDir =
+                        Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_DOWNLOADS
+                        )
+
+                    if (!downloadsDir.exists()) {
+                        downloadsDir.mkdirs()
+                    }
+
+                    put(
+                        MediaStore.MediaColumns.DATA,
+                        File(downloadsDir, fileName).absolutePath
+                    )
+                }
+
+            }
+
+
+            val contentUri: Uri =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    MediaStore.Downloads.EXTERNAL_CONTENT_URI
+                } else {
+                    MediaStore.Files.getContentUri("external")
+                }
+
+            val uri = resolver.insert(contentUri, contentValues)
+
+
+            uri?.let {
+                resolver.openOutputStream(it)?.use { outputStream ->
+                    outputStream.write(jsonString.toByteArray())
+                    outputStream.flush()
+                }
+            }
+
+            Toast.makeText(context, "تم التصدير بنجاح", Toast.LENGTH_SHORT).show()
+            exportListDialog = false;
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_SHORT).show()
+            reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
+        }
+    }
+
+    /****************Handle Import*************************/
+    fun readJsonFromUri(
+        context: Context,
+        uri: Uri
+    ): String {
+        val mime = context.contentResolver.getType(uri)
+        if (mime != "application/json" && mime != "text/plain" && mime!="application/octet-stream") {
+            throw IllegalArgumentException("Not a JSON file")
+        }
+
+        return context.contentResolver
+            .openInputStream(uri)
+            ?.bufferedReader()
+            ?.use { it.readText() }
+            ?: throw IOException("Unable to open input stream")
+    }
+
+    fun importJson(context: Context, uri: Uri) {
+        val gson = Gson()
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val jsonString = readJsonFromUri(context, uri)
+
+                val listType = object : TypeToken<List<CustomTasbeeh>>() {}.type
+                val importedTasabeeh = gson.fromJson<List<CustomTasbeeh>>(jsonString, listType)
+
+
+                repository.insertMultCustomTasbeeh(importedTasabeeh.map { item -> CustomTasbeeh(listId = _customTasabeehList.value!!.id, text = item.text, count = item.count, position = 0) })
+                withContext(Dispatchers.Main){
+                    updateTasabeehListPositions()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
+                Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_SHORT).show()
             }
         }
     }

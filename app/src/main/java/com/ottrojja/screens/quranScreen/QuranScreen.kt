@@ -87,9 +87,6 @@ import com.ottrojja.screens.quranScreen.dialogs.ListeningOptionsDialog
 import com.ottrojja.screens.quranScreen.dialogs.PageSelectionDialog
 import com.ottrojja.screens.quranScreen.dialogs.SelectTafseerDialog
 import com.ottrojja.screens.quranScreen.dialogs.SelectVerseDialog
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flatMapLatest
 
 
 @SuppressLint("UnrememberedMutableState", "DiscouragedApi")
@@ -389,6 +386,7 @@ fun QuranScreen(
         PageSelectionDialog(
             onDismissRequest = { quranViewModel.showPageSelectionDialog = false },
             pages = quranViewModel.getPagesList(),
+            scrollPageNumber= if(quranViewModel.versesSelectionMode == VersesSelectionMode.END) quranViewModel.endPlayingPage else quranViewModel.startPlayingPage,
             onSelect = { value ->
                 if (quranViewModel.versesSelectionMode == VersesSelectionMode.END) {
                     quranViewModel.endPlayingPage = value.toInt();

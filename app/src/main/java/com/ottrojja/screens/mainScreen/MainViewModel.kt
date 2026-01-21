@@ -35,6 +35,13 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
     lateinit private var chaptersList: List<ChapterData>;
     private val partsWithQuartersList = mutableStateListOf<ExpandableItem<PartWithQuarters>>()
 
+    private var _advice by mutableStateOf("")
+    var advice: String
+        get() = _advice
+        set(value) {
+            _advice = value
+        }
+
 
     init {
         viewModelScope.launch(Dispatchers.IO) {

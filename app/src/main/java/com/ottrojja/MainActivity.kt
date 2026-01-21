@@ -1,6 +1,9 @@
 package com.ottrojja
 
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.content.res.Configuration
 import android.os.Build
@@ -8,7 +11,9 @@ import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateContentSize
@@ -25,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
@@ -44,6 +50,17 @@ import com.ottrojja.room.database.MIGRATION_7_8
 import com.ottrojja.room.database.QuranDatabase
 import com.ottrojja.ui.theme.OttrojjaAppTheme
 import java.util.Locale
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.toColorInt
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+
 
 class MainActivity : ComponentActivity() {
 
@@ -55,6 +72,25 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         actionBar?.hide()
+
+        // WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark("#FF194D65".toColorInt()),
+            navigationBarStyle = SystemBarStyle.dark(Color.Black.toArgb())
+        )
+
+        /*
+        val controller = WindowInsetsControllerCompat(window, window.decorView)
+
+        controller.show(WindowInsetsCompat.Type.systemBars())
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_BARS_BY_SWIPE
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }*/
 
         getResources().getConfiguration().setLayoutDirection(Locale("ar"));
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
@@ -79,7 +115,6 @@ class MainActivity : ComponentActivity() {
             } else {
                 permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
-        } else {
         }
 
 
@@ -93,6 +128,7 @@ class MainActivity : ComponentActivity() {
             .build()
         val quranRepository = QuranRepository(db.quranDao(), db.khitmahDao(), db.tasabeehDao())
 
+        println("Version: ${BuildConfig.VERSION_NAME}")
 
         setContent {
             var showNavPopUp by remember { mutableStateOf(false) }
@@ -106,18 +142,22 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     val currentBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentRoute = currentBackStackEntry?.destination?.route
+                    // show bottom bar navigation only in these routes
                     val bottomBarRoutes = listOf(Screen.MainScreen.route, Screen.AzkarMain.route,
                         Screen.TeacherScreen.route, Screen.ListeningScreen.route,
                         Screen.TasbeehScreen.route, Screen.BookmarksScreen.route,
                         Screen.KhitmahListScreen.route, Screen.SettingsScreen.route,
-                        Screen.BlessingsScreen.route, Screen.QiblaScreen.route
+                        Screen.BlessingsScreen.route, Screen.QiblaScreen.route,
+                        Screen.ReminderScreen.route
                     )
                     Scaffold(
+                        contentWindowInsets = WindowInsets.safeDrawing,
                         bottomBar = {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .animateContentSize()
+                                    .windowInsetsPadding(WindowInsets.navigationBars)
                             ) {
                                 if (currentRoute in bottomBarRoutes) {
                                     BottomNavigation(navController,
@@ -143,7 +183,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -162,3 +201,5 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+

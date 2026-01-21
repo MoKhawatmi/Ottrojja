@@ -236,6 +236,19 @@ fun NavigationModalBottomSheet(navController: NavController ,onDismissRequest: (
 
                 )
 
+
+                /*BottomNavigationOption(
+                    optionText = "المذكر",
+                    isCurrent = Screen.ReminderScreen.route == currentRoute,
+                    onClick = {
+                        onItemClick(Screen.ReminderScreen.route)
+                    },
+                    iconId = R.drawable.reminder,
+                    alternateIcon = null,
+                    modifier = Modifier.weight(1f)
+
+                )*/
+
                 BottomNavigationOption(
                     optionText = "المرجعيات",
                     isCurrent = Screen.BookmarksScreen.route == currentRoute,

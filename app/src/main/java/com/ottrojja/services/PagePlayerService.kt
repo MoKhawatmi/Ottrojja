@@ -233,6 +233,7 @@ class PagePlayerService : Service(), PageServiceInterface {
         _isPlaying.value = false;
         length = 0;
         repeatedTimes = 0;
+        _currentPlayingIndex.value = 0;
     }
 
     /*override fun getPlayingIndex(): StateFlow<Int> {
@@ -411,10 +412,18 @@ class PagePlayerService : Service(), PageServiceInterface {
     }
 
     fun checkPage() {
-        val nextVersePageNum = _versesPlayList.value.get(_currentPlayingIndex.value).pageNum
-        println("current page ${currentPlayingPageNum.value}, next page $nextVersePageNum")
-        if (currentPlayingPageNum.value != nextVersePageNum) {
-            setPlayingPageNum(nextVersePageNum)
+        try {
+            val nextVerse = _versesPlayList.value.getOrNull(_currentPlayingIndex.value)
+            if (nextVerse != null) {
+                val nextVersePageNum = nextVerse.pageNum
+                println("current page ${currentPlayingPageNum.value}, next page $nextVersePageNum")
+                if (currentPlayingPageNum.value != nextVersePageNum) {
+                    setPlayingPageNum(nextVersePageNum)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            reportException(exception = e, file = "PagePlayerService", details = _versesPlayList.value.joinToString())
         }
     }
 
@@ -438,7 +447,7 @@ class PagePlayerService : Service(), PageServiceInterface {
                             resetUIStates()
                             resetPlayer()
                             releasePlayer()
-                            _playbackSpeed.value=1.0f
+                            _playbackSpeed.value = 1.0f
                         }
                         _isPlaying.value = false;
                         _isPaused.value = false;
@@ -542,7 +551,7 @@ class PagePlayerService : Service(), PageServiceInterface {
 
     override fun resetUIStates() {
         _currentPlayingIndex.value = 0;
-     //   _playbackSpeed.value = 1f;
+        //   _playbackSpeed.value = 1f;
         repeatedTimes = 0;
         length = 0;
     }

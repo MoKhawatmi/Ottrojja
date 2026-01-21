@@ -16,6 +16,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
+import com.ottrojja.classes.DownloadResult
+import com.ottrojja.classes.FileDownloader
 import com.ottrojja.services.AudioServiceInterface
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.formatTime
@@ -287,7 +289,6 @@ class ZikrViewModel(
             context.getExternalFilesDir(null),
             _zikr.value.firebaseAddress.split("/").last()
         )
-        val tempFile = File.createTempFile("temp_", ".mp3", context.getExternalFilesDir(null))
 
         val request = Request.Builder()
             .url(_zikr.value.firebaseAddress)
@@ -295,45 +296,37 @@ class ZikrViewModel(
 
 
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                try {
-                    ottrojjaClient.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) throw IOException("Unexpected code $response")
-
-                        response.body?.let { responseBody ->
-                            FileOutputStream(tempFile).use { outputStream ->
-                                responseBody.byteStream().use { inputStream ->
-                                    inputStream.copyTo(outputStream, bufferSize = 8 * 1024)
-                                }
-                            }
-                        }
-
-                        tempFile.copyTo(localFile, overwrite = true)
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(
-                                context,
-                                "تم التحميل بنجاح!",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-                } catch (e: Exception) {
-                    println("error in download")
-                    e.printStackTrace()
-                    reportException(exception = e, file = "ZikrViewModel", details = "link: ${_zikr.value.firebaseAddress}")
+            when (
+                val result = FileDownloader.download(
+                    context,
+                    request,
+                    localFile
+                )
+            ) {
+                is DownloadResult.Success -> {
                     withContext(Dispatchers.Main) {
-                        if (e.message?.contains("ENOSPC") == true) {
+                        Toast.makeText(
+                            context,
+                            "تم التحميل بنجاح!",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+
+                is DownloadResult.Failure -> {
+                    result.exception.printStackTrace()
+                    reportException(exception = result.exception, file = "ZikrViewModel", details = "link: ${_zikr.value.firebaseAddress}")
+                    withContext(Dispatchers.Main) {
+                        if (result.exception.message?.contains("ENOSPC") == true) {
                             Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
                         } else {
                             Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
                         }
                     }
-                    localFile.delete()
-                } finally {
-                    if (tempFile.exists()) tempFile.delete()
-                    _isDownloading.value = false;
                 }
             }
+            _isDownloading.value = false;
+
         }
     }
 

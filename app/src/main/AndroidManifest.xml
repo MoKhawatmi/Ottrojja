@@ -11,6 +11,12 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
 
     <application
         android:name=".classes.App"
@@ -53,8 +59,24 @@
                 android:resource="@xml/provider"/>
         </provider>
 
-    </application>
+        <receiver
+            android:name="com.ottrojja.BroadcastReceivers.AlarmReceiver"
+            android:enabled="true" />
 
+        <receiver
+            android:name="com.ottrojja.BroadcastReceivers.BootReceiver"
+            android:enabled="true"
+            android:exported="false">
+
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+
+        </receiver>
+
+
+
+    </application>
 
 
 </manifest>

@@ -128,25 +128,58 @@ fun MainScreen(
 
     if (mainViewModel.showImageList) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Column {
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    TopBar(customContent = true) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(4.dp, 0.dp)
-                        ) {
-                            Text(
-                                text = "مَثَلُ الْمُؤْمِنِ الَّذِي يَقْرَأُ الْقُرْآنَ كَمَثَلِ الْأُتْرُجَّةِ، رِيحُهَا طَيِّبٌ وَطَعْمُهَا طَيِّبٌ",
-                                style = MaterialTheme.typography.displayLarge,
-                                textAlign = TextAlign.Center,
-                                color = Color.White
-                            )
-                        }
+            Column (horizontalAlignment = Alignment.CenterHorizontally) {
+                TopBar(customContent = true) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(4.dp, 0.dp)
+                    ) {
+                        Text(
+                            text = "مَثَلُ الْمُؤْمِنِ الَّذِي يَقْرَأُ الْقُرْآنَ كَمَثَلِ الْأُتْرُجَّةِ، رِيحُهَا طَيِّبٌ وَطَعْمُهَا طَيِّبٌ",
+                            style = MaterialTheme.typography.displayLarge,
+                            textAlign = TextAlign.Center,
+                            color = Color.White
+                        )
                     }
                 }
+
+                /*Row(modifier = Modifier
+                    .padding(top = 4.dp)
+                    .fillMaxWidth(0.9f)
+                    .background(Helpers.ottrojjaBrush, shape = RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12))
+                    .padding(vertical = 20.dp, horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "نصيحة او توجيه",
+                        style = MaterialTheme.typography.displayLarge,
+                        textAlign = TextAlign.Center,
+                        color = Color.White
+                    )
+                }
+
+                Row(modifier = Modifier
+                    .padding(top = 4.dp)
+                    .fillMaxWidth(0.9f)
+                    .background(Helpers.ottrojjaBrush, shape = RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12))
+                    .padding(vertical = 20.dp, horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "دعاء او ذكر",
+                        style = MaterialTheme.typography.displayLarge,
+                        textAlign = TextAlign.Center,
+                        color = Color.White
+                    )
+                }*/
+
                 Column(
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.CenterHorizontally,

@@ -1,7 +1,13 @@
 package com.ottrojja.screens.customTasabeehListScreen
 
+import android.Manifest
 import android.app.AlertDialog
 import android.app.Application
+import android.content.pm.PackageManager
+import android.os.Build
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ImportExport
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material3.ButtonDefaults
@@ -31,12 +38,19 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.ottrojja.R
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.ModalFormMode
 import com.ottrojja.classes.QuranRepository
@@ -62,6 +76,37 @@ fun CustomTasabeehListScreen(
     val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
         // Update the list
         customTasabeehListScreenViewModel.updateUIListOnDrag(to.index, from.index)
+    }
+
+    fun showExportListDialog() {
+        customTasabeehListScreenViewModel.exportListDialog = true;
+    }
+
+    val fileChooserLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            customTasabeehListScreenViewModel.importJson(context, it)
+        }
+    }
+
+    fun invokeFileChooser() {
+        fileChooserLauncher.launch(arrayOf("application/json",
+            "text/plain",
+            "application/octet-stream"
+        )
+        )
+    }
+
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            showExportListDialog()
+        } else {
+            Toast.makeText(context, "يحتاج التطبيق لأذونات الوصول للتخزين ليتمكن من التصدير بنجاح", Toast.LENGTH_SHORT).show()
+        }
     }
 
 
@@ -91,6 +136,21 @@ fun CustomTasabeehListScreen(
         alertDialog.show()
     }
 
+    fun checkWritePermission() {
+        println("android version: ${Build.VERSION.SDK_INT}")
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+            showExportListDialog()
+            return
+        }
+        val granted =
+            ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        if (granted) {
+            showExportListDialog()
+        } else {
+            permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
+    }
+
     if (customTasabeehListScreenViewModel.addTasbeehDialog) {
         AddCustomTasbeehDialog(
             onDismiss = { customTasabeehListScreenViewModel.closeCustomTasbeehModal() },
@@ -104,13 +164,22 @@ fun CustomTasabeehListScreen(
 
     if (customTasabeehListScreenViewModel.showImportTasbeehDialog) {
         ImportTasbeehDialog(
-            onDismiss = { customTasabeehListScreenViewModel.showImportTasbeehDialog = false },
+            onDismiss = { customTasabeehListScreenViewModel.closeExportListDialog() },
             tasabeehList = customTasabeehListScreenViewModel.tasabeeh,
             importTasbeeh = { tasbeeh ->
                 customTasabeehListScreenViewModel.tasbeehInWork = customTasabeehListScreenViewModel.tasbeehInWork.copy(
                     text = tasbeeh.ziker
                 )
             }
+        )
+    }
+
+    if (customTasabeehListScreenViewModel.exportListDialog) {
+        ExportListDialog(
+            onDismiss = { customTasabeehListScreenViewModel.exportListDialog = false },
+            onConfirm = { customTasabeehListScreenViewModel.exportListAsJson() },
+            fileTitle = customTasabeehListScreenViewModel.exportFileTitle,
+            onFileTitleChanged = { value -> customTasabeehListScreenViewModel.exportFileTitle = value }
         )
     }
 
@@ -128,6 +197,14 @@ fun CustomTasabeehListScreen(
                     action = {
                         triggerAddTasbeehDialog()
                     }),
+                ButtonAction(icon = ImageVector.vectorResource(R.drawable.export),
+                    title = "تصدير الاذكار",
+                    action = { checkWritePermission(); }
+                ),
+                ButtonAction(icon = Icons.Default.ImportExport,
+                    title = "إستيراد اذكار",
+                    action = { invokeFileChooser() }
+                ),
                 ButtonAction(icon = Icons.Default.Close,
                     title = "حذف القائمة",
                     action = { confirmDeleteList(); }

@@ -21,6 +21,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
 import com.ottrojja.classes.ConnectivityMonitor
+import com.ottrojja.classes.DownloadResult
+import com.ottrojja.classes.FileDownloader
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
@@ -164,11 +166,28 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             updateServicePlayingParameters()
         }
 
+    private var _startPlayingPage = mutableStateOf(1)
+    var startPlayingPage: Int
+        get() = _startPlayingPage.value
+        set(value) {
+            _startPlayingPage.value = value
+            playingParameterUpdated()
+        }
+
+    private var _endPlayingPage = mutableStateOf(1)
+    var endPlayingPage: Int
+        get() = _endPlayingPage.value
+        set(value) {
+            _endPlayingPage.value = value
+            playingParameterUpdated()
+        }
+
     private var _selectedVerse by mutableStateOf<PageContent?>(null)
     var selectedVerse: PageContent?
         get() = _selectedVerse
         set(value) {
             _selectedVerse = value;
+            playingParameterUpdated()
         }
 
     private var _selectedEndVerse by mutableStateOf<PageContent?>(null)
@@ -176,6 +195,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         get() = _selectedEndVerse
         set(value) {
             _selectedEndVerse = value;
+            playingParameterUpdated()
         }
 
     private var _versesSelectionMode = mutableStateOf(VersesSelectionMode.START)
@@ -207,19 +227,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         };
     }
 
-    private var _startPlayingPage = mutableStateOf(1)
-    var startPlayingPage: Int
-        get() = _startPlayingPage.value
-        set(value) {
-            _startPlayingPage.value = value
-        }
-
-    private var _endPlayingPage = mutableStateOf(1)
-    var endPlayingPage: Int
-        get() = _endPlayingPage.value
-        set(value) {
-            _endPlayingPage.value = value
-        }
 
     private var _playbackSpeed by mutableStateOf(1.0f)
     var playbackSpeed: Float
@@ -486,51 +493,34 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
 
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                try {
-                    ottrojjaClient.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) throw IOException("Unexpected code $response")
-
-                        response.body?.let { responseBody ->
-                            FileOutputStream(tempFile).use { outputStream ->
-                                responseBody.byteStream().use { inputStream ->
-                                    inputStream.copyTo(outputStream, bufferSize = 8 * 1024)
-                                }
-                            }
+            when(val result= FileDownloader.download(context, request, localFile)){
+                is DownloadResult.Success -> {
+                    if (downloadIndex >= _versesPlayList.size - 1) {
+                        allVersesExist = true;
+                        _isDownloading.value = false;
+                        withContext(Dispatchers.Main) {
+                            startPlaying()
                         }
-
-                        tempFile.copyTo(localFile, overwrite = true)
-                        if (downloadIndex >= _versesPlayList.size - 1) {
-                            allVersesExist = true;
-                            _isDownloading.value = false;
-                            withContext(Dispatchers.Main) {
-                                startPlaying()
-                            }
-                        } else {
-                            downloadIndex++;
-                            downloadVerse()
-                        }
+                    } else {
+                        downloadIndex++;
+                        downloadVerse()
                     }
-                } catch (e: Exception) {
-                    println("error in download")
-                    e.printStackTrace()
-                    reportException(exception = e, file = "QuranViewModel", details = "link: /verses/$path")
+                }
+
+                is DownloadResult.Failure -> {
+                    result.exception.printStackTrace()
+                    reportException(exception = result.exception, file = "QuranViewModel", details = "link: /verses/$path")
                     withContext(Dispatchers.Main) {
-                        if (e.message?.contains("ENOSPC") == true) {
-                            Toast.makeText(context, context.resources.getString(R.string.enospc),
-                                Toast.LENGTH_LONG
-                            ).show()
+                        if (result.exception.message?.contains("ENOSPC") == true) {
+                            Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
                         } else {
-                            Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG
-                            ).show()
+                            Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
                         }
                     }
                     localFile.delete()
                     allVersesExist = false;
                     _isPlaying.value = false;
                     _isDownloading.value = false;
-                } finally {
-                    if (tempFile.exists()) tempFile.delete()
                 }
             }
         }
@@ -656,14 +646,18 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             }
         }
 
+    fun playingParameterUpdated(){
+        audioService?.playingParameterUpdated();
+    }
+
     fun takeOnCurrentPageVerses() {
         println("Setting up current page parameters for page num ${_currentPageObject?.page?.pageNum}")
         _selectionVersesList.value = _currentPageObject?.pageContent!!
         _selectionEndVersesList.value = _currentPageObject?.pageContent!!
-        _startPlayingPage.value = _currentPageObject?.page!!.pageNum.toInt();
-        _endPlayingPage.value = _currentPageObject?.page!!.pageNum.toInt();
-        _selectedVerse = _selectionVersesList.value.find { it.type == PageContentItemType.verse };
-        _selectedEndVerse = _selectionEndVersesList.value.findLast { it.type == PageContentItemType.verse };
+        startPlayingPage = _currentPageObject?.page!!.pageNum.toInt();
+        endPlayingPage = _currentPageObject?.page!!.pageNum.toInt();
+        selectedVerse = _selectionVersesList.value.find { it.type == PageContentItemType.verse };
+        selectedEndVerse = _selectionEndVersesList.value.findLast { it.type == PageContentItemType.verse };
     }
 
     /*****************************TAFSEER MODAL CONTROL***********************************/
@@ -839,6 +833,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 viewModelScope.launch {
                     audioService?.getPlayingPageNum()?.collect { state ->
                         println("auto swipe ${_autoSwipePagesWithAudio.value}")
+                        println("state null? ${state}")
                         if (state != null) {
                             _currentPlayingPageInService = state
                             if (_isPlaying.value && _autoSwipePagesWithAudio.value) {
@@ -989,7 +984,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     fun updateServicePlayingParameters() {
         println("updating service params")
-        println("updating reps in service to  ${_selectedRepetition}")
+        //println("updating reps in service to  ${_selectedRepetition}")
         audioService?.setContinuousPlay(_continuousPlay.value)
         audioService?.setSelectedRepetition(_selectedRepetition)
         audioService?.setSelectedMappedRepetition(Helpers.repetitionOptionsMap.get(_selectedRepetition)!!)

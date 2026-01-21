@@ -10,6 +10,8 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
@@ -19,6 +21,7 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
+import com.ottrojja.BuildConfig
 import com.ottrojja.services.AzkarPlayerService
 import com.ottrojja.services.PagePlayerService
 import com.ottrojja.services.QuranPlayerService
@@ -172,7 +175,8 @@ object Helpers {
         val report = ExceptionReport(
             stacktrace = exception.stackTraceToString(),
             file = file,
-            details = details
+            details = details,
+            appVersion = BuildConfig.VERSION_NAME
         )
 
         scope.launch {
@@ -212,6 +216,5 @@ object Helpers {
 
         return DefaultMediaSourceFactory(defaultDataSourceFactory);
     }
-
 
 }

@@ -5,9 +5,10 @@
         <item name="android:layoutDirection">rtl</item>
         <item name="android:textDirection">rtl</item>
         <item name="android:layout_gravity">right</item>
+    </style>
 
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
-
-
+    <style name="Theme.App.SplashScreen" parent="Theme.SplashScreen" >
+        <item name="windowSplashScreenBackground">#194d65</item>
+        <item name="windowSplashScreenIconBackgroundColor">#194d65</item>
     </style>
 </resources>

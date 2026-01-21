@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Ottrojja" parent="android:Theme.Material.Light.NoActionBar" >
-    <item name="android:layoutDirection">rtl</item>
-    <item name="android:textDirection">rtl</item>
-    <item name="android:layout_gravity">right</item>
-
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
-
-
+    <style name="Theme.Ottrojja" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:layoutDirection">rtl</item>
+        <item name="android:textDirection">rtl</item>
+        <item name="android:layout_gravity">right</item>
     </style>
 
-    <style name="Theme.App.SplashScreen" parent="Theme.SplashScreen" >
+    <style name="Theme.App.SplashScreen" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#194d65</item>
         <item name="windowSplashScreenIconBackgroundColor">#194d65</item>
     </style>

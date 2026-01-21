@@ -83,23 +83,7 @@ fun OttrojjaAppTheme(
         dynamicColor: Boolean = true,
         content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        /*dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme*/
-        else -> LightColorScheme
-    }
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = if(darkTheme) colorScheme.background.toArgb() else colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
-        }
-    }
+    val colorScheme = LightColorScheme
 
     MaterialTheme(
             colorScheme = colorScheme,

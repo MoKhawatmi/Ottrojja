@@ -260,6 +260,10 @@ class QuranRepository(private val quranDao: QuranDao,
         tasabeehDao.insertCustomTasbeeh(customTasbeeh)
     }
 
+    suspend fun insertMultCustomTasbeeh(customTasbeehList: List<CustomTasbeeh>) {
+        tasabeehDao.insertMultCustomTasbeeh(customTasbeehList)
+    }
+
     suspend fun getTasabeehLists(): Flow<List<TasabeehList>> {
         return tasabeehDao.getTasabeehLists()
     }
