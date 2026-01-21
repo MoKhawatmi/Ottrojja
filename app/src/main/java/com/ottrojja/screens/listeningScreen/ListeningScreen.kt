@@ -45,7 +45,9 @@ import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.LoadingDialog
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
+import com.ottrojja.composables.OttrojjaItemSelectionDialog
 import com.ottrojja.composables.OttrojjaTabs
+import com.ottrojja.composables.PillShapedTextFieldWithIcon
 import com.ottrojja.composables.RangeSelectionItem
 import com.ottrojja.screens.quranScreen.dialogs.RepetitionOptionsDialog
 import com.ottrojja.composables.SecondaryTopBar
@@ -78,21 +80,60 @@ fun ListeningScreen(
     }
 
     if (listeningViewModel.showSurahSelectionDialog) {
-        SurahSelectionDialog(onDismiss = { listeningViewModel.showSurahSelectionDialog = false },
-            chapters = filteredChapters,
-            searchFilter = listeningViewModel.searchFilter,
-            searchFilterChanged = { value -> listeningViewModel.searchFilter = value },
-            selectSurah = { value ->
-                listeningViewModel.surahSelected(value);
+        OttrojjaItemSelectionDialog(
+            onDismiss = { listeningViewModel.showSurahSelectionDialog = false },
+            searchBar = {
+                PillShapedTextFieldWithIcon(
+                    value = listeningViewModel.searchFilter,
+                    onValueChange = { newValue -> listeningViewModel.searchFilter = newValue },
+                    leadingIcon = painterResource(id = R.drawable.search),
+                    modifier = Modifier.fillMaxWidth(0.9f),
+                    placeHolder = "اسم او رقم السورة"
+                )
+            },
+            selectionItems = filteredChapters,
+            onSelect = { item ->
+                listeningViewModel.surahSelected(item);
                 listeningViewModel.searchFilter = "";
             },
-            selectionPhase = listeningViewModel.selectionPhase,
-            checkIfChapterDownloaded = { value ->
-                listeningViewModel.checkIfChapterDownloaded(value)
-            },
-            downloadChapter = { value -> listeningViewModel.downloadChapter(value) },
-            isDownloading = listeningViewModel.isDownloading
-        )
+            itemContent = { item ->
+                val downloading = listeningViewModel.isDownloading // to update "download icon" after the downloading is done
+
+                Row(
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(text = "${item.surahId}. ${item.chapterName}",
+                            color = MaterialTheme.colorScheme.onSecondary
+                        )
+                    }
+                    Column(
+                        verticalArrangement = Arrangement.Bottom,
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        if (listeningViewModel.selectionPhase == ListeningViewModel.SelectionPhase.PLAY) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (!listeningViewModel.checkIfChapterDownloaded(item.surahId)) {
+                                    Image(painter = painterResource(R.drawable.download),
+                                        contentDescription = "download",
+                                        modifier = Modifier
+                                            .padding(10.dp, 0.dp)
+                                            .clickable { listeningViewModel.downloadChapter(item.surahId) }
+                                            .size(35.dp),
+                                        colorFilter = ColorFilter.tint(
+                                            MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            })
     }
 
     if (listeningViewModel.showVerseSelectionDialog) {
@@ -394,7 +435,7 @@ fun ListeningScreen(
                     )
                 }
             }
-        //}
+            //}
         }
     }
 }
