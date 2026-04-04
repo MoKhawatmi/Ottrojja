@@ -58,6 +58,9 @@ interface QuranDao {
     suspend fun getPagesContentRange(startingSurah: Int, startingVerse: Int, endSurah: Int, endVerse: Int): List<PageContent>
 
 
+    @Query("SELECT * FROM PageContent WHERE surahNum = :surahNum AND type = 'verse'")
+    suspend fun getChapterVerses(surahNum: Int): List<PageContent>
+
     @Query("SELECT * FROM PageContent WHERE pageNum = :pageNum")
     suspend fun fetchPageVerses(pageNum: String): List<PageContent>
 

@@ -12,7 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.ottrojja.composables.RangeSelectionItem
+import com.ottrojja.composables.RangeSelector
+import com.ottrojja.composables.rangeSelectionItem.RangeSelectionSegment
 import com.ottrojja.screens.listeningScreen.ListeningViewModel
 import com.ottrojja.screens.mainScreen.ChapterData
 
@@ -34,44 +35,39 @@ fun TrainingSelection(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                RangeSelectionItem(
-                    surahItem = startingSurah,
-                    selectSurahClicked = {
-                        setShowSurahSelectionDialog(true);
-                        setSelectionPhase(ListeningViewModel.SelectionPhase.START);
-                    },
-                    verseItem = startingVerse,
-                    selectVerseClicked = {
-                        setShowVerseSelectionDialog(true);
-                        setSelectionPhase(ListeningViewModel.SelectionPhase.START);
-                    },
-                    header = "من"
-                )
-            }
 
-            Column(modifier = Modifier.weight(1f)) {
-                RangeSelectionItem(
-                    surahItem = endSurah,
-                    selectSurahClicked = {
-                        setShowSurahSelectionDialog(true);
-                        setSelectionPhase(ListeningViewModel.SelectionPhase.END);
-                    },
-                    verseItem = endVerse,
-                    selectVerseClicked = {
-                        setShowVerseSelectionDialog(true);
-                        setSelectionPhase(ListeningViewModel.SelectionPhase.END);
-                    },
-                    header = "إلى"
-                )
-            }
-        }
+        RangeSelector(
+            startSegments = listOf(RangeSelectionSegment(
+                title = "من",
+                value = "${startingSurah?.surahId}.\n${startingSurah?.chapterName}",
+                onClick = {
+                    setShowSurahSelectionDialog(true);
+                    setSelectionPhase(ListeningViewModel.SelectionPhase.START);
+                }
+            ), RangeSelectionSegment(
+                title = "الاية",
+                value = startingVerse.toString(),
+                onClick = {
+                    setShowVerseSelectionDialog(true);
+                    setSelectionPhase(ListeningViewModel.SelectionPhase.START);
+                }
+            )),
+            endSegments = listOf(RangeSelectionSegment(
+                title = "الى",
+                value = "${endSurah?.surahId}.\n${endSurah?.chapterName}",
+                onClick = {
+                    setShowSurahSelectionDialog(true);
+                    setSelectionPhase(ListeningViewModel.SelectionPhase.END);
+                }
+            ), RangeSelectionSegment(
+                title = "الاية",
+                value = endVerse.toString(),
+                onClick = {
+                    setShowVerseSelectionDialog(true);
+                    setSelectionPhase(ListeningViewModel.SelectionPhase.END);
+                }
+            ))
+        )
     }
 
     Row(modifier = Modifier.fillMaxWidth(),

@@ -360,7 +360,6 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
             try { //this just keeps causing crashes
                 context.unbindService(serviceConnection)
             } catch (e: Exception) {
-                reportException(exception = e, file = "ListeningViewModel")
                 e.printStackTrace()
             }
         }

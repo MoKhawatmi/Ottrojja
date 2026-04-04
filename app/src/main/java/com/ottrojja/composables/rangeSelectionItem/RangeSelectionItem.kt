@@ -1,4 +1,4 @@
-package com.ottrojja.composables
+package com.ottrojja.composables.rangeSelectionItem
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,14 +18,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.screens.mainScreen.ChapterData
 
-@Composable
-fun RangeSelectionItem(surahItem: ChapterData?,
+
+/*
+* surahItem: ChapterData?,
                        selectSurahClicked: () -> Unit,
                        verseItem: Int = 1,
                        selectVerseClicked: () -> Unit = {},
                        header: String,
                        withVerseSelection: Boolean = true
-) {
+* */
+
+@Composable
+fun RangeSelectionItem(segments: List<RangeSelectionSegment>) {
     Column(modifier = Modifier
         .padding(12.dp)
         .shadow(
@@ -38,22 +42,21 @@ fun RangeSelectionItem(surahItem: ChapterData?,
         .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(header, color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.bodyMedium
-        )
-        RangeSelectionClickable(
-            text = "${surahItem?.surahId}.\n${surahItem?.chapterName}",
-            onClick = { selectSurahClicked() }
-        )
-        if (withVerseSelection) {
-            Text("الاية", color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium
+        segments.forEach {
+            RangeSelectionTitle(it.title)
+            RangeSelectionClickable(
+                text = it.value,// "${surahItem?.surahId}.\n${surahItem?.chapterName}",
+                onClick = { it.onClick() /*selectSurahClicked()*/ }
             )
+        }
+
+        /*if (withVerseSelection) {
+            RangeSelectionTitle("الاية")
             RangeSelectionClickable(
                 text = verseItem.toString(),
                 onClick = { selectVerseClicked() }
             )
-        }
+        }*/
     }
 }
 
@@ -76,5 +79,11 @@ fun RangeSelectionClickable(text: String, onClick: () -> Unit) {
         style = MaterialTheme.typography.bodyMedium,
         textAlign = TextAlign.Center,
     )
+}
 
+@Composable
+fun RangeSelectionTitle(title: String) {
+    Text(title, color = MaterialTheme.colorScheme.primary,
+        style = MaterialTheme.typography.bodyMedium
+    )
 }

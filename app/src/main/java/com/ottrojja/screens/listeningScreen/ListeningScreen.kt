@@ -1,16 +1,15 @@
 package com.ottrojja.screens.listeningScreen
 
 import android.app.Application
+import android.util.Range
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -48,9 +47,11 @@ import com.ottrojja.composables.MediaSlider
 import com.ottrojja.composables.OttrojjaItemSelectionDialog
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
-import com.ottrojja.composables.RangeSelectionItem
+import com.ottrojja.composables.RangeSelector
+import com.ottrojja.composables.rangeSelectionItem.RangeSelectionItem
 import com.ottrojja.screens.quranScreen.dialogs.RepetitionOptionsDialog
 import com.ottrojja.composables.SecondaryTopBar
+import com.ottrojja.composables.rangeSelectionItem.RangeSelectionSegment
 import com.ottrojja.screens.mainScreen.ChapterData
 
 @Composable
@@ -183,44 +184,39 @@ fun ListeningScreen(
             ) {
                 if (listeningViewModel.listeningMode == QuranListeningMode.مقطع_ايات) {
                     Column {
-                        Row(modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                RangeSelectionItem(
-                                    surahItem = listeningViewModel.startingSurah,
-                                    selectSurahClicked = {
-                                        listeningViewModel.showSurahSelectionDialog = true;
-                                        listeningViewModel.selectionPhase = ListeningViewModel.SelectionPhase.START;
-                                    },
-                                    verseItem = listeningViewModel.startingVerse,
-                                    selectVerseClicked = {
-                                        listeningViewModel.showVerseSelectionDialog = true;
-                                        listeningViewModel.selectionPhase = ListeningViewModel.SelectionPhase.START;
-                                    },
-                                    header = "من"
-                                )
-                            }
+                        RangeSelector(
+                            startSegments = listOf(RangeSelectionSegment(
+                                title = "من",
+                                value = "${listeningViewModel.startingSurah?.surahId}.\n${listeningViewModel.startingSurah?.chapterName}",
+                                onClick = {
+                                    listeningViewModel.showSurahSelectionDialog = true;
+                                    listeningViewModel.selectionPhase = ListeningViewModel.SelectionPhase.START;
+                                }
+                            ), RangeSelectionSegment(
+                                title = "الاية",
+                                value = listeningViewModel.startingVerse.toString(),
+                                onClick = {
+                                    listeningViewModel.showVerseSelectionDialog = true;
+                                    listeningViewModel.selectionPhase = ListeningViewModel.SelectionPhase.START;
+                                }
+                            )),
+                            endSegments = listOf(RangeSelectionSegment(
+                                title = "الى",
+                                value = "${listeningViewModel.endSurah?.surahId}.\n${listeningViewModel.endSurah?.chapterName}",
+                                onClick = {
+                                    listeningViewModel.showSurahSelectionDialog = true;
+                                    listeningViewModel.selectionPhase = ListeningViewModel.SelectionPhase.END;
+                                }
+                            ), RangeSelectionSegment(
+                                title = "الاية",
+                                value = listeningViewModel.endVerse.toString(),
+                                onClick = {
+                                    listeningViewModel.showVerseSelectionDialog = true;
+                                    listeningViewModel.selectionPhase = ListeningViewModel.SelectionPhase.END;
+                                }
+                            ))
+                        )
 
-                            Column(modifier = Modifier.weight(1f)) {
-                                RangeSelectionItem(
-                                    surahItem = listeningViewModel.endSurah,
-                                    selectSurahClicked = {
-                                        listeningViewModel.showSurahSelectionDialog = true;
-                                        listeningViewModel.selectionPhase = ListeningViewModel.SelectionPhase.END;
-                                    },
-                                    verseItem = listeningViewModel.endVerse,
-                                    selectVerseClicked = {
-                                        listeningViewModel.showVerseSelectionDialog = true;
-                                        listeningViewModel.selectionPhase = ListeningViewModel.SelectionPhase.END;
-                                    },
-                                    header = "إلى"
-                                )
-                            }
-                        }
 
                         Row(modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
@@ -249,14 +245,14 @@ fun ListeningScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             RangeSelectionItem(
-                                surahItem = listeningViewModel.selectedSurah,
-                                selectSurahClicked = {
-                                    listeningViewModel.showSurahSelectionDialog = true;
-                                    listeningViewModel.selectionPhase = ListeningViewModel.SelectionPhase.PLAY;
-                                },
-                                header = "السورة",
-                                withVerseSelection = false
-                            )
+                                segments = listOf(RangeSelectionSegment(
+                                    title = "السورة",
+                                    value = "${listeningViewModel.selectedSurah?.surahId}.\n${listeningViewModel.selectedSurah?.chapterName}",
+                                    onClick = {
+                                        listeningViewModel.showSurahSelectionDialog = true;
+                                        listeningViewModel.selectionPhase = ListeningViewModel.SelectionPhase.PLAY;
+                                    }
+                                )))
                         }
                     }
                 }

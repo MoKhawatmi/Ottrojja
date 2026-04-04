@@ -73,6 +73,9 @@ class QuranRepository(private val quranDao: QuranDao,
         return quranDao.getPagesContentRange(startingSurah, startingVerse, endSurah, endVerse);
     }
 
+    suspend fun getChapterVerses(surahNum: Int): List<PageContent> {
+        return quranDao.getChapterVerses(surahNum)
+    }
 
     suspend fun fetchPageVerses(pageNum: String): List<PageContent> {
         return quranDao.fetchPageVerses(pageNum)

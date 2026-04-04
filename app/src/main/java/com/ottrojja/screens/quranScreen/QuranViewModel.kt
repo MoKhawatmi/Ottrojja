@@ -977,7 +977,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 context.unbindService(serviceConnection)
             } catch (e: Exception) {
                 e.printStackTrace()
-                reportException(exception = e, file = "QuranViewModel")
             }
         }
     }

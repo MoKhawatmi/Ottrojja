@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
+import kotlinx.coroutines.flow.update
 
 
 class BlessingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -36,10 +37,18 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
             _loading.value = value
         }
 
+    private var _isRefreshing = mutableStateOf(false)
+    var isRefreshing: Boolean
+        get() = _isRefreshing.value
+        set(value: Boolean) {
+            _isRefreshing.value = value
+        }
+
+
     var page: Long = 1;
     var hasMorePages: Boolean = true;
 
-    fun fetchBlessings() {
+    fun fetchBlessings(refresh: Boolean = false) {
         if (_loading.value || !hasMorePages) {
             return;
         }
@@ -47,7 +56,7 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
         val to: Long = from + 20 - 1
         println("fetching from $from to $to")
         viewModelScope.launch(Dispatchers.IO) {
-            _loading.value = true;
+            if (refresh) _isRefreshing.value = true else _loading.value = true
             val blessings: List<Blessing> = try {
                 supabase.from("blessings").select(Columns.ALL) {
                     range(from = from, to = to);
@@ -61,16 +70,31 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
                 }
                 emptyList<Blessing>()
             }
-            _loading.value = false;
-            if (blessings.size != 0) {
-                blessingsList.value += blessings;
-                page++;
-                println("new count ${blessingsList.value.size}")
+
+            if (refresh) {
+                blessingsList.value = blessings
+                page = 2
+                hasMorePages = blessings.isNotEmpty()
             } else {
-                hasMorePages = false;
+                if (blessings.isNotEmpty()) {
+                    blessingsList.value += blessings
+                    page++
+                } else {
+                    hasMorePages = false
+                }
+            }
+
+            withContext(Dispatchers.Main) {
+                _loading.value = false;
+                _isRefreshing.value = false
             }
         }
+    }
 
+    fun refresh() {
+        page = 1
+        hasMorePages = true
+        fetchBlessings(refresh = true)
     }
 
 }

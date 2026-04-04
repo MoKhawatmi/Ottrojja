@@ -13,7 +13,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -26,6 +30,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.composables.TopBar
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
     val context = LocalContext.current
@@ -47,38 +52,50 @@ fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
             }
     }
 
+    val pullRefreshState = rememberPullToRefreshState()
+
 
     Column(modifier = Modifier
         .fillMaxSize()
-        .background(MaterialTheme.colorScheme.tertiary)) {
+        .background(MaterialTheme.colorScheme.tertiary)
+    ) {
         TopBar(title = "إشراقات")
-        LazyColumn(state = listState,
-            modifier = Modifier
-                .padding(horizontal = 6.dp)
-                .fillMaxHeight()
-        ) {
-            items(blessings) { item ->
-                BlessingItem(item = item, onShareClick = { copyToClipboard(context, item.text) })
-            }
 
-            if (blessingsViewModel.loading) {
-                item {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp)
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.width(34.dp),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 4.dp
-                        )
+        PullToRefreshBox(
+            isRefreshing = blessingsViewModel.isRefreshing,
+            onRefresh = { blessingsViewModel.refresh() },
+            state = pullRefreshState
+        ) {
+            LazyColumn(state = listState,
+                modifier = Modifier
+                    .padding(horizontal = 6.dp)
+                    .fillMaxHeight()
+            ) {
+                items(blessings) { item ->
+                    BlessingItem(item = item, onShareClick = { copyToClipboard(context, item.text) })
+                }
+
+                if (blessingsViewModel.loading) {
+                    item {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.width(34.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 4.dp
+                            )
+                        }
                     }
                 }
             }
         }
+
+
     }
 
 }
