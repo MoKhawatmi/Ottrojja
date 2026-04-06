@@ -31,6 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import java.util.Locale
 
 object Helpers {
@@ -201,6 +202,15 @@ object Helpers {
             String.format(Locale.ENGLISH, "%02d:%02d", minutes, seconds)
         }
     }
+
+    fun formatMilitaryTime(hour: Int, minute: Int): String {
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+        }
+        return android.text.format.DateFormat.format("HH:mm", cal).toString()
+    }
+
 
     fun getMediaSrcFactory(context: Context): DefaultMediaSourceFactory{
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()

@@ -13,6 +13,7 @@ import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.dao.KhitmahDao
 import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.room.dao.QuranDao
+import com.ottrojja.room.dao.ReminderDao
 import com.ottrojja.room.dao.TasabeehDao
 import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.room.entities.TasabeehList
@@ -22,6 +23,7 @@ import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.Quarter
+import com.ottrojja.room.entities.Reminder
 import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.VerseMeanings
 
@@ -30,13 +32,15 @@ import com.ottrojja.room.entities.VerseMeanings
     entities = [QuranPage::class, PageContent::class, ChapterData::class, PartData::class,
         TafseerData::class, E3rabData::class, Azkar::class,
         CauseOfRevelation::class, BookmarkEntity::class, Khitmah::class,
-        KhitmahMark::class, CustomTasbeeh::class, TasabeehList::class, VerseMeanings::class, Quarter::class],
+        KhitmahMark::class, CustomTasbeeh::class, TasabeehList::class, VerseMeanings::class, Quarter::class,
+        Reminder::class],
     version = 8
 )
 abstract class QuranDatabase : RoomDatabase() {
     abstract fun quranDao(): QuranDao
     abstract fun khitmahDao(): KhitmahDao
     abstract fun tasabeehDao(): TasabeehDao
+    abstract fun reminderDao(): ReminderDao
 }
 
 val MIGRATION_7_8 = object : Migration(7, 8) {

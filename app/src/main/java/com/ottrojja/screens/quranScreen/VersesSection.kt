@@ -44,16 +44,17 @@ import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaItemSelectionDialog
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 import com.ottrojja.composables.RangeSelector
+import com.ottrojja.composables.ottrojjaFlexibleActions.FlexibleAction
+import com.ottrojja.composables.ottrojjaFlexibleActions.OttrojjaFlexibleActions
 import com.ottrojja.composables.rangeSelectionItem.RangeSelectionSegment
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.screens.listeningScreen.ListeningViewModel.SelectionPhase
-import com.ottrojja.screens.listeningScreen.SurahSelectionDialog
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VersesSection(
     items: List<PageContent>,
-    onSheetRequest: (String, TafseerSheetMode) -> Unit,
+    onSheetRequest: (PageContent, TafseerSheetMode) -> Unit,
     repository: QuranRepository
 ) {
     val context = LocalContext.current
@@ -62,7 +63,6 @@ fun VersesSection(
     val versesSectionViewModel: VersesSectionViewModel = viewModel(
         factory = VersesSectionViewModelFactory(repository, application)
     )
-
 
     LaunchedEffect(items) {
         versesSectionViewModel.setItems(items);
@@ -89,7 +89,7 @@ fun VersesSection(
                     versesSectionViewModel.showVerseSelectionDialog = true
                 }
             )),
-            onShareClick = {versesSectionViewModel.shareVerses()}
+            onShareClick = { versesSectionViewModel.shareVerses() }
         )
     }
 
@@ -145,61 +145,40 @@ fun VersesSection(
                 AnimatedVisibility(
                     visible = item.expanded,
                 ) {
-                    FlowRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.background)
-                            .padding(8.dp), maxItemsInEachRow = 3
-                    ) {
-                        VerseActionOption(
-                            text = "مشاركة",
-                            onClick = {
-                                versesSectionViewModel.fetchChapterVerses(item.pageContent);
-                            },
-                            bgColor = MaterialTheme.colorScheme.tertiary,
-                            textColor = Color.Black
+                    OttrojjaFlexibleActions(
+                        listOf(
+                            FlexibleAction(
+                                text = "مشاركة",
+                                bgColor = MaterialTheme.colorScheme.tertiary,
+                                textColor = Color.Black,
+                                action = { versesSectionViewModel.fetchChapterVerses(item.pageContent) }
+                            ),
+                            FlexibleAction(
+                                text = "التفسير",
+                                bgColor = MaterialTheme.colorScheme.primary,
+                                textColor = MaterialTheme.colorScheme.onPrimary,
+                                action = { onSheetRequest(item.pageContent, TafseerSheetMode.التفسير) }
+                            ),
+                            FlexibleAction(
+                                text = "الإعراب",
+                                bgColor = MaterialTheme.colorScheme.tertiary,
+                                textColor = Color.Black,
+                                action = { onSheetRequest(item.pageContent, TafseerSheetMode.الإعراب) }
+                            ),
+                            FlexibleAction(
+                                text = "سبب النزول",
+                                bgColor = MaterialTheme.colorScheme.primary,
+                                textColor = MaterialTheme.colorScheme.onPrimary,
+                                action = { onSheetRequest(item.pageContent, TafseerSheetMode.أسباب_النزول) }
+                            ),
+                            FlexibleAction(
+                                text = "المفردات",
+                                bgColor = MaterialTheme.colorScheme.tertiary,
+                                textColor = Color.Black,
+                                action = { onSheetRequest(item.pageContent, TafseerSheetMode.معاني_المفردات) }
+                            ),
                         )
-                        VerseActionOption(
-                            text = "التفسير",
-                            onClick = {
-                                onSheetRequest("${item.pageContent.surahNum}-${item.pageContent.verseNum}", TafseerSheetMode.التفسير)
-                            },
-                            bgColor = MaterialTheme.colorScheme.primary,
-                            textColor = MaterialTheme.colorScheme.onPrimary
-                        )
-                        VerseActionOption(
-                            text = "الإعراب",
-                            onClick = {
-                                onSheetRequest("${item.pageContent.surahNum}-${item.pageContent.verseNum}", TafseerSheetMode.الإعراب)
-                            },
-                            bgColor = MaterialTheme.colorScheme.tertiary,
-                            textColor = Color.Black
-                        )
-                        VerseActionOption(
-                            text = "سبب النزول",
-                            onClick = {
-                                onSheetRequest("${item.pageContent.surahNum}-${item.pageContent.verseNum}", TafseerSheetMode.أسباب_النزول)
-                            },
-                            bgColor = MaterialTheme.colorScheme.primary,
-                            textColor = MaterialTheme.colorScheme.onPrimary
-                        )
-                        VerseActionOption(
-                            text = "المفردات",
-                            onClick = {
-                                onSheetRequest("${item.pageContent.surahNum}-${item.pageContent.verseNum}", TafseerSheetMode.معاني_المفردات)
-                            },
-                            bgColor = MaterialTheme.colorScheme.tertiary,
-                            textColor = Color.Black
-                        )
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                            modifier = Modifier
-                                .weight(1.0f)
-                                .background(Color.Transparent)
-                                .padding(4.dp, 6.dp)
-                        ) {}
-                    }
+                    )
                 }
             }
 
@@ -238,27 +217,6 @@ fun ShareVersesBottomSheet(onDismissRequest: () -> Unit,
                 OttrojjaButton("مشاركة", onClick = { onShareClick() })
             }
         }
-    }
-}
-
-@Composable
-fun RowScope.VerseActionOption(text: String,
-                               onClick: () -> Unit,
-                               bgColor: Color,
-                               textColor: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier
-            .weight(1.0f)
-            .background(bgColor)
-            .clickable { onClick() }
-            .padding(4.dp, 6.dp)
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = textColor
-        )
     }
 }
 

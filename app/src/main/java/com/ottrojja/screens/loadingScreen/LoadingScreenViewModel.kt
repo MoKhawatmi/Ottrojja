@@ -318,7 +318,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             }
 
             is DownloadResult.Failure -> {
-               result.exception.printStackTrace()
+                result.exception.printStackTrace()
                 reportException(exception = result.exception, file = "LoadingScreenViewModel", details = "Cancellation or Failure to download quran file")
                 println("failed download: ${result.exception.message}")
                 handleDownloadError(quranFile, result.exception)
@@ -379,6 +379,12 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
             e.printStackTrace()
             reportException(exception = e, file = "LoadingScreenViewModel")
         }
+    }
+
+
+    fun validateReminders() {
+        // TODO Compare scheduled alarms vs DB
+        // TODO Re-schedule missing ones
     }
 }
 

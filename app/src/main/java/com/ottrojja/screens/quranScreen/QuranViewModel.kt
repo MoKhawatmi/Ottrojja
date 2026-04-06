@@ -277,8 +277,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     fun updateSelectedTafseer(value: String) {
         _selectedTafseer = value;
         viewModelScope.launch(Dispatchers.IO) {
-            val surah = _tafseerTargetVerse.split("-")[0]
-            val verse = _tafseerTargetVerse.split("-")[1]
+            val surah = _tafseerTargetVerse?.surahNum.toString()
+            val verse = _tafseerTargetVerse?.verseNum.toString()
             _verseTafseer = repository.getVerseTafseerData(
                 surah,
                 verse,
@@ -452,7 +452,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         pageNum: String,
         shouldAutoPlay: Boolean = false,
         takeOnSelectedPageVerses: Boolean = false) {
-        _vmChangedPage.value = !(_currentPageObject?.page?.pageNum==pageNum);
+        _vmChangedPage.value = !(_currentPageObject?.page?.pageNum == pageNum);
         _shouldAutoPlay.value = shouldAutoPlay
         setCurrentPage(pageNum, takeOnSelectedPageVerses)
         // _vmChangedPage.value = false;
@@ -493,7 +493,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
 
         viewModelScope.launch {
-            when(val result= FileDownloader.download(context, request, localFile)){
+            when (val result = FileDownloader.download(context, request, localFile)) {
                 is DownloadResult.Success -> {
                     if (downloadIndex >= _versesPlayList.size - 1) {
                         allVersesExist = true;
@@ -646,7 +646,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             }
         }
 
-    fun playingParameterUpdated(){
+    fun playingParameterUpdated() {
         audioService?.playingParameterUpdated();
     }
 
@@ -666,14 +666,14 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     val tafseerChapterVerse: String
         get() = _tafseerChapterVerse
 
-    private var _tafseerTargetVerse by mutableStateOf("0-0")
-    var tafseerTargetVerse: String
+    private var _tafseerTargetVerse by mutableStateOf<PageContent?>(null)
+    var tafseerTargetVerse: PageContent?
         get() = _tafseerTargetVerse
         set(value) {
             viewModelScope.launch(Dispatchers.IO) {
                 _tafseerTargetVerse = value
-                val surah = value.split("-")[0]
-                val verse = value.split("-")[1]
+                val surah = value?.surahNum.toString()
+                val verse = value?.verseNum.toString()
                 val chapterName = repository.getChapter(surah.toInt()).chapterName
                 if (chapterName.isNotBlank()) {
                     _tafseerChapterVerse = "الاية ${
@@ -686,9 +686,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 println(value)
                 println("tafseer for $surah-$verse at ${tafseerNamesMap.get(_selectedTafseer)}")
 
-                _verseTafseer = repository.getVerseTafseerData(surah, verse,
-                    tafseerNamesMap.get(_selectedTafseer)!!
-                ).text
+                _verseTafseer = repository.getVerseTafseerData(surah, verse, tafseerNamesMap.get(_selectedTafseer)!!).text
                 _verseE3rab = repository.getVerseE3rabData(surah, verse).text
                 val causesOfRevelation = repository.getCauseOfRevelation(surah, verse)
                 if (causesOfRevelation.size == 0) {
@@ -746,8 +744,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         }
 
     fun atFirstVerse(): Boolean {
-        val surahNum = _tafseerTargetVerse.split("-").get(0).toInt()
-        val verseNum = _tafseerTargetVerse.split("-").get(1).toInt()
+        val surahNum = _tafseerTargetVerse?.surahNum
+        val verseNum = _tafseerTargetVerse?.verseNum
 
         val verses = _currentPageObject?.pageContent!!.filter { it.type == PageContentItemType.verse }
 
@@ -755,8 +753,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     fun atLastVerse(): Boolean {
-        val surahNum = _tafseerTargetVerse.split("-").get(0).toInt()
-        val verseNum = _tafseerTargetVerse.split("-").get(1).toInt()
+        val surahNum = _tafseerTargetVerse?.surahNum
+        val verseNum = _tafseerTargetVerse?.verseNum
 
         val verses = _currentPageObject?.pageContent!!.filter { it.type == PageContentItemType.verse }
 
@@ -764,30 +762,26 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     fun targetNextVerse() {
-        val surahNum = _tafseerTargetVerse.split("-").get(0).toInt()
-        val verseNum = _tafseerTargetVerse.split("-").get(1).toInt()
+        val surahNum = _tafseerTargetVerse?.surahNum
+        val verseNum = _tafseerTargetVerse?.verseNum
 
         val verses = _currentPageObject?.pageContent!!.filter { it.type == PageContentItemType.verse }
 
         if (verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } + 1 != verses.size) {
-            val nextVerse =
-                verses.get(
-                    verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } + 1)
-            tafseerTargetVerse = "${nextVerse.surahNum}-${nextVerse.verseNum}"
+            val nextVerse = verses.get(verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } + 1)
+            tafseerTargetVerse = nextVerse
         }
     }
 
     fun targetPreviousVerse() {
-        val surahNum = _tafseerTargetVerse.split("-").get(0).toInt()
-        val verseNum = _tafseerTargetVerse.split("-").get(1).toInt()
+        val surahNum = _tafseerTargetVerse?.surahNum
+        val verseNum = _tafseerTargetVerse?.verseNum
 
         val verses = _currentPageObject?.pageContent!!.filter { it.type == PageContentItemType.verse }
 
         if (verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } - 1 >= 0) {
-            val previousVerse =
-                verses.get(
-                    verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } - 1)
-            tafseerTargetVerse = "${previousVerse.surahNum}-${previousVerse.verseNum}"
+            val previousVerse = verses.get(verses.indexOfFirst { it.surahNum == surahNum && it.verseNum == verseNum } - 1)
+            tafseerTargetVerse = previousVerse
         }
     }
 

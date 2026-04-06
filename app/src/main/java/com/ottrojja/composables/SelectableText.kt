@@ -15,11 +15,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun SelectableText(text: String) {
+fun SelectableText(text: String, color: Color=Color.Black) {
     SelectionContainer(modifier = Modifier.verticalScroll(rememberScrollState())) {
         Text(
             text = text,
-            color = Color.Black,
+            color = color,
             modifier = Modifier
                 .padding(10.dp).fillMaxWidth(),
             style = MaterialTheme.typography.bodyMedium.copy(fontSize = 21.sp),

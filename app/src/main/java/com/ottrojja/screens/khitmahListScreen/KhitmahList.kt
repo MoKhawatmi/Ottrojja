@@ -43,10 +43,12 @@ import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
+import com.ottrojja.composables.CircleStatusIndicator
 import com.ottrojja.composables.EmptyListMessage
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaDialog
+import com.ottrojja.composables.forms.OttrojjaTextField
 import com.ottrojja.ui.theme.complete_green
 
 @Composable
@@ -107,12 +109,11 @@ fun KhitmahList(
                         horizontalArrangement = Arrangement.Start,
                         modifier = Modifier.fillMaxWidth(0.7f)
                     ) {
-                        Icon(Icons.Filled.Circle,
-                            contentDescription = "Khitmah Status",
-                            tint = if (item.isComplete) complete_green else MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .padding(end = 4.dp)
-                                .size(16.dp)
+                        CircleStatusIndicator(
+                            status = item.isComplete,
+                            truthyColor = complete_green,
+                            falsyColor = MaterialTheme.colorScheme.primary,
+                            iconDescription = "Khitmah Status"
                         )
                         Text(
                             text = item.title,
@@ -171,22 +172,7 @@ fun AddKhitmahDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedTextField(
-                    value = khitmahTitle,
-                    onValueChange = { khitmahTitle = it },
-                    label = { Text("عنوان الختمة") },
-                    colors = TextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedContainerColor = MaterialTheme.colorScheme.secondary,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
-                        cursorColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedIndicatorColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedIndicatorColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedLabelColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onSecondary
-                    )
-                )
+                OttrojjaTextField(value = khitmahTitle, onChange = { khitmahTitle = it }, label = "عنوان الختمة")
             }
 
 

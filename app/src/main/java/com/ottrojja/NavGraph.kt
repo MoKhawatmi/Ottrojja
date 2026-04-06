@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
+import com.ottrojja.room.repositories.ReminderRepository
 import com.ottrojja.screens.azkarScreen.AzkarMain
 import com.ottrojja.screens.bookmarksScreen.BookmarksScreen
 import com.ottrojja.screens.customTasabeehListScreen.CustomTasabeehListScreen
@@ -34,6 +35,7 @@ import com.ottrojja.screens.zikrScreen.ZikrScreen
 @Composable
 fun NavGraph(navController: NavHostController,
              repository: QuranRepository,
+             reminderRepository: ReminderRepository,
              modifier: Modifier = Modifier) {
     NavHost(
         navController = navController,
@@ -98,7 +100,7 @@ fun NavGraph(navController: NavHostController,
         }
 
         composable(route = Screen.ReminderScreen.route) {
-            ReminderScreen()
+            ReminderScreen(repository = reminderRepository)
         }
 
         composable(route = Screen.SettingsScreen.route) {

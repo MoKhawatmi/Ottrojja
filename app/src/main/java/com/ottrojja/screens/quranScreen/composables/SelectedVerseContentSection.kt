@@ -1,5 +1,6 @@
 package com.ottrojja.screens.quranScreen.composables
 
+import android.R
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -8,6 +9,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -18,8 +22,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
@@ -29,6 +35,7 @@ import com.ottrojja.screens.quranScreen.TafseerSheetMode
 @Composable
 fun SelectedVerseContentSection(
     context: Context,
+    verseText: String,
     text: String,
     copiedMessage: String,
     atFirstVerse: Boolean,
@@ -84,7 +91,9 @@ fun SelectedVerseContentSection(
         }
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 6.dp)
         ) {
             Text(text = tafseerChapterVerse,
                 style = MaterialTheme.typography.displayLarge,
@@ -105,6 +114,31 @@ fun SelectedVerseContentSection(
 
         content()
 
-        SelectableText(text)
+        SelectionContainer(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            Column {
+                if (verseText.isNotBlank()) {
+                    Text(
+                        text = "{$verseText}",
+                        color = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth(),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 21.sp),
+                        textAlign = TextAlign.Right,
+                    )
+                }
+
+                Text(
+                    text = text,
+                    color = Color.Black,
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .fillMaxWidth(),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 21.sp),
+                    textAlign = TextAlign.Right,
+                )
+
+            }
+        }
     }
 }

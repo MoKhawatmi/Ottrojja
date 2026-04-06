@@ -60,6 +60,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.toColorInt
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.ottrojja.room.database.DatabaseProvider
+import com.ottrojja.room.repositories.ReminderRepository
 
 
 class MainActivity : ComponentActivity() {
@@ -118,15 +120,9 @@ class MainActivity : ComponentActivity() {
         }
 
 
-        val db = Room.databaseBuilder(
-            application,
-            QuranDatabase::class.java, "QuranDB"
-        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6,
-            MIGRATION_6_7, MIGRATION_7_8
-        )
-            .fallbackToDestructiveMigration(false)
-            .build()
+        val db = DatabaseProvider.getDatabase(this)
         val quranRepository = QuranRepository(db.quranDao(), db.khitmahDao(), db.tasabeehDao())
+        val reminderRepository = ReminderRepository(db.reminderDao())
 
         println("Version: ${BuildConfig.VERSION_NAME}")
 
@@ -168,6 +164,7 @@ class MainActivity : ComponentActivity() {
                     ) { innerPadding ->
                         NavGraph(navController = navController,
                             repository = quranRepository,
+                            reminderRepository = reminderRepository,
                             modifier = Modifier.padding(innerPadding)
                         )
                     }

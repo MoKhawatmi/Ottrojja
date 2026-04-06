@@ -27,6 +27,7 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -159,18 +160,20 @@ fun BottomNavigation(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NavigationModalBottomSheet(navController: NavController ,onDismissRequest: () -> Unit, onItemClick:(String)->Unit) {
+fun NavigationModalBottomSheet(navController: NavController,
+                               onDismissRequest: () -> Unit,
+                               onItemClick: (String) -> Unit) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
 
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
-        confirmValueChange = { newValue ->
-            // Prevent expansion to the Expanded state
-            newValue != SheetValue.Expanded
-        }
     )
+
+    LaunchedEffect(Unit) {
+        sheetState.show()
+    }
 
     ModalBottomSheet(
         onDismissRequest = { onDismissRequest() },
@@ -237,7 +240,7 @@ fun NavigationModalBottomSheet(navController: NavController ,onDismissRequest: (
                 )
 
 
-                /*BottomNavigationOption(
+                BottomNavigationOption(
                     optionText = "المذكر",
                     isCurrent = Screen.ReminderScreen.route == currentRoute,
                     onClick = {
@@ -247,7 +250,7 @@ fun NavigationModalBottomSheet(navController: NavController ,onDismissRequest: (
                     alternateIcon = null,
                     modifier = Modifier.weight(1f)
 
-                )*/
+                )
 
                 BottomNavigationOption(
                     optionText = "المرجعيات",

@@ -1,4 +1,4 @@
-package com.ottrojja.screens.customTasabeehListScreen
+package com.ottrojja.screens.reminderScreen.dialogs
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -31,18 +31,24 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.ModalFormMode
 import com.ottrojja.composables.OttrojjaDialog
+import com.ottrojja.composables.forms.OttrojjaSelect
 import com.ottrojja.composables.forms.OttrojjaTextArea
-import com.ottrojja.room.entities.CustomTasbeeh
+import com.ottrojja.composables.forms.OttrojjaTextField
+import com.ottrojja.room.entities.Reminder
 
 @Composable
-fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
-                           onConfirm: () -> Unit,
-                           callImportTasbeehDialog: () -> Unit,
-                           tasbeehInWork: CustomTasbeeh,
-                           onTasbeehChange: (CustomTasbeeh) -> Unit,
-                           mode: ModalFormMode
+fun ReminderFormDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    invokeRepetitionOptions: () -> Unit,
+    invokeTimePicker: () -> Unit,
+    reminderInWork: Reminder,
+    onReminderChange: (Reminder) -> Unit,
+    mode: ModalFormMode
+
 ) {
     val context = LocalContext.current
 
@@ -62,7 +68,7 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = if (mode == ModalFormMode.ADD) "إضافة ذكر" else "تعديل الذكر",
+                Text(text = if (mode == ModalFormMode.ADD) "إضافة مذكر" else "تعديل مذكر",
                     textAlign = TextAlign.Center
                 )
             }
@@ -70,69 +76,40 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                 modifier = Modifier.padding(vertical = 6.dp),
                 color = MaterialTheme.colorScheme.onTertiary
             )
+
             Row(
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .fillMaxWidth()
-                    .border(2.dp,
-                        MaterialTheme.colorScheme.onSecondary, RoundedCornerShape(8.dp)
-                    )
-                    .clickable { callImportTasbeehDialog() }
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "إستيراد من قائمة الاذكار",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
-                    color = MaterialTheme.colorScheme.onSecondary
-                )
-                Icon(Icons.Default.Link,
-                    contentDescription = "import tasbeeh",
-                    tint = MaterialTheme.colorScheme.onSecondary
+                OttrojjaTextField(
+                    value = reminderInWork.title,
+                    onChange = { onReminderChange(reminderInWork.copy(title = it)) },
+                    label = "عنوان المذكر"
                 )
             }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OttrojjaTextArea(
-                    value = tasbeehInWork.text,
-                    onChange = { value -> onTasbeehChange(tasbeehInWork.copy(text = value)) },
-                    label = "نص الذكر"
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = "${tasbeehInWork.count}",
-                    onValueChange = { newText: String ->
-                        val filteredText = newText.filter { it.isDigit() } // Allow only digits
-                        val intValue = filteredText.toIntOrNull() ?: 0 // Convert to integer safely
-                        if (intValue <= 1000000) {
-                            onTasbeehChange(tasbeehInWork.copy(count = intValue))
-                        }
-                    },
-                    label = { Text("مرات الذكر") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    colors = TextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedContainerColor = MaterialTheme.colorScheme.secondary,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
-                        cursorColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedIndicatorColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedIndicatorColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedLabelColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onSecondary
-                    )
+                    value = "${reminderInWork.customMessage}",
+                    onChange = { onReminderChange(reminderInWork.copy(customMessage = it)) },
+                    label = "رسالة الإشعار"
                 )
             }
 
+            OttrojjaSelect(
+                value = reminderInWork.repeatType.displayName,
+                onClick = { invokeRepetitionOptions() },
+            )
+
+            OttrojjaSelect(
+                value = "التوقيت: ${Helpers.formatMilitaryTime(reminderInWork.hour, reminderInWork.minute)}",
+                onClick = { invokeTimePicker() },
+            )
 
             Column(
                 modifier = Modifier
@@ -143,8 +120,9 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
             ) {
                 Button(
                     onClick = {
-                        if (tasbeehInWork.text.isNotBlank() && tasbeehInWork.count.toString().isNotBlank()) {
-                            onConfirm()
+                        if (validateReminder(reminderInWork)) {
+                            onConfirm();
+                            onDismiss();
                         } else {
                             Toast.makeText(context, "يرجى التأكد من البيانات المدخلة", Toast.LENGTH_LONG).show()
                         }
@@ -174,5 +152,9 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
 
         }
     }
+}
 
+fun validateReminder(reminder: Reminder): Boolean {
+
+    return true;
 }

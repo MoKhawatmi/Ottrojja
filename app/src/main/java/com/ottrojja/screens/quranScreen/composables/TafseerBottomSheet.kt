@@ -32,6 +32,7 @@ fun TafseerBottomSheet(
     context: Context,
     showTafseerSheet: Boolean,
     onDismiss: () -> Unit,
+    verseText: String,
     tafseer: String,
     e3rab: String,
     causeOfRevelation: String,
@@ -59,6 +60,7 @@ fun TafseerBottomSheet(
         ) {
             SelectedVerseContentSection(
                 context = context,
+                verseText = verseText,
                 text = when (mode) {
                     TafseerSheetMode.التفسير -> tafseer
                     TafseerSheetMode.الإعراب -> e3rab
