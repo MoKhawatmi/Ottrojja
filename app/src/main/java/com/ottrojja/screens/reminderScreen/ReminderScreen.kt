@@ -1,7 +1,12 @@
 package com.ottrojja.screens.reminderScreen
 
+import android.Manifest
 import android.app.AlertDialog
 import android.app.Application
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -29,13 +34,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.ExpandableItem
@@ -43,6 +51,7 @@ import com.ottrojja.classes.Helpers.formatMilitaryTime
 import com.ottrojja.classes.Helpers.truncate
 import com.ottrojja.composables.CircleStatusIndicator
 import com.ottrojja.composables.ListHorizontalDivider
+import com.ottrojja.composables.OttrojjaWarningBar
 import com.ottrojja.composables.SwitchWithIcon
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.forms.OttrojjaTimePickerDialog
@@ -63,9 +72,32 @@ fun ReminderScreen(repository: ReminderRepository) {
         factory = ReminderViewModelFactory(repository, application)
     )
 
+    val permissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                // nothing
+            } else {
+                // nothing
+            }
+        }
+
+    var notificationPermissionState by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         reminderVM.insertMainReminder()
         reminderVM.getReminders()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            notificationPermissionState = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (!notificationPermissionState) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
     }
 
     val reminders by reminderVM.reminders.collectAsState(initial = emptyList())
@@ -89,20 +121,21 @@ fun ReminderScreen(repository: ReminderRepository) {
 
     if (reminderVM.reminderDialog) {
         ReminderFormDialog(
-            onDismiss = { reminderVM.reminderDialog = false },
-            onConfirm = { reminderVM.upsertReminder() },
+            onDismiss = { reminderVM.dismissReminderForm() },
+            formValidationResult = reminderVM.formValidationResult,
+            onSubmit = { reminderVM.handleReminderFormSubmission() },
             invokeTimePicker = { reminderVM.timePickerDialog = true },
             invokeRepetitionOptions = { reminderVM.selectRepetitionDialog = true },
             reminderInWork = reminderVM.reminderInWorks,
-            onReminderChange = { updatedReminder -> reminderVM.reminderInWorks = updatedReminder },
-            mode = reminderVM.dialogMode
+            onReminderChange = { updatedReminder -> reminderVM.updateReminder(updatedReminder) },
+            mode = reminderVM.dialogMode,
         )
     }
 
     if (reminderVM.selectRepetitionDialog) {
         SelectReminderTypeDialog(
             onDismiss = { reminderVM.selectRepetitionDialog = false },
-            onSelect = { item -> reminderVM.reminderInWorks = reminderVM.reminderInWorks.copy(repeatType = item) }
+            onSelect = { item -> reminderVM.updateReminder(reminderVM.reminderInWorks.copy(repeatType = item)) }
         )
     }
 
@@ -111,10 +144,9 @@ fun ReminderScreen(repository: ReminderRepository) {
             onDismiss = { reminderVM.timePickerDialog = false },
             hour = reminderVM.reminderInWorks.hour,
             minute = reminderVM.reminderInWorks.minute,
-            onConfirm = { hour, minute -> reminderVM.reminderInWorks = reminderVM.reminderInWorks.copy(hour = hour, minute = minute) }
+            onConfirm = { hour, minute -> reminderVM.updateReminder(reminderVM.reminderInWorks.copy(hour = hour, minute = minute)) }
         )
     }
-
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -124,6 +156,10 @@ fun ReminderScreen(repository: ReminderRepository) {
             title = "المذكر",
             mainAction = ButtonAction(icon = Icons.Default.Add, action = { reminderVM.invoekeAddDialog() })
         )
+        if (!notificationPermissionState) {
+            OttrojjaWarningBar(text = "الرجاء السماح للتطبيق بصلاحيات الإشعارات ليتمكن المذكر من العمل بشكل صحيح")
+        }
+
 
         LazyColumn {
             items(reminders) { item ->
@@ -133,6 +169,7 @@ fun ReminderScreen(repository: ReminderRepository) {
                     toggleEnabled = { id -> reminderVM.toggleReminderEnabled(id) },
                     invokeEditDialog = { reminder -> reminderVM.invokeEditDialog(reminder) },
                     deleteReminder = { reminder -> confirmDeleteReminder(reminder) },
+                    getNextTriggerTime = { reminder -> reminderVM.getNextTriggerTime(reminder) }
                 )
                 ListHorizontalDivider()
             }
@@ -149,13 +186,19 @@ fun ReminderItem(reminder: ExpandableItem<Reminder>,
                  toggleExpand: (Int) -> Unit,
                  toggleEnabled: (Int) -> Unit,
                  invokeEditDialog: (Reminder) -> Unit,
-                 deleteReminder: (Reminder) -> Unit
+                 deleteReminder: (Reminder) -> Unit,
+                 getNextTriggerTime: (Reminder) -> String
 ) {
 
     val rotation by animateFloatAsState(
         targetValue = if (reminder.expanded) 90f else 0f,
         animationSpec = tween(durationMillis = 200)
     )
+
+    val nextTrigger = remember(reminder.data) {
+        getNextTriggerTime(reminder.data)
+    }
+
 
     Column(
         modifier = Modifier
@@ -183,8 +226,17 @@ fun ReminderItem(reminder: ExpandableItem<Reminder>,
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = reminder.data.title, color = Color.Black)
-                    Text(text = if (reminder.expanded) "${reminder.data.customMessage}" else "${reminder.data.customMessage?.truncate(30)}", color = Color.Black, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        text = reminder.data.title,
+                        color = Color.Black
+                    )
+                    if (reminder.data.customMessage?.isNotBlank() == true) {
+                        Text(text =
+                            if (reminder.expanded) "${reminder.data.customMessage}" else "${reminder.data.customMessage?.truncate(30)}",
+                            color = Color.Black,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
 
@@ -219,6 +271,12 @@ fun ReminderItem(reminder: ExpandableItem<Reminder>,
                 )
 
                 ReminderInfoRow(
+                    label = "الإشعار القادم",
+                    value = nextTrigger,
+                    valueColor = MaterialTheme.colorScheme.primary
+                )
+
+                ReminderInfoRow(
                     label = "التكرار",
                     value = reminder.data.repeatType.displayName,
                     valueColor = MaterialTheme.colorScheme.primary
@@ -246,19 +304,21 @@ fun ReminderItem(reminder: ExpandableItem<Reminder>,
                 )
 
                 OttrojjaFlexibleActions(
-                    listOf(
+                    listOfNotNull(
                         FlexibleAction(
                             text = "تعديل",
                             bgColor = MaterialTheme.colorScheme.primary,
                             textColor = MaterialTheme.colorScheme.onPrimary,
                             action = { invokeEditDialog(reminder.data) }
                         ),
-                        FlexibleAction(
-                            text = "حذف",
-                            bgColor = MaterialTheme.colorScheme.error,
-                            textColor = MaterialTheme.colorScheme.onError,
-                            action = { deleteReminder(reminder.data) }
-                        )
+                        if (!reminder.data.isMain) {
+                            FlexibleAction(
+                                text = "حذف",
+                                bgColor = MaterialTheme.colorScheme.error,
+                                textColor = MaterialTheme.colorScheme.onError,
+                                action = { deleteReminder(reminder.data) }
+                            )
+                        } else null
                     )
                 )
             }

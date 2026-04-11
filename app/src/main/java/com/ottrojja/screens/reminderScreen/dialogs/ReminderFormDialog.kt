@@ -31,8 +31,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ottrojja.classes.FormValidationResult
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.ModalFormMode
+import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaDialog
 import com.ottrojja.composables.forms.OttrojjaSelect
 import com.ottrojja.composables.forms.OttrojjaTextArea
@@ -42,16 +44,14 @@ import com.ottrojja.room.entities.Reminder
 @Composable
 fun ReminderFormDialog(
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
+    formValidationResult: FormValidationResult,
+    onSubmit: () -> Unit,
     invokeRepetitionOptions: () -> Unit,
     invokeTimePicker: () -> Unit,
     reminderInWork: Reminder,
     onReminderChange: (Reminder) -> Unit,
-    mode: ModalFormMode
-
+    mode: ModalFormMode,
 ) {
-    val context = LocalContext.current
-
     OttrojjaDialog(
         contentModifier = Modifier
             .padding(8.dp)
@@ -85,7 +85,10 @@ fun ReminderFormDialog(
                 OttrojjaTextField(
                     value = reminderInWork.title,
                     onChange = { onReminderChange(reminderInWork.copy(title = it)) },
-                    label = "عنوان المذكر"
+                    label = "عنوان المذكر",
+                    disabled = reminderInWork.isMain,
+                    maxLength = 30,
+                    error = formValidationResult.errors["title"]
                 )
             }
 
@@ -95,20 +98,26 @@ fun ReminderFormDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OttrojjaTextArea(
-                    value = "${reminderInWork.customMessage}",
+                    value = reminderInWork.customMessage,
                     onChange = { onReminderChange(reminderInWork.copy(customMessage = it)) },
-                    label = "رسالة الإشعار"
+                    label = "رسالة الإشعار",
+                    disabled = reminderInWork.isMain,
+                    maxLength = 150,
+                    error = formValidationResult.errors["customMessage"]
                 )
             }
 
             OttrojjaSelect(
                 value = reminderInWork.repeatType.displayName,
                 onClick = { invokeRepetitionOptions() },
+                disabled = reminderInWork.isMain,
+                error = formValidationResult.errors["repeatType"]
             )
 
             OttrojjaSelect(
                 value = "التوقيت: ${Helpers.formatMilitaryTime(reminderInWork.hour, reminderInWork.minute)}",
                 onClick = { invokeTimePicker() },
+                error = formValidationResult.errors["time"]
             )
 
             Column(
@@ -118,43 +127,26 @@ fun ReminderFormDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Button(
+                OttrojjaButton(
+                    enabled = formValidationResult.isValid,
                     onClick = {
-                        if (validateReminder(reminderInWork)) {
-                            onConfirm();
-                            onDismiss();
-                        } else {
-                            Toast.makeText(context, "يرجى التأكد من البيانات المدخلة", Toast.LENGTH_LONG).show()
-                        }
+                        onSubmit()
                     },
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
-                        .padding(vertical = 2.dp)
-                ) {
-                    Text(
-                        text = if (mode == ModalFormMode.ADD) "إضافة" else "تعديل",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+                        .padding(vertical = 2.dp),
+                    text = if (mode == ModalFormMode.ADD) "إضافة" else "تعديل"
+                )
 
-                Button(
+                OttrojjaButton(
                     onClick = { onDismiss() },
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
-                        .padding(vertical = 2.dp)
-                ) {
-                    Text(
-                        text = "إلغاء",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+                        .padding(vertical = 2.dp),
+                    text = "إلغاء"
+                )
             }
-
         }
     }
 }
 
-fun validateReminder(reminder: Reminder): Boolean {
-
-    return true;
-}

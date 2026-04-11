@@ -1,10 +1,11 @@
-package com.ottrojja.classes
+package com.ottrojja.screens.reminderScreen.classes
 
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import com.ottrojja.broadcaseReceivers.ReminderReceiver
+import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
 import com.ottrojja.room.entities.Reminder
 import java.util.Calendar
 
@@ -34,7 +35,6 @@ class ReminderScheduler(private val context: Context) {
             triggerTime,
             pendingIntent
         )
-
     }
 
     fun cancelReminder(reminder: Reminder) {
@@ -56,6 +56,7 @@ class ReminderScheduler(private val context: Context) {
             set(Calendar.HOUR_OF_DAY, reminder.hour)
             set(Calendar.MINUTE, reminder.minute)
             set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
         }
 
         if (target.before(now)) {
@@ -72,5 +73,56 @@ class ReminderScheduler(private val context: Context) {
         }
 
         return target.timeInMillis
+    }
+
+    fun calculateNextTrigger(reminder: Reminder): Long {
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = reminder.lastTrigger
+        }
+        println("received to calc")
+        println(reminder.lastTrigger)
+
+        if (reminder.repeatType == ReminderRepeatType.ONCE) {
+            val calendar = Calendar.getInstance().apply {
+                timeInMillis = reminder.lastTrigger
+                set(Calendar.HOUR_OF_DAY, reminder.hour)
+                set(Calendar.MINUTE, reminder.minute)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            return if (calendar.timeInMillis > System.currentTimeMillis()) {
+                calendar.timeInMillis
+            } else {
+                -1L // already passed, no next trigger
+            }
+        }
+
+        // Set target time (hour/minute)
+        calendar.set(Calendar.HOUR_OF_DAY, reminder.hour)
+        calendar.set(Calendar.MINUTE, reminder.minute)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+
+        val now = System.currentTimeMillis()
+
+        // Determine interval in days
+        val intervalDays = when (reminder.repeatType) {
+            ReminderRepeatType.DAILY -> 1
+            ReminderRepeatType.DAYS_2 -> 2
+            ReminderRepeatType.DAYS_3 -> 3
+            ReminderRepeatType.DAYS_4 -> 4
+            ReminderRepeatType.DAYS_5 -> 5
+            ReminderRepeatType.DAYS_6 -> 6
+            ReminderRepeatType.WEEKLY -> 7
+            ReminderRepeatType.ONCE -> return 0L
+        }
+
+        // Move forward until it's in the future
+        while (calendar.timeInMillis <= now) {
+            calendar.add(java.util.Calendar.DAY_OF_YEAR, intervalDays)
+        }
+
+        return calendar.timeInMillis
     }
 }

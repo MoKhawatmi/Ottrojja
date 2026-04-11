@@ -31,8 +31,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 object Helpers {
     fun convertToIndianNumbers(arabicNumber: String): String {
@@ -201,6 +207,12 @@ object Helpers {
         } else {
             String.format(Locale.ENGLISH, "%02d:%02d", minutes, seconds)
         }
+    }
+
+    fun formatDateTime(millis: Long):String{
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+        sdf.timeZone = TimeZone.getDefault()
+        return sdf.format(Date(millis))
     }
 
     fun formatMilitaryTime(hour: Int, minute: Int): String {

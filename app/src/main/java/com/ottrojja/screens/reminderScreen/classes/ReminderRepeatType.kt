@@ -1,4 +1,4 @@
-package com.ottrojja.classes
+package com.ottrojja.screens.reminderScreen.classes
 
 enum class ReminderRepeatType(val displayName: String) {
     ONCE("بلا تكرار"),

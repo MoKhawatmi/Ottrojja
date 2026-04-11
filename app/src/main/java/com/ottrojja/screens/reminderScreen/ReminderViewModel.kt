@@ -8,10 +8,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.ExpandableItem
+import com.ottrojja.classes.FormValidationResult
+import com.ottrojja.classes.Helpers.formatDateTime
+import com.ottrojja.classes.Helpers.formatTime
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.ModalFormMode
-import com.ottrojja.classes.ReminderRepeatType
-import com.ottrojja.classes.ReminderScheduler
+import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
+import com.ottrojja.screens.reminderScreen.classes.ReminderScheduler
 import com.ottrojja.room.entities.Reminder
 import com.ottrojja.room.repositories.ReminderRepository
 import kotlinx.coroutines.Dispatchers
@@ -66,25 +69,37 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
             _reminderInWorks.value = value
         }
 
+    fun updateReminder(value: Reminder) {
+        _reminderInWorks.value = value
+        validateReminder()
+    }
+
 
     fun getReminders() {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getAllReminders().collect { newReminders ->
-                _reminders.update { currentList ->
-                    val currentMap = currentList.associateBy { it.data.id }
+            try {
+                repository.getAllReminders().collect { newReminders ->
+                    _reminders.update { currentList ->
+                        val currentMap = currentList.associateBy { it.data.id }
 
-                    newReminders.map { reminder ->
-                        val existing = currentMap[reminder.id]
-                        if (existing != null) {
-                            // Preserve expanded, but create new object for Flow/Compose to detect change
-                            ExpandableItem(
-                                data = reminder,
-                                expanded = existing.expanded
-                            )
-                        } else {
-                            ExpandableItem(reminder)
+                        newReminders.map { reminder ->
+                            val existing = currentMap[reminder.id]
+                            if (existing != null) {
+                                // Preserve expanded, but create new object for Flow/Compose to detect change
+                                ExpandableItem(
+                                    data = reminder,
+                                    expanded = existing.expanded
+                                )
+                            } else {
+                                ExpandableItem(reminder)
+                            }
                         }
                     }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main){
+                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_SHORT).show()
+                    reportException(e, "ReminderViewModel", "error fetching reminders")
                 }
             }
         }
@@ -125,7 +140,6 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
         _dialogMode.value = ModalFormMode.ADD
         _reminderInWorks.value = baseReminder;
         _reminderDialog.value = true;
-
     }
 
     fun invokeEditDialog(reminder: Reminder) {
@@ -137,7 +151,9 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
     fun upsertReminder() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val reminderId = repository.upsertReminder(_reminderInWorks.value)
+                val result = repository.upsertReminder(_reminderInWorks.value)
+                val reminderId =
+                    if (_dialogMode.value == ModalFormMode.EDIT) _reminderInWorks.value.id else result
                 val newlyUpsertedReminder = repository.getById(reminderId.toInt())
                     ?: throw Exception("fetching of newlyUpsertedReminder return null")
                 withContext(Dispatchers.Main) {
@@ -154,6 +170,7 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
             }
         }
     }
+
 
     fun deleteReminder(reminder: Reminder) {
         // cancel and delete reminder
@@ -182,7 +199,7 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
         val mainReminder = Reminder(
             id = 0,
             title = "المذكر اليومي",
-            customMessage = DynamicReminderMessageProvider.getMessage(),
+            customMessage = null,
             hour = 12,
             minute = 0,
             repeatType = ReminderRepeatType.DAILY,
@@ -191,48 +208,60 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
         )
 
         viewModelScope.launch(Dispatchers.IO) {
-            repository.insertReminder(mainReminder)
+            try {
+                val mainExists = repository.getMainReminder()
+                if (mainExists == null) {
+                    repository.insertReminder(mainReminder)
+                }
+            } catch (e: Exception) {
+                reportException(e, "ReminderViewModel", "Error inserting/checking main reminder")
+            }
         }
     }
 
-
-    /*
-    *
-    fun sendTestNotification() {
-        NotificationHelper.showNotification(
-            context,
-            id = 999, // arbitrary test ID
-            title = "Test Reminder",
-            message = "This is an instant test notification."
-        )
+    fun getNextTriggerTime(reminder: Reminder): String {
+        if (reminder.repeatType == ReminderRepeatType.ONCE) {
+            return "-";
+        }
+        return formatDateTime(scheduler.calculateNextTrigger(reminder))
     }
 
-    private val scheduler = ReminderScheduler(context)
+    fun dismissReminderForm() {
+        _reminderDialog.value = false;
+        _formValidationResult.value = baseResult;
+        _reminderInWorks.value = baseReminder;
+    }
 
-    fun sendTestScheduledNotification() {
-        // Create test reminder object
-
-        println("creating test reminder")
-
-        val reminder = Reminder(
-            id = 999,
-            title = "Test Reminder",
-            customMessage = "This is a scheduled test notification.",
-            hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
-            minute = Calendar.getInstance().get(Calendar.MINUTE) + 1,
-            repeatType = ReminderRepeatType.DAILY,
-            isEnabled = true,
-            lastTriggered = 0
-        )
-
-        viewModelScope.launch(Dispatchers.IO) {
-            println("inserting")
-            println(reminder)
-            println(repository.insertReminder(reminder))
-            scheduler.scheduleReminder(reminder)
+    val baseResult = FormValidationResult(true, emptyMap());
+    private val _formValidationResult = mutableStateOf(baseResult)
+    var formValidationResult: FormValidationResult
+        get() = _formValidationResult.value
+        set(value: FormValidationResult) {
+            _formValidationResult.value = value
         }
-    }*/
 
+    fun handleReminderFormSubmission() {
+        validateReminder()
+        if (_formValidationResult.value.isValid) {
+            upsertReminder()
+        }
+    }
+
+    fun validateReminder() {
+        val errors = mutableMapOf<String, String?>()
+
+        if (_reminderInWorks.value.title.isBlank()) {
+            errors["title"] = "يرجى التحقق من ادخال العنوان بشكل صحيح";
+        }
+
+        if (_reminderInWorks.value.hour !in 0..23 || _reminderInWorks.value.minute !in 0..59) {
+            errors["time"] = "يرجى التحقق من ادخال الوقت بشكل صحيح"
+        }
+        _formValidationResult.value = FormValidationResult(
+            isValid = errors.isEmpty(),
+            errors = errors
+        )
+    }
 }
 
 

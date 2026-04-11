@@ -67,6 +67,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.composables.OttrojjaDialog
+import com.ottrojja.composables.OttrojjaWarningBar
 import com.ottrojja.ui.theme.complete_green
 import com.ottrojja.ui.theme.md_theme_light_primary
 import com.ottrojja.ui.theme.md_theme_light_secondary
@@ -395,19 +396,7 @@ private fun CompassContent(showPositionDialog: Boolean,
         ) {
 
             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.errorContainer)
-                    .padding(vertical = 6.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "الرجاء تفعيل نظام تحديد المواقع GPS ليتمكن التطبيق من تحديد إتجاه القبلة",
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+                OttrojjaWarningBar(text = "الرجاء تفعيل نظام تحديد المواقع GPS ليتمكن التطبيق من تحديد إتجاه القبلة")
             }
 
             if (locationState.value != null) {

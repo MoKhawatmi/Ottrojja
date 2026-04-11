@@ -19,6 +19,9 @@ interface ReminderDao {
     @Upsert
     suspend fun upsertReminder(reminder: Reminder): Long
 
+    @Query("SELECT * FROM Reminder WHERE isMain = 1 LIMIT 1")
+    suspend fun getMainReminder(): Reminder?
+
     @Update
     suspend fun updateReminder(reminder: Reminder)
 

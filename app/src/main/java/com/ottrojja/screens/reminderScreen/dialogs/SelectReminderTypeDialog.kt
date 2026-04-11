@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.ottrojja.classes.ReminderRepeatType
+import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
 import com.ottrojja.composables.OttrojjaItemSelectionDialog
 
 @Composable

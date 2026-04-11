@@ -21,6 +21,11 @@ class ReminderRepository(
         return dao.insert(reminder)
     }
 
+    suspend fun getMainReminder(): Reminder?{
+        return dao.getMainReminder()
+    }
+
+
     suspend fun updateReminder(reminder: Reminder) {
         return dao.updateReminder(reminder)
     }

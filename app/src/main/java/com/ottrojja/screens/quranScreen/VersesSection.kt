@@ -214,7 +214,7 @@ fun ShareVersesBottomSheet(onDismissRequest: () -> Unit,
                 endSegments = endSegments
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                OttrojjaButton("مشاركة", onClick = { onShareClick() })
+                OttrojjaButton(text="مشاركة", onClick = { onShareClick() })
             }
         }
     }

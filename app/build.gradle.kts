@@ -97,11 +97,11 @@ dependencies {
     implementation("androidx.room:room-ktx:2.8.4")
     ksp("androidx.room:room-compiler:2.8.4")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
 
     implementation("androidx.media3:media3-exoplayer:1.10.0")
 
-    implementation(platform("io.github.jan-tennert.supabase:bom:3.4.1"))
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.5.0"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.ktor:ktor-client-android:3.4.2")
 
@@ -110,6 +110,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.3.0")
 
     implementation("sh.calvin.reorderable:reorderable:3.0.0")
+
+    implementation("androidx.work:work-runtime-ktx:2.11.2")
 
 
 }

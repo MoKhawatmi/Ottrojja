@@ -1,6 +1,6 @@
-package com.ottrojja.screens.reminderScreen
+package com.ottrojja.screens.reminderScreen.classes
 
-object DynamicReminderMessageProvider {
+object DynamicMessageProvider {
     fun getMessage(): String {
         val messages = listOf(
             "كل يوم يعيشه المؤمن، غنيمة. لا تنسى نصيبك من القرآن",

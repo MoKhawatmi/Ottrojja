@@ -3,7 +3,7 @@ package com.ottrojja.room.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.ottrojja.classes.ReminderRepeatType
+import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
 
 @Entity
 data class Reminder(
@@ -12,7 +12,8 @@ data class Reminder(
     val customMessage: String?,
     val hour: Int,
     val minute: Int,
-    val repeatType: ReminderRepeatType, // DAILY, WEEKLY, ONCE
-    val isEnabled: Boolean= true,
+    val repeatType: ReminderRepeatType,
+    val isEnabled: Boolean = true,
+    val lastTrigger: Long = System.currentTimeMillis(),
     val isMain: Boolean = false
 )
