@@ -16,7 +16,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
-import com.ottrojja.classes.DownloadResult
+import com.ottrojja.classes.DownloadState
 import com.ottrojja.classes.FileDownloader
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
@@ -28,11 +28,13 @@ import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.classes.QuranListeningMode
 import com.ottrojja.classes.QuranPlayingParameters
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.classes.StorageBase
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.services.QuranPlayerService
 import com.ottrojja.services.QuranServiceInterface
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -40,6 +42,8 @@ import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import kotlinx.coroutines.flow.launchIn
+
 
 class ListeningViewModel(private val repository: QuranRepository, application: Application) :
     AndroidViewModel(application) {
@@ -376,43 +380,47 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
             return;
         }
 
-        _isDownloading.value = true;
-
         val localFile = File(
             context.getExternalFilesDir(null),
             "$surahId.mp3"
         )
 
-        val request = Request.Builder()
-            .url("https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/$surahId.mp3")
-            .build()
-
-        viewModelScope.launch {
-
-            when (val result = FileDownloader.download(context, request, localFile)) {
-                is DownloadResult.Success -> {
-                    _isDownloading.value = false
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "تم التحميل بنجاح!", Toast.LENGTH_LONG).show()
-                    }
+        FileDownloader.download(
+            context = context,
+            url = "https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/$surahId.mp3",
+            relativePath = localFile.name,
+            storageBase = StorageBase.EXTERNAL_FILES_DIR
+        ).onEach { state ->
+            when (state) {
+                is DownloadState.Running -> {
+                    _isDownloading.value = true
                 }
 
-                is DownloadResult.Failure -> {
-                    result.exception.printStackTrace()
-                    reportException(exception = result.exception, file = "ListeningViewModel", details = "link: /chapters/$surahId.mp3")
-                    withContext(Dispatchers.Main) {
-                        if (result.exception.message?.contains("ENOSPC") == true) {
-                            Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
-                        } else {
-                            Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
-                        }
+                is DownloadState.Success -> {
+                    _isDownloading.value = false
+                    Toast.makeText(context, "تم التحميل بنجاح!", Toast.LENGTH_LONG).show()
+                }
+
+                is DownloadState.Failure -> {
+                    _isDownloading.value = false
+                    state.error.printStackTrace()
+
+                    reportException(
+                        exception = state.error,
+                        file = "ListeningViewModel",
+                        details = "Cancellation or Failure to download surah file; link: /chapters/$surahId.mp3"
+                    )
+
+                    println("failed download: ${state.error.message}")
+
+                    if (state.error.message?.contains("ENOSPC") == true) {
+                        Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
                     }
                 }
             }
-
-            _isDownloading.value = false;
-        }
-
+        }.launchIn(viewModelScope)
     }
 
     suspend fun initChaptersList() {

@@ -1,67 +1,171 @@
 package com.ottrojja.classes
 
 import android.content.Context
-import android.widget.Toast
-import androidx.media3.common.util.Log
-import com.ottrojja.R
-import com.ottrojja.classes.Helpers.reportException
-import com.ottrojja.classes.NetworkClient.ottrojjaClient
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.Request
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+import com.ottrojja.classes.DownloadState.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 
-sealed class DownloadResult {
-    data class Success(val file: File) : DownloadResult()
-    data class Failure(val exception: Exception) : DownloadResult()
+sealed class DownloadState {
+    data object Running : DownloadState()
+    data class Success(val file: File) : DownloadState()
+    data class Failure(val error: Exception) : DownloadState()
 }
 
 object FileDownloader {
-    suspend fun download(
+    fun download(
         context: Context,
-        request: Request,
-        destinationFile: File
-    ): DownloadResult {
+        url: String,
+        relativePath: String,
+        storageBase: StorageBase = StorageBase.EXTERNAL_FILES_DIR
+    ): Flow<DownloadState> {
 
-        Log.d("File Downloader","Downloading")
-
-        return withContext(Dispatchers.IO) {
-            val tempFile = File.createTempFile("temp_", ".mp3",
-                context.getExternalFilesDir(null)
+        val request = OneTimeWorkRequestBuilder<DownloadWorker>()
+            .setInputData(
+                workDataOf(
+                    FileDownloadWorker.KEY_URL to url,
+                    FileDownloadWorker.KEY_RELATIVE_PATH to relativePath,
+                    FileDownloadWorker.KEY_STORAGE_BASE to storageBase.name
+                )
             )
+            .build()
 
-            try {
-                ottrojjaClient.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
-                    if (response.body == null) throw IOException("Empty response body")
+        val workManager = WorkManager.getInstance(context)
 
-                    response.body.let { responseBody ->
-                        FileOutputStream(tempFile).use { outputStream ->
-                            responseBody.byteStream().use { inputStream ->
-                                inputStream.copyTo(outputStream, bufferSize = 8 * 1024)
-                            }
+        workManager.enqueue(request)
+
+        return workManager
+            .getWorkInfoByIdFlow(request.id)
+            .map { info ->
+
+                val state: DownloadState = when (info?.state) {
+
+                    WorkInfo.State.ENQUEUED,
+                    WorkInfo.State.RUNNING -> {
+                        DownloadState.Running
+                    }
+
+                    WorkInfo.State.SUCCEEDED -> {
+                        val path = info.outputData.getString("path")
+
+                        if (path == null) {
+                            Failure(Exception("Missing output path"))
+                        } else {
+                            Success(File(path))
                         }
                     }
 
-                    if (!tempFile.exists() || tempFile.length() == 0L) {
-                        throw IOException("Temp file was not created or is empty")
+                    WorkInfo.State.FAILED -> {
+                        Failure(Exception("Download failed"))
                     }
-                    tempFile.copyTo(destinationFile, overwrite = true)
+
+                    WorkInfo.State.CANCELLED -> {
+                        Failure(Exception("Cancelled"))
+                    }
+
+                    WorkInfo.State.BLOCKED -> TODO()
+                    null -> TODO()
                 }
-                Log.d("File Downloader","download success")
-                DownloadResult.Success(destinationFile)
-            } catch (e: Exception) {
-                Log.d("File Downloader","error in download")
-                destinationFile.delete()
-                DownloadResult.Failure(e)
-            } finally {
-                Log.d("File Downloader","end downloading process")
-                if (tempFile.exists()) {
-                    tempFile.delete()
+
+                state
+            }
+
+        /*suspend fun download(
+            context: Context,
+            request: Request,
+            destinationFile: File
+        ): DownloadResult {
+
+            Log.d("File Downloader","Downloading...")
+            Log.d("File Downloader","extension ${destinationFile.extension}")
+
+            return withContext(Dispatchers.IO) {
+                val tempFile = File.createTempFile("temp_", destinationFile.extension,
+                    context.getExternalFilesDir(null)
+                )
+
+                try {
+                    ottrojjaClient.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+                        if (response.body == null) throw IOException("Empty response body")
+
+                        response.body.let { responseBody ->
+                            FileOutputStream(tempFile).use { outputStream ->
+                                responseBody.byteStream().use { inputStream ->
+                                    inputStream.copyTo(outputStream, bufferSize = 8 * 1024)
+                                }
+                            }
+                        }
+
+                        if (!tempFile.exists() || tempFile.length() == 0L) {
+                            throw IOException("Temp file was not created or is empty")
+                        }
+                        tempFile.copyTo(destinationFile, overwrite = true)
+                    }
+                    Log.d("File Downloader","download success")
+                    DownloadResult.Success(destinationFile)
+                } catch (e: Exception) {
+                    Log.d("File Downloader","error in download")
+                    destinationFile.delete()
+                    DownloadResult.Failure(e)
+                } finally {
+                    Log.d("File Downloader","end downloading process")
+                    if (tempFile.exists()) {
+                        tempFile.delete()
+                    }
                 }
             }
-        }
+        }*/
     }
+}
+
+suspend fun FileDownloader.downloadOnce(
+    context: Context,
+    url: String,
+    relativePath: String,
+    storageBase: StorageBase
+): DownloadState {
+
+    val request = OneTimeWorkRequestBuilder<DownloadWorker>()
+        .setInputData(
+            workDataOf(
+                FileDownloadWorker.KEY_URL to url,
+                FileDownloadWorker.KEY_RELATIVE_PATH to relativePath,
+                FileDownloadWorker.KEY_STORAGE_BASE to storageBase.name
+            )
+        )
+        .build()
+
+    val wm = WorkManager.getInstance(context)
+
+    wm.enqueue(request)
+
+    return wm.getWorkInfoByIdFlow(request.id)
+        .first { it?.state?.isFinished?:false }
+        .let { info ->
+
+            when (info?.state) {
+
+                WorkInfo.State.SUCCEEDED -> {
+                    val path = info.outputData.getString("path")
+                        ?: return DownloadState.Failure(Exception("Missing path"))
+
+                    DownloadState.Success(File(path))
+                }
+
+                WorkInfo.State.FAILED ->
+                    DownloadState.Failure(Exception("Download failed"))
+
+                WorkInfo.State.CANCELLED ->
+                    DownloadState.Failure(Exception("Cancelled"))
+
+                else ->
+                    DownloadState.Failure(Exception("Unexpected state"))
+            }
+        }
 }

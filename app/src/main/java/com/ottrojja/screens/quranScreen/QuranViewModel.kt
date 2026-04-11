@@ -21,7 +21,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
 import com.ottrojja.classes.ConnectivityMonitor
-import com.ottrojja.classes.DownloadResult
+import com.ottrojja.classes.DownloadState
 import com.ottrojja.classes.FileDownloader
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.classes.Helpers
@@ -32,6 +32,7 @@ import com.ottrojja.classes.Helpers.terminateAllServices
 import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.classes.StorageBase
 import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahMark
@@ -39,6 +40,8 @@ import com.ottrojja.room.relations.QuranPageWithContent
 import com.ottrojja.services.PagePlayerService
 import com.ottrojja.services.PageServiceInterface
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -485,16 +488,18 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             externalFilesDir,
             path
         )
-        val tempFile = File.createTempFile("temp_", ".mp3", externalFilesDir)
+        FileDownloader.download(
+            context = context,
+            url = "https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/$path",
+            relativePath = localFile.name,
+            storageBase = StorageBase.EXTERNAL_FILES_DIR
+        ).onEach { state ->
+            when (state) {
+                is DownloadState.Running -> {
+                    _isDownloading.value = true
+                }
 
-        val request = Request.Builder()
-            .url("https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/$path")
-            .build()
-
-
-        viewModelScope.launch {
-            when (val result = FileDownloader.download(context, request, localFile)) {
-                is DownloadResult.Success -> {
+                is DownloadState.Success -> {
                     if (downloadIndex >= _versesPlayList.size - 1) {
                         allVersesExist = true;
                         _isDownloading.value = false;
@@ -507,15 +512,21 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                     }
                 }
 
-                is DownloadResult.Failure -> {
-                    result.exception.printStackTrace()
-                    reportException(exception = result.exception, file = "QuranViewModel", details = "link: /verses/$path")
-                    withContext(Dispatchers.Main) {
-                        if (result.exception.message?.contains("ENOSPC") == true) {
-                            Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
-                        } else {
-                            Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
-                        }
+                is DownloadState.Failure -> {
+                    state.error.printStackTrace()
+
+                    reportException(
+                        exception = state.error,
+                        file = "QuranViewModel",
+                        details = "Cancellation or Failure to download verse file; link: /verses/$path"
+                    )
+
+                    println("failed download: ${state.error.message}")
+
+                    if (state.error.message?.contains("ENOSPC") == true) {
+                        Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
                     }
                     localFile.delete()
                     allVersesExist = false;
@@ -523,7 +534,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                     _isDownloading.value = false;
                 }
             }
-        }
+        }.launchIn(viewModelScope)
     }
 
     private val _isBookmarked = mutableStateOf(false)

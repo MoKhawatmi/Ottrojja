@@ -210,7 +210,7 @@ object Helpers {
     }
 
     fun formatDateTime(millis: Long):String{
-        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+        val sdf = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
         sdf.timeZone = TimeZone.getDefault()
         return sdf.format(Date(millis))
     }

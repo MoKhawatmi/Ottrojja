@@ -10,7 +10,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.ottrojja.classes.DownloadResult
+import com.ottrojja.classes.DownloadState
 import com.ottrojja.classes.FileDownloader
 import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.classes.Helpers
@@ -18,6 +18,8 @@ import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.classes.StorageBase
+import com.ottrojja.classes.downloadOnce
 import com.ottrojja.room.entities.Azkar
 import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
@@ -27,6 +29,8 @@ import com.ottrojja.room.entities.Quarter
 import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.VerseMeanings
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -300,30 +304,39 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     }
 
     private suspend fun downloadFile(quranFile: File) {
-        val request = Request.Builder()
-            .url(QURAN_FILE_URL)
-            .build()
 
+        loadingFile = true
         when (
-            val result = FileDownloader.download(
-                context,
-                request,
-                quranFile
+            val result = FileDownloader.downloadOnce(
+                context = context,
+                url = QURAN_FILE_URL,
+                relativePath = quranFile.name,
+                storageBase = StorageBase.FILES_DIR
             )
         ) {
-            is DownloadResult.Success -> {
+
+            is DownloadState.Success -> {
                 println("success download")
-                parseAndSetQuranData(quranFile, true)
-                loadingFile = false
+
+                parseAndSetQuranData(result.file, true)
             }
 
-            is DownloadResult.Failure -> {
-                result.exception.printStackTrace()
-                reportException(exception = result.exception, file = "LoadingScreenViewModel", details = "Cancellation or Failure to download quran file")
-                println("failed download: ${result.exception.message}")
-                handleDownloadError(quranFile, result.exception)
+            is DownloadState.Failure -> {
+                result.error.printStackTrace()
+
+                reportException(
+                    exception = result.error,
+                    file = "LoadingScreenViewModel",
+                    details = "Download failure"
+                )
+
+                handleDownloadError(quranFile, result.error)
             }
+
+            DownloadState.Running -> TODO()
         }
+
+        loadingFile = false
     }
 
     private suspend fun useLocalQuranFile(quranFile: File) {
@@ -399,3 +412,4 @@ class LoadingScreenViewModelFactory(
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
+

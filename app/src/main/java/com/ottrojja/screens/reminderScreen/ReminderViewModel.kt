@@ -160,7 +160,9 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
                     val toastMsg = if (_dialogMode.value == ModalFormMode.EDIT) "تم التعديل بنجاح" else "تمت الاضافة بنجاح";
                     Toast.makeText(context, toastMsg, Toast.LENGTH_SHORT).show()
                     scheduler.scheduleReminder(newlyUpsertedReminder)
+                    dismissReminderForm()
                 }
+
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(e, "ReminderViewModel", "error upserting reminder")

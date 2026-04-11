@@ -16,7 +16,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
-import com.ottrojja.classes.DownloadResult
+import com.ottrojja.classes.DownloadState
 import com.ottrojja.classes.FileDownloader
 import com.ottrojja.services.AudioServiceInterface
 import com.ottrojja.classes.Helpers
@@ -27,9 +27,12 @@ import com.ottrojja.classes.Helpers.terminateAllServices
 import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.services.AzkarPlayerService
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.classes.StorageBase
 import com.ottrojja.room.entities.Azkar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -290,44 +293,42 @@ class ZikrViewModel(
             _zikr.value.firebaseAddress.split("/").last()
         )
 
-        val request = Request.Builder()
-            .url(_zikr.value.firebaseAddress)
-            .build()
-
-
-        viewModelScope.launch {
-            when (
-                val result = FileDownloader.download(
-                    context,
-                    request,
-                    localFile
-                )
-            ) {
-                is DownloadResult.Success -> {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            context,
-                            "تم التحميل بنجاح!",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+        FileDownloader.download(
+            context = context,
+            url = _zikr.value.firebaseAddress,
+            relativePath = localFile.name,
+            storageBase = StorageBase.EXTERNAL_FILES_DIR
+        ).onEach { state ->
+            when (state) {
+                is DownloadState.Running -> {
+                    _isDownloading.value = true
                 }
 
-                is DownloadResult.Failure -> {
-                    result.exception.printStackTrace()
-                    reportException(exception = result.exception, file = "ZikrViewModel", details = "link: ${_zikr.value.firebaseAddress}")
-                    withContext(Dispatchers.Main) {
-                        if (result.exception.message?.contains("ENOSPC") == true) {
-                            Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
-                        } else {
-                            Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
-                        }
+                is DownloadState.Success -> {
+                    _isDownloading.value = false
+                    Toast.makeText(context, "تم التحميل بنجاح!", Toast.LENGTH_LONG).show()
+                }
+
+                is DownloadState.Failure -> {
+                    _isDownloading.value = false
+                    state.error.printStackTrace()
+
+                    reportException(
+                        exception = state.error,
+                        file = "ZikrViewModel",
+                        details = "Cancellation or Failure to download ziker file; link: ${_zikr.value.firebaseAddress}"
+                    )
+
+                    println("failed download: ${state.error.message}")
+
+                    if (state.error.message?.contains("ENOSPC") == true) {
+                        Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
                     }
                 }
             }
-            _isDownloading.value = false;
-
-        }
+        }.launchIn(viewModelScope)
     }
 
     init {
