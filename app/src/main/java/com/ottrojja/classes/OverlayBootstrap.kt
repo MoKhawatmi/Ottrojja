@@ -1,0 +1,35 @@
+package com.ottrojja.classes
+
+import android.content.Context
+import android.content.Intent
+import android.provider.Settings
+import com.ottrojja.classes.DataStore.DataStoreRepository
+import com.ottrojja.classes.Helpers.isServiceRunning
+import com.ottrojja.services.OverlayService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+
+object OverlayBootstrap {
+    fun init(context: Context, scope: CoroutineScope) {
+        scope.launch {
+            checkAndStartOverlay(context)
+        }
+    }
+
+    private suspend fun checkAndStartOverlay(context: Context) {
+        val enabled = DataStoreRepository.floatingAzkarFlow.first()
+
+        val canDraw = Settings.canDrawOverlays(context)
+
+        if (enabled && canDraw && !isServiceRunning(OverlayService::class.java, context)) {
+            startOverlay(context)
+        }
+    }
+
+    private fun startOverlay(context: Context) {
+        val intent = Intent(context, OverlayService::class.java)
+        context.startForegroundService(intent)
+    }
+
+}

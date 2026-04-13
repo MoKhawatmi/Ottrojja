@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import com.ottrojja.room.entities.Reminder
@@ -14,7 +15,7 @@ import kotlinx.coroutines.flow.Flow
 interface ReminderDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(reminder: Reminder): Long
+    suspend fun insertReminder(reminder: Reminder): Long
 
     @Upsert
     suspend fun upsertReminder(reminder: Reminder): Long
@@ -36,6 +37,14 @@ interface ReminderDao {
 
     @Delete
     suspend fun delete(reminder: Reminder)
+
+    @Transaction
+    suspend fun insertMainIfNotExists(mainReminder: Reminder) {
+        val existing = getMainReminder()
+        if (existing == null) {
+            insertReminder(mainReminder)
+        }
+    }
 
 
 }

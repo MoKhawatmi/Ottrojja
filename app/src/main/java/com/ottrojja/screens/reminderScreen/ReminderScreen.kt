@@ -57,6 +57,7 @@ import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.forms.OttrojjaTimePickerDialog
 import com.ottrojja.composables.ottrojjaFlexibleActions.FlexibleAction
 import com.ottrojja.composables.ottrojjaFlexibleActions.OttrojjaFlexibleActions
+import com.ottrojja.composables.overlayPermissionHandler.OverlayPermissionHandler
 import com.ottrojja.room.entities.Reminder
 import com.ottrojja.room.repositories.ReminderRepository
 import com.ottrojja.screens.reminderScreen.dialogs.ReminderFormDialog
@@ -72,7 +73,8 @@ fun ReminderScreen(repository: ReminderRepository) {
         factory = ReminderViewModelFactory(repository, application)
     )
 
-    val permissionLauncher =
+
+    val postNotificationPermissionLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestPermission()
         ) { isGranted ->
@@ -84,6 +86,9 @@ fun ReminderScreen(repository: ReminderRepository) {
         }
 
     var notificationPermissionState by remember { mutableStateOf(false) }
+    val reminders by reminderVM.reminders.collectAsState(initial = emptyList())
+    val overlayPermissionHandler by reminderVM.overlayPermissionHandler.collectAsState(false)
+    val floatingAzkarEnabled by reminderVM.enabledFloatingAzakar.collectAsState(false)
 
     LaunchedEffect(Unit) {
         reminderVM.insertMainReminder()
@@ -95,12 +100,11 @@ fun ReminderScreen(repository: ReminderRepository) {
             ) == PackageManager.PERMISSION_GRANTED
 
             if (!notificationPermissionState) {
-                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                postNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
     }
 
-    val reminders by reminderVM.reminders.collectAsState(initial = emptyList())
 
     fun confirmDeleteReminder(reminder: Reminder) {
         val alertDialogBuilder = AlertDialog.Builder(context)
@@ -148,13 +152,22 @@ fun ReminderScreen(repository: ReminderRepository) {
         )
     }
 
+    if (overlayPermissionHandler) {
+        OverlayPermissionHandler(
+            onPermissionGranted = { reminderVM.activateFloatingAzkarService() },
+            onPermissionDenied = { reminderVM.toggleFloatingAzkar(false) },
+            onFinished = { reminderVM.toggleOverlayPermissionHandler(false) },
+            forceShowRequest = true
+        )
+    }
+
     Column(modifier = Modifier
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.tertiary)
     ) {
         TopBar(
             title = "المذكر",
-            mainAction = ButtonAction(icon = Icons.Default.Add, action = { reminderVM.invoekeAddDialog() })
+            mainAction = ButtonAction(icon = Icons.Default.Add, action = { reminderVM.invokeAddDialog() })
         )
         if (!notificationPermissionState) {
             OttrojjaWarningBar(text = "الرجاء السماح للتطبيق بصلاحيات الإشعارات ليتمكن المذكر من العمل بشكل صحيح")
@@ -162,6 +175,36 @@ fun ReminderScreen(repository: ReminderRepository) {
 
 
         LazyColumn {
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.background)
+                        .clickable {}
+                        .padding(12.dp, 2.dp)
+                ) {
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(6.dp, 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "الأذكار العائمة",
+                                color = Color.Black
+                            )
+                        }
+                        Column {
+                            SwitchWithIcon(
+                                checked = floatingAzkarEnabled,
+                                onCheckedChange = { reminderVM.toggleFloatingAzkar(it) },
+                                icon = Icons.Default.Check
+                            )
+                        }
+                    }
+                }
+            }
             items(reminders) { item ->
                 ReminderItem(
                     reminder = item,

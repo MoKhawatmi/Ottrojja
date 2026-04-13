@@ -8,7 +8,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -67,7 +66,8 @@ import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
-import com.ottrojja.room.relations.PartWithQuarters
+import com.ottrojja.composables.overlayPermissionHandler.OverlayPermissionHandler
+
 
 @Composable
 fun MainScreen(
@@ -86,6 +86,7 @@ fun MainScreen(
     )
 
     val primaryColor = MaterialTheme.colorScheme.primary;
+
 
     LaunchedEffect(Unit) {
         mainViewModel.invokeMostRecentPage()
@@ -125,10 +126,15 @@ fun MainScreen(
         }
     }
 
+    OverlayPermissionHandler(
+        onPermissionGranted = {},
+        onPermissionDenied = {},
+        onFinished = {}
+    )
 
     if (mainViewModel.showImageList) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Column (horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 TopBar(customContent = true) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

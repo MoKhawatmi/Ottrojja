@@ -50,7 +50,7 @@ import com.ottrojja.classes.Helpers
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.classes.VerseWithAnswer
-import com.ottrojja.composables.LoadingDialog
+import com.ottrojja.composables.dialogs.LoadingDialog
 
 @Composable
 fun PageTraining(

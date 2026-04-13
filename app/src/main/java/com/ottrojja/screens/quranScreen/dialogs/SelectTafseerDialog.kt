@@ -2,7 +2,6 @@ package com.ottrojja.screens.quranScreen.dialogs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.ottrojja.composables.OttrojjaDialog
+import com.ottrojja.composables.dialogs.OttrojjaDialog
 
 @Composable
 fun SelectTafseerDialog(

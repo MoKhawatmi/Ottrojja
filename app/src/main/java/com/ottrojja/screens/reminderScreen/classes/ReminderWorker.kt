@@ -56,7 +56,7 @@ class ReminderWorker(
 
         } catch (e: Exception) {
             reportException(e, "ReminderWorker")
-            Result.retry() // 🔥 huge advantage
+            Result.retry()
         }
     }
 }

@@ -1,12 +1,19 @@
 package com.ottrojja.screens.reminderScreen
 
 import android.app.Application
+import android.content.Context
+import android.content.Intent
+import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.ottrojja.classes.DataStore.DataStoreRepository
 import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.FormValidationResult
 import com.ottrojja.classes.Helpers.formatDateTime
@@ -17,12 +24,14 @@ import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
 import com.ottrojja.screens.reminderScreen.classes.ReminderScheduler
 import com.ottrojja.room.entities.Reminder
 import com.ottrojja.room.repositories.ReminderRepository
+import com.ottrojja.services.OverlayService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 
 class ReminderViewModel(private val repository: ReminderRepository, application: Application) :
     AndroidViewModel(application) {
@@ -31,6 +40,8 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
 
     private val _reminders = MutableStateFlow<List<ExpandableItem<Reminder>>>(emptyList())
     val reminders: StateFlow<List<ExpandableItem<Reminder>>> = _reminders
+
+    val enabledFloatingAzakar = DataStoreRepository.floatingAzkarFlow
 
     private val _reminderDialog = mutableStateOf(false)
     var reminderDialog: Boolean
@@ -97,7 +108,7 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
                     }
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_SHORT).show()
                     reportException(e, "ReminderViewModel", "error fetching reminders")
                 }
@@ -136,7 +147,7 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
         }
     }
 
-    fun invoekeAddDialog() {
+    fun invokeAddDialog() {
         _dialogMode.value = ModalFormMode.ADD
         _reminderInWorks.value = baseReminder;
         _reminderDialog.value = true;
@@ -211,10 +222,7 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val mainExists = repository.getMainReminder()
-                if (mainExists == null) {
-                    repository.insertReminder(mainReminder)
-                }
+                repository.insertMainIfNotExists(mainReminder)
             } catch (e: Exception) {
                 reportException(e, "ReminderViewModel", "Error inserting/checking main reminder")
             }
@@ -264,6 +272,36 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
             errors = errors
         )
     }
+
+    fun activateFloatingAzkarService() {
+        val intent = Intent(context, OverlayService::class.java)
+        context.startForegroundService(intent)
+    }
+
+    fun stopFloatingAzkarService() {
+        context.stopService(Intent(context, OverlayService::class.java))
+    }
+
+    private val _overlayPermissionHandler = MutableStateFlow<Boolean>(false)
+    var overlayPermissionHandler: StateFlow<Boolean> = _overlayPermissionHandler
+
+
+    fun toggleOverlayPermissionHandler(state: Boolean) {
+        _overlayPermissionHandler.value = state;
+    }
+
+    fun toggleFloatingAzkar(value: Boolean) {
+        viewModelScope.launch {
+            DataStoreRepository.setFloatingAzkar(value);
+        }
+        if (value) {
+            if (!Settings.canDrawOverlays(context)) toggleOverlayPermissionHandler(true)
+            else activateFloatingAzkarService()
+        } else {
+            stopFloatingAzkarService()
+        }
+    }
+
 }
 
 

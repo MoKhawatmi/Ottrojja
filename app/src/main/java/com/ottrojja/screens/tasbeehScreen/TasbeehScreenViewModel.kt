@@ -12,6 +12,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.ottrojja.classes.DataStore.DataStoreRepository
 import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.QuranRepository
@@ -26,23 +27,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
 
-private val Application.dataStore by preferencesDataStore(name = "ottrojja")
-
 
 class TasbeehScreenViewModel(private val repository: QuranRepository, application: Application) :
     AndroidViewModel(application) {
     val context = application.applicationContext;
 
-    // val sharedPreferences: SharedPreferences = application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
-
-    private val dataStore = application.dataStore
-    private val COUNT_KEY = intPreferencesKey("tasbeehCount")
 
     // Flow to observe count value from DataStore
-    val tasbeehCount: StateFlow<Int> = dataStore.data
-        .map { preferences -> preferences[COUNT_KEY] ?: 0 }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
-
+    val tasbeehCount = DataStoreRepository.userTasabeehCountFlow
 
     private val _selectedTab = mutableStateOf(TasbeehTab.المسبحة)
     var selectedTab: TasbeehTab
@@ -71,23 +63,15 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
     }
 
     fun increaseTasbeeh() {
-
         viewModelScope.launch {
-            dataStore.edit { preferences ->
-                val current = preferences[COUNT_KEY] ?: 0
-                preferences[COUNT_KEY] = current + 1
-            }
+            DataStoreRepository.incrementUserTasabeehCount()
         }
-
     }
 
     fun resetTasbeeh() {
         viewModelScope.launch {
-            dataStore.edit { preferences ->
-                preferences[COUNT_KEY] = 0
-            }
+            DataStoreRepository.resetUserTasabeehCount()
         }
-
     }
 
     fun updateExpanded(item: ExpandableItem<Tasabeeh>) {
@@ -116,10 +100,9 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
                 repository.getTasabeehLists().collect { state ->
                     _tasabeehLists.value = state;
                 }
-            }
-            catch (e: CancellationException) {
+            } catch (e: CancellationException) {
                 //nothing
-            }catch (e: Exception) {
+            } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "TasbeehScreenViewModel")
                 withContext(Dispatchers.Main) {

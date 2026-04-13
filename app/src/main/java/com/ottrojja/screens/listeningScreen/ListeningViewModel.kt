@@ -21,10 +21,9 @@ import com.ottrojja.classes.FileDownloader
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.Helpers.formatTime
-import com.ottrojja.classes.Helpers.isMyServiceRunning
+import com.ottrojja.classes.Helpers.isServiceRunning
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
-import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.classes.QuranListeningMode
 import com.ottrojja.classes.QuranPlayingParameters
 import com.ottrojja.classes.QuranRepository
@@ -37,11 +36,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 import kotlinx.coroutines.flow.launchIn
 
 
@@ -97,7 +92,7 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
         // stop other services
         terminateAllServices(context, QuranPlayerService::class.java)
 
-        if (isMyServiceRunning(QuranPlayerService::class.java, context)) {
+        if (isServiceRunning(QuranPlayerService::class.java, context)) {
             startPlaying()
         } else {
             clickedPlay = true;
@@ -626,7 +621,7 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
     }
 
     init {
-        val sr = isMyServiceRunning(QuranPlayerService::class.java, context);
+        val sr = isServiceRunning(QuranPlayerService::class.java, context);
         println("service running $sr")
         if (sr) {
             bindToService()

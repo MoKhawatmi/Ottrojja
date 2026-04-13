@@ -41,7 +41,7 @@ import androidx.navigation.NavController
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.classes.QuranRepository
-import com.ottrojja.composables.LoadingDialog
+import com.ottrojja.composables.dialogs.LoadingDialog
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
 import com.ottrojja.composables.OttrojjaTabs

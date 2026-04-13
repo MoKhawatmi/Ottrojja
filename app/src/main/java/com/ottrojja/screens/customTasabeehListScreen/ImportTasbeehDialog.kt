@@ -23,7 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.Tasabeeh
-import com.ottrojja.composables.OttrojjaDialog
+import com.ottrojja.composables.dialogs.OttrojjaDialog
 
 @Composable
 fun ImportTasbeehDialog(

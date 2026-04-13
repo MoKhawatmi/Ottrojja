@@ -13,7 +13,7 @@ class ReminderScheduler(private val context: Context) {
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
     fun scheduleReminder(reminder: Reminder) {
-        println("doing reminder")
+        println("scheduling reminder")
         println(reminder)
         if (!reminder.isEnabled) return
 
@@ -28,7 +28,7 @@ class ReminderScheduler(private val context: Context) {
             reminder.id,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        ) // FLAG_UPDATE_CURRENT handles rescheduling by auto updating intent with new reminder data that has same id
+        ) // FLAG_UPDATE_CURRENT handles rescheduling by auto updating intent with new reminder data that has same id (requestCode)
         println("setting alarm")
         alarmManager.set(
             AlarmManager.RTC_WAKEUP,
@@ -120,7 +120,7 @@ class ReminderScheduler(private val context: Context) {
 
         // Move forward until it's in the future
         while (calendar.timeInMillis <= now) {
-            calendar.add(java.util.Calendar.DAY_OF_YEAR, intervalDays)
+            calendar.add(Calendar.DAY_OF_YEAR, intervalDays)
         }
 
         return calendar.timeInMillis

@@ -9,7 +9,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.location.Address
 import android.location.Geocoder
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Canvas
@@ -33,7 +32,6 @@ import android.location.Location
 import android.location.LocationManager
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -66,7 +64,7 @@ import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers.reportException
-import com.ottrojja.composables.OttrojjaDialog
+import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaWarningBar
 import com.ottrojja.ui.theme.complete_green
 import com.ottrojja.ui.theme.md_theme_light_primary

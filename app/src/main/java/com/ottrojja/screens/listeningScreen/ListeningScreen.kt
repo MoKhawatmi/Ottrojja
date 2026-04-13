@@ -1,7 +1,6 @@
 package com.ottrojja.screens.listeningScreen
 
 import android.app.Application
-import android.util.Range
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -41,7 +40,7 @@ import com.ottrojja.R
 import com.ottrojja.classes.QuranListeningMode
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.composables.TopBar
-import com.ottrojja.composables.LoadingDialog
+import com.ottrojja.composables.dialogs.LoadingDialog
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
 import com.ottrojja.composables.OttrojjaItemSelectionDialog

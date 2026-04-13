@@ -26,10 +26,9 @@ import com.ottrojja.classes.FileDownloader
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
-import com.ottrojja.classes.Helpers.isMyServiceRunning
+import com.ottrojja.classes.Helpers.isServiceRunning
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
-import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.StorageBase
@@ -45,8 +44,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.io.FileOutputStream
 import java.io.IOException
 
@@ -134,7 +131,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             try {
                 _currentPageObject = repository.getPage(value)
 
-                if (!isMyServiceRunning(PagePlayerService::class.java, context) || takeOnSelectedPageVerses) {
+                if (!isServiceRunning(PagePlayerService::class.java, context) || takeOnSelectedPageVerses) {
                     withContext(Dispatchers.Main) {
                         takeOnCurrentPageVerses()
                     }
@@ -417,7 +414,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     var clickedPlay = false;
     fun startPlaying() {
-        if (isMyServiceRunning(PagePlayerService::class.java, context)) {
+        if (isServiceRunning(PagePlayerService::class.java, context)) {
             if (!_isPlaying.value && !_isPaused.value) {
                 println("preparing for a new page")
                 audioService?.resetPlayer();
@@ -1004,7 +1001,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     init {
-        val sr = isMyServiceRunning(PagePlayerService::class.java, context);
+        val sr = isServiceRunning(PagePlayerService::class.java, context);
         println("PagePlayerService running $sr")
         if (sr) {
             bindToService()

@@ -3,7 +3,6 @@ package com.ottrojja.screens.settingsScreen
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,7 +38,7 @@ import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
-import com.ottrojja.composables.OttrojjaDialog
+import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.SwitchWithIcon
 import androidx.core.net.toUri
 

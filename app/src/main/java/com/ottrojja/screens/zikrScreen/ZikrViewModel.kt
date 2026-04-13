@@ -21,10 +21,9 @@ import com.ottrojja.classes.FileDownloader
 import com.ottrojja.services.AudioServiceInterface
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.formatTime
-import com.ottrojja.classes.Helpers.isMyServiceRunning
+import com.ottrojja.classes.Helpers.isServiceRunning
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
-import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.services.AzkarPlayerService
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.StorageBase
@@ -34,12 +33,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 
 class ZikrViewModel(
     private val repository: QuranRepository,
@@ -128,7 +122,7 @@ class ZikrViewModel(
         terminateAllServices(context, AzkarPlayerService::class.java)
 
 
-        if (isMyServiceRunning(AzkarPlayerService::class.java, context)) {
+        if (isServiceRunning(AzkarPlayerService::class.java, context)) {
             playZikr()
         } else {
             clickedPlay = true;
@@ -332,7 +326,7 @@ class ZikrViewModel(
     }
 
     init {
-        val sr = isMyServiceRunning(AzkarPlayerService::class.java, context);
+        val sr = isServiceRunning(AzkarPlayerService::class.java, context);
         println("service running $sr")
         if (sr) {
             bindToService()

@@ -44,7 +44,7 @@ fun TasbeehScreen(
             onConfirm = { title -> tasbeehScreenViewModel.createTasabeehList(title) })
     }
 
-    val tasbeehCount by tasbeehScreenViewModel.tasbeehCount.collectAsState()
+    val tasbeehCount by tasbeehScreenViewModel.tasbeehCount.collectAsState(0)
 
 
     Column(modifier = Modifier.fillMaxHeight().background(MaterialTheme.colorScheme.tertiary)) {

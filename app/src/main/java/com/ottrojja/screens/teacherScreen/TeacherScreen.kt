@@ -41,7 +41,7 @@ import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.composables.TopBar
-import com.ottrojja.composables.OttrojjaDialog
+import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.screens.listeningScreen.ListeningViewModel
 import com.ottrojja.screens.listeningScreen.SurahSelectionDialog
 import com.ottrojja.screens.listeningScreen.VerseSelectionDialog

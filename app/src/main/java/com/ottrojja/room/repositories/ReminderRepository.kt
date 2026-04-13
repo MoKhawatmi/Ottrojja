@@ -1,10 +1,6 @@
 package com.ottrojja.room.repositories
 
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Update
-import androidx.room.Upsert
+import androidx.room.Transaction
 import com.ottrojja.room.dao.ReminderDao
 import com.ottrojja.room.entities.Reminder
 import kotlinx.coroutines.flow.Flow
@@ -13,15 +9,15 @@ class ReminderRepository(
     private val dao: ReminderDao
 ) {
 
-    suspend fun upsertReminder(reminder: Reminder) : Long {
+    suspend fun upsertReminder(reminder: Reminder): Long {
         return dao.upsertReminder(reminder)
     }
 
     suspend fun insertReminder(reminder: Reminder): Long {
-        return dao.insert(reminder)
+        return dao.insertReminder(reminder)
     }
 
-    suspend fun getMainReminder(): Reminder?{
+    suspend fun getMainReminder(): Reminder? {
         return dao.getMainReminder()
     }
 
@@ -40,5 +36,9 @@ class ReminderRepository(
 
     suspend fun deleteReminder(reminder: Reminder) {
         dao.delete(reminder)
+    }
+
+    suspend fun insertMainIfNotExists(mainReminder: Reminder) {
+        dao.insertMainIfNotExists(mainReminder)
     }
 }

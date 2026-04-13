@@ -4,10 +4,14 @@ import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -62,6 +66,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.ottrojja.room.database.DatabaseProvider
 import com.ottrojja.room.repositories.ReminderRepository
+import com.ottrojja.services.OverlayService
 
 
 class MainActivity : ComponentActivity() {
@@ -75,24 +80,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         actionBar?.hide()
 
-        // WindowCompat.setDecorFitsSystemWindows(window, false)
-
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark("#FF194D65".toColorInt()),
             navigationBarStyle = SystemBarStyle.dark(Color.Black.toArgb())
         )
-
-        /*
-        val controller = WindowInsetsControllerCompat(window, window.decorView)
-
-        controller.show(WindowInsetsCompat.Type.systemBars())
-        controller.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_BARS_BY_SWIPE
-
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }*/
 
         getResources().getConfiguration().setLayoutDirection(Locale("ar"));
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
@@ -181,6 +172,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)

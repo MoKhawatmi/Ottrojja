@@ -26,10 +26,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.ottrojja.R
-import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
-import com.ottrojja.classes.Helpers.convertToIndianNumbers
-import com.ottrojja.composables.OttrojjaDialog
+import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 
 @Composable

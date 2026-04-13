@@ -18,6 +18,7 @@
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
 
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
 
     <application
         android:name=".classes.App"
@@ -49,6 +50,10 @@
         <service android:name=".services.AzkarPlayerService" android:foregroundServiceType="mediaPlayback" android:exported="false"/>
         <service android:name=".services.PagePlayerService" android:foregroundServiceType="mediaPlayback" android:exported="false"/>
         <service android:name=".services.QuranPlayerService" android:foregroundServiceType="mediaPlayback" android:exported="false"/>
+        <service
+            android:name=".services.OverlayService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
