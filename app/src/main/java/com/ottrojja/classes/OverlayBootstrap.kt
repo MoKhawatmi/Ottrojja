@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import com.ottrojja.classes.DataStore.DataStoreRepository
-import com.ottrojja.classes.Helpers.isServiceRunning
 import com.ottrojja.services.OverlayService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -22,7 +21,7 @@ object OverlayBootstrap {
 
         val canDraw = Settings.canDrawOverlays(context)
 
-        if (enabled && canDraw && !isServiceRunning(OverlayService::class.java, context)) {
+        if (enabled && canDraw) {
             startOverlay(context)
         }
     }

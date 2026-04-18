@@ -6,16 +6,7 @@ import android.content.Intent
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.ottrojja.classes.NotificationHelper.showNotification
-import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
-import com.ottrojja.screens.reminderScreen.classes.ReminderScheduler
-import com.ottrojja.room.database.DatabaseProvider
-import com.ottrojja.room.repositories.ReminderRepository
-import com.ottrojja.screens.reminderScreen.classes.DynamicMessageProvider
 import com.ottrojja.screens.reminderScreen.classes.ReminderWorker
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class ReminderReceiver : BroadcastReceiver() {
 

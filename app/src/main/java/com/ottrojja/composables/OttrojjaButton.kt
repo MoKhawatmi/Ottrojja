@@ -17,8 +17,7 @@ fun OttrojjaButton(
     Button(modifier = modifier, enabled = enabled, onClick = { onClick() }, colors = ButtonDefaults.buttonColors(
         disabledContainerColor = MaterialTheme.colorScheme.outline,
         disabledContentColor = MaterialTheme.colorScheme.onTertiary
-    )
-    ) {
+    )) {
         Text(text, style = MaterialTheme.typography.bodyMedium)
     }
 }

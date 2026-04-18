@@ -3,14 +3,18 @@ package com.ottrojja.composables.dialogs
 import androidx.compose.runtime.Composable
 
 @Composable
-fun OverlayPermissionDialog(
+fun AdvancedPermissionDialog(
+    title: String,
+    text: String,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    content: (@Composable (() -> Unit))? = null
 ) {
     OttrojjaAlertDialog(
         onDismiss = { onDismiss() },
         onConfirm = { onConfirm() },
-        title = "السماح بالأذكار على الشاشة",
-        text = "يمكننا عرض أذكار فوق التطبيقات الأخرى حتى لا تفوتك."
+        title = title,
+        text = text,
+        content= content
     )
 }

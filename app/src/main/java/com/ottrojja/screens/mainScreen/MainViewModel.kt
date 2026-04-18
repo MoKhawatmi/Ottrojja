@@ -16,19 +16,25 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.ottrojja.classes.DataStore.DataStoreRepository
 import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
+import com.ottrojja.classes.OverlayBootstrap
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
 import com.ottrojja.room.relations.PartWithQuarters
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 
 class MainViewModel(private val repository: QuranRepository, application: Application) :
     AndroidViewModel(application) {
+
+    val context = application.applicationContext
 
     val sharedPreferences: SharedPreferences =
         application.getSharedPreferences("ottrojja", Context.MODE_PRIVATE)
@@ -43,8 +49,6 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
         set(value) {
             _advice = value
         }
-
-
 
 
     init {
@@ -204,6 +208,25 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
         val findItemIndex = partsWithQuartersList.indexOfFirst { it.data.part.partId == item.data.part.partId }
         partsWithQuartersList.set(findItemIndex, item.copy(expanded = !item.expanded))
     }
+
+    fun enableFloatingAzkar() {
+        viewModelScope.launch {
+            DataStoreRepository.setFloatingAzkar(true)
+            OverlayBootstrap.init(
+                context = context,
+                scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+            )
+        }
+
+
+    }
+
+    fun disableFloatingAzkar() {
+        viewModelScope.launch {
+            DataStoreRepository.setFloatingAzkar(false)
+        }
+    }
+
 }
 
 enum class BrowsingOption {

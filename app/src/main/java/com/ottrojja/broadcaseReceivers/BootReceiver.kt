@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.ottrojja.classes.Helpers.validateReminders
 import com.ottrojja.screens.reminderScreen.classes.ReminderScheduler
 import com.ottrojja.room.database.DatabaseProvider
 import com.ottrojja.room.repositories.ReminderRepository
@@ -18,11 +19,7 @@ class BootReceiver : BroadcastReceiver() {
 
 
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-
-            val work = OneTimeWorkRequestBuilder<RescheduleRemindersWorker>()
-                .build()
-
-            WorkManager.getInstance(context).enqueue(work)
+            validateReminders(context)
         }
     }
     /* if (intent.action == Intent.ACTION_BOOT_COMPLETED) {

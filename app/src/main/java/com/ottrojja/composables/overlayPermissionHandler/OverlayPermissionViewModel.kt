@@ -7,7 +7,7 @@ import android.provider.Settings
 import androidx.lifecycle.AndroidViewModel
 import androidx.core.content.edit
 
-class OverlaypermissionViewModel(application: Application):
+class OverlayPermissionViewModel(application: Application):
     AndroidViewModel(application) {
     val context = application.applicationContext;
 

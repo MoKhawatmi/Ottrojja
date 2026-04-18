@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.ottrojja.classes.Helpers.reportException
-import com.ottrojja.classes.NotificationHelper.showNotification
+import com.ottrojja.classes.ReminderNotificationHelper.showReminderNotification
 import com.ottrojja.room.database.DatabaseProvider
 import com.ottrojja.room.repositories.ReminderRepository
 
@@ -33,7 +33,7 @@ class ReminderWorker(
                 DynamicMessageProvider.getMessage()
             } else reminder.customMessage
 
-            showNotification(
+            showReminderNotification(
                 applicationContext,
                 reminder.id,
                 reminder.title,

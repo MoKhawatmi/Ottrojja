@@ -39,7 +39,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -66,7 +69,9 @@ import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
+import com.ottrojja.composables.exactAlarmsPermissionHandler.ExactAlarmsPermissionHandler
 import com.ottrojja.composables.overlayPermissionHandler.OverlayPermissionHandler
+import com.ottrojja.screens.mainScreen.classes.PermissionStep
 
 
 @Composable
@@ -86,6 +91,8 @@ fun MainScreen(
     )
 
     val primaryColor = MaterialTheme.colorScheme.primary;
+
+    var currentPermissionStep by remember { mutableStateOf(PermissionStep.OVERLAY) }
 
 
     LaunchedEffect(Unit) {
@@ -126,11 +133,21 @@ fun MainScreen(
         }
     }
 
-    OverlayPermissionHandler(
-        onPermissionGranted = {},
-        onPermissionDenied = {},
-        onFinished = {}
-    )
+    if (currentPermissionStep == PermissionStep.OVERLAY) {
+        OverlayPermissionHandler(
+            onPermissionGranted = { mainViewModel.enableFloatingAzkar() },
+            onPermissionDenied = { mainViewModel.disableFloatingAzkar() },
+            onFinished = { currentPermissionStep = PermissionStep.EXACT_ALARM }
+        )
+    }
+
+    if (currentPermissionStep == PermissionStep.EXACT_ALARM) {
+        ExactAlarmsPermissionHandler(
+            onPermissionGranted = { },
+            onPermissionDenied = { },
+            onFinished = { currentPermissionStep = PermissionStep.DONE }
+        )
+    }
 
     if (mainViewModel.showImageList) {
         Box(modifier = Modifier.fillMaxSize()) {

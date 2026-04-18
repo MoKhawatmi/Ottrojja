@@ -9,13 +9,13 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.ottrojja.R
 
-object NotificationHelper {
+object ReminderNotificationHelper {
 
     private const val CHANNEL_ID = "quran_reminders"
 
     val notificationVibrationLengths= longArrayOf(0, 500, 250, 500)
 
-    fun showNotification(
+    fun showReminderNotification(
         context: Context,
         id: Int,
         title: String,
@@ -31,6 +31,10 @@ object NotificationHelper {
             .setSmallIcon(R.drawable.logo)
             .setContentTitle(title)
             .setContentText(message)
+            .setStyle(
+                NotificationCompat.BigTextStyle()
+                    .bigText(message)
+            )
             .setVibrate(notificationVibrationLengths)
             .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -47,6 +51,8 @@ object NotificationHelper {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Reminder Notification Channel with sound and vibration"
+
+                setShowBadge(false)
 
                 // Enable vibration
                 enableVibration(true)

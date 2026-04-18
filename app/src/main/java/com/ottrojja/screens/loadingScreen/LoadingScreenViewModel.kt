@@ -12,6 +12,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.ottrojja.classes.DataStore.DataStoreRepository
 import com.ottrojja.classes.DownloadState
 import com.ottrojja.classes.FileDownloader
@@ -19,6 +21,7 @@ import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.isServiceRunning
 import com.ottrojja.classes.Helpers.reportException
+import com.ottrojja.classes.Helpers.validateReminders
 import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.classes.QuranRepository
@@ -32,6 +35,7 @@ import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.Quarter
 import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.VerseMeanings
+import com.ottrojja.screens.reminderScreen.classes.RescheduleRemindersWorker
 import com.ottrojja.services.OverlayService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -239,6 +243,7 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
     init {
         viewModelScope.launch() {
             initialize()
+            validateReminders(context)
         }
     }
 
@@ -398,11 +403,6 @@ class LoadingScreenViewModel(private val repository: QuranRepository, applicatio
         }
     }
 
-
-    fun validateReminders() {
-        // TODO Compare scheduled alarms vs DB
-        // TODO Re-schedule missing ones
-    }
 
 }
 

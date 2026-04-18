@@ -18,6 +18,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.ottrojja.BuildConfig
 import com.ottrojja.classes.Helpers
+import com.ottrojja.composables.NoConnection
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
@@ -36,12 +37,7 @@ fun YouTube(link: String) {
     ) {
         if (!Helpers.checkNetworkConnectivity(context)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Text(
-                    text = "تعذر عرض المقطع لعدم توفر اتصال بالشبكة",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center
-                )
+                NoConnection("تعذر عرض المقطع لعدم توفر اتصال بالشبكة")
             }
         } else {
             YoutubeScreen(videoId = link, modifier = Modifier)
@@ -87,8 +83,8 @@ fun YoutubeScreen(
 
     AndroidView(
         factory = { ctx ->
-            YouTubePlayerView(ctx ).apply {
-                enableAutomaticInitialization=false
+            YouTubePlayerView(ctx).apply {
+                enableAutomaticInitialization = false
                 // Attach lifecycle
                 lifecycleOwner.lifecycle.addObserver(this)
 

@@ -1,6 +1,7 @@
 package com.ottrojja.screens.reminderScreen
 
 import android.Manifest
+import android.app.AlarmManager
 import android.app.AlertDialog
 import android.app.Application
 import android.content.pm.PackageManager
@@ -85,7 +86,8 @@ fun ReminderScreen(repository: ReminderRepository) {
             }
         }
 
-    var notificationPermissionState by remember { mutableStateOf(false) }
+    var notificationPermissionState by remember { mutableStateOf(true) }
+    var exactAlarmPermissionState by remember { mutableStateOf(true) }
     val reminders by reminderVM.reminders.collectAsState(initial = emptyList())
     val overlayPermissionHandler by reminderVM.overlayPermissionHandler.collectAsState(false)
     val floatingAzkarEnabled by reminderVM.enabledFloatingAzakar.collectAsState(false)
@@ -101,6 +103,12 @@ fun ReminderScreen(repository: ReminderRepository) {
 
             if (!notificationPermissionState) {
                 postNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = context.getSystemService(AlarmManager::class.java)
+            if (!alarmManager.canScheduleExactAlarms()) {
+                exactAlarmPermissionState = false;
             }
         }
     }
@@ -166,11 +174,14 @@ fun ReminderScreen(repository: ReminderRepository) {
         .background(MaterialTheme.colorScheme.tertiary)
     ) {
         TopBar(
-            title = "المذكر",
+            title = "المُذكر",
             mainAction = ButtonAction(icon = Icons.Default.Add, action = { reminderVM.invokeAddDialog() })
         )
         if (!notificationPermissionState) {
             OttrojjaWarningBar(text = "الرجاء السماح للتطبيق بصلاحيات الإشعارات ليتمكن المذكر من العمل بشكل صحيح")
+        }
+        if (!exactAlarmPermissionState) {
+            OttrojjaWarningBar(text = "الرجاء السماح بالاشعارات الدقيقة في اعدادات التطبيق لعرض اشعارات المذكر بشكل دقيق")
         }
 
 
@@ -191,7 +202,7 @@ fun ReminderScreen(repository: ReminderRepository) {
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "الأذكار العائمة",
+                                text = "أذكار الشاشة",
                                 color = Color.Black
                             )
                         }

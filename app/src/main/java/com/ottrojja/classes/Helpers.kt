@@ -15,9 +15,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.ottrojja.BuildConfig
+import com.ottrojja.screens.reminderScreen.classes.RescheduleRemindersWorker
 import com.ottrojja.services.AzkarPlayerService
 import com.ottrojja.services.PagePlayerService
 import com.ottrojja.services.QuranPlayerService
@@ -169,6 +172,22 @@ object Helpers {
         "بلا توقف" to Integer.MAX_VALUE, //smart, right?!
     )
 
+    fun Context.appVersionName(): String? {
+        return try {
+            val pInfo = if (android.os.Build.VERSION.SDK_INT >= 33) {
+                packageManager.getPackageInfo(
+                    packageName,
+                    android.content.pm.PackageManager.PackageInfoFlags.of(0)
+                )
+            } else {
+                packageManager.getPackageInfo(packageName, 0)
+            }
+            pInfo.versionName
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     fun reportException(exception: Exception, file: String, details: String = "") {
         var supabase: SupabaseClient = SupabaseProvider.client;
@@ -230,6 +249,16 @@ object Helpers {
         )
 
         return DefaultMediaSourceFactory(defaultDataSourceFactory);
+    }
+
+    fun validateReminders(context: Context) {
+        // check and reschedule alarms
+
+        val work = OneTimeWorkRequestBuilder<RescheduleRemindersWorker>()
+            .build()
+
+        WorkManager.getInstance(context).enqueue(work)
+
     }
 
 }

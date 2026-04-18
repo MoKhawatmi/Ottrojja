@@ -1,17 +1,10 @@
 package com.ottrojja
 
 import android.Manifest
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.content.res.Configuration
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -34,39 +27,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.room.Room
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.BottomNavigation
 import com.ottrojja.composables.NavigationModalBottomSheet
-import com.ottrojja.room.database.MIGRATION_1_2
-import com.ottrojja.room.database.MIGRATION_2_3
-import com.ottrojja.room.database.MIGRATION_3_4
-import com.ottrojja.room.database.MIGRATION_4_5
-import com.ottrojja.room.database.MIGRATION_5_6
-import com.ottrojja.room.database.MIGRATION_6_7
-import com.ottrojja.room.database.MIGRATION_7_8
-import com.ottrojja.room.database.QuranDatabase
 import com.ottrojja.ui.theme.OttrojjaAppTheme
 import java.util.Locale
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.toColorInt
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import com.ottrojja.room.database.DatabaseProvider
 import com.ottrojja.room.repositories.ReminderRepository
-import com.ottrojja.services.OverlayService
 
 
 class MainActivity : ComponentActivity() {
@@ -115,6 +94,7 @@ class MainActivity : ComponentActivity() {
         val quranRepository = QuranRepository(db.quranDao(), db.khitmahDao(), db.tasabeehDao())
         val reminderRepository = ReminderRepository(db.reminderDao())
 
+        println("BuildConfig class: ${BuildConfig::class.java.name}")
         println("Version: ${BuildConfig.VERSION_NAME}")
 
         setContent {

@@ -16,6 +16,8 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.widget.TextView
 import androidx.core.animation.doOnEnd
 import androidx.core.app.NotificationCompat
@@ -43,7 +45,7 @@ class OverlayService : Service() {
         handler.post(object : Runnable {
             override fun run() {
                 showOverlayIfNeeded()
-                handler.postDelayed(this, 60_000*30) // test: 1 min
+                handler.postDelayed(this, 60_000 * 30) // 30_000 test: 1 min
             }
         })
     }
@@ -79,65 +81,53 @@ class OverlayService : Service() {
         overlayView = view
         windowManager.addView(view, params)
 
-        // 👉 Slide in animation
-        view.post {
-            val params = view.layoutParams as WindowManager.LayoutParams
+        view.alpha = 0f
 
-            val startX = -view.width
-            val endX = 20 // your margin
+        view.animate().cancel()
+        view.animate()
+            .alpha(1f)
+            .setDuration(250)
+            .setInterpolator(DecelerateInterpolator())
+            .start()
 
-            params.x = startX
-            windowManager.updateViewLayout(view, params)
-
-            val animator = ValueAnimator.ofInt(startX, endX)
-            animator.duration = 250
-
-            animator.addUpdateListener {
-                val value = it.animatedValue as Int
-                params.x = value
-                windowManager.updateViewLayout(view, params)
-            }
-
-            animator.start()
-        }
-        // 👉 Click to dismiss
         view.setOnClickListener {
             removeOverlay()
         }
 
-        // 👉 Auto dismiss after 10 sec
-        handler.postDelayed({
+        dismissRunnable = Runnable {
             removeOverlay()
-        }, 10_000)
+        }
+        handler.postDelayed(dismissRunnable!!, 5_000)
     }
+
+    private var dismissRunnable: Runnable? = null
+    private var isRemoving = false
 
     private fun removeOverlay() {
         val view = overlayView ?: return
+        if (isRemoving) return
+        isRemoving = true
 
-        val params = view.layoutParams as WindowManager.LayoutParams
+        dismissRunnable?.let { handler.removeCallbacks(it) }
 
-        val startX = params.x
-        val endX = -view.width // move completely off screen
+        view.animate().cancel()
 
-        val animator = ValueAnimator.ofInt(startX, endX)
+        view.animate()
+            .alpha(0f)
+            .setDuration(250)
+            .setInterpolator(AccelerateInterpolator())
+            .withEndAction {
+                try {
+                    windowManager.removeViewImmediate(view)
+                } catch (_: Exception) {
+                }
 
-        animator.duration = 350
-
-        animator.addUpdateListener {
-            val value = it.animatedValue as Int
-            params.x = value
-            windowManager.updateViewLayout(view, params)
-        }
-
-        animator.doOnEnd {
-            try {
-                windowManager.removeView(view)
-            } catch (_: Exception) {}
-            overlayView = null
-        }
-
-        animator.start()
+                overlayView = null
+                isRemoving = false
+            }
+            .start()
     }
+
     override fun onDestroy() {
         super.onDestroy()
 
@@ -161,16 +151,20 @@ class OverlayService : Service() {
                 channelId,
                 "Overlay Service",
                 NotificationManager.IMPORTANCE_LOW
-            )
+            ).apply {
+                setShowBadge(false)
+                lockscreenVisibility = Notification.VISIBILITY_SECRET
+            }
 
             getSystemService(NotificationManager::class.java)
                 .createNotificationChannel(channel)
         }
 
         return NotificationCompat.Builder(this, channelId)
-            .setContentTitle("Azkar running")
-            .setContentText("Floating reminders active")
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("خدمة اذكار الشاشة")
+            .setContentText("")
+            .setSmallIcon(R.drawable.logo)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
     }
 }
