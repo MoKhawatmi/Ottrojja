@@ -27,7 +27,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,6 +50,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.ExpandableItem
+import com.ottrojja.classes.Helpers.formatDateTime
 import com.ottrojja.classes.Helpers.formatMilitaryTime
 import com.ottrojja.classes.Helpers.truncate
 import com.ottrojja.composables.CircleStatusIndicator
@@ -61,6 +64,7 @@ import com.ottrojja.composables.ottrojjaFlexibleActions.OttrojjaFlexibleActions
 import com.ottrojja.composables.overlayPermissionHandler.OverlayPermissionHandler
 import com.ottrojja.room.entities.Reminder
 import com.ottrojja.room.repositories.ReminderRepository
+import com.ottrojja.screens.reminderScreen.dialogs.FloatingAzkarDialog
 import com.ottrojja.screens.reminderScreen.dialogs.ReminderFormDialog
 import com.ottrojja.screens.reminderScreen.dialogs.SelectReminderTypeDialog
 import com.ottrojja.ui.theme.complete_green
@@ -88,6 +92,7 @@ fun ReminderScreen(repository: ReminderRepository) {
 
     var notificationPermissionState by remember { mutableStateOf(true) }
     var exactAlarmPermissionState by remember { mutableStateOf(true) }
+    var floatingAzkarDialog by remember { mutableStateOf(false) }
     val reminders by reminderVM.reminders.collectAsState(initial = emptyList())
     val overlayPermissionHandler by reminderVM.overlayPermissionHandler.collectAsState(false)
     val floatingAzkarEnabled by reminderVM.enabledFloatingAzakar.collectAsState(false)
@@ -169,6 +174,11 @@ fun ReminderScreen(repository: ReminderRepository) {
         )
     }
 
+    if (floatingAzkarDialog) {
+        FloatingAzkarDialog(onDismiss = { floatingAzkarDialog = false })
+    }
+
+
     Column(modifier = Modifier
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.tertiary)
@@ -184,14 +194,12 @@ fun ReminderScreen(repository: ReminderRepository) {
             OttrojjaWarningBar(text = "الرجاء السماح بالاشعارات الدقيقة في اعدادات التطبيق لعرض اشعارات المذكر بشكل دقيق")
         }
 
-
         LazyColumn {
             item {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.background)
-                        .clickable {}
                         .padding(12.dp, 2.dp)
                 ) {
                     Row(modifier = Modifier
@@ -200,11 +208,23 @@ fun ReminderScreen(repository: ReminderRepository) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "أذكار الشاشة",
-                                color = Color.Black
-                            )
+                        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                            Column {
+                                Text(
+                                    text = "أذكار الشاشة",
+                                    color = Color.Black
+                                )
+                            }
+                            Column {
+                                Icon(
+                                    imageVector = Icons.Outlined.Info,
+                                    contentDescription = "Floating Azkar info",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.clickable(onClick = {
+                                        floatingAzkarDialog = true;
+                                    })
+                                )
+                            }
                         }
                         Column {
                             SwitchWithIcon(
@@ -215,6 +235,7 @@ fun ReminderScreen(repository: ReminderRepository) {
                         }
                     }
                 }
+                ListHorizontalDivider()
             }
             items(reminders) { item ->
                 ReminderItem(
@@ -223,7 +244,7 @@ fun ReminderScreen(repository: ReminderRepository) {
                     toggleEnabled = { id -> reminderVM.toggleReminderEnabled(id) },
                     invokeEditDialog = { reminder -> reminderVM.invokeEditDialog(reminder) },
                     deleteReminder = { reminder -> confirmDeleteReminder(reminder) },
-                    getNextTriggerTime = { reminder -> reminderVM.getNextTriggerTime(reminder) }
+                    getNextTriggerTime = { reminder -> formatDateTime(reminder.nextTrigger) }
                 )
                 ListHorizontalDivider()
             }

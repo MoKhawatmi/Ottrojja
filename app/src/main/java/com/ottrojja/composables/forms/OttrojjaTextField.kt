@@ -1,5 +1,6 @@
 package com.ottrojja.composables.forms
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,9 +38,9 @@ fun OttrojjaTextField(value: String?,
                 onChange(newValue)
             },
             label = {
-                Text(label,
+                if (disabled && value?.isNotBlank()==true) null else Text(label,
                     modifier = Modifier
-                        .background(backgroundColor, shape = RoundedCornerShape(4.dp))
+                        .background(color = Color.Transparent, shape = RoundedCornerShape(4.dp))
                         .padding(horizontal = 2.dp, vertical = 1.dp),
                     color = contentColor
                 )

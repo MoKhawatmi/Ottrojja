@@ -3,6 +3,7 @@ package com.ottrojja.broadcaseReceivers
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
@@ -19,9 +20,17 @@ class ReminderReceiver : BroadcastReceiver() {
             .setInputData(workDataOf("REMINDER_ID" to id))
             .build()
 
-        WorkManager.getInstance(context).enqueue(work)
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "reminder_$id",
+            ExistingWorkPolicy.REPLACE,
+            work
+        )
     }
-    /*
+
+}
+
+
+/*
             println("received notification")
 
             val id = intent.getIntExtra("REMINDER_ID", -1)
@@ -63,5 +72,3 @@ class ReminderReceiver : BroadcastReceiver() {
                 }
             }
         }*/
-}
-

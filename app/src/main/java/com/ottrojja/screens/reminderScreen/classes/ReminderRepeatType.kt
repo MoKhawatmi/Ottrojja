@@ -1,7 +1,6 @@
 package com.ottrojja.screens.reminderScreen.classes
 
 enum class ReminderRepeatType(val displayName: String) {
-    ONCE("بلا تكرار"),
     DAILY("يومي"),
     WEEKLY("اسبوعي"),
     DAYS_2("كل يومين"),

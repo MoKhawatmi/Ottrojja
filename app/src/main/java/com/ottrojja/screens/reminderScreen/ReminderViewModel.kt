@@ -1,8 +1,8 @@
 package com.ottrojja.screens.reminderScreen
 
 import android.app.Application
-import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
@@ -10,14 +10,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
 import com.ottrojja.classes.DataStore.DataStoreRepository
 import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.FormValidationResult
 import com.ottrojja.classes.Helpers.formatDateTime
-import com.ottrojja.classes.Helpers.formatTime
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.ModalFormMode
 import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
@@ -31,7 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.TimeUnit
+
 
 class ReminderViewModel(private val repository: ReminderRepository, application: Application) :
     AndroidViewModel(application) {
@@ -72,7 +68,7 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
         }
 
 
-    val baseReminder = Reminder(title = "", customMessage = "", hour = 12, minute = 0, repeatType = ReminderRepeatType.ONCE)
+    val baseReminder = Reminder(title = "", customMessage = "", hour = 12, minute = 0, repeatType = ReminderRepeatType.DAILY, nextTrigger = 0L)
     private val _reminderInWorks = mutableStateOf(baseReminder)
     var reminderInWorks: Reminder
         get() = _reminderInWorks.value
@@ -162,18 +158,19 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
     fun upsertReminder() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                val initialTrigger = scheduler.calculateInitialTrigger(_reminderInWorks.value)
+                _reminderInWorks.value.nextTrigger = initialTrigger;
                 val result = repository.upsertReminder(_reminderInWorks.value)
                 val reminderId =
                     if (_dialogMode.value == ModalFormMode.EDIT) _reminderInWorks.value.id else result
                 val newlyUpsertedReminder = repository.getById(reminderId.toInt())
-                    ?: throw Exception("fetching of newlyUpsertedReminder return null")
+                    ?: throw Exception("fetching of newlyUpsertedReminder returned null")
                 withContext(Dispatchers.Main) {
                     val toastMsg = if (_dialogMode.value == ModalFormMode.EDIT) "تم التعديل بنجاح" else "تمت الاضافة بنجاح";
                     Toast.makeText(context, toastMsg, Toast.LENGTH_SHORT).show()
                     scheduler.scheduleReminder(newlyUpsertedReminder)
                     dismissReminderForm()
                 }
-
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(e, "ReminderViewModel", "error upserting reminder")
@@ -217,8 +214,12 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
             minute = 0,
             repeatType = ReminderRepeatType.DAILY,
             isEnabled = true,
-            isMain = true
+            isMain = true,
+            nextTrigger = 0L
         )
+
+        val initialTrigger = scheduler.calculateInitialTrigger(mainReminder)
+        mainReminder.nextTrigger = initialTrigger
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -227,13 +228,6 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
                 reportException(e, "ReminderViewModel", "Error inserting/checking main reminder")
             }
         }
-    }
-
-    fun getNextTriggerTime(reminder: Reminder): String {
-        if (reminder.repeatType == ReminderRepeatType.ONCE) {
-            return "-";
-        }
-        return formatDateTime(scheduler.calculateNextTrigger(reminder))
     }
 
     fun dismissReminderForm() {
@@ -275,7 +269,11 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
 
     fun activateFloatingAzkarService() {
         val intent = Intent(context, OverlayService::class.java)
-        context.startForegroundService(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent)
+        } else {
+            context.startService(intent)
+        }
     }
 
     fun stopFloatingAzkarService() {
@@ -301,7 +299,6 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
             stopFloatingAzkarService()
         }
     }
-
 }
 
 

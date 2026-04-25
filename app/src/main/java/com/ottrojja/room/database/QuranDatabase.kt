@@ -54,7 +54,7 @@ val MIGRATION_8_9 = object : Migration(8, 9) {
                 minute INTEGER NOT NULL,
                 repeatType TEXT NOT NULL,
                 isEnabled INTEGER NOT NULL,
-                lastTrigger INTEGER NOT NULL,
+                nextTrigger INTEGER NOT NULL,
                 isMain INTEGER NOT NULL
             )
         """.trimIndent())

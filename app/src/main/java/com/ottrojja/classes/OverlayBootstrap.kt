@@ -2,6 +2,7 @@ package com.ottrojja.classes
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
 import com.ottrojja.classes.DataStore.DataStoreRepository
 import com.ottrojja.services.OverlayService
@@ -28,7 +29,11 @@ object OverlayBootstrap {
 
     private fun startOverlay(context: Context) {
         val intent = Intent(context, OverlayService::class.java)
-        context.startForegroundService(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent)
+        } else {
+            context.startService(intent)
+        }
     }
 
 }

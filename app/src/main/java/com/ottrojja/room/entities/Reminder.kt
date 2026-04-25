@@ -14,6 +14,6 @@ data class Reminder(
     val minute: Int,
     val repeatType: ReminderRepeatType,
     val isEnabled: Boolean = true,
-    val lastTrigger: Long = System.currentTimeMillis(),
+    var nextTrigger: Long,
     val isMain: Boolean = false
 )

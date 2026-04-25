@@ -29,27 +29,28 @@ class ReminderWorker(
 
             if (!reminder.isEnabled) return Result.success()
 
+            val (shouldFireNow, nextTrigger) = scheduler.resolveNextTrigger(reminder)
+
+
             val message = if (reminder.isMain || reminder.customMessage?.isBlank() == true) {
                 DynamicMessageProvider.getMessage()
             } else reminder.customMessage
 
-            showReminderNotification(
-                applicationContext,
-                reminder.id,
-                reminder.title,
-                message ?: ""
-            )
-
-            repository.updateReminder(
-                reminder.copy(lastTrigger = System.currentTimeMillis())
-            )
-
-            if (reminder.repeatType != ReminderRepeatType.ONCE) {
-                scheduler.scheduleReminder(reminder)
-            } else {
-                repository.updateReminder(
-                    reminder.copy(isEnabled = false)
+            if (shouldFireNow) {
+                showReminderNotification(
+                    applicationContext,
+                    reminder.id,
+                    reminder.title,
+                    message ?: ""
                 )
+            }
+
+            if (nextTrigger == -1L) {
+                repository.updateReminder(reminder.copy(isEnabled = false))
+            } else {
+                val updatedReminder = reminder.copy(nextTrigger = nextTrigger)
+                repository.updateReminder(updatedReminder)
+                scheduler.scheduleReminder(updatedReminder)
             }
 
             Result.success()
