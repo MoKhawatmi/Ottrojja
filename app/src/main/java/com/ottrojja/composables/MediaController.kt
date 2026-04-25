@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -90,10 +88,10 @@ fun MediaController(
                     }
                 }
                 if (isDownloading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.width(32.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    OttrojjaLoadingIndicator(
+                        size = 32.dp,
+                        indicatorColor = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 } else if (isPlaying) {
                     Image(painter = painterResource(R.drawable.playing),

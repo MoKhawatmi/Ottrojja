@@ -8,15 +8,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.classes.Helpers.copyToClipboard
+import com.ottrojja.composables.OttrojjaLoadingIndicator
 import com.ottrojja.composables.TopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,9 +81,9 @@ fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
                                 .fillMaxWidth()
                                 .padding(vertical = 12.dp)
                         ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.width(34.dp),
-                                color = MaterialTheme.colorScheme.primary,
+                            OttrojjaLoadingIndicator(
+                                size = 34.dp,
+                                indicatorColor = MaterialTheme.colorScheme.primary,
                                 trackColor = MaterialTheme.colorScheme.onPrimary,
                                 strokeWidth = 4.dp
                             )

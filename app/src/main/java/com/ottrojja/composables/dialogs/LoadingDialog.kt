@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.ottrojja.composables.OttrojjaLoadingIndicator
 
 @Composable
 fun LoadingDialog() {
@@ -34,7 +33,6 @@ fun LoadingDialog() {
                     .padding(8.dp)
                     .fillMaxWidth(0.8f)
                     .fillMaxHeight(0.2f)
-                    //.background(MaterialTheme.colorScheme.secondary)
                     .padding(8.dp)
                     .clip(shape = RoundedCornerShape(12.dp))
             ) {
@@ -44,14 +42,12 @@ fun LoadingDialog() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.width(52.dp),
-                        color = MaterialTheme.colorScheme.onSecondary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    OttrojjaLoadingIndicator(
+                        size = 52.dp,
+                        indicatorColor = MaterialTheme.colorScheme.onSecondary,
                         strokeWidth = 6.dp
                     )
                 }
-
             }
         }
     }
