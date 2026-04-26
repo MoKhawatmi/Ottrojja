@@ -110,7 +110,7 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-location:21.3.0")
 
-    implementation("sh.calvin.reorderable:reorderable:3.0.0")
+    implementation("sh.calvin.reorderable:reorderable:3.1.0")
 
     implementation("androidx.work:work-runtime-ktx:2.11.2")
 

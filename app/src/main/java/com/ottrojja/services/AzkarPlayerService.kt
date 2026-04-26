@@ -272,6 +272,9 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
                         _destroyed.value = true;
                         stopForeground(true)
                         stopSelf()
+                        if (::notificationManager.isInitialized) {
+                            notificationManager.cancel(200)
+                        }
                     }
 
                     Actions.NOTI_PLAY.toString() -> {
@@ -320,7 +323,7 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
             .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
 
-        startForeground(1, notification);
+        startForeground(200, notification);
     }
 
     fun updateNotification() {
@@ -339,7 +342,7 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
         println("noti manager ${::notificationManager.isInitialized}")
 
         if (::notificationManager.isInitialized) {
-            notificationManager.notify(1, notification)
+            notificationManager.notify(200, notification)
         }
     }
 

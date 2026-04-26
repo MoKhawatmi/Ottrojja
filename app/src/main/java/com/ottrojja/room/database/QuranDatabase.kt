@@ -45,6 +45,8 @@ abstract class QuranDatabase : RoomDatabase() {
 
 val MIGRATION_8_9 = object : Migration(8, 9) {
     override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE IF EXISTS Reminder")
+
         database.execSQL("""
             CREATE TABLE IF NOT EXISTS Reminder (
                 id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,

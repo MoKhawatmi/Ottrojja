@@ -454,6 +454,9 @@ class PagePlayerService : Service(), PageServiceInterface {
                         _destroyed.value = true;
                         stopForeground(true)
                         stopSelf()
+                        if (::notificationManager.isInitialized) {
+                            notificationManager.cancel(300)
+                        }
                     }
 
                     Actions.NOTI_PLAY.toString() -> {
@@ -506,7 +509,7 @@ class PagePlayerService : Service(), PageServiceInterface {
             .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
 
-        startForeground(1, notification);
+        startForeground(300, notification);
     }
 
     fun updateNotification() {
@@ -529,7 +532,7 @@ class PagePlayerService : Service(), PageServiceInterface {
             .build()
 
         if (::notificationManager.isInitialized) {
-            notificationManager.notify(1, notification)
+            notificationManager.notify(300, notification)
         }
     }
 

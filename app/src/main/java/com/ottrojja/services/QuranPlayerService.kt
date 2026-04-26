@@ -380,6 +380,9 @@ class QuranPlayerService : Service(), QuranServiceInterface {
                         serviceScope.cancel()
                         stopForeground(true)
                         stopSelf()
+                        if (::notificationManager.isInitialized) {
+                            notificationManager.cancel(100)
+                        }
                     }
 
                     Actions.NOTI_PLAY.toString() -> {
@@ -429,7 +432,7 @@ class QuranPlayerService : Service(), QuranServiceInterface {
             .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
 
-        startForeground(1, notification);
+        startForeground(100, notification);
     }
 
     fun updateNotification() {
@@ -448,7 +451,7 @@ class QuranPlayerService : Service(), QuranServiceInterface {
         println("noti manager ${::notificationManager.isInitialized}")
 
         if (::notificationManager.isInitialized) {
-            notificationManager.notify(1, notification)
+            notificationManager.notify(100, notification)
         }
     }
 

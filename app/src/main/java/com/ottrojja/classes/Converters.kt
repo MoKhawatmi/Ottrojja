@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.QuranPage
+import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
 import kotlinx.serialization.json.Json
 
 class Converters {
@@ -30,6 +31,14 @@ class Converters {
     fun fromArray(array: Array<String>): String {
         return Gson().toJson(array)
     }
+
+    @TypeConverter
+    fun fromRepeatType(value: ReminderRepeatType): String = value.name
+
+    @TypeConverter
+    fun toRepeatType(value: String): ReminderRepeatType =
+        ReminderRepeatType.valueOf(value)
+
 
 
 }
