@@ -74,53 +74,6 @@ object FileDownloader {
 
                 state
             }
-
-        /*suspend fun download(
-            context: Context,
-            request: Request,
-            destinationFile: File
-        ): DownloadResult {
-
-            Log.d("File Downloader","Downloading...")
-            Log.d("File Downloader","extension ${destinationFile.extension}")
-
-            return withContext(Dispatchers.IO) {
-                val tempFile = File.createTempFile("temp_", destinationFile.extension,
-                    context.getExternalFilesDir(null)
-                )
-
-                try {
-                    ottrojjaClient.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) throw IOException("Unexpected code $response")
-                        if (response.body == null) throw IOException("Empty response body")
-
-                        response.body.let { responseBody ->
-                            FileOutputStream(tempFile).use { outputStream ->
-                                responseBody.byteStream().use { inputStream ->
-                                    inputStream.copyTo(outputStream, bufferSize = 8 * 1024)
-                                }
-                            }
-                        }
-
-                        if (!tempFile.exists() || tempFile.length() == 0L) {
-                            throw IOException("Temp file was not created or is empty")
-                        }
-                        tempFile.copyTo(destinationFile, overwrite = true)
-                    }
-                    Log.d("File Downloader","download success")
-                    DownloadResult.Success(destinationFile)
-                } catch (e: Exception) {
-                    Log.d("File Downloader","error in download")
-                    destinationFile.delete()
-                    DownloadResult.Failure(e)
-                } finally {
-                    Log.d("File Downloader","end downloading process")
-                    if (tempFile.exists()) {
-                        tempFile.delete()
-                    }
-                }
-            }
-        }*/
     }
 }
 

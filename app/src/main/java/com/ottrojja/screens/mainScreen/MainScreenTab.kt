@@ -4,7 +4,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,14 +26,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun MainScreenTab(title: String,
+fun RowScope.MainScreenTab(title: String,
                   imageId: Int,
                   startColor: Color,
                   endColor: Color,
                   onClick: () -> Unit) {
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+
+    Column(
         modifier = Modifier
             .padding(12.dp, 18.dp)
             .clip(RoundedCornerShape(16))
@@ -42,24 +44,26 @@ fun MainScreenTab(title: String,
                     )
                 )
             )
-            .fillMaxWidth()
+            .weight(1f)
             .clickable {
                 onClick()
             }
-            .padding(12.dp)
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.White
-        );
+            .padding(12.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally) {
         Image(
             painter = painterResource(id = imageId),
             contentDescription = "",
-            /*contentScale = ContentScale.Crop,*/
             modifier = Modifier
                 .size(60.dp)
-                /*.clip(CircleShape)*/
         )
+
+        Spacer(modifier = Modifier.size(12.dp))
+
+        Text(
+            text = title,
+            style = MaterialTheme.typography.displayLarge,
+            color = Color.White
+        );
     }
 }

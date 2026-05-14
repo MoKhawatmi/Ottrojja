@@ -8,6 +8,7 @@ import com.ottrojja.classes.FileDownloadWorker.KEY_RELATIVE_PATH
 import com.ottrojja.classes.FileDownloadWorker.KEY_STORAGE_BASE
 import com.ottrojja.classes.FileDownloadWorker.KEY_URL
 import com.ottrojja.classes.FileDownloadWorker.MAX_RETRIES
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import okhttp3.Request
 import okhttp3.internal.platform.PlatformRegistry.applicationContext
@@ -107,6 +108,7 @@ class DownloadWorker(
             )
 
         } catch (e: Exception) {
+            reportException(e, "DownloadWorker")
             retryOrFail()
         } finally {
             tempFile.delete()

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -66,9 +67,12 @@ import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
+import com.ottrojja.composables.OttrojjaPrimaryTextDisplay
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
+import com.ottrojja.composables.ZikrDisplay
+import com.ottrojja.composables.adviceDisplay.AdviceDisplay
 import com.ottrojja.composables.exactAlarmsPermissionHandler.ExactAlarmsPermissionHandler
 import com.ottrojja.composables.overlayPermissionHandler.OverlayPermissionHandler
 import com.ottrojja.screens.mainScreen.classes.PermissionStep
@@ -169,45 +173,11 @@ fun MainScreen(
                     }
                 }
 
-                /*Row(modifier = Modifier
-                    .padding(top = 4.dp)
-                    .fillMaxWidth(0.9f)
-                    .background(Helpers.ottrojjaBrush, shape = RoundedCornerShape(12.dp))
-                    .clip(RoundedCornerShape(12))
-                    .padding(vertical = 20.dp, horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "نصيحة او توجيه",
-                        style = MaterialTheme.typography.displayLarge,
-                        textAlign = TextAlign.Center,
-                        color = Color.White
-                    )
-                }
-
-                Row(modifier = Modifier
-                    .padding(top = 4.dp)
-                    .fillMaxWidth(0.9f)
-                    .background(Helpers.ottrojjaBrush, shape = RoundedCornerShape(12.dp))
-                    .clip(RoundedCornerShape(12))
-                    .padding(vertical = 20.dp, horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "دعاء او ذكر",
-                        style = MaterialTheme.typography.displayLarge,
-                        textAlign = TextAlign.Center,
-                        color = Color.White
-                    )
-                }*/
-
                 Column(
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .padding(12.dp)
+                        .padding(top = 0.dp, start = 6.dp, end = 6.dp, bottom = 12.dp)
                         .background(MaterialTheme.colorScheme.background)
                         .verticalScroll(imageListscrollState)
                 ) {
@@ -216,7 +186,7 @@ fun MainScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier
-                                .padding(12.dp, 8.dp)
+                                .padding(12.dp, top = 22.dp, bottom=8.dp, end = 12.dp)
                                 .fillMaxWidth()
                                 .background(Color.Transparent)
                                 .border(
@@ -244,45 +214,54 @@ fun MainScreen(
                         }
                     }
 
-                    MainScreenTab(title = "صفحات القرآن", imageId = R.drawable.q_image1,
-                        startColor = Color.Red, endColor = Color(0xDD660000),
-                        onClick = {
-                            mainViewModel.searchFilter = "";
-                            mainViewModel.selectedSection = BrowsingOption.الصفحات;
-                            mainViewModel.showImageList = false;
-                        })
-                    MainScreenTab(title = "سور القرآن", imageId = R.drawable.q_image2,
-                        startColor = Color.Green, endColor = Color(0xDD006600),
-                        onClick = {
-                            mainViewModel.searchFilter = "";
-                            mainViewModel.selectedSection = BrowsingOption.السور;
-                            mainViewModel.showImageList = false;
-                        })
-                    MainScreenTab(title = "اجزاء القرآن", imageId = R.drawable.q_image3,
-                        startColor = Color.Blue, endColor = Color(0xDD000066),
-                        onClick = {
-                            mainViewModel.searchFilter = "";
-                            mainViewModel.selectedSection = BrowsingOption.الاجزاء;
-                            mainViewModel.showImageList = false;
-                        })
-                    MainScreenTab(title = "البحث", imageId = R.drawable.q_image4,
-                        startColor = Color(0xFFD0B968), endColor = Color(0xFFA86809),
-                        onClick = {
-                            mainViewModel.searchFilter = "";
-                            mainViewModel.selectedSection = BrowsingOption.البحث;
-                            mainViewModel.invokeLatestSearchOperation();
-                            mainViewModel.showImageList = false;
-                        })
-                    Row(modifier = Modifier.height(25.dp)) {}
+                    Row {
+                        MainScreenTab(title = "صفحات القرآن", imageId = R.drawable.q_image1,
+                            startColor = Color.Red, endColor = Color(0xDD660000),
+                            onClick = {
+                                mainViewModel.searchFilter = "";
+                                mainViewModel.selectedSection = BrowsingOption.الصفحات;
+                                mainViewModel.showImageList = false;
+                            })
+                        MainScreenTab(title = "سور القرآن", imageId = R.drawable.q_image2,
+                            startColor = Color.Green, endColor = Color(0xDD006600),
+                            onClick = {
+                                mainViewModel.searchFilter = "";
+                                mainViewModel.selectedSection = BrowsingOption.السور;
+                                mainViewModel.showImageList = false;
+                            })
+
+                    }
+                    Row{
+                        MainScreenTab(title = "اجزاء القرآن", imageId = R.drawable.q_image3,
+                            startColor = Color.Blue, endColor = Color(0xDD000066),
+                            onClick = {
+                                mainViewModel.searchFilter = "";
+                                mainViewModel.selectedSection = BrowsingOption.الاجزاء;
+                                mainViewModel.showImageList = false;
+                            })
+                        MainScreenTab(title = "البحث", imageId = R.drawable.q_image4,
+                            startColor = Color(0xFFD0B968), endColor = Color(0xFFA86809),
+                            onClick = {
+                                mainViewModel.searchFilter = "";
+                                mainViewModel.selectedSection = BrowsingOption.البحث;
+                                mainViewModel.invokeLatestSearchOperation();
+                                mainViewModel.showImageList = false;
+                            })
+
+                    }
+
+                    AdviceDisplay()
+                    ZikrDisplay()
+
+                    Spacer(modifier = Modifier.height(25.dp))
                 }
 
             }
 
             Box(
                 modifier = Modifier
-                    .padding(horizontal = 24.dp)
                     .fillMaxWidth()
-                    .height(52.dp)
+                    .height(70.dp)
                     .align(Alignment.BottomCenter)
             ) {
                 AnimatedVisibility(visible = showBottomFade.value,

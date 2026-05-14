@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,6 +16,10 @@ import androidx.compose.material3.TimeInput
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -30,11 +35,14 @@ fun OttrojjaTimePickerDialog(
     onConfirm: (Int, Int) -> Unit,
 ) {
 
-    val timePickerState = rememberTimePickerState(
+    /*val timePickerState = rememberTimePickerState(
         initialHour = hour,
         initialMinute = minute,
         is24Hour = true,
-    )
+    )*/
+
+    var selectedHour by remember { mutableStateOf(hour) }
+    var selectedMinute by remember { mutableStateOf(minute) }
 
     OttrojjaDialog(onDismissRequest = { onDismiss() }) {
         Column(modifier = Modifier
@@ -48,15 +56,35 @@ fun OttrojjaTimePickerDialog(
                     horizontalArrangement = Arrangement.Start
                 ) {
                     Text(
-                        text = "الوقت بنظام 24 ساعة",
+                        text = "توقيت المذكر",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
                 }
-                Row(modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    TimeInputPart(
+                        range = 0..59,
+                        startNumber = selectedMinute,
+                        onValueChange = { selectedMinute = it },
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Column(modifier = Modifier.padding(horizontal = 10.dp)) {
+                        Text(":", color = MaterialTheme.colorScheme.onSecondary)
+                    }
+
+                    TimeInputPart(
+                        range = 0..23,
+                        startNumber = selectedHour,
+                        onValueChange = { selectedHour = it },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+
+
+                /*{
                     TimeInput(
                         state = timePickerState,
                         colors = TimePickerDefaults.colors(
@@ -67,11 +95,11 @@ fun OttrojjaTimePickerDialog(
                             timeSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSecondary,
                         )
                     )
-                }
+                }*/
             }
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                OttrojjaButton(text = "تأكيد", onClick = { onConfirm(timePickerState.hour, timePickerState.minute); onDismiss() })
+                OttrojjaButton(text = "تأكيد", onClick = { onConfirm(selectedHour, selectedMinute); onDismiss() })
                 Spacer(modifier = Modifier.size(8.dp))
                 OttrojjaButton(text = "الغاء", onClick = { onDismiss() })
             }

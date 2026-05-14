@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -50,10 +51,7 @@
         <service android:name=".services.AzkarPlayerService" android:foregroundServiceType="mediaPlayback" android:exported="false"/>
         <service android:name=".services.PagePlayerService" android:foregroundServiceType="mediaPlayback" android:exported="false"/>
         <service android:name=".services.QuranPlayerService" android:foregroundServiceType="mediaPlayback" android:exported="false"/>
-        <service
-            android:name=".services.OverlayService"
-            android:foregroundServiceType="mediaPlayback"
-            android:exported="false" />
+        <service android:name=".services.OverlayService" android:foregroundServiceType="specialUse" android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

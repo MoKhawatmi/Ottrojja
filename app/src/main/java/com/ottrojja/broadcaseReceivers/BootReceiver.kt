@@ -22,17 +22,4 @@ class BootReceiver : BroadcastReceiver() {
             validateReminders(context)
         }
     }
-    /* if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-
-         val db = DatabaseProvider.getDatabase(context)
-         val repository = ReminderRepository(db.reminderDao())
-         val scheduler = ReminderScheduler(context)
-         CoroutineScope(Dispatchers.IO).launch {
-             val reminders = repository.getEnabledReminders()
-
-             reminders.forEach {
-                 scheduler.scheduleReminder(it)
-             }
-         }
-     }*/
 }

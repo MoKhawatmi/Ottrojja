@@ -16,6 +16,7 @@ import com.ottrojja.room.entities.QuranPage
 import okhttp3.Request
 import java.io.File
 
+
 class SyncQuranFile(
     private val context: Context,
     private val repository: QuranRepository,
@@ -42,6 +43,8 @@ class SyncQuranFile(
             loadFromFilesDir()
             return
         }
+        println("online time stamp $remoteTimestamp")
+        println("our time stamp $storedFileTimestamp")
         if (remoteTimestamp > storedFileTimestamp) {
             downloadAndLoad(remoteTimestamp)
         } else {
@@ -53,6 +56,7 @@ class SyncQuranFile(
 
     /** Returns null on any network/parse failure. */
     private fun fetchRemoteTimestamp(): Long? {
+        Log.d("QuranSync", "Fetching quran file meta")
         val request = Request.Builder().url(QURAN_FILE_URL).head().build()
         return try {
             val response = ottrojjaClient.newCall(request).execute()
@@ -69,6 +73,7 @@ class SyncQuranFile(
     }
 
     private suspend fun downloadAndLoad(remoteTimestamp: Long) {
+        Log.d("QuranSync", "Fetching quran file and loading it")
         when (val result = FileDownloader.downloadOnce(
             context = context,
             url = QURAN_FILE_URL,
@@ -76,10 +81,12 @@ class SyncQuranFile(
             storageBase = StorageBase.FILES_DIR
         )) {
             is DownloadState.Success -> {
+                Log.d("QuranSync", "Fetching quran file Success")
                 prefs.edit().putLong("quranFileCreateTime", remoteTimestamp).apply()
                 loadFromFile(result.file, isUpdate = true)
             }
             is DownloadState.Failure -> {
+                Log.d("QuranSync", "Fetching quran file Failure")
                 reportException(exception = result.error, file = "QuranFileSyncUseCase",
                     details = "Download failure")
                 loadFromFilesDir() // graceful fallback
@@ -92,6 +99,7 @@ class SyncQuranFile(
      * Load from files dir if the file exists, otherwise fall back to assets.
      */
     private suspend fun loadFromFilesDir() {
+        Log.d("QuranSync", "Loading Quran File from filesDir")
         if (quranFile.exists()) {
             loadFromFile(quranFile, isUpdate = false)
         } else {
@@ -113,6 +121,7 @@ class SyncQuranFile(
     }
 
     private suspend fun loadFromAssets() {
+        Log.d("QuranSync", "Loading Quran File from assets")
         try {
             val pages = jsonParser.parseJsonArrayFile<QuranPage>("quran.json")
             if (pages.isNullOrEmpty()) throw Exception("Asset quran.json is empty")

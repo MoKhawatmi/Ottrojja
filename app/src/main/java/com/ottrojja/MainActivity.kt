@@ -94,7 +94,6 @@ class MainActivity : ComponentActivity() {
         val quranRepository = QuranRepository(db.quranDao(), db.khitmahDao(), db.tasabeehDao())
         val reminderRepository = ReminderRepository(db.reminderDao())
 
-        println("BuildConfig class: ${BuildConfig::class.java.name}")
         println("Version: ${BuildConfig.VERSION_NAME}")
 
         setContent {
