@@ -82,7 +82,7 @@ fun ExpandedDockContent(
             )
         }
 
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp, vertical = 10.dp), color = MaterialTheme.colorScheme.outlineVariant)
+        DockHorizontalDivider()
 
         Row(modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -126,7 +126,7 @@ fun ExpandedDockContent(
             )
         }
 
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp, vertical = 10.dp), color = MaterialTheme.colorScheme.outlineVariant)
+        DockHorizontalDivider()
 
         Row(modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
@@ -161,4 +161,9 @@ fun DockVerticalDivider() {
             end = Offset(thickness.toPx() / 2, size.height),
         )
     }
+}
+
+@Composable
+fun DockHorizontalDivider(){
+    HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp, vertical = 10.dp), color = MaterialTheme.colorScheme.outlineVariant)
 }
