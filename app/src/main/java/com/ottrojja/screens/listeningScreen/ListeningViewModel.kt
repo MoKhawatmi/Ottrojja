@@ -28,7 +28,7 @@ import com.ottrojja.classes.QuranListeningMode
 import com.ottrojja.classes.QuranPlayingParameters
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.StorageBase
-import com.ottrojja.screens.mainScreen.ChapterData
+import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.services.QuranPlayerService
 import com.ottrojja.services.QuranServiceInterface
 import kotlinx.coroutines.CompletableDeferred

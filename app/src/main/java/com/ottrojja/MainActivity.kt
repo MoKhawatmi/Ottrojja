@@ -13,10 +13,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -33,17 +31,16 @@ import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
-import com.ottrojja.composables.BottomNavigation
-import com.ottrojja.composables.NavigationModalBottomSheet
 import com.ottrojja.ui.theme.OttrojjaAppTheme
 import java.util.Locale
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
+import com.ottrojja.composables.floatingNavigationDock.FloatingNavigationDock
 import com.ottrojja.room.database.DatabaseProvider
 import com.ottrojja.room.repositories.ReminderRepository
 
@@ -99,6 +96,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             var showNavPopUp by remember { mutableStateOf(false) }
 
+            var dockExpanded by rememberSaveable { mutableStateOf(false) }
+
+            // IMPORTANT: this is your ONLY bottom padding source
+            val dockHeightCollapsed = 78.dp
+
+
             OttrojjaAppTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -108,44 +111,49 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     val currentBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentRoute = currentBackStackEntry?.destination?.route
-                    // show bottom bar navigation only in these routes
+                    /*// show bottom bar navigation only in these routes
                     val bottomBarRoutes = listOf(Screen.MainScreen.route, Screen.AzkarMain.route,
                         Screen.TeacherScreen.route, Screen.ListeningScreen.route,
                         Screen.TasbeehScreen.route, Screen.BookmarksScreen.route,
                         Screen.KhitmahListScreen.route, Screen.SettingsScreen.route,
                         Screen.BlessingsScreen.route, Screen.QiblaScreen.route,
                         Screen.ReminderScreen.route
-                    )
-                    Scaffold(
-                        contentWindowInsets = WindowInsets.safeDrawing,
-                        bottomBar = {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .animateContentSize()
-                                    .windowInsetsPadding(WindowInsets.navigationBars)
-                            ) {
-                                if (currentRoute in bottomBarRoutes) {
-                                    BottomNavigation(navController,
-                                        onMoreClick = { showNavPopUp = true })
-                                }
-                            }
-                        }
-                    ) { innerPadding ->
-                        NavGraph(navController = navController,
-                            repository = quranRepository,
-                            reminderRepository = reminderRepository,
-                            modifier = Modifier.padding(innerPadding)
+                    )*/
+                    val currentScreen = Screen.allScreens.find {
+                        Helpers.routesMatch(
+                            currentRoute = currentRoute,
+                            screenRoute = it.route
                         )
                     }
+                    Scaffold(
+                        contentWindowInsets = WindowInsets.safeDrawing
+                    ) { innerPadding ->
 
-                    if (showNavPopUp == true) {
-                        NavigationModalBottomSheet(navController = navController,
-                            onDismissRequest = { showNavPopUp = false },
-                            onItemClick = { route ->
-                                navController.navigate(route);
-                                showNavPopUp = false;
-                            })
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding) // keeps system insets
+                        ) {
+
+                            // 1. NAV GRAPH (NO extra padding inside screens anymore)
+                            NavGraph(
+                                navController = navController,
+                                repository = quranRepository,
+                                reminderRepository = reminderRepository,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(bottom = if (currentScreen?.showsBottomBar == true) dockHeightCollapsed else 0.dp)
+                            )
+
+                            // 2. FLOATING DOCK OVERLAY
+                            if (currentScreen?.showsBottomBar == true) {
+                                FloatingNavigationDock(
+                                    navController = navController,
+                                    expanded = dockExpanded,
+                                    onToggle = { dockExpanded = !dockExpanded }
+                                )
+                            }
+                        }
                     }
                 }
             }

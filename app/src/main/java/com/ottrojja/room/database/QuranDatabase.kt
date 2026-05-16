@@ -18,7 +18,7 @@ import com.ottrojja.room.dao.TasabeehDao
 import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.room.entities.TasabeehList
 import com.ottrojja.room.entities.Azkar
-import com.ottrojja.screens.mainScreen.ChapterData
+import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData
 import com.ottrojja.room.entities.PageContent
@@ -34,7 +34,7 @@ import com.ottrojja.room.entities.VerseMeanings
         CauseOfRevelation::class, BookmarkEntity::class, Khitmah::class,
         KhitmahMark::class, CustomTasbeeh::class, TasabeehList::class, VerseMeanings::class, Quarter::class,
         Reminder::class],
-    version = 9
+    version = 10
 )
 abstract class QuranDatabase : RoomDatabase() {
     abstract fun quranDao(): QuranDao
@@ -42,6 +42,19 @@ abstract class QuranDatabase : RoomDatabase() {
     abstract fun tasabeehDao(): TasabeehDao
     abstract fun reminderDao(): ReminderDao
 }
+
+val MIGRATION_9_10 = object : Migration(9, 10) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE ChapterData ADD COLUMN nameMeaning TEXT NOT NULL DEFAULT ''")
+        database.execSQL("ALTER TABLE ChapterData ADD COLUMN namingReason TEXT NOT NULL DEFAULT ''")
+        database.execSQL("ALTER TABLE ChapterData ADD COLUMN otherNames TEXT NOT NULL DEFAULT ''")
+        database.execSQL("ALTER TABLE ChapterData ADD COLUMN generalPurpose TEXT NOT NULL DEFAULT ''")
+        database.execSQL("ALTER TABLE ChapterData ADD COLUMN reasonOfRevelation TEXT NOT NULL DEFAULT ''")
+        database.execSQL("ALTER TABLE ChapterData ADD COLUMN virtues TEXT NOT NULL DEFAULT ''")
+        database.execSQL("ALTER TABLE ChapterData ADD COLUMN surahEvents TEXT NOT NULL DEFAULT ''")
+    }
+}
+
 
 val MIGRATION_8_9 = object : Migration(8, 9) {
     override fun migrate(database: SupportSQLiteDatabase) {

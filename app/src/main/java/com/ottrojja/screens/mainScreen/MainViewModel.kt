@@ -21,6 +21,7 @@ import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.OverlayBootstrap
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
+import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.room.relations.PartWithQuarters
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -4,11 +4,17 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.ottrojja.composables.adviceDisplay.Advice
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
 
 object DataStoreRepository {
     private val datastore get() = DataStoreHolder.dataStore
+
+    val json = Json {
+        ignoreUnknownKeys = true
+    }
 
     private val FLOATING_AZKAR = booleanPreferencesKey("floating_azkar")
     private val USER_TASABEEH_COUNT = intPreferencesKey("tasbeeh_count")
@@ -41,11 +47,24 @@ object DataStoreRepository {
 
     /*******************ADVICE*********************/
 
-    val mainScreenAdviceFlow: Flow<String> =
-        datastore.data.map { it[MAIN_SCREEN_ADVICE] ?: "{كُنْ في الدُّنيا كأنَّك غريبٌ أو كعابرِ سبيلٍ}" }
+    val defaultAdvice = Advice(
+        id = 0,
+        createdAt = "",
+        text = "{كُنْ في الدُّنيا كأنَّك غريبٌ أو كعابرِ سبيلٍ}",
+        details = null
+    )
 
-    suspend fun setMainScreenAdvice(value: String) {
-        datastore.edit { it[MAIN_SCREEN_ADVICE] = value }
+    val mainScreenAdviceFlow: Flow<Advice> =
+        datastore.data.map { prefs ->
+            runCatching {
+                prefs[MAIN_SCREEN_ADVICE]
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { json.decodeFromString<Advice>(it) }
+            }.getOrNull() ?: defaultAdvice
+        }
+
+    suspend fun setMainScreenAdvice(value: Advice) {
+        datastore.edit { it[MAIN_SCREEN_ADVICE] = json.encodeToString(value) }
     }
 
 

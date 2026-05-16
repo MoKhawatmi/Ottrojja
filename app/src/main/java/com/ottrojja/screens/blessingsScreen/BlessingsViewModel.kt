@@ -5,7 +5,7 @@ import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.ottrojja.classes.Blessing
+import com.ottrojja.screens.blessingsScreen.classes.Blessing
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.SupabaseProvider
 import io.github.jan.supabase.SupabaseClient

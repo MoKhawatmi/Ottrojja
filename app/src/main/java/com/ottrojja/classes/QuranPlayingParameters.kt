@@ -1,6 +1,6 @@
 package com.ottrojja.classes
 
-import com.ottrojja.screens.mainScreen.ChapterData
+import com.ottrojja.room.entities.ChapterData
 
 data class QuranPlayingParameters(
     val startingSurah: ChapterData? = null,

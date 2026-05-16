@@ -221,7 +221,7 @@ object Helpers {
         }
     }
 
-    fun formatDateTime(millis: Long):String{
+    fun formatDateTime(millis: Long): String {
         val sdf = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
         sdf.timeZone = TimeZone.getDefault()
         return sdf.format(Date(millis))
@@ -236,7 +236,7 @@ object Helpers {
     }
 
 
-    fun getMediaSrcFactory(context: Context): DefaultMediaSourceFactory{
+    fun getMediaSrcFactory(context: Context): DefaultMediaSourceFactory {
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
             .setConnectTimeoutMs(20000)
             .setReadTimeoutMs(20000)
@@ -258,7 +258,26 @@ object Helpers {
             .build()
 
         WorkManager.getInstance(context).enqueue(work)
+    }
 
+    fun routesMatch(
+        currentRoute: String?,
+        screenRoute: String
+    ): Boolean {
+
+        if (currentRoute == null) {
+            return false
+        }
+
+        val currentBase = currentRoute
+            .substringBefore("?")
+            .substringBefore("/")
+
+        val screenBase = screenRoute
+            .substringBefore("?")
+            .substringBefore("/")
+
+        return currentBase == screenBase
     }
 
 }

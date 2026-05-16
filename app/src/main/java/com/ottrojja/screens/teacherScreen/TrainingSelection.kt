@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ottrojja.composables.RangeSelector
 import com.ottrojja.composables.rangeSelectionItem.RangeSelectionSegment
+import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.screens.listeningScreen.ListeningViewModel
-import com.ottrojja.screens.mainScreen.ChapterData
 
 @Composable
 fun TrainingSelection(

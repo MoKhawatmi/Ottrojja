@@ -14,8 +14,8 @@ import com.ottrojja.R
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.screens.listeningScreen.ListeningViewModel.SelectionPhase
-import com.ottrojja.screens.mainScreen.ChapterData
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

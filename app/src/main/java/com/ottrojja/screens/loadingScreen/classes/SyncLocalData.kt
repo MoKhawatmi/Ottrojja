@@ -6,7 +6,6 @@ import com.ottrojja.classes.JsonParser
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.room.entities.*
-import com.ottrojja.screens.mainScreen.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 
 class SyncLocalData(

@@ -29,9 +29,9 @@ import com.ottrojja.room.entities.PageContent
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.classes.VerseWithAnswer
+import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.screens.listeningScreen.ListeningViewModel
 import com.ottrojja.screens.listeningScreen.ListeningViewModel.SelectionPhase
-import com.ottrojja.screens.mainScreen.ChapterData
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

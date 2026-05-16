@@ -80,8 +80,16 @@ val Typography = Typography(
         fontFamily = qalam,
         fontWeight = FontWeight.Normal,
         fontSize = 24.sp,
+        lineHeight = 26.sp, // original 24
+        letterSpacing = 0.6.sp, // original 0.5
+        textDirection = TextDirection.Rtl
+    ),
+    displayMedium = TextStyle(
+        fontFamily = qalam,
+        fontWeight = FontWeight.Normal,
+        fontSize = 20.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp,
         textDirection = TextDirection.Rtl
-    ),
+    )
 )

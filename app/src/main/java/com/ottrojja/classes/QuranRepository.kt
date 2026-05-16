@@ -16,7 +16,7 @@ import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.room.entities.TasabeehList
 import com.ottrojja.room.relations.ListWithTasabeeh
 import com.ottrojja.room.entities.Azkar
-import com.ottrojja.screens.mainScreen.ChapterData
+import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData
 import com.ottrojja.room.entities.PageContent

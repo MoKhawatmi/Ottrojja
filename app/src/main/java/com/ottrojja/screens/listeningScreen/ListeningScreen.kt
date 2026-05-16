@@ -51,7 +51,7 @@ import com.ottrojja.composables.rangeSelectionItem.RangeSelectionItem
 import com.ottrojja.screens.quranScreen.dialogs.RepetitionOptionsDialog
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.rangeSelectionItem.RangeSelectionSegment
-import com.ottrojja.screens.mainScreen.ChapterData
+import com.ottrojja.room.entities.ChapterData
 
 @Composable
 fun ListeningScreen(

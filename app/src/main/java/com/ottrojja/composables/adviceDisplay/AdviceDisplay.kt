@@ -10,13 +10,14 @@ import com.ottrojja.composables.OttrojjaPrimaryTextDisplay
 fun AdviceDisplay(viewModel: AdviceDisplayViewModel = viewModel()) {
 
     val loading = viewModel.loading.collectAsState()
-    val adviceText = viewModel.advice.collectAsState()
+    val advice = viewModel.advice.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.fetchAdvice()
     }
     OttrojjaPrimaryTextDisplay(
-        text = adviceText.value,
+        text = advice.value?.text ?: "",
+        details = advice.value?.details,
         loading = loading.value
     )
 }

@@ -24,34 +24,33 @@ class AdviceDisplayViewModel(application: Application) : AndroidViewModel(applic
     private var _loading = MutableStateFlow<Boolean>(false)
     var loading: StateFlow<Boolean> = _loading;
 
-    private var _advice = MutableStateFlow<String>("")
-    var advice: StateFlow<String> = _advice;
+    private var _advice = MutableStateFlow<Advice?>(null)
+    var advice: StateFlow<Advice?> = _advice;
 
 
     fun fetchAdvice() {
         viewModelScope.launch(Dispatchers.IO) {
             _loading.value = true;
 
-            val adviceText = try {
+            val fetchedAdvice = try {
                 val result = withContext(Dispatchers.IO) {
                     supabase.postgrest
                         .rpc("get_random_row_advice")
                         .decodeList<Advice>()
                 }
 
-                result.firstOrNull()?.text
+                result.firstOrNull()
             } catch (e: Exception) {
                 reportException(e, "AdviceDisplayViewModel")
                 null
             }
 
-            val finalText = adviceText
+            val finalResult = fetchedAdvice
                 ?: DataStoreRepository.mainScreenAdviceFlow.first()
 
-            DataStoreRepository.setMainScreenAdvice(finalText)
-            _advice.value = finalText;
+            DataStoreRepository.setMainScreenAdvice(finalResult)
+            _advice.value = finalResult;
             _loading.value = false;
-
         }
     }
 }

@@ -31,7 +31,7 @@ import com.ottrojja.classes.Helpers.getMediaSrcFactory
 import com.ottrojja.classes.Helpers.repetitionOptionsMap
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.QuranListeningMode
-import com.ottrojja.screens.mainScreen.ChapterData
+import com.ottrojja.room.entities.ChapterData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -404,14 +404,14 @@ class QuranPlayerService : Service(), QuranServiceInterface {
             }
         }
 
-        return android.app.Service.START_REDELIVER_INTENT
+        return START_REDELIVER_INTENT
     }
 
     fun startService() {
         println("starting quran player service")
 
         if (!::notificationManager.isInitialized) {
-            notificationManager = getSystemService(Context.NOTIFICATION_SERVICE
+            notificationManager = getSystemService(NOTIFICATION_SERVICE
             ) as NotificationManager
         }
 
@@ -455,7 +455,6 @@ class QuranPlayerService : Service(), QuranServiceInterface {
         }
     }
 
-
     override fun playNextChapter() {
         if (_currentPlayingParameters.value?.selectedSurah?.surahId != null && _currentPlayingParameters.value?.selectedSurah?.surahId != 114) {
             playTrack(
@@ -464,8 +463,18 @@ class QuranPlayerService : Service(), QuranServiceInterface {
                         "https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/${_currentPlayingParameters.value?.selectedSurah?.surahId!! + 1}.mp3"
                     ),
                     listeningMode = QuranListeningMode.سورة_كاملة,
-                    selectedSurah = ChapterData("", "",
-                        _currentPlayingParameters.value?.selectedSurah?.surahId!! + 1, "", 0
+                    selectedSurah = ChapterData(chapterName = "",
+                        chapterStartPage = "",
+                        surahId = _currentPlayingParameters.value?.selectedSurah?.surahId!! + 1,
+                        chapterType = "",
+                        nameMeaning = "",
+                        namingReason = "",
+                        otherNames = "",
+                        generalPurpose = "",
+                        reasonOfRevelation = "",
+                        virtues = "",
+                        surahEvents = "",
+                        verseCount = 0
                     )
                 )
             )

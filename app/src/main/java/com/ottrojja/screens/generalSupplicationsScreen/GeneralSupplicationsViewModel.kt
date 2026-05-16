@@ -10,7 +10,6 @@ import androidx.lifecycle.AndroidViewModel
 import com.ottrojja.classes.GeneralSupplications
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.JsonParser
-import com.ottrojja.screens.mainScreen.ChapterData
 
 class GeneralSupplicationsViewModel(application: Application) : AndroidViewModel(application) {
     val context = application.applicationContext;

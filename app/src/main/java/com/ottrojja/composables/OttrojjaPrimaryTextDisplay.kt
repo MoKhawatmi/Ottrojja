@@ -3,6 +3,7 @@ package com.ottrojja.composables
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,7 +24,7 @@ import com.ottrojja.classes.Helpers
 import kotlin.math.*
 
 @Composable
-fun OttrojjaPrimaryTextDisplay(text: String, loading: Boolean = false) {
+fun OttrojjaPrimaryTextDisplay(text: String, details: String? = null, loading: Boolean = false) {
     Box(
         modifier = Modifier
             .padding(12.dp)
@@ -58,12 +59,23 @@ fun OttrojjaPrimaryTextDisplay(text: String, loading: Boolean = false) {
         if (loading) {
             OttrojjaLoadingIndicator()
         } else {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.displayLarge,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onPrimary
-            )
+            Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.displayLarge,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+                if (details?.isNotBlank() == true) {
+                    Spacer(modifier = Modifier.size(12.dp))
+                    Text(
+                        text = details,
+                        style = MaterialTheme.typography.displayMedium,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
         }
     }
 }

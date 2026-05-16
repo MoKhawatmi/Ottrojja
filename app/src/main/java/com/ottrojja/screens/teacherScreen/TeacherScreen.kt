@@ -42,10 +42,10 @@ import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.screens.listeningScreen.ListeningViewModel
 import com.ottrojja.screens.listeningScreen.SurahSelectionDialog
 import com.ottrojja.screens.listeningScreen.VerseSelectionDialog
-import com.ottrojja.screens.mainScreen.ChapterData
 
 @Composable
 fun TeacherScreen(

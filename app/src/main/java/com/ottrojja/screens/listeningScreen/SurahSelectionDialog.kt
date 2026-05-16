@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.ottrojja.R
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
-import com.ottrojja.screens.mainScreen.ChapterData
+import com.ottrojja.room.entities.ChapterData
 
 @Composable
 fun SurahSelectionDialog(

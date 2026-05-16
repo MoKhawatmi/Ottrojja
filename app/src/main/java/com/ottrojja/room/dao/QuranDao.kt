@@ -9,7 +9,7 @@ import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.room.entities.Azkar
-import com.ottrojja.screens.mainScreen.ChapterData
+import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData
 import com.ottrojja.room.entities.PageContent
