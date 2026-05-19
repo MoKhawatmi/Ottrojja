@@ -28,7 +28,9 @@ import androidx.navigation.NavController
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.EmptyListMessage
 import com.ottrojja.composables.ListHorizontalDivider
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.room.entities.TasabeehList
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun CustomTasabeehLists(navController: NavController,
@@ -65,10 +67,10 @@ fun CustomTasabeehLists(navController: NavController,
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
+                            OttrojjaText(
                                 text = item.title,
                                 color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyLarge,
+                                style = OttrojjaTheme.typography.bodyLarge,
                                 textAlign = TextAlign.Right,
                                 modifier = Modifier.fillMaxWidth()
                             )

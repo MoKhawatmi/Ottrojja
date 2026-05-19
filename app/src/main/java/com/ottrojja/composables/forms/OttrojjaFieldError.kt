@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun OttrojjaFieldError(error: String) {
@@ -23,11 +25,10 @@ fun OttrojjaFieldError(error: String) {
             contentDescription = "Error Icon",
             tint = MaterialTheme.colorScheme.error
         )
-        Text(
+        OttrojjaText(
             text = error,
-            style = MaterialTheme.typography.bodySmall,
+            style = OttrojjaTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error
         )
     }
-
 }

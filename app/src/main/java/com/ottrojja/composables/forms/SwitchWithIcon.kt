@@ -1,4 +1,4 @@
-package com.ottrojja.composables
+package com.ottrojja.composables.forms
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon

@@ -24,7 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.screens.quranScreen.TafseerSheetMode
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,10 +97,10 @@ fun TafseerBottomSheet(
                                 shape = RoundedCornerShape(50)
                             )
                             .clickable { onClickTafseerOptions() }) {
-                        Text(
+                        OttrojjaText(
                             text = selectedTafseer,
                             color = MaterialTheme.colorScheme.onSecondary,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = OttrojjaTheme.typography.bodyMedium,
                             textAlign = TextAlign.Right,
                             modifier = Modifier.padding(6.dp, 8.dp)
                         )

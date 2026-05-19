@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -31,8 +30,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ottrojja.classes.Helpers
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -107,13 +106,12 @@ fun ExpandableTextWithDetails(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.Top
         ) {
-            Text(
+            OttrojjaText(
                 text = mainText,
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
+                style = OttrojjaTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
-                lineHeight = 26.sp
             )
         }
         androidx.compose.animation.AnimatedVisibility(
@@ -125,12 +123,11 @@ fun ExpandableTextWithDetails(
                     .background(MaterialTheme.colorScheme.background)
                     .padding(4.dp, 8.dp)
             ) {
-                Text(
+                OttrojjaText(
                     text = detailsText,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = OttrojjaTheme.typography.bodyMedium,
                     color = Color.Black,
                     textAlign = TextAlign.Right,
-                    lineHeight = 26.sp
                 )
             }
         }

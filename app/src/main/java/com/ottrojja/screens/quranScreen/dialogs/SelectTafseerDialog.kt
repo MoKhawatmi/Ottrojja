@@ -15,7 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun SelectTafseerDialog(
@@ -36,11 +38,12 @@ fun SelectTafseerDialog(
                     .fillMaxWidth()
                     .clickable { onOptionClick(tafseer) }
                     .padding(6.dp)) {
-                    Text(
+                    OttrojjaText(
                         text = tafseer,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Right,
-                        color = MaterialTheme.colorScheme.onSecondary
+                        color = MaterialTheme.colorScheme.onSecondary,
+                        style = OttrojjaTheme.typography.bodyLarge
                     )
                 }
             }

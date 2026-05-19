@@ -34,7 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
@@ -44,6 +48,7 @@ import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaItemSelectionDialog
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 import com.ottrojja.composables.RangeSelector
+import com.ottrojja.composables.VerseTextWithNumber
 import com.ottrojja.composables.ottrojjaFlexibleActions.FlexibleAction
 import com.ottrojja.composables.ottrojjaFlexibleActions.OttrojjaFlexibleActions
 import com.ottrojja.composables.rangeSelectionItem.RangeSelectionSegment
@@ -124,16 +129,11 @@ fun VersesSection(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "${
-                            Helpers.convertToIndianNumbers("${item.pageContent.verseNum!!}")
-                        } ${item.pageContent.verseText}",
-                        color = Color.Black,
-                        style = MaterialTheme.typography.titleLarge,
-                        textAlign = TextAlign.Right,
+                    VerseTextWithNumber(
                         modifier = Modifier.fillMaxWidth(0.9f),
+                        text = item.pageContent.verseText ?: "",
+                        number = item.pageContent.verseNum ?: 0
                     )
-
                     Icon(
                         Icons.Default.MoreVert,
                         contentDescription = "Expand Verse Options",
@@ -214,7 +214,7 @@ fun ShareVersesBottomSheet(onDismissRequest: () -> Unit,
                 endSegments = endSegments
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                OttrojjaButton(text="مشاركة", onClick = { onShareClick() })
+                OttrojjaButton(text = "مشاركة", onClick = { onShareClick() })
             }
         }
     }

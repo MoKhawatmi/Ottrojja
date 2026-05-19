@@ -21,7 +21,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -35,26 +34,16 @@ fun FloatingNavigationDock(navController: NavController,
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
-    val dockHeightCollapsed = 72.dp
-
-    // THIS IS CRITICAL: reserve space globally
-    // so LazyColumn bottom items are never hidden
-    val density = LocalDensity.current
-    val bottomPadding = with(density) { dockHeightCollapsed.toPx().toInt() }
 
     var dockBounds by remember {
         mutableStateOf<Rect?>(null)
     }
 
-    Box(
-        modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .fillMaxSize()
-            .pointerInput(expanded) {
+    val outsideClickModifier =
+        if (expanded) {
+            Modifier.pointerInput(Unit) {
 
                 detectTapGestures { tapOffset ->
-
-                    if (!expanded) return@detectTapGestures
 
                     val clickedInside =
                         dockBounds?.contains(tapOffset) == true
@@ -64,6 +53,15 @@ fun FloatingNavigationDock(navController: NavController,
                     }
                 }
             }
+        } else {
+            Modifier
+        }
+
+    Box(
+        modifier = Modifier
+            .padding(horizontal = 4.dp)
+            .fillMaxSize()
+            .then(outsideClickModifier)
     ) {
 
         Surface(
@@ -83,12 +81,10 @@ fun FloatingNavigationDock(navController: NavController,
                 modifier = Modifier
                     .animateContentSize()
             ) {
-
-
                 // COLLAPSED BAR (ALWAYS VISIBLE)
                 CollapsedDock(
                     currentRoute = currentRoute,
-                    onClick = { route -> navController.navigate(route) },
+                    onClick = { route -> navController.navigate(route); if(expanded)onToggle() },
                     expanded = expanded,
                     toggleExpanded = { onToggle() }
                 )

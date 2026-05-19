@@ -24,7 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,13 +35,8 @@ fun OttrojjaTimePickerDialog(
     hour: Int,
     minute: Int,
     onConfirm: (Int, Int) -> Unit,
+    label: String
 ) {
-
-    /*val timePickerState = rememberTimePickerState(
-        initialHour = hour,
-        initialMinute = minute,
-        is24Hour = true,
-    )*/
 
     var selectedHour by remember { mutableStateOf(hour) }
     var selectedMinute by remember { mutableStateOf(minute) }
@@ -55,9 +52,9 @@ fun OttrojjaTimePickerDialog(
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.Start
                 ) {
-                    Text(
-                        text = "توقيت المذكر",
-                        style = MaterialTheme.typography.bodySmall,
+                    OttrojjaText(
+                        text = label,
+                        style = OttrojjaTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
                 }

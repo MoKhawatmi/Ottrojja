@@ -42,8 +42,11 @@ import com.ottrojja.composables.CircleStatusIndicator
 import com.ottrojja.composables.EmptyListMessage
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
+import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.forms.OttrojjaTextField
+import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.complete_green
 
 @Composable
@@ -110,10 +113,10 @@ fun KhitmahList(
                             falsyColor = MaterialTheme.colorScheme.primary,
                             iconDescription = "Khitmah Status"
                         )
-                        Text(
+                        OttrojjaText(
                             text = item.title,
                             color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = OttrojjaTheme.typography.bodyLarge,
                             textAlign = TextAlign.Right,
                         )
                     }
@@ -123,9 +126,9 @@ fun KhitmahList(
                         Button(onClick = {
                             navController.navigate(Screen.QuranScreen.invokeRoute(item.latestPage))
                         }, modifier = Modifier.fillMaxWidth()) {
-                            Text(
+                            OttrojjaText(
                                 "ص${Helpers.convertToIndianNumbers(item.latestPage)}",
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = OttrojjaTheme.typography.bodyMedium,
                             )
                         }
                     }
@@ -152,10 +155,13 @@ fun AddKhitmahDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     ) {
         var khitmahTitle by remember { mutableStateOf("") }
 
-
         Column(modifier = Modifier.wrapContentHeight()) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Text(text = "إضافة ختمة", textAlign = TextAlign.Center)
+                OttrojjaText(
+                    text = "إضافة ختمة",
+                    textAlign = TextAlign.Center,
+                    style = OttrojjaTheme.typography.bodyLarge
+                )
             }
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 6.dp),
@@ -170,7 +176,6 @@ fun AddKhitmahDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                 OttrojjaTextField(value = khitmahTitle, onChange = { khitmahTitle = it }, label = "عنوان الختمة")
             }
 
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -178,7 +183,7 @@ fun AddKhitmahDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Button(
+                OttrojjaButton(
                     onClick = {
                         if (khitmahTitle.isNotBlank()) {
                             onConfirm(khitmahTitle)
@@ -186,27 +191,18 @@ fun AddKhitmahDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                     },
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
-                        .padding(vertical = 2.dp)
-                ) {
-                    Text(
-                        text = "إضافة",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+                        .padding(vertical = 2.dp),
+                    text = "إضافة"
+                )
 
-                Button(
+                OttrojjaButton(
                     onClick = { onDismiss() },
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
-                        .padding(vertical = 2.dp)
-                ) {
-                    Text(
-                        text = "إلغاء",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+                        .padding(vertical = 2.dp),
+                    text = "إلغاء"
+                )
             }
-
         }
     }
 }

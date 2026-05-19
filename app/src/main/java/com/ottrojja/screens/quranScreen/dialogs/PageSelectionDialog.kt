@@ -20,8 +20,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.R
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun PageSelectionDialog(
@@ -62,11 +64,12 @@ fun PageSelectionDialog(
                         .fillMaxWidth()
                         .clickable { onSelect(item) }
                         .padding(6.dp)) {
-                        Text(
+                        OttrojjaText(
                             text = "ص${item}",
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Right,
-                            color = MaterialTheme.colorScheme.onSecondary
+                            color = MaterialTheme.colorScheme.onSecondary,
+                            style = OttrojjaTheme.typography.bodyLarge
                         )
                     }
                 }

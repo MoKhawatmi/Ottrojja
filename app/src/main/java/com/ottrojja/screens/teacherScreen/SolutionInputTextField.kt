@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.TeacherAnswer
+import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.okay_green
 
 @Composable
@@ -69,7 +70,7 @@ fun SolutionInputTextField(
         BasicTextField(
             value = value.answer,
             onValueChange = onValueChange,
-            textStyle = MaterialTheme.typography.labelLarge.copy(
+            textStyle = OttrojjaTheme.typography.quranTextLarge.copy(
                 fontSize = 24.sp,
                 color = if (value.status == AnswerStatus.UNCHECKED) MaterialTheme.colorScheme.primary else if (value.status == AnswerStatus.RIGHT)
                     okay_green else MaterialTheme.colorScheme.error

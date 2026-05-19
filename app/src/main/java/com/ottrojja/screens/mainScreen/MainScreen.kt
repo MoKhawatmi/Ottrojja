@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -31,11 +30,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.outlined.ArrowCircleLeft
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -58,25 +55,26 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.ottrojja.R
-import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToIndianNumbers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.SearchResult
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
-import com.ottrojja.composables.OttrojjaPrimaryTextDisplay
 import com.ottrojja.composables.OttrojjaTabs
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 import com.ottrojja.composables.ZikrDisplay
 import com.ottrojja.composables.adviceDisplay.AdviceDisplay
 import com.ottrojja.composables.exactAlarmsPermissionHandler.ExactAlarmsPermissionHandler
 import com.ottrojja.composables.overlayPermissionHandler.OverlayPermissionHandler
-import com.ottrojja.room.entities.ChapterData
+import com.ottrojja.screens.mainScreen.Composables.ChaptersMenu
+import com.ottrojja.screens.mainScreen.Composables.MainScreenTab
+import com.ottrojja.screens.mainScreen.Composables.PartsMenu
 import com.ottrojja.screens.mainScreen.classes.PermissionStep
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 
 @Composable
@@ -165,11 +163,11 @@ fun MainScreen(
                             .fillMaxSize()
                             .padding(4.dp, 0.dp)
                     ) {
-                        Text(
+                        OttrojjaText(
                             text = "مَثَلُ الْمُؤْمِنِ الَّذِي يَقْرَأُ الْقُرْآنَ كَمَثَلِ الْأُتْرُجَّةِ، رِيحُهَا طَيِّبٌ وَطَعْمُهَا طَيِّبٌ",
-                            style = MaterialTheme.typography.displayLarge,
+                            style = OttrojjaTheme.typography.bodySpecialLarge,
                             textAlign = TextAlign.Center,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -187,7 +185,7 @@ fun MainScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier
-                                .padding(12.dp, top = 22.dp, bottom=8.dp, end = 12.dp)
+                                .padding(12.dp, top = 22.dp, bottom = 8.dp, end = 12.dp)
                                 .fillMaxWidth()
                                 .background(Color.Transparent)
                                 .border(
@@ -202,9 +200,9 @@ fun MainScreen(
                                 }
                                 .padding(12.dp, 8.dp)
                         ) {
-                            Text(
+                            OttrojjaText(
                                 text = "عودة الى اخر صفحة (${mainViewModel.mostRecentPage})",
-                                style = MaterialTheme.typography.bodyLarge,
+                                style = OttrojjaTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Icon(
@@ -232,7 +230,7 @@ fun MainScreen(
                             })
 
                     }
-                    Row{
+                    Row {
                         MainScreenTab(title = "اجزاء القرآن", imageId = R.drawable.q_image3,
                             startColor = Color.Blue, endColor = Color(0xDD000066),
                             onClick = {
@@ -375,79 +373,10 @@ fun BrowseMenu(
                     navController.navigate(Screen.QuranScreen.invokeRoute(item.split(" ")[1]))
                 }
             ) {
-                Row( //Materialtheme.typography.bodylarge
+                Row(
                     modifier = Modifier.padding(12.dp)
                 ) {
-                    Text(text = item, color = Color.Black)
-                }
-                ListHorizontalDivider()
-            }
-        }
-    }
-}
-
-
-@Composable
-fun ChaptersMenu(
-    items: List<ChapterData> = listOf<ChapterData>(),
-    navController: NavController
-) {
-    val keyboardController = LocalSoftwareKeyboardController.current;
-    LazyColumn(
-        Modifier
-            .fillMaxHeight()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        items(items) { item ->
-            Column(modifier = Modifier
-                .padding(12.dp, 2.dp)
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
-                .clickable {
-                    keyboardController!!.hide();
-                    navController.navigate(Screen.QuranScreen.invokeRoute(item.chapterStartPage))
-                }
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(text = item.chapterName, color = Color.Black)
-                    }
-                    Column(
-                        verticalArrangement = Arrangement.Bottom,
-                        horizontalAlignment = Alignment.End
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "${
-                                    Helpers.convertToIndianNumbers("${item.verseCount}"
-                                    )
-                                } اية",
-                                color = Color.Black,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight(700)
-                            )
-                            Icon(
-                                Icons.Filled.Circle,
-                                contentDescription = "",
-                                tint = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier
-                                    .padding(6.dp, 0.dp)
-                                    .size(10.dp)
-                                    .offset(y = 4.dp)
-                            )
-                            Text(
-                                text = item.chapterType,
-                                color = Color.Black,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
+                    OttrojjaText(text = item, style = OttrojjaTheme.typography.bodyLarge, color = Color.Black)
                 }
                 ListHorizontalDivider()
             }
@@ -482,10 +411,10 @@ fun SearchMenu(
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
+                    OttrojjaText(
                         text = "نتائج البحث: ${items.size}",
-                        color = Color.Black,
-                        style = MaterialTheme.typography.titleLarge
+                        style = OttrojjaTheme.typography.bodySpecialMedium,
+                        color = Color.Black
                     )
                 }
                 ListHorizontalDivider()
@@ -514,13 +443,10 @@ fun SearchMenu(
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "{${item.verseText}} ${
-                            convertToIndianNumbers("${item.verseNum}"
-                            )
-                        } - ${item.surahName}",
-                        color = Color.Black,
-                        style = MaterialTheme.typography.bodyMedium
+                    OttrojjaText(
+                        text = "{${item.verseText}} ${convertToIndianNumbers("${item.verseNum}")} - ${item.surahName}",
+                        style = OttrojjaTheme.typography.quranTextMedium,
+                        color = Color.Black
                     )
                 }
                 ListHorizontalDivider()

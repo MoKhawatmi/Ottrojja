@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,8 +26,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun VerseSelectionDialog(onDismiss: () -> Unit,
@@ -88,8 +89,10 @@ fun VerseSelectionDialog(onDismiss: () -> Unit,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text(text = item,
-                                    color = MaterialTheme.colorScheme.onSecondary
+                                OttrojjaText(
+                                    text = item,
+                                    color = MaterialTheme.colorScheme.onSecondary,
+                                    style = OttrojjaTheme.typography.bodyLarge
                                 )
                             }
                         }

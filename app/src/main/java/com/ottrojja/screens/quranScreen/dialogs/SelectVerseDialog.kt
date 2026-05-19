@@ -17,9 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.PageContentItemType
+import com.ottrojja.ui.theme.OttrojjaTheme
 import kotlin.collections.forEach
 
 @Composable
@@ -42,12 +44,12 @@ fun SelectVerseDialog(
                         .fillMaxWidth()
                         .clickable { onSelect(option) }
                         .padding(6.dp)) {
-                        Text(
+                        OttrojjaText(
                             text = "الاية ${option.verseNum}",
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Right,
                             color = MaterialTheme.colorScheme.onSecondary,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = OttrojjaTheme.typography.bodyMedium,
                         )
                     }
                 } else {
@@ -57,12 +59,12 @@ fun SelectVerseDialog(
                             .background(MaterialTheme.colorScheme.primary)
                             .padding(6.dp)
                     ) {
-                        Text(
+                        OttrojjaText(
                             text = " سورة " + "${option.surahName}",
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Right,
                             color = MaterialTheme.colorScheme.onPrimary,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = OttrojjaTheme.typography.bodyMedium,
                         )
                     }
                 }

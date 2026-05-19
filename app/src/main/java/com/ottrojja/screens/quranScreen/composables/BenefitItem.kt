@@ -1,4 +1,4 @@
-package com.ottrojja.composables
+package com.ottrojja.screens.quranScreen.composables
 
 import android.content.Intent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -22,6 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import com.ottrojja.R
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -42,14 +44,14 @@ fun BenefitItem(
                 onClick = {},
                 onLongClick = {
                     val sendIntent: Intent = Intent().apply {
-                        action = Intent.ACTION_SEND
+                        setAction(Intent.ACTION_SEND)
                         putExtra(Intent.EXTRA_SUBJECT, shareSubject)
                         putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
                         putExtra(
                             Intent.EXTRA_TEXT,
                             shareContent
                         )
-                        type = "text/plain"
+                        setType("text/plain")
                     }
 
                     val shareIntent = Intent.createChooser(sendIntent, shareTitle)
@@ -68,10 +70,10 @@ fun BenefitItem(
                 .padding(0.dp, 6.dp, 4.dp, 6.dp)
                 .fillMaxWidth(0.08f)
         )
-        Text(
+        OttrojjaText(
             text = benefitContent,
             color = MaterialTheme.colorScheme.onPrimary,
-            style = MaterialTheme.typography.bodyMedium,
+            style = OttrojjaTheme.typography.bodyMedium,
             modifier = Modifier
                 .padding(0.dp, 6.dp)
                 .fillMaxWidth(0.92f)
@@ -81,10 +83,10 @@ fun BenefitItem(
 
 @Composable
 fun BenefitSectionTitle(title: String) {
-    Text(
+    OttrojjaText(
         text = title,
         color = MaterialTheme.colorScheme.primary,
-        style = MaterialTheme.typography.bodyMedium,
+        style = OttrojjaTheme.typography.bodyMedium,
         textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth()
     )

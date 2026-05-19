@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun OttrojjaWarningBar(text: String) {
@@ -20,11 +21,11 @@ fun OttrojjaWarningBar(text: String) {
         .padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.Center
     ) {
-        Text(
+        OttrojjaText(
             text = text,
             color = MaterialTheme.colorScheme.error,
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyMedium
+            style = OttrojjaTheme.typography.bodyMedium
         )
     }
 }

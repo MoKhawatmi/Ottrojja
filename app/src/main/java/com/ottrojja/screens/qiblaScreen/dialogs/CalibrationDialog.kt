@@ -22,7 +22,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ottrojja.R
+import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun CalibrationDialog(onDismiss: () -> Unit) {
@@ -42,8 +45,8 @@ fun CalibrationDialog(onDismiss: () -> Unit) {
                     .padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text("معايرة البوصلة",
-                        style = MaterialTheme.typography.bodyLarge,
+                    OttrojjaText("معايرة البوصلة",
+                        style = OttrojjaTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
@@ -54,19 +57,19 @@ fun CalibrationDialog(onDismiss: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Text("لمعايرة بوصلة الجهاز لتحديد اتجاه القبلة بدقة يرجى:",
-                    style = MaterialTheme.typography.bodyMedium,
+                OttrojjaText("لمعايرة بوصلة الجهاز لتحديد اتجاه القبلة بدقة يرجى:",
+                    style = OttrojjaTheme.typography.bodyMedium,
                     textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
                 )
-                Text("١. أمساك الجهاز بشكل مسطح", style = MaterialTheme.typography.bodyMedium,
+                OttrojjaText("١. أمساك الجهاز بشكل مسطح", style = OttrojjaTheme.typography.bodyMedium,
                     textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
                 )
-                Text("٢. تحريكه في نمط بشكل رقم 8", style = MaterialTheme.typography.bodyMedium,
+                OttrojjaText("٢. تحريكه في نمط بشكل رقم 8", style = OttrojjaTheme.typography.bodyMedium,
                     textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
                 )
-                Text(
+                OttrojjaText(
                     "٣. تجنب التداخل المغناطيسي وأبعد الجهاز عن أي أجهزة كهربائية أو معادن أو مغناطيسات",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = OttrojjaTheme.typography.bodyMedium,
                     textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
                 )
             }
@@ -76,14 +79,10 @@ fun CalibrationDialog(onDismiss: () -> Unit) {
                     .padding(top = 4.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
-                Button(onClick = { onDismiss() }) {
-                    Text(
-                        "إغلاق",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontSize = 20.sp,
-                        textAlign = TextAlign.End
-                    )
-                }
+                OttrojjaButton(
+                    onClick = { onDismiss() },
+                    text = "إغلاق"
+                )
             }
         }
     }

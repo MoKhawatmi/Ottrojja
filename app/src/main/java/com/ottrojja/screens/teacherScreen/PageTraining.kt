@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -41,6 +42,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -50,7 +52,11 @@ import com.ottrojja.classes.Helpers
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.classes.VerseWithAnswer
+import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.composables.VerseTextWithNumber
 import com.ottrojja.composables.dialogs.LoadingDialog
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun PageTraining(
@@ -102,7 +108,7 @@ fun PageTraining(
             targetValue = if (selectedTrainingVerses.size <= 1) {
                 1f
             } else {
-                selectedTrainingVerses.indexOfFirst { it.verse==currentVerse }  / (selectedTrainingVerses.size - 1).toFloat()
+                selectedTrainingVerses.indexOfFirst { it.verse == currentVerse } / (selectedTrainingVerses.size - 1).toFloat()
             },
             animationSpec = tween(durationMillis = 500) // Customize the duration as needed
         )
@@ -131,9 +137,9 @@ fun PageTraining(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
+                OttrojjaText(
                     text = "سورة ${getChapterName(currentVerse.surahNum)}",
-                    style = MaterialTheme.typography.labelLarge,
+                    style = OttrojjaTheme.typography.quranTextLarge,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(2.dp, 2.dp),
                 )
@@ -183,19 +189,27 @@ fun PageTraining(
                             clearFocusTrigger = clearFocusTrigger
                         )
                     } else {
-                        Text(
+                        OttrojjaText(
                             text = it,
-                            style = MaterialTheme.typography.labelLarge,
+                            style = OttrojjaTheme.typography.quranTextLarge,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(2.dp, 2.dp),
                         )
                     }
                 }
-                Text(
-                    text = Helpers.convertToIndianNumbers("${currentVerse.verseNum!!}"),
-                    style = MaterialTheme.typography.labelLarge,
+                OttrojjaText(
+                    text = buildString {
+                        append("\uFD3F")
+                        append(
+                            Helpers.convertToIndianNumbers("${currentVerse.verseNum!!}")
+                        )
+                        append("\uFD3E")
+                    },
+                    style = OttrojjaTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(2.dp)
+                    modifier = Modifier
+                        .padding(2.dp)
+                        .offset(y = 10.dp)
                 )
 
             }
@@ -208,9 +222,9 @@ fun PageTraining(
                 .padding(8.dp)
                 .fillMaxWidth()
         ) {
-            Text(
+            OttrojjaText(
                 text = "المحاولة $maxTries/$currentTry",
-                style = MaterialTheme.typography.bodyMedium,
+                style = OttrojjaTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Start,
             )
@@ -222,15 +236,11 @@ fun PageTraining(
                 .padding(8.dp)
                 .fillMaxWidth()
         ) {
-            Button(
+            OttrojjaButton(
                 onClick = { keyboardController!!.hide(); checkVerse() },
-                enabled = !maxTriesReached && !allRight
-            ) {
-                Text(
-                    text = "تحقق",
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-            }
+                enabled = !maxTriesReached && !allRight,
+                text = "تحقق"
+            )
         }
         if (maxTriesReached || allRight) {
 
@@ -241,9 +251,9 @@ fun PageTraining(
                     .padding(8.dp)
                     .fillMaxWidth()
             ) {
-                Text(
+                OttrojjaText(
                     text = "النص الصحيح",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = OttrojjaTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Start,
                 )
@@ -268,14 +278,13 @@ fun PageTraining(
                         .fillMaxWidth()
                         .padding(0.dp, 6.dp)
                 ) {
-                    Text(
-                        text = "${currentVerse?.verseText} ${
-                            Helpers.convertToIndianNumbers("${currentVerse?.verseNum!!}")
-                        }",
-                        style = MaterialTheme.typography.labelLarge,
-                        lineHeight = 36.sp,
-                        color = MaterialTheme.colorScheme.primary,
+                    VerseTextWithNumber(
                         modifier = Modifier.padding(4.dp, 2.dp),
+                        text = currentVerse?.verseText ?: "",
+                        number = currentVerse?.verseNum ?: 0,
+                        color = MaterialTheme.colorScheme.primary,
+                        textStyle = OttrojjaTheme.typography.quranTextLarge.copy(textAlign = TextAlign.Center),
+                        numberAfter = true
                     )
                 }
             }
@@ -315,16 +324,14 @@ fun PageTraining(
                         .padding(16.dp)
                         .fillMaxWidth()
                 ) {
-                    Button(onClick = {
-                        clearFocusTrigger = true;
-                        proceedVerse();
-                        focusManager.clearFocus();
-                    }) {
-                        Text(
-                            text = "الاية التالية",
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                    }
+                    OttrojjaButton(
+                        onClick = {
+                            clearFocusTrigger = true;
+                            proceedVerse();
+                            focusManager.clearFocus();
+                        },
+                        text = "الاية التالية"
+                    )
                 }
             }
             if (lastVerseReached) {
@@ -335,12 +342,10 @@ fun PageTraining(
                         .padding(16.dp)
                         .fillMaxWidth()
                 ) {
-                    Button(onClick = { showResults() }) {
-                        Text(
-                            text = "إنهاء",
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                    }
+                    OttrojjaButton(
+                        onClick = { showResults() },
+                        text = "إنهاء"
+                    )
                 }
             }
         }
@@ -357,9 +362,9 @@ fun PageTraining(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
+            OttrojjaText(
                 text = "${selectedTrainingVerses.filter { it.answerCorrect }.size} ايات صحيحة من اصل ${selectedTrainingVerses.size}",
-                style = MaterialTheme.typography.bodyLarge,
+                style = OttrojjaTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.primary
             )
         }

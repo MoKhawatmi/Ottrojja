@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun OttrojjaSelect(value: String?, onClick: () -> Unit, disabled: Boolean = false, error: String?) {
@@ -41,8 +43,9 @@ fun OttrojjaSelect(value: String?, onClick: () -> Unit, disabled: Boolean = fals
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = value ?: "",
-                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
+            OttrojjaText(
+                text = value ?: "",
+                style = OttrojjaTheme.typography.bodyMedium,
                 color = contentColor
             )
             Icon(Icons.Default.ArrowDropDown,

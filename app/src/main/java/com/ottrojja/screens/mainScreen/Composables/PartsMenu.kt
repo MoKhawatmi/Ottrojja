@@ -1,4 +1,4 @@
-package com.ottrojja.screens.mainScreen
+package com.ottrojja.screens.mainScreen.Composables
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -19,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -34,8 +33,10 @@ import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.Helpers.convertToIndianNumbers
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.ListHorizontalDivider
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.room.entities.Quarter
 import com.ottrojja.room.relations.PartWithQuarters
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun PartsMenu(
@@ -97,16 +98,16 @@ fun PartItem(part: PartWithQuarters,
                     modifier = Modifier.padding(12.dp, 12.dp, 12.dp, 0.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = part.part.partName, color = Color.Black)
+                    OttrojjaText(text = part.part.partName, color = Color.Black, style = OttrojjaTheme.typography.bodyLarge)
                 }
                 Row(
                     modifier = Modifier.padding(12.dp, 0.dp, 0.dp, 0.dp),
                     verticalAlignment = Alignment.Top
                 ) {
-                    Text(
+                    OttrojjaText(
                         text = "{${part.part.firstWords}}",
                         color = Color.Black,
-                        style = MaterialTheme.typography.labelSmall,
+                        style = OttrojjaTheme.typography.quranTextSmall
                     )
                 }
             }
@@ -170,12 +171,14 @@ fun QuarterItem(quarter: Quarter,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = "\u06DE $hizbText", color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(text = convertToIndianNumbers(quarter.pageNum),
+            OttrojjaText(text = "\u06DE $hizbText",
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium
+                style = OttrojjaTheme.typography.bodyMedium
+            )
+            OttrojjaText(
+                text = convertToIndianNumbers(quarter.pageNum),
+                color = MaterialTheme.colorScheme.primary,
+                style = OttrojjaTheme.typography.bodyMedium
             )
         }
         if (!isLastItem) {

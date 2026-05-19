@@ -22,10 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.OttrojjaTabs
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.screens.quranScreen.RepetitionTab
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun ListeningOptionsDialog(
@@ -60,7 +63,12 @@ fun ListeningOptionsDialog(
     ) {
         Column(modifier = Modifier.wrapContentHeight()) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Text(text = "خيارات الإستماع", textAlign = TextAlign.Center)
+                OttrojjaText(
+                    text = "خيارات الإستماع",
+                    textAlign = TextAlign.Center,
+                    style = OttrojjaTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSecondary
+                )
             }
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 6.dp),
@@ -121,9 +129,9 @@ fun ListeningOptionsDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Button(onClick = { takeOnCurrentPageParameters() }) {
-                    Text(
+                    OttrojjaText(
                         text = "ايات الحالية",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = OttrojjaTheme.typography.bodySmall,
                     )
                 }
             }
@@ -138,7 +146,7 @@ fun ListeningOptionsDialog(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("مرات التكرار", style = MaterialTheme.typography.bodyMedium)
+                OttrojjaText("مرات التكرار", style = OttrojjaTheme.typography.bodyMedium)
                 Row(
                     modifier = Modifier
                         .padding(0.dp, 6.dp, 6.dp, 5.dp)
@@ -146,10 +154,10 @@ fun ListeningOptionsDialog(
                         .clip(shape = RoundedCornerShape(4.dp))
                         .background(MaterialTheme.colorScheme.primary)
                 ) {
-                    Text(
+                    OttrojjaText(
                         text = selectedRepetition,
                         color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = OttrojjaTheme.typography.bodySmall,
                         textAlign = TextAlign.Right,
                         modifier = Modifier
                             .padding(8.dp)
@@ -183,8 +191,8 @@ fun ListeningOptionsDialog(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text("تشغيل متتال للصفحات", style = MaterialTheme.typography.bodyMedium)
-                    Text("(غير متوفر في الخلفية حاليا)", style = MaterialTheme.typography.bodySmall)
+                    OttrojjaText("تشغيل متتال للصفحات", style = OttrojjaTheme.typography.bodyMedium)
+                    OttrojjaText("(غير متوفر في الخلفية حاليا)", style = OttrojjaTheme.typography.bodySmall)
                 }
                 Checkbox(
                     checked = continuousPlay,
@@ -197,12 +205,10 @@ fun ListeningOptionsDialog(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(onClick = { onDismissRequest() }) {
-                    Text(
-                        text = "إغلاق",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+                OttrojjaButton(
+                    onClick = { onDismissRequest() },
+                    text = "إغلاق"
+                )
             }
         }
     }
@@ -216,11 +222,11 @@ fun InteractiveSelection(onClick: () -> Unit,
                          modifier: Modifier) {
     Column(
         modifier = modifier
-            .clickable { if(!disabled) onClick(); },
+            .clickable { if (!disabled) onClick(); },
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        Text(titleText, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+        OttrojjaText(titleText, style = OttrojjaTheme.typography.bodyMedium, textAlign = TextAlign.Center)
         Row(
             modifier = Modifier
                 .padding(0.dp, 6.dp, 6.dp, 5.dp)
@@ -228,10 +234,10 @@ fun InteractiveSelection(onClick: () -> Unit,
                 .clip(shape = RoundedCornerShape(4.dp))
                 .background(if (!disabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
         ) {
-            Text(
+            OttrojjaText(
                 text = contentText,
                 color = MaterialTheme.colorScheme.onPrimary,
-                style = MaterialTheme.typography.bodySmall,
+                style = OttrojjaTheme.typography.bodySmall,
                 textAlign = TextAlign.Right,
                 modifier = Modifier
                     .padding(8.dp)

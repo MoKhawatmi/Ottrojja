@@ -92,8 +92,5 @@ fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
                 }
             }
         }
-
-
     }
-
 }

@@ -27,7 +27,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
@@ -55,8 +54,9 @@ import com.ottrojja.classes.Helpers.formatMilitaryTime
 import com.ottrojja.classes.Helpers.truncate
 import com.ottrojja.composables.CircleStatusIndicator
 import com.ottrojja.composables.ListHorizontalDivider
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.OttrojjaWarningBar
-import com.ottrojja.composables.SwitchWithIcon
+import com.ottrojja.composables.forms.SwitchWithIcon
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.forms.OttrojjaTimePickerDialog
 import com.ottrojja.composables.ottrojjaFlexibleActions.FlexibleAction
@@ -67,6 +67,7 @@ import com.ottrojja.room.repositories.ReminderRepository
 import com.ottrojja.screens.reminderScreen.dialogs.FloatingAzkarDialog
 import com.ottrojja.screens.reminderScreen.dialogs.ReminderFormDialog
 import com.ottrojja.screens.reminderScreen.dialogs.SelectReminderTypeDialog
+import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.complete_green
 
 @Composable
@@ -158,6 +159,7 @@ fun ReminderScreen(repository: ReminderRepository) {
 
     if (reminderVM.timePickerDialog) {
         OttrojjaTimePickerDialog(
+            label = "توقيت المذكر",
             onDismiss = { reminderVM.timePickerDialog = false },
             hour = reminderVM.reminderInWorks.hour,
             minute = reminderVM.reminderInWorks.minute,
@@ -210,9 +212,10 @@ fun ReminderScreen(repository: ReminderRepository) {
                     ) {
                         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                             Column {
-                                Text(
+                                OttrojjaText(
                                     text = "أذكار الشاشة",
-                                    color = Color.Black
+                                    color = Color.Black,
+                                    style = OttrojjaTheme.typography.bodyLarge
                                 )
                             }
                             Column {
@@ -301,15 +304,16 @@ fun ReminderItem(reminder: ExpandableItem<Reminder>,
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(
+                    OttrojjaText(
                         text = reminder.data.title,
-                        color = Color.Black
+                        color = Color.Black,
+                        style = OttrojjaTheme.typography.bodyLarge
                     )
                     if (reminder.data.customMessage?.isNotBlank() == true) {
-                        Text(text =
+                        OttrojjaText(text =
                             if (reminder.expanded) "${reminder.data.customMessage}" else "${reminder.data.customMessage?.truncate(30)}",
                             color = Color.Black,
-                            style = MaterialTheme.typography.bodyMedium
+                            style = OttrojjaTheme.typography.bodyMedium
                         )
                     }
                 }

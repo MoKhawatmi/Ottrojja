@@ -14,6 +14,8 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun OttrojjaTextArea(value: String?,
@@ -51,7 +53,7 @@ fun OttrojjaTextArea(value: String?,
                 .fillMaxWidth()
                 .height(200.dp) // Adjust height as needed
                 .padding(vertical = 16.dp),
-            textStyle = MaterialTheme.typography.bodyMedium,
+            textStyle = OttrojjaTheme.typography.bodyMedium,
             maxLines = 6, // Allow multiple lines
             singleLine = false,
             colors = TextFieldDefaults.colors(
@@ -75,7 +77,7 @@ fun OttrojjaTextArea(value: String?,
             shape = RoundedCornerShape(8.dp),
             supportingText = {
                 maxLength?.let {
-                    Text("${value?.length ?: 0} / $maxLength")
+                    OttrojjaText("${value?.length ?: 0} / $maxLength")
                 }
             }
         )

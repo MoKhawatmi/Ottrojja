@@ -25,6 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.ui.theme.OttrojjaTheme
 import kotlin.math.abs
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -98,9 +100,9 @@ fun TimeInputPart(
                         .fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
+                    OttrojjaText(
                         text = number.toString().padStart(2, '0'),
-                        fontSize = 28.sp,
+                        style = OttrojjaTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
                 }

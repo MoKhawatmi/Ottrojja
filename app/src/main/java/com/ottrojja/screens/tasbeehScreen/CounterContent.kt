@@ -32,6 +32,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.timeNormal
 
 @Composable
@@ -80,13 +82,11 @@ fun CounterContent(
                 .padding(16.dp)
 
         ) {
-            Text(
+            OttrojjaText(
                 text = "${tasbeehCount}",
-                style = MaterialTheme.typography.bodyLarge,
-                fontFamily = timeNormal,
+                style = OttrojjaTheme.typography.counter,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.primary,
-                fontSize = 42.sp,
             )
         }
     }

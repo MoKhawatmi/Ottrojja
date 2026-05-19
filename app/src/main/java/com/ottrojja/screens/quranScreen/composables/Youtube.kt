@@ -50,34 +50,6 @@ fun YouTube(link: String) {
 fun YoutubeScreen(
     videoId: String, modifier: Modifier
 ) {
-    /* val context = LocalContext.current
-
-     val iFramePlayerOptions = IFramePlayerOptions.Builder()
-         .origin("https://${BuildConfig.APPLICATION_ID}")
-         .build()
-
-
-     AndroidView(factory = {
-         var view = YouTubePlayerView(it)
-         val fragment = view.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
-             override fun onReady(youTubePlayer: YouTubePlayer) {
-                 super.onReady(youTubePlayer)
-                 youTubePlayer.cueVideo(videoId, 0f)
-             }
-
-             override fun onStateChange(
-                 youTubePlayer: YouTubePlayer, state: PlayerConstants.PlayerState
-             ) {
-                 super.onStateChange(youTubePlayer, state)
-                 if (state.toString() == "PLAYING") {
-                     Helpers.terminateAllServices(context)
-                 }
-                 println(state)
-             }
-         })
-         view
-     })*/
-
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 

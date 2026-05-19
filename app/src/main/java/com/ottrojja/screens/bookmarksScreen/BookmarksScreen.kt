@@ -36,6 +36,8 @@ import com.ottrojja.classes.Screen
 import com.ottrojja.composables.EmptyListMessage
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.ui.theme.OttrojjaTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -100,20 +102,20 @@ fun BookmarksScreen(
                             horizontalAlignment = Alignment.Start,
                             modifier = Modifier.fillMaxWidth(0.9f)
                         ) {
-                            Text(
+                            OttrojjaText(
                                 text = "صفحة ${item.pageNum}",
                                 color = Color.Black,
-                                style = MaterialTheme.typography.bodyLarge,
+                                style = OttrojjaTheme.typography.bodyLarge,
                                 textAlign = TextAlign.Right,
                                 modifier = Modifier.fillMaxWidth()
                             )
 
-                            Text(
+                            OttrojjaText(
                                 text = SimpleDateFormat("HH:mm dd.MM.yyyy", Locale.US).format(
                                     Date(item.timeStamp)
                                 ),
                                 color = MaterialTheme.colorScheme.outlineVariant,
-                                style = MaterialTheme.typography.bodySmall,
+                                style = OttrojjaTheme.typography.bodySmall,
                                 textAlign = TextAlign.Right,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -149,9 +151,9 @@ fun BookmarksScreen(
                                     }
                                     .padding(4.dp, 6.dp)
                             ) {
-                                Text(
+                                OttrojjaText(
                                     text = "حذف",
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = OttrojjaTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onPrimary
                                 )
                             }

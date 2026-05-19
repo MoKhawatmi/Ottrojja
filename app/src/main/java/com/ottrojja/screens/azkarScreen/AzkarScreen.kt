@@ -17,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -34,7 +33,9 @@ import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.TopBar
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun AzkarScreen(
@@ -72,9 +73,9 @@ fun AzkarScreen(
                         }
                         .padding(12.dp)
                 ) {
-                    Text(
+                    OttrojjaText(
                         text = item.azkarTitle,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = OttrojjaTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Image(

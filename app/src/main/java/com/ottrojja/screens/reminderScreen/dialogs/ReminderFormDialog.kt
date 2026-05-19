@@ -21,11 +21,13 @@ import com.ottrojja.classes.FormValidationResult
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.ModalFormMode
 import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.forms.OttrojjaSelect
 import com.ottrojja.composables.forms.OttrojjaTextArea
 import com.ottrojja.composables.forms.OttrojjaTextField
 import com.ottrojja.room.entities.Reminder
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun ReminderFormDialog(
@@ -54,8 +56,10 @@ fun ReminderFormDialog(
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = if (mode == ModalFormMode.ADD) "إضافة مذكر" else "تعديل مذكر",
-                    textAlign = TextAlign.Center
+                OttrojjaText(
+                    text = if (mode == ModalFormMode.ADD) "إضافة مذكر" else "تعديل مذكر",
+                    textAlign = TextAlign.Center,
+                    style = OttrojjaTheme.typography.bodyLarge
                 )
             }
             HorizontalDivider(

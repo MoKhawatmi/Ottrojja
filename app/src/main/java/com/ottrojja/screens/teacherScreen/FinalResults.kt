@@ -16,19 +16,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.VerseWithAnswer
 import androidx.compose.material3.Icon
 import androidx.compose.ui.Alignment
+import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.composables.VerseTextWithNumber
+import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.okay_green
 
 
@@ -42,7 +42,7 @@ fun FinalResults(selectedTrainingVerses: List<VerseWithAnswer>,
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.background),
             contentPadding = PaddingValues(all = 10.dp),
-            ) {
+        ) {
             items(selectedTrainingVerses) { item ->
                 Column(modifier = Modifier
                     .fillMaxWidth()
@@ -66,14 +66,11 @@ fun FinalResults(selectedTrainingVerses: List<VerseWithAnswer>,
                                 .padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "${
-                                    Helpers.convertToIndianNumbers("${item.verse.verseNum!!}")
-                                } ${item.verse.verseText}",
-                                color = if (item.answerCorrect) okay_green else MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.titleLarge,
-                                textAlign = TextAlign.Right,
+                            VerseTextWithNumber(
                                 modifier = Modifier.fillMaxWidth(0.9f),
+                                text = item.verse.verseText ?: "",
+                                number = item.verse.verseNum ?: 0,
+                                color = if (item.answerCorrect) okay_green else MaterialTheme.colorScheme.error
                             )
                         }
 
@@ -95,7 +92,10 @@ fun FinalResults(selectedTrainingVerses: List<VerseWithAnswer>,
             }
         }
 
-        Column(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+        ) {
             Row(
                 modifier = Modifier
                     .padding(10.dp)
@@ -108,9 +108,9 @@ fun FinalResults(selectedTrainingVerses: List<VerseWithAnswer>,
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
+                OttrojjaText(
                     text = "${selectedTrainingVerses.filter { it.answerCorrect }.size} ايات صحيحة من اصل ${selectedTrainingVerses.size}",
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = OttrojjaTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
@@ -122,15 +122,11 @@ fun FinalResults(selectedTrainingVerses: List<VerseWithAnswer>,
                     .padding(16.dp)
                     .fillMaxWidth()
             ) {
-                Button(onClick = { backToSelection() }) {
-                    Text(
-                        text = "إنهاء",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
+                OttrojjaButton(
+                    onClick = { backToSelection() },
+                    text = "إنهاء"
+                )
             }
         }
-
-
     }
 }

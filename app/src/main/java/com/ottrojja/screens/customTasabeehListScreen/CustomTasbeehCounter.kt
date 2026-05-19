@@ -39,7 +39,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ottrojja.composables.ListHorizontalDivider
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.room.entities.CustomTasbeeh
+import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.timeNormal
 
 @Composable
@@ -116,9 +118,9 @@ fun CustomTasbeehCounter(item: CustomTasbeeh,
                 ) {
                     DropdownMenuItem(
                         text = {
-                            Text(
+                            OttrojjaText(
                                 "تعديل",
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = OttrojjaTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         },
@@ -134,9 +136,9 @@ fun CustomTasbeehCounter(item: CustomTasbeeh,
                     ListHorizontalDivider()
                     DropdownMenuItem(
                         text = {
-                            Text(
+                            OttrojjaText(
                                 "حذف",
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = OttrojjaTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         },
@@ -159,12 +161,10 @@ fun CustomTasbeehCounter(item: CustomTasbeeh,
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.Top
         ) {
-            Text(
+            OttrojjaText(
                 text = "${tasbeehCount}",
-                style = MaterialTheme.typography.bodyLarge,
-                fontFamily = timeNormal,
+                style = OttrojjaTheme.typography.counter,
                 color = MaterialTheme.colorScheme.primary,
-                fontSize = 42.sp,
             )
         }
         ListHorizontalDivider()
@@ -174,8 +174,8 @@ fun CustomTasbeehCounter(item: CustomTasbeeh,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Text(text = item.text,
-                style = MaterialTheme.typography.bodyMedium.copy(
+            OttrojjaText(text = item.text,
+                style = OttrojjaTheme.typography.bodyMedium.copy(
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.primary
                 )

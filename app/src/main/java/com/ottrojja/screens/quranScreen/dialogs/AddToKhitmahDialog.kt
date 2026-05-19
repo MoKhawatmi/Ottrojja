@@ -12,18 +12,19 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.room.entities.Khitmah
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun AddToKhitmahDialog(
@@ -46,7 +47,11 @@ fun AddToKhitmahDialog(
 
         Column(modifier = Modifier.wrapContentHeight()) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Text(text = "إضافة الى ختمة", textAlign = TextAlign.Center)
+                OttrojjaText(
+                    text = "إضافة الى ختمة",
+                    textAlign = TextAlign.Center,
+                    style = OttrojjaTheme.typography.bodyLarge
+                )
             }
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 6.dp),
@@ -63,9 +68,9 @@ fun AddToKhitmahDialog(
                                 .fillMaxWidth()
                                 .padding(20.dp)
                         ) {
-                            Text(
+                            OttrojjaText(
                                 text = "لا يوجد ختمات حاليا",
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = OttrojjaTheme.typography.bodyMedium,
                                 textAlign = TextAlign.Center,
                                 color = MaterialTheme.colorScheme.onSecondary
                             )
@@ -82,10 +87,10 @@ fun AddToKhitmahDialog(
                             .clickable { assignPageToKhitmah(item); onDismiss() }
                             .padding(vertical = 8.dp)
                     ) {
-                        Text(
+                        OttrojjaText(
                             text = item.title,
                             color = MaterialTheme.colorScheme.onSecondary,
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = OttrojjaTheme.typography.bodyLarge,
                             textAlign = TextAlign.Center,
                         )
                     }
@@ -101,17 +106,13 @@ fun AddToKhitmahDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Button(
+                OttrojjaButton(
                     onClick = { onDismiss() },
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
-                        .padding(vertical = 6.dp)
-                ) {
-                    Text(
-                        text = "إلغاء",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+                        .padding(vertical = 6.dp),
+                    text = "إلغاء"
+                )
             }
         }
     }

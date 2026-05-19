@@ -15,7 +15,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,7 +23,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.composables.forms.OttrojjaTextField
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun ExportListDialog(
@@ -51,8 +53,11 @@ fun ExportListDialog(
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "تصدير الاذكار",
-                    textAlign = TextAlign.Center
+                OttrojjaText(
+                    text = "تصدير الاذكار",
+                    textAlign = TextAlign.Center,
+                    style = OttrojjaTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSecondary
                 )
             }
             HorizontalDivider(
@@ -65,24 +70,12 @@ fun ExportListDialog(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedTextField(
+                OttrojjaTextField(
                     value = fileTitle,
-                    onValueChange = { newText: String ->
+                    onChange = { newText: String ->
                         onFileTitleChanged(newText)
                     },
-                    label = { Text("اسم الملف") },
-                    singleLine = true,
-                    colors = TextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedContainerColor = MaterialTheme.colorScheme.secondary,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
-                        cursorColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedIndicatorColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedIndicatorColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedLabelColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onSecondary
-                    )
+                    label = "تصدير الاذكار",
                 )
             }
 
@@ -90,8 +83,9 @@ fun ExportListDialog(
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "سيتم تصدير الاذكار الى ملف ${fileTitle}.json في مسار downloads",
-                    style = MaterialTheme.typography.bodyMedium,
+                OttrojjaText(
+                    text = "سيتم تصدير الاذكار الى ملف ${fileTitle}.json في مسار downloads",
+                    style = OttrojjaTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
             }
@@ -117,9 +111,10 @@ fun ExportListDialog(
                         .fillMaxWidth(0.6f)
                         .padding(vertical = 2.dp)
                 ) {
-                    Text(
+                    OttrojjaText(
                         text = "تصدير",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
 
@@ -129,9 +124,10 @@ fun ExportListDialog(
                         .fillMaxWidth(0.6f)
                         .padding(vertical = 2.dp)
                 ) {
-                    Text(
+                    OttrojjaText(
                         text = "إلغاء",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }

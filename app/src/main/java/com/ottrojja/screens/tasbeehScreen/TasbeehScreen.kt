@@ -46,7 +46,6 @@ fun TasbeehScreen(
 
     val tasbeehCount by tasbeehScreenViewModel.tasbeehCount.collectAsState(0)
 
-
     Column(modifier = Modifier.fillMaxHeight().background(MaterialTheme.colorScheme.tertiary)) {
         TopBar(title = "المسبحة")
         SecondaryTopBar {

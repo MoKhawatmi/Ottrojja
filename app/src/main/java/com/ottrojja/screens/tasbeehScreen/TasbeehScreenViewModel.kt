@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -62,9 +64,13 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
         }
     }
 
+    private val mutex = Mutex()
+
     fun increaseTasbeeh() {
         viewModelScope.launch {
-            DataStoreRepository.incrementUserTasabeehCount()
+            mutex.withLock {
+                DataStoreRepository.incrementUserTasabeehCount()
+            }
         }
     }
 

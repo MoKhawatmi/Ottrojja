@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Pending
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -45,8 +44,10 @@ import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.ListHorizontalDivider
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.TopBar
 import com.ottrojja.room.entities.KhitmahMark
+import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.complete_green
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -123,8 +124,9 @@ fun KhitmahScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp, vertical = 12.dp)
             ) {
-                Text(text = "مسار الختمة",
-                    style = MaterialTheme.typography.bodyLarge,
+                OttrojjaText(
+                    text = "مسار الختمة",
+                    style = OttrojjaTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
 
@@ -139,9 +141,9 @@ fun KhitmahScreen(
                         .padding(horizontal = 12.dp, vertical = 4.dp)
 
                 ) {
-                    Text(
+                    OttrojjaText(
                         text = if (khitmahViewModel.khitmah?.isComplete == true) "مكتملة" else "جارية",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = OttrojjaTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onPrimary,
                         textAlign = TextAlign.Start,
                     )
@@ -232,20 +234,20 @@ fun MarkItem(item: ExpandableItem<KhitmahMark>,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(Modifier.fillMaxWidth(0.9f)) {
-                Text(
+                OttrojjaText(
                     text = "صفحة ${item.data.pageNum}",
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = OttrojjaTheme.typography.bodyLarge,
                     textAlign = TextAlign.Right,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Text(
+                OttrojjaText(
                     text = SimpleDateFormat("HH:mm dd.MM.yyyy",
                         Locale.US
                     ).format(Date(item.data.timeStamp)),
                     color = MaterialTheme.colorScheme.outlineVariant,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = OttrojjaTheme.typography.bodySmall,
                     textAlign = TextAlign.Right,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -282,9 +284,9 @@ fun MarkItem(item: ExpandableItem<KhitmahMark>,
                         }
                         .padding(4.dp, 6.dp)
                 ) {
-                    Text(
+                    OttrojjaText(
                         text = "حذف",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = OttrojjaTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 }

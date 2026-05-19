@@ -45,6 +45,7 @@ import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
 import com.ottrojja.composables.OttrojjaItemSelectionDialog
 import com.ottrojja.composables.OttrojjaTabs
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 import com.ottrojja.composables.RangeSelector
 import com.ottrojja.composables.rangeSelectionItem.RangeSelectionItem
@@ -52,6 +53,7 @@ import com.ottrojja.screens.quranScreen.dialogs.RepetitionOptionsDialog
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.rangeSelectionItem.RangeSelectionSegment
 import com.ottrojja.room.entities.ChapterData
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun ListeningScreen(
@@ -97,7 +99,6 @@ fun ListeningScreen(
                 listeningViewModel.searchFilter = "";
             },
             itemContent = { item ->
-                val downloading = listeningViewModel.isDownloading // to update "download icon" after the downloading is done
 
                 Row(
                     modifier = Modifier
@@ -107,8 +108,10 @@ fun ListeningScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(text = "${item.surahId}. ${item.chapterName}",
-                            color = MaterialTheme.colorScheme.onSecondary
+                        OttrojjaText(
+                            text = "${item.surahId}. ${item.chapterName}",
+                            color = MaterialTheme.colorScheme.onSecondary,
+                            style = OttrojjaTheme.typography.bodyLarge
                         )
                     }
                     Column(
@@ -271,8 +274,9 @@ fun ListeningScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("تكرار الاية",
-                                    style = MaterialTheme.typography.bodyMedium,
+                                OttrojjaText(
+                                    "تكرار الاية",
+                                    style = OttrojjaTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -285,10 +289,10 @@ fun ListeningScreen(
                                     .background(MaterialTheme.colorScheme.primary)
                                     .padding(8.dp)
                             ) {
-                                Text(
+                                OttrojjaText(
                                     text = listeningViewModel.verseRepetitions,
                                     color = MaterialTheme.colorScheme.onPrimary,
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = OttrojjaTheme.typography.bodySmall,
                                     textAlign = TextAlign.Right,
                                     modifier = Modifier
                                 )
@@ -304,8 +308,8 @@ fun ListeningScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("تكرار المقطع",
-                                    style = MaterialTheme.typography.bodyMedium,
+                                OttrojjaText("تكرار المقطع",
+                                    style = OttrojjaTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -318,10 +322,10 @@ fun ListeningScreen(
                                     .background(MaterialTheme.colorScheme.primary)
                                     .padding(8.dp)
                             ) {
-                                Text(
+                                OttrojjaText(
                                     text = listeningViewModel.verseRangeRepetitions,
                                     color = MaterialTheme.colorScheme.onPrimary,
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = OttrojjaTheme.typography.bodySmall,
                                     textAlign = TextAlign.Right,
                                     modifier = Modifier
                                 )
@@ -339,8 +343,8 @@ fun ListeningScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("تشغيل متتال للسور",
-                                    style = MaterialTheme.typography.bodyMedium,
+                                OttrojjaText("تشغيل متتال للسور",
+                                    style = OttrojjaTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -365,8 +369,8 @@ fun ListeningScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("مرات التكرار",
-                                    style = MaterialTheme.typography.bodyMedium,
+                                OttrojjaText("مرات التكرار",
+                                    style = OttrojjaTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -379,10 +383,10 @@ fun ListeningScreen(
                                     .background(MaterialTheme.colorScheme.primary)
                                     .padding(8.dp)
                             ) {
-                                Text(
+                                OttrojjaText(
                                     text = listeningViewModel.surahRepetitions,
                                     color = MaterialTheme.colorScheme.onPrimary,
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = OttrojjaTheme.typography.bodySmall,
                                     textAlign = TextAlign.Right,
                                     modifier = Modifier
                                 )
@@ -412,15 +416,16 @@ fun ListeningScreen(
                 hasNextPreviousControl = false,
             ) {
                 if (listeningViewModel.currentPlayingTitle.isNotBlank() && listeningViewModel.listeningMode == listeningViewModel.currentPlayingParameters?.listeningMode) {
-                    Text(
+                    OttrojjaText(
                         text = "\uFD3F \u06E9 ${listeningViewModel.currentPlayingTitle} \u06E9 \uFD3E",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = OttrojjaTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
                 if (listeningViewModel.isPlaying && listeningViewModel.listeningMode == listeningViewModel.currentPlayingParameters?.listeningMode && listeningViewModel.listeningMode == QuranListeningMode.سورة_كاملة) {
-                    Text(listeningViewModel.progressTimeCodeDisplay,
-                        style = MaterialTheme.typography.bodyMedium,
+                    OttrojjaText(
+                        text=listeningViewModel.progressTimeCodeDisplay,
+                        style = OttrojjaTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
                     MediaSlider(
@@ -430,7 +435,6 @@ fun ListeningScreen(
                     )
                 }
             }
-            //}
         }
     }
 }

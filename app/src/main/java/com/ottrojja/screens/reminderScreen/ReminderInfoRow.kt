@@ -5,13 +5,13 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun ReminderInfoRow(
@@ -30,9 +30,9 @@ fun ReminderInfoRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(
+        OttrojjaText(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
+            style = OttrojjaTheme.typography.bodyMedium,
             color = labelColor,
             textAlign = TextAlign.Right,
         )
@@ -40,9 +40,9 @@ fun ReminderInfoRow(
         if (trailing != null) {
             trailing()
         } else {
-            Text(
+            OttrojjaText(
                 text = value,
-                style = MaterialTheme.typography.bodyMedium,
+                style = OttrojjaTheme.typography.bodyMedium,
                 color = valueColor,
                 textAlign = TextAlign.Right,
             )

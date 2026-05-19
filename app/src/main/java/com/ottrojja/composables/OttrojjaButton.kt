@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun OttrojjaButton(
@@ -14,10 +15,14 @@ fun OttrojjaButton(
     onClick: () -> Unit,
     enabled: Boolean = true
 ) {
-    Button(modifier = modifier, enabled = enabled, onClick = { onClick() }, colors = ButtonDefaults.buttonColors(
+    Button(
+        modifier = modifier,
+        enabled = enabled,
+        onClick = { onClick() },
+        colors = ButtonDefaults.buttonColors(
         disabledContainerColor = MaterialTheme.colorScheme.outline,
         disabledContentColor = MaterialTheme.colorScheme.onTertiary
     )) {
-        Text(text, style = MaterialTheme.typography.bodyMedium)
+        OttrojjaText(text, style = OttrojjaTheme.typography.bodyMedium)
     }
 }

@@ -44,10 +44,12 @@ import androidx.navigation.NavController
 import com.ottrojja.R
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.TopBar
 import com.ottrojja.screens.mainScreen.BrowsingOption
+import com.ottrojja.ui.theme.OttrojjaTheme
 import kotlinx.coroutines.launch
 
 
@@ -120,13 +122,12 @@ fun GeneralSupplicationsScreen(generalSupplicationsViewModel: GeneralSupplicatio
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
+                            OttrojjaText(
                                 text = item.category,
                                 color = MaterialTheme.colorScheme.onPrimary,
-                                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 20.sp),
+                                style = OttrojjaTheme.typography.bodyMedium,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth(),
-                                lineHeight = 26.sp
                             )
                         }
                         Row(
@@ -136,13 +137,12 @@ fun GeneralSupplicationsScreen(generalSupplicationsViewModel: GeneralSupplicatio
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
+                            OttrojjaText(
                                 text = "عدد الاذكار: ${item.array.size}",
                                 color = MaterialTheme.colorScheme.onPrimary,
-                                style = MaterialTheme.typography.bodySmall,
+                                style = OttrojjaTheme.typography.bodySmall,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth(),
-                                lineHeight = 26.sp
                             )
                         }
                     }
@@ -202,15 +202,12 @@ fun GeneralSupplicationsScreen(generalSupplicationsViewModel: GeneralSupplicatio
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.Top
                             ) {
-                                Text(
+                                OttrojjaText(
                                     text = item.text,
                                     color = MaterialTheme.colorScheme.primary,
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontSize = 20.sp
-                                    ),
+                                    style = OttrojjaTheme.typography.bodyMedium,
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.fillMaxWidth(),
-                                    lineHeight = 26.sp
                                 )
                             }
                             Row(
@@ -220,12 +217,11 @@ fun GeneralSupplicationsScreen(generalSupplicationsViewModel: GeneralSupplicatio
                                     .padding(4.dp, 8.dp),
                                 horizontalArrangement = Arrangement.Center
                             ) {
-                                Text(
+                                OttrojjaText(
                                     text = "مرات التكرار: ${item.count}",
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = OttrojjaTheme.typography.bodySmall,
                                     color = Color.Black,
                                     textAlign = TextAlign.Center,
-                                    lineHeight = 26.sp
                                 )
                             }
                         }

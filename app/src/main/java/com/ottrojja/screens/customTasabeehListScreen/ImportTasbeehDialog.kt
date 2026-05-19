@@ -23,7 +23,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.Tasabeeh
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun ImportTasbeehDialog(
@@ -45,7 +47,12 @@ fun ImportTasbeehDialog(
 
         Column(modifier = Modifier.wrapContentHeight()) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Text(text = "إستيراد ذكر", textAlign = TextAlign.Center)
+                OttrojjaText(
+                    text = "إستيراد ذكر",
+                    textAlign = TextAlign.Center,
+                    style = OttrojjaTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSecondary
+                )
             }
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 6.dp),
@@ -62,9 +69,9 @@ fun ImportTasbeehDialog(
                                 .fillMaxWidth()
                                 .padding(20.dp)
                         ) {
-                            Text(
+                            OttrojjaText(
                                 text = "لا يوجد اذكار حاليا",
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = OttrojjaTheme.typography.bodyMedium,
                                 textAlign = TextAlign.Center,
                                 color = MaterialTheme.colorScheme.onSecondary
                             )
@@ -81,10 +88,10 @@ fun ImportTasbeehDialog(
                             .clickable { importTasbeeh(item); onDismiss() }
                             .padding(vertical = 8.dp)
                     ) {
-                        Text(
+                        OttrojjaText(
                             text = item.ziker,
                             color = MaterialTheme.colorScheme.onSecondary,
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = OttrojjaTheme.typography.bodyLarge,
                             textAlign = TextAlign.Center,
                         )
                     }
@@ -106,9 +113,10 @@ fun ImportTasbeehDialog(
                         .fillMaxWidth(0.6f)
                         .padding(vertical = 6.dp)
                 ) {
-                    Text(
+                    OttrojjaText(
                         text = "إلغاء",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }

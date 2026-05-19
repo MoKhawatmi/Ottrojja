@@ -28,6 +28,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun OttrojjaAlertDialog(
@@ -56,17 +58,17 @@ fun OttrojjaAlertDialog(
                     .weight(1f, fill = false)
                     .verticalScroll(scrollState)
             ) {
-                Text(
+                OttrojjaText(
                     text = title,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = OttrojjaTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSecondary,
                 )
 
                 Spacer(Modifier.height(8.dp))
 
-                Text(
+                OttrojjaText(
                     text = text,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = OttrojjaTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSecondary
                 )
 

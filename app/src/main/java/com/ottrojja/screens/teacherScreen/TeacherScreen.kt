@@ -40,12 +40,14 @@ import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.screens.listeningScreen.ListeningViewModel
 import com.ottrojja.screens.listeningScreen.SurahSelectionDialog
 import com.ottrojja.screens.listeningScreen.VerseSelectionDialog
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun TeacherScreen(
@@ -238,12 +240,11 @@ fun InstructionsDialog(onDismiss: () -> Unit) {
                                 .padding(0.dp, 2.dp, 4.dp, 2.dp)
                                 .fillMaxWidth(0.08f)
                         )
-                        Text(
-                            item,
-                            style = MaterialTheme.typography.bodyLarge,
+                        OttrojjaText(
+                            text=item,
+                            style = OttrojjaTheme.typography.bodyLarge,
                             textAlign = TextAlign.Start,
                             color = MaterialTheme.colorScheme.onSecondary,
-                            lineHeight = 28.sp
                         )
                     }
                 }

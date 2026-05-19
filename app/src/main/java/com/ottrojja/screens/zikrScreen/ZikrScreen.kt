@@ -45,10 +45,12 @@ import com.ottrojja.composables.dialogs.LoadingDialog
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
 import com.ottrojja.composables.OttrojjaTabs
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.TopBar
 import com.ottrojja.room.entities.Azkar
 import com.ottrojja.screens.quranScreen.composables.YouTube
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun ZikrScreen(
@@ -96,21 +98,6 @@ fun ZikrScreen(
                     )
                 }
             }
-
-
-            /*listOf(
-            ButtonAction(
-                icon = Icons.Default.ContentCopy,
-                action = { copyToClipboard(context, zikr.value.azkarText, "تم تسخ الذكر بنجاح"); },
-                title = "نسخ"),
-            if(zikrViewModel.checkIfZikrDownloaded()){
-                ButtonAction(
-                    icon = Icons.Outlined.DownloadForOffline,
-                    action = { zikrViewModel.downloadZikr() },
-                    title = "تحميل"
-                )
-            }
-        )*/
         )
 
         SecondaryTopBar {
@@ -186,9 +173,9 @@ fun ZikrSection(
                     .padding(8.dp, 20.dp, 8.dp, 8.dp)
             ) {
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    Text(
+                    OttrojjaText(
                         text = zikr.azkarText,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = OttrojjaTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.padding(2.dp, 8.dp)
                     )

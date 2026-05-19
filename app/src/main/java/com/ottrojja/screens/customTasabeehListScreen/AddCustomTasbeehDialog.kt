@@ -31,9 +31,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ottrojja.classes.ModalFormMode
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.forms.OttrojjaTextArea
+import com.ottrojja.composables.forms.OttrojjaTextField
+import com.ottrojja.composables.forms.TextFieldInputType
 import com.ottrojja.room.entities.CustomTasbeeh
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
@@ -61,8 +65,10 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = if (mode == ModalFormMode.ADD) "إضافة ذكر" else "تعديل الذكر",
-                    textAlign = TextAlign.Center
+                OttrojjaText(
+                    text = if (mode == ModalFormMode.ADD) "إضافة ذكر" else "تعديل الذكر",
+                    textAlign = TextAlign.Center,
+                    style = OttrojjaTheme.typography.bodyLarge
                 )
             }
             HorizontalDivider(
@@ -81,8 +87,9 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "إستيراد من قائمة الاذكار",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
+                OttrojjaText(
+                    text = "إستيراد من قائمة الاذكار",
+                    style = OttrojjaTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSecondary
                 )
                 Icon(Icons.Default.Link,
@@ -106,29 +113,17 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedTextField(
+                OttrojjaTextField(
                     value = "${tasbeehInWork.count}",
-                    onValueChange = { newText: String ->
+                    onChange = { newText: String ->
                         val filteredText = newText.filter { it.isDigit() } // Allow only digits
                         val intValue = filteredText.toIntOrNull() ?: 0 // Convert to integer safely
                         if (intValue <= 1000000) {
                             onTasbeehChange(tasbeehInWork.copy(count = intValue))
                         }
                     },
-                    label = { Text("مرات الذكر") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    colors = TextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedContainerColor = MaterialTheme.colorScheme.secondary,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
-                        cursorColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedIndicatorColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedIndicatorColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedLabelColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onSecondary
-                    )
+                    label = "مرات الذكر",
+                    inputType = TextFieldInputType.NUMBER,
                 )
             }
 
@@ -152,9 +147,10 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                         .fillMaxWidth(0.6f)
                         .padding(vertical = 2.dp)
                 ) {
-                    Text(
+                    OttrojjaText(
                         text = if (mode == ModalFormMode.ADD) "إضافة" else "تعديل",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
 

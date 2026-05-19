@@ -18,11 +18,9 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,7 +34,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -44,10 +41,14 @@ import androidx.navigation.NavController
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.NameOfGod
+import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.TopBar
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
-fun NamesOfGod(namesOfGodViewModel: NamesOfGodViewModel = viewModel(), navController: NavController) {
+fun NamesOfGod(namesOfGodViewModel: NamesOfGodViewModel = viewModel(),
+               navController: NavController) {
 
     var expandedItem by remember { mutableStateOf<NameOfGod?>(null) }
 
@@ -104,13 +105,12 @@ fun NamesOfGod(namesOfGodViewModel: NamesOfGodViewModel = viewModel(), navContro
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.Top
                             ) {
-                                Text(
+                                OttrojjaText(
                                     text = "${expandedItem?.name}",
                                     color = MaterialTheme.colorScheme.primary,
-                                    style = MaterialTheme.typography.bodyLarge,
+                                    style = OttrojjaTheme.typography.bodyLarge,
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.fillMaxWidth(),
-                                    lineHeight = 26.sp
                                 )
                             }
                             Row(
@@ -120,12 +120,11 @@ fun NamesOfGod(namesOfGodViewModel: NamesOfGodViewModel = viewModel(), navContro
                                     .padding(4.dp, 8.dp),
                                 horizontalArrangement = Arrangement.Center
                             ) {
-                                Text(
+                                OttrojjaText(
                                     text = "${expandedItem?.text}",
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = OttrojjaTheme.typography.bodyMedium,
                                     color = Color.Black,
                                     textAlign = TextAlign.Center,
-                                    lineHeight = 26.sp
                                 )
                             }
                             Row(
@@ -136,14 +135,10 @@ fun NamesOfGod(namesOfGodViewModel: NamesOfGodViewModel = viewModel(), navContro
                                 verticalAlignment = Alignment.Bottom,
                                 horizontalArrangement = Arrangement.Center
                             ) {
-                                Button(onClick = { expandedItem = null }) {
-                                    Text(
-                                        "إغلاق",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontSize = 20.sp,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
+                                OttrojjaButton(
+                                    text = "إغلاق",
+                                    onClick = { expandedItem = null }
+                                )
                             }
                         }
                     }
@@ -187,13 +182,12 @@ fun NamesOfGodItem(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
+            OttrojjaText(
                 text = name,
                 color = MaterialTheme.colorScheme.onPrimary,
-                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 20.sp),
+                style = OttrojjaTheme.typography.bodySpecialMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
-                lineHeight = 26.sp
             )
         }
     }

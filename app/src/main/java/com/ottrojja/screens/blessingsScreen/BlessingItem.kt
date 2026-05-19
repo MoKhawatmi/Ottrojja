@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +30,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.screens.blessingsScreen.classes.Blessing
 import com.ottrojja.composables.ListHorizontalDivider
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 
 @Composable
@@ -79,10 +80,10 @@ fun BlessingItem(item: Blessing, onShareClick: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                Text(
+                OttrojjaText(
                     text = item.text,
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = OttrojjaTheme.typography.bodyMedium,
                     textAlign = TextAlign.Right,
                     modifier = Modifier.padding(6.dp, 8.dp)
                 )
@@ -104,8 +105,9 @@ fun BlessingItem(item: Blessing, onShareClick: () -> Unit) {
                         )
                     )
             ) {
-                Text(text = "عرض المزيد",
-                    style = MaterialTheme.typography.bodyMedium,
+                OttrojjaText(
+                    text = "عرض المزيد",
+                    style = OttrojjaTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(vertical = 4.dp)

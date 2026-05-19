@@ -76,6 +76,7 @@ import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.screens.quranScreen.dialogs.RepetitionOptionsDialog
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.screens.mainScreen.BrowsingOption
@@ -87,6 +88,7 @@ import com.ottrojja.screens.quranScreen.dialogs.ListeningOptionsDialog
 import com.ottrojja.screens.quranScreen.dialogs.PageSelectionDialog
 import com.ottrojja.screens.quranScreen.dialogs.SelectTafseerDialog
 import com.ottrojja.screens.quranScreen.dialogs.SelectVerseDialog
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 
 @SuppressLint("UnrememberedMutableState", "DiscouragedApi")
@@ -152,8 +154,8 @@ fun QuranScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Text(text = "جاري التحميل..",
-                style = MaterialTheme.typography.bodyLarge,
+            OttrojjaText(text = "جاري التحميل..",
+                style = OttrojjaTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.primary
             )
         }
@@ -189,9 +191,9 @@ fun QuranScreen(
                                     ) {
                                         DropdownMenuItem(
                                             text = {
-                                                Text(
+                                                OttrojjaText(
                                                     "مشاركة",
-                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    style = OttrojjaTheme.typography.bodyMedium,
                                                     color = MaterialTheme.colorScheme.primary
                                                 )
                                             },
@@ -207,9 +209,9 @@ fun QuranScreen(
                                         ListHorizontalDivider()
                                         DropdownMenuItem(
                                             text = {
-                                                Text(
+                                                OttrojjaText(
                                                     "إضافة الى ختمة",
-                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    style = OttrojjaTheme.typography.bodyMedium,
                                                     color = MaterialTheme.colorScheme.primary
                                                 )
                                             },
@@ -225,9 +227,9 @@ fun QuranScreen(
                                         ListHorizontalDivider()
                                         DropdownMenuItem(
                                             text = {
-                                                Text(
+                                                OttrojjaText(
                                                     "إنتقال للبحث",
-                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    style = OttrojjaTheme.typography.bodyMedium,
                                                     color = MaterialTheme.colorScheme.primary
                                                 )
                                             },
@@ -554,8 +556,8 @@ fun PagesContainer(
                         }
                     }
 
-                    Text(text = "خيارات الإستماع",
-                        style = MaterialTheme.typography.bodySmall,
+                    OttrojjaText(text = "خيارات الإستماع",
+                        style = OttrojjaTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.primary,
@@ -618,9 +620,9 @@ fun SinglePage(pageNum: String, nightReadingMode: Boolean) {
                     .weight(0.5f)
                     .background(MaterialTheme.colorScheme.secondary)
             ) {}
-            Text(
+            OttrojjaText(
                 text = "صفحة ${Helpers.convertToIndianNumbers(pageNum)}",
-                style = MaterialTheme.typography.bodySmall,
+                style = OttrojjaTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier
                     .padding(4.dp, 0.dp)

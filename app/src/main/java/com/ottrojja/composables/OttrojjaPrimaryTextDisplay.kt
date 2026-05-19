@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.Helpers
+import com.ottrojja.ui.theme.OttrojjaTheme
 import kotlin.math.*
 
 @Composable
@@ -62,7 +63,7 @@ fun OttrojjaPrimaryTextDisplay(text: String, details: String? = null, loading: B
             Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = text,
-                    style = MaterialTheme.typography.displayLarge,
+                    style = OttrojjaTheme.typography.bodySpecialLarge,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onPrimary
                 )
@@ -70,7 +71,7 @@ fun OttrojjaPrimaryTextDisplay(text: String, details: String? = null, loading: B
                     Spacer(modifier = Modifier.size(12.dp))
                     Text(
                         text = details,
-                        style = MaterialTheme.typography.displayMedium,
+                        style = OttrojjaTheme.typography.bodySpecialMedium,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.secondary
                     )

@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,12 +23,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Screen
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.TopBar
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun AzkarMain(navController: NavController) {
@@ -90,9 +90,9 @@ fun AzkarSectionItem(imageId: Int, title: String, onClick: () -> Unit) {
                 .clip(CircleShape)
         )
 
-        Text(
+        OttrojjaText(
             text = title,
-            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 24.sp),
+            style = OttrojjaTheme.typography.bodySpecialLarge,
             color = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier.padding(top = 38.dp).fillMaxWidth(),
             textAlign = TextAlign.Center

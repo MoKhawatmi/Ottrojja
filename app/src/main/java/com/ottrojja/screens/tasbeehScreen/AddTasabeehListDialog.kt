@@ -8,12 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,7 +20,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.composables.forms.OttrojjaTextField
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun AddTasabeehListDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
@@ -43,7 +43,11 @@ fun AddTasabeehListDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
 
         Column(modifier = Modifier.wrapContentHeight()) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Text(text = "إضافة قائمة ذكر", textAlign = TextAlign.Center)
+                OttrojjaText(
+                    text = "إضافة قائمة ذكر",
+                    textAlign = TextAlign.Center,
+                    style = OttrojjaTheme.typography.bodyLarge
+                )
             }
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 6.dp),
@@ -55,21 +59,10 @@ fun AddTasabeehListDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedTextField(
+                OttrojjaTextField(
                     value = listTitle,
-                    onValueChange = { listTitle = it },
-                    label = { Text("عنوان القائمة") },
-                    colors = TextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedContainerColor = MaterialTheme.colorScheme.secondary,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
-                        cursorColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedIndicatorColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedIndicatorColor = MaterialTheme.colorScheme.onSecondary,
-                        focusedLabelColor = MaterialTheme.colorScheme.onSecondary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onSecondary
-                    )
+                    onChange = { listTitle = it },
+                    label = "عنوان القائمة"
                 )
             }
 
@@ -81,7 +74,7 @@ fun AddTasabeehListDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Button(
+                OttrojjaButton(
                     onClick = {
                         if (listTitle.isNotBlank()) {
                             onConfirm(listTitle)
@@ -89,25 +82,19 @@ fun AddTasabeehListDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                     },
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
-                        .padding(vertical = 2.dp)
-                ) {
-                    Text(
-                        text = "إضافة",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+                        .padding(vertical = 2.dp),
+                    text = "إضافة"
 
-                Button(
+                )
+
+                OttrojjaButton(
                     onClick = { onDismiss() },
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
-                        .padding(vertical = 2.dp)
-                ) {
-                    Text(
-                        text = "إلغاء",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+                        .padding(vertical = 2.dp),
+                    text = "إلغاء"
+
+                )
             }
 
         }

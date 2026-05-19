@@ -13,6 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun RowScope.FlexActionOption(
@@ -29,9 +31,9 @@ fun RowScope.FlexActionOption(
             .clickable { onClick() }
             .padding(4.dp, 6.dp)
     ) {
-        Text(
+        OttrojjaText(
             text = text,
-            style = MaterialTheme.typography.bodyMedium,
+            style = OttrojjaTheme.typography.bodyMedium,
             color = textColor
         )
     }

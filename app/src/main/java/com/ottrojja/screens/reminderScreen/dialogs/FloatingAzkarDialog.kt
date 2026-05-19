@@ -22,7 +22,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.R
 import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun FloatingAzkarDialog(onDismiss: () -> Unit) {
@@ -44,8 +46,11 @@ fun FloatingAzkarDialog(onDismiss: () -> Unit) {
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "اذكار الشاشة",
-                    textAlign = TextAlign.Center
+                OttrojjaText(
+                    text = "اذكار الشاشة",
+                    textAlign = TextAlign.Center,
+                    style = OttrojjaTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSecondary
                 )
             }
             HorizontalDivider(
@@ -56,9 +61,9 @@ fun FloatingAzkarDialog(onDismiss: () -> Unit) {
             Row(modifier = Modifier
                 .fillMaxWidth(), horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
+                OttrojjaText(
                     text = "تظهر الأذكار العائمة على شاشة جهازك بشكل خفيف وغير مزعج كل 30 دقيقة، لتذكيرك بذكر الله في خضم انشغالك اليومي. تساعدك هذه الرسائل القصيرة على الحفاظ على صلتك بالله وتجديد النية والطمأنينة أينما كنت.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = OttrojjaTheme.typography.bodyMedium,
                     textAlign = TextAlign.Start,
                     color = MaterialTheme.colorScheme.onSecondary
                 )

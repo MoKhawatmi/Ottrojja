@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun NoConnection(text: String = "تعذر الاتصال بشبكة الانترنت") {
@@ -30,9 +31,9 @@ fun NoConnection(text: String = "تعذر الاتصال بشبكة الانتر
             modifier = Modifier.size(72.dp),
             tint = MaterialTheme.colorScheme.primary
         )
-        Text(
+        OttrojjaText(
             text,
-            style = MaterialTheme.typography.bodyLarge,
+            style = OttrojjaTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.primary
         )

@@ -62,7 +62,9 @@ import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers.reportException
+import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaDetailsContainer
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.OttrojjaWarningBar
 import com.ottrojja.ui.theme.complete_green
 import com.ottrojja.ui.theme.md_theme_light_primary
@@ -79,6 +81,7 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 import com.ottrojja.screens.qiblaScreen.dialogs.CalibrationDialog
 import com.ottrojja.screens.qiblaScreen.dialogs.DevicePositionDialog
+import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.md_theme_light_error
 import kotlin.math.cos
 import kotlin.math.sin
@@ -115,16 +118,17 @@ fun QiblaScreen(qiblaViewModel: QiblaViewModel = viewModel()) {
     } else {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
+                OttrojjaText(
                     "يحتاج التطبيق لأذونات الوصول للموقع لتحديد اتجاه القبلة بدقة",
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = OttrojjaTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(vertical = 12.dp)
                 )
-                Button(onClick = { permissionLauncher.launch(permissions.toTypedArray()) }) {
-                    Text("منح الأذونات", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
-                }
+                OttrojjaButton(
+                    onClick = { permissionLauncher.launch(permissions.toTypedArray()) },
+                    text = "منح الأذونات"
+                )
             }
         }
     }
@@ -223,7 +227,9 @@ private fun CompassContent(
             if (size == 0) return 0f
             val mean = magnitudeWindow.take(size).average().toFloat()
             var sum = 0f
-            for (i in 0 until size) { val d = magnitudeWindow[i] - mean; sum += d * d }
+            for (i in 0 until size) {
+                val d = magnitudeWindow[i] - mean; sum += d * d
+            }
             return sqrt(sum / size)
         }
 
@@ -242,13 +248,18 @@ private fun CompassContent(
             override fun onSensorChanged(event: SensorEvent) {
                 when (event.sensor.type) {
                     Sensor.TYPE_ACCELEROMETER -> {
-                        val x = event.values[0]; val y = event.values[1]; val z = event.values[2]
+                        val x = event.values[0];
+                        val y = event.values[1];
+                        val z = event.values[2]
                         val isFlat = (abs(x) < 4f && abs(y) < 4f && z in 7f..11f)
                         if (!isFlat) triggerPositionWarning() else triggerPositionDialog(false)
                         lowPass(event.values, accelerometerReading)
                     }
+
                     Sensor.TYPE_MAGNETIC_FIELD -> {
-                        val x = event.values[0]; val y = event.values[1]; val z = event.values[2]
+                        val x = event.values[0];
+                        val y = event.values[1];
+                        val z = event.values[2]
                         val B = sqrt(x * x + y * y + z * z)
                         magneticFieldValue = B
                         magnitudeWindow[windowIndex] = B
@@ -257,9 +268,9 @@ private fun CompassContent(
                         val stddev = computeStdDev()
                         val deltaB = abs(B - expectedField_uT)
                         magneticFieldQuality = when {
-                            deltaB < 3f && stddev < 1f  -> MFSQuality.GOOD
+                            deltaB < 3f && stddev < 1f -> MFSQuality.GOOD
                             deltaB < 10f && stddev < 5f -> MFSQuality.MEDIUM
-                            else                        -> MFSQuality.BAD
+                            else -> MFSQuality.BAD
                         }
                         if (magneticFieldQuality == MFSQuality.BAD) triggerCalibrationWarning()
                         lowPass(event.values, magnetometerReading)
@@ -296,7 +307,10 @@ private fun CompassContent(
     LaunchedEffect(Unit) {
         try {
             LocationProvider.getLocationUpdates(context)
-                .onCompletion { cause -> if (cause is CancellationException) { } }
+                .onCompletion { cause ->
+                    if (cause is CancellationException) {
+                    }
+                }
                 .catch { e ->
                     e.printStackTrace()
                     Toast.makeText(context, "حصل خطأ", Toast.LENGTH_LONG).show()
@@ -305,11 +319,11 @@ private fun CompassContent(
                     locationState.value = location
                     val userLoc = Location("service Provider").apply {
                         longitude = location.longitude
-                        latitude  = location.latitude
-                        altitude  = location.altitude
+                        latitude = location.latitude
+                        altitude = location.altitude
                     }
                     val destinationLoc = Location("service Provider").apply {
-                        latitude  = 21.422487
+                        latitude = 21.422487
                         longitude = 39.826206
                     }
                     bearing = normalizeAngle(userLoc.bearingTo(destinationLoc))
@@ -330,29 +344,31 @@ private fun CompassContent(
 
     LaunchedEffect(locationState.value) {
         if (locationState.value != null) {
-            getCityFromLocationAsync(context, locationState.value!!).collect { locationCity = it ?: "" }
+            getCityFromLocationAsync(context, locationState.value!!).collect {
+                locationCity = it ?: ""
+            }
         }
     }
 
     DisposableEffect(Unit) {
         val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        val magnetometer  = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+        val magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
         sensorManager.registerListener(sensorEventListener, accelerometer, SensorManager.SENSOR_DELAY_UI)
-        sensorManager.registerListener(sensorEventListener, magnetometer,  SensorManager.SENSOR_DELAY_UI)
+        sensorManager.registerListener(sensorEventListener, magnetometer, SensorManager.SENSOR_DELAY_UI)
         onDispose { sensorManager.unregisterListener(sensorEventListener) }
     }
 
-    val bitmap      = BitmapFactory.decodeResource(context.resources, R.drawable.kaaba)
+    val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.kaaba)
     val imageBitmap = bitmap.asImageBitmap()
 
     if (calibrationRequired) CalibrationDialog(onDismiss = { calibrationRequired = false })
-    if (showPositionDialog)  DevicePositionDialog(onDismiss = { triggerPositionDialog(false) })
+    if (showPositionDialog) DevicePositionDialog(onDismiss = { triggerPositionDialog(false) })
 
     // Capture theme colors before entering Canvas scope
     // (MaterialTheme composition locals are not accessible inside Canvas)
-    val colorPrimary   = MaterialTheme.colorScheme.primary.toArgb()
-    val colorError     = md_theme_light_error.toArgb()
-    val colorFace      = MaterialTheme.colorScheme.surface
+    val colorPrimary = MaterialTheme.colorScheme.primary.toArgb()
+    val colorError = md_theme_light_error.toArgb()
+    val colorFace = MaterialTheme.colorScheme.surface
 
     Column(
         modifier = Modifier
@@ -368,13 +384,15 @@ private fun CompassContent(
             }
             if (locationState.value != null) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text(
+                    OttrojjaText(
                         text = "إتجاه القبلة °${bearing.toString().split(".")[0]}",
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = OttrojjaTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -387,7 +405,7 @@ private fun CompassContent(
             val canvasHeight = size.height
             val centerX = canvasWidth / 2
             val centerY = canvasHeight / 2
-            val radius  = min(size.width, size.height) / 2 * 0.7f
+            val radius = min(size.width, size.height) / 2 * 0.7f
 
             // Radial gradient compass face — dark centre fading outward gives depth
             val gradientBrush = ShaderBrush(
@@ -408,25 +426,25 @@ private fun CompassContent(
                 // FIX 1: Glow halo — two faint rings behind the main ring when aligned
                 if (isAligned) {
                     drawCircle(
-                        color  = complete_green.copy(alpha = 0.20f),
+                        color = complete_green.copy(alpha = 0.20f),
                         radius = radius + 10.dp.toPx(),
                         center = Offset(centerX, centerY),
-                        style  = Stroke(width = 14.dp.toPx())
+                        style = Stroke(width = 14.dp.toPx())
                     )
                     drawCircle(
-                        color  = complete_green.copy(alpha = 0.08f),
+                        color = complete_green.copy(alpha = 0.08f),
                         radius = radius + 20.dp.toPx(),
                         center = Offset(centerX, centerY),
-                        style  = Stroke(width = 10.dp.toPx())
+                        style = Stroke(width = 10.dp.toPx())
                     )
                 }
 
                 // Main ring — slightly thicker when aligned
                 drawCircle(
-                    color  = if (isAligned) complete_green else md_theme_light_secondary,
+                    color = if (isAligned) complete_green else md_theme_light_secondary,
                     radius = radius,
                     center = Offset(centerX, centerY),
-                    style  = Stroke(width = if (isAligned) 10.dp.toPx() else 8.dp.toPx())
+                    style = Stroke(width = if (isAligned) 10.dp.toPx() else 8.dp.toPx())
                 )
 
                 // hree-tier tick system
@@ -435,34 +453,34 @@ private fun CompassContent(
                 //   Every 45° → intercardinal (medium height, medium opacity)
                 //   Every 90° → cardinal      (tallest, full opacity)
                 for (i in 0 until 360 step 5) {
-                    val isCardinal      = i % 90 == 0
+                    val isCardinal = i % 90 == 0
                     val isIntercardinal = i % 45 == 0 && !isCardinal
-                    val isMedium        = i % 10 == 0 && !isCardinal && !isIntercardinal
+                    val isMedium = i % 10 == 0 && !isCardinal && !isIntercardinal
 
                     val tickLength = when {
-                        isCardinal      -> radius * 0.14f
+                        isCardinal -> radius * 0.14f
                         isIntercardinal -> radius * 0.10f
-                        isMedium        -> radius * 0.06f
-                        else            -> radius * 0.03f
+                        isMedium -> radius * 0.06f
+                        else -> radius * 0.03f
                     }
                     val strokeWidth = when {
-                        isCardinal      -> 3.dp.toPx()
+                        isCardinal -> 3.dp.toPx()
                         isIntercardinal -> 2.dp.toPx()
-                        isMedium        -> 1.2f.dp.toPx()
-                        else            -> 0.8f.dp.toPx()
+                        isMedium -> 1.2f.dp.toPx()
+                        else -> 0.8f.dp.toPx()
                     }
                     val tickAlpha = when {
-                        isCardinal      -> 1.0f
+                        isCardinal -> 1.0f
                         isIntercardinal -> 0.75f
-                        isMedium        -> 0.45f
-                        else            -> 0.22f
+                        isMedium -> 0.45f
+                        else -> 0.22f
                     }
 
                     rotate(i.toFloat(), Offset(centerX, centerY)) {
                         drawLine(
-                            color       = md_theme_light_primary.copy(alpha = tickAlpha),
-                            start       = Offset(centerX, centerY - radius),
-                            end         = Offset(centerX, centerY - radius + tickLength),
+                            color = md_theme_light_primary.copy(alpha = tickAlpha),
+                            start = Offset(centerX, centerY - radius),
+                            end = Offset(centerX, centerY - radius + tickLength),
                             strokeWidth = strokeWidth
                         )
                     }
@@ -471,48 +489,48 @@ private fun CompassContent(
                 // Direction labels
                 // Cardinals (N/S/E/W) are large + bold; N gets the error-red accent.
                 // Intercardinals (NE/SE/SW/NW) are smaller + dimmer so they don't compete.
-                val cardinalTextRadius      = radius * 0.76f
+                val cardinalTextRadius = radius * 0.76f
                 val intercardinalTextRadius = radius * 0.72f
 
                 drawContext.canvas.nativeCanvas.apply {
                     val cardinalPaint = android.graphics.Paint().apply {
-                        textAlign      = android.graphics.Paint.Align.CENTER
-                        textSize       = radius * 0.13f
+                        textAlign = android.graphics.Paint.Align.CENTER
+                        textSize = radius * 0.13f
                         isFakeBoldText = true
-                        isAntiAlias    = true
-                        color          = colorPrimary
+                        isAntiAlias = true
+                        color = colorPrimary
                     }
                     val northPaint = android.graphics.Paint(cardinalPaint).apply {
-                        color    = colorError
+                        color = colorError
                         textSize = radius * 0.15f
                     }
                     val intercardinalPaint = android.graphics.Paint().apply {
                         // ~73% opacity of primary
-                        color          = (colorPrimary.toLong() and 0x00FFFFFFL or 0xBB000000L).toInt()
-                        textAlign      = android.graphics.Paint.Align.CENTER
-                        textSize       = radius * 0.09f
+                        color = (colorPrimary.toLong() and 0x00FFFFFFL or 0xBB000000L).toInt()
+                        textAlign = android.graphics.Paint.Align.CENTER
+                        textSize = radius * 0.09f
                         isFakeBoldText = false
-                        isAntiAlias    = true
+                        isAntiAlias = true
                     }
 
                     fun drawCardinal(text: String, angleDeg: Float, paint: android.graphics.Paint) {
                         val rad = Math.toRadians(angleDeg.toDouble())
-                        val x   = centerX + (cardinalTextRadius * sin(rad)).toFloat()
-                        val y   = centerY - (cardinalTextRadius * cos(rad)).toFloat()
+                        val x = centerX + (cardinalTextRadius * sin(rad)).toFloat()
+                        val y = centerY - (cardinalTextRadius * cos(rad)).toFloat()
                         drawText(text, x, y + paint.textSize / 3f, paint)
                     }
 
                     fun drawIntercardinal(text: String, angleDeg: Float) {
                         val rad = Math.toRadians(angleDeg.toDouble())
-                        val x   = centerX + (intercardinalTextRadius * sin(rad)).toFloat()
-                        val y   = centerY - (intercardinalTextRadius * cos(rad)).toFloat()
+                        val x = centerX + (intercardinalTextRadius * sin(rad)).toFloat()
+                        val y = centerY - (intercardinalTextRadius * cos(rad)).toFloat()
                         drawText(text, x, y + intercardinalPaint.textSize / 3f, intercardinalPaint)
                     }
 
-                    drawCardinal("N",  0f,   northPaint)
-                    drawCardinal("E",  90f,  cardinalPaint)
-                    drawCardinal("S",  180f, cardinalPaint)
-                    drawCardinal("W",  270f, cardinalPaint)
+                    drawCardinal("N", 0f, northPaint)
+                    drawCardinal("E", 90f, cardinalPaint)
+                    drawCardinal("S", 180f, cardinalPaint)
+                    drawCardinal("W", 270f, cardinalPaint)
 
                     drawIntercardinal("NE", 45f)
                     drawIntercardinal("SE", 135f)
@@ -524,15 +542,15 @@ private fun CompassContent(
             // ── Qibla needle (independent rotation) ──────────────────────────────
             rotate(animatedAngle, Offset(centerX, centerY)) {
                 val needleLength = radius * 0.9f
-                val needleWidth  = radius * 0.15f
-                val tailWidth    = radius * 0.07f
+                val needleWidth = radius * 0.15f
+                val tailWidth = radius * 0.07f
 
                 Path().apply {
                     moveTo(centerX, centerY - needleLength)
                     lineTo(centerX - needleWidth, centerY)
-                    lineTo(centerX - tailWidth,   centerY)
+                    lineTo(centerX - tailWidth, centerY)
                     lineTo(centerX, centerY + needleLength * 0.3f)
-                    lineTo(centerX + tailWidth,   centerY)
+                    lineTo(centerX + tailWidth, centerY)
                     lineTo(centerX + needleWidth, centerY)
                     close()
                 }.let { drawPath(it, md_theme_light_primary) }
@@ -546,13 +564,13 @@ private fun CompassContent(
                 }.let { drawPath(it, Color.White) }
 
                 drawCircle(
-                    color  = Color.White,
+                    color = Color.White,
                     radius = radius * 0.05f,
                     center = Offset(centerX, centerY),
-                    style  = Stroke(width = 4.dp.toPx())
+                    style = Stroke(width = 4.dp.toPx())
                 )
                 drawCircle(
-                    color  = md_theme_light_secondary,
+                    color = md_theme_light_secondary,
                     radius = radius * 0.03f,
                     center = Offset(centerX, centerY)
                 )
@@ -563,88 +581,99 @@ private fun CompassContent(
             // animatedSaturation (0 = greyscale, 1 = full colour).
             val s = animatedSaturation
             val satMatrix = ColorMatrix(floatArrayOf(
-                0.213f + 0.787f * s,  0.715f - 0.715f * s,  0.072f - 0.072f * s,  0f, 0f,
-                0.213f - 0.213f * s,  0.715f + 0.285f * s,  0.072f - 0.072f * s,  0f, 0f,
-                0.213f - 0.213f * s,  0.715f - 0.715f * s,  0.072f + 0.928f * s,  0f, 0f,
-                0f,                   0f,                    0f,                   1f, 0f
-            ))
+                0.213f + 0.787f * s, 0.715f - 0.715f * s, 0.072f - 0.072f * s, 0f, 0f,
+                0.213f - 0.213f * s, 0.715f + 0.285f * s, 0.072f - 0.072f * s, 0f, 0f,
+                0.213f - 0.213f * s, 0.715f - 0.715f * s, 0.072f + 0.928f * s, 0f, 0f,
+                0f, 0f, 0f, 1f, 0f
+            )
+            )
 
             // Proportional image sizing + offset — no more hardcoded -200px
-            val imgSize  = (radius * 0.30f).toInt()
-            val imgLeft  = (centerX - imgSize / 2f).toInt()
+            val imgSize = (radius * 0.30f).toInt()
+            val imgLeft = (centerX - imgSize / 2f).toInt()
             // sits just outside the ring: ring top is at (centerY - radius),
             // then we add a small gap (0.12 * radius) so it doesn't touch the stroke
-            val imgTop   = (centerY - radius - imgSize - radius * 0.35f).toInt()
+            val imgTop = (centerY - radius - imgSize - radius * 0.35f).toInt()
             drawImage(
                 imageBitmap,
-                dstOffset   = IntOffset(imgLeft, imgTop),
-                dstSize     = IntSize(imgSize, imgSize),
+                dstOffset = IntOffset(imgLeft, imgTop),
+                dstSize = IntSize(imgSize, imgSize),
                 colorFilter = ColorFilter.colorMatrix(satMatrix)
             )
         }
 
         // ── Bottom info card ──────────────────────────────────────────────────────
-        OttrojjaDetailsContainer {
-            Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                if (locationState.value != null) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            "Lat: ${String.format(Locale.US, "%.4f", locationState.value?.latitude)}" +
-                                    "    Lng: ${String.format(Locale.US, "%.4f", locationState.value?.longitude)}",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center
-                        )
+        Column(modifier = Modifier.padding(12.dp)) {
+            OttrojjaDetailsContainer {
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (locationState.value != null) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 6.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            OttrojjaText(
+                                "Lat: ${String.format(Locale.US, "%.4f", locationState.value?.latitude)}" +
+                                        "    Lng: ${String.format(Locale.US, "%.4f", locationState.value?.longitude)}",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = OttrojjaTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            OttrojjaText(
+                                locationCity,
+                                color = MaterialTheme.colorScheme.primary,
+                                style = OttrojjaTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            OttrojjaText("جاري المعالجة..",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = OttrojjaTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-                        horizontalArrangement = Arrangement.Center
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            locationCity,
+                        OttrojjaText(
+                            text = "قوة المجال المغناطيسي: ",
                             color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = OttrojjaTheme.typography.bodySmall,
                             textAlign = TextAlign.Center
                         )
-                    }
-                } else {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text("جاري المعالجة..",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center
+                        OttrojjaText(
+                            "${magneticFieldValue.toInt()} µT",
+                            color = when (magneticFieldQuality) {
+                                MFSQuality.GOOD -> complete_green
+                                MFSQuality.MEDIUM -> MaterialTheme.colorScheme.secondary
+                                MFSQuality.BAD -> MaterialTheme.colorScheme.error
+                            },
+                            style = OttrojjaTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.clickable { calibrationRequired = true },
+                            textDecoration = TextDecoration.Underline
                         )
                     }
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text  = "قوة المجال المغناطيسي: ",
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        "${magneticFieldValue.toInt()} µT",
-                        color = when (magneticFieldQuality) {
-                            MFSQuality.GOOD   -> complete_green
-                            MFSQuality.MEDIUM -> MaterialTheme.colorScheme.secondary
-                            MFSQuality.BAD    -> MaterialTheme.colorScheme.error
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.clickable { calibrationRequired = true },
-                        textDecoration = TextDecoration.Underline
-                    )
                 }
             }
         }
@@ -652,9 +681,9 @@ private fun CompassContent(
 }
 
 private fun normalizeAngle(angle: Float): Float = when {
-    angle < 0    -> angle + 360
+    angle < 0 -> angle + 360
     angle >= 360 -> angle - 360
-    else         -> angle
+    else -> angle
 }
 
 fun getCityFromLocationAsync(context: Context, location: Location): Flow<String?> = flow {

@@ -11,15 +11,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,16 +23,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ottrojja.R
 import com.ottrojja.classes.ButtonAction
-import com.ottrojja.classes.Helpers.truncate
-import com.ottrojja.classes.ModalFormMode
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun TopBar(customContent: Boolean = false,
@@ -73,11 +66,11 @@ fun TopBar(customContent: Boolean = false,
                     .fillMaxSize()
                     .padding(4.dp, 0.dp)
             ) {
-                Text(
-                    text = title.truncate(20),
-                    style = MaterialTheme.typography.displayLarge.copy(fontSize = 28.sp),
+                OttrojjaText(text = title,
+                    style = OttrojjaTheme.typography.title,
                     textAlign = TextAlign.Center,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    truncate = 20
                 )
 
                 if (mainAction != null || secondaryActions.isNotEmpty()) {
@@ -98,9 +91,9 @@ fun TopBar(customContent: Boolean = false,
                                     secondaryActions.forEachIndexed { index, it ->
                                         DropdownMenuItem(
                                             text = {
-                                                Text(
+                                                OttrojjaText(
                                                     it.title,
-                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    style = OttrojjaTheme.typography.bodyMedium,
                                                     color = MaterialTheme.colorScheme.primary
                                                 )
                                             },

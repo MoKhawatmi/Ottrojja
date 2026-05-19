@@ -16,16 +16,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.ui.theme.OttrojjaTheme
 
-
-/*
-* surahItem: ChapterData?,
-                       selectSurahClicked: () -> Unit,
-                       verseItem: Int = 1,
-                       selectVerseClicked: () -> Unit = {},
-                       header: String,
-                       withVerseSelection: Boolean = true
-* */
 
 @Composable
 fun RangeSelectionItem(segments: List<RangeSelectionSegment>) {
@@ -44,24 +37,16 @@ fun RangeSelectionItem(segments: List<RangeSelectionSegment>) {
         segments.forEach {
             RangeSelectionTitle(it.title)
             RangeSelectionClickable(
-                text = it.value,// "${surahItem?.surahId}.\n${surahItem?.chapterName}",
-                onClick = { it.onClick() /*selectSurahClicked()*/ }
+                text = it.value,
+                onClick = { it.onClick()  }
             )
         }
-
-        /*if (withVerseSelection) {
-            RangeSelectionTitle("الاية")
-            RangeSelectionClickable(
-                text = verseItem.toString(),
-                onClick = { selectVerseClicked() }
-            )
-        }*/
     }
 }
 
 @Composable
 fun RangeSelectionClickable(text: String, onClick: () -> Unit) {
-    Text(
+    OttrojjaText(
         text,
         modifier = Modifier
             .padding(vertical = 12.dp)
@@ -75,14 +60,16 @@ fun RangeSelectionClickable(text: String, onClick: () -> Unit) {
             .padding(horizontal = 8.dp, vertical = 16.dp)
             .clickable { onClick() },
         color = MaterialTheme.colorScheme.onPrimary,
-        style = MaterialTheme.typography.bodyMedium,
+        style = OttrojjaTheme.typography.bodyMedium,
         textAlign = TextAlign.Center,
     )
 }
 
 @Composable
 fun RangeSelectionTitle(title: String) {
-    Text(title, color = MaterialTheme.colorScheme.primary,
-        style = MaterialTheme.typography.bodyMedium
+    OttrojjaText(
+        title,
+        color = MaterialTheme.colorScheme.primary,
+        style = OttrojjaTheme.typography.bodyMedium
     )
 }

@@ -1,6 +1,5 @@
 package com.ottrojja.screens.quranScreen.composables
 
-import android.R
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,7 +18,6 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,14 +28,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.classes.Helpers.truncate
 import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
-import com.ottrojja.composables.SelectableText
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.screens.quranScreen.TafseerSheetMode
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun SelectedVerseContentSection(
@@ -105,8 +102,8 @@ fun SelectedVerseContentSection(
                 .fillMaxWidth()
                 .padding(bottom = 6.dp)
         ) {
-            Text(text = tafseerChapterVerse,
-                style = MaterialTheme.typography.displayLarge,
+            OttrojjaText(text = tafseerChapterVerse,
+                style = OttrojjaTheme.typography.bodySpecialLarge,
                 color = MaterialTheme.colorScheme.secondary,
                 textAlign = TextAlign.Center
             )
@@ -127,25 +124,25 @@ fun SelectedVerseContentSection(
         SelectionContainer(modifier = Modifier.verticalScroll(rememberScrollState())) {
             Column {
                 if (verseText.isNotBlank()) {
-                    Text(
+                    OttrojjaText(
                         text = if (verseTextExpanded) "{$verseText}" else "{$verseText}".truncate(30),
                         color = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier
                             .padding(10.dp)
                             .fillMaxWidth()
                             .clickable(onClick = { verseTextExpanded = !verseTextExpanded }),
-                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 21.sp),
+                        style = OttrojjaTheme.typography.bodyMedium,
                         textAlign = TextAlign.Right,
                     )
                 }
 
-                Text(
+                OttrojjaText(
                     text = text,
                     color = Color.Black,
                     modifier = Modifier
                         .padding(10.dp)
                         .fillMaxWidth(),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 21.sp),
+                    style = OttrojjaTheme.typography.bodyMedium,
                     textAlign = TextAlign.Right,
                 )
 

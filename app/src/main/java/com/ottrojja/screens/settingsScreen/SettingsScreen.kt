@@ -3,9 +3,11 @@ package com.ottrojja.screens.settingsScreen
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,8 +41,11 @@ import com.ottrojja.classes.Helpers
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.dialogs.OttrojjaDialog
-import com.ottrojja.composables.SwitchWithIcon
+import com.ottrojja.composables.forms.SwitchWithIcon
 import androidx.core.net.toUri
+import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 
 @Composable
@@ -53,11 +58,14 @@ fun SettingsScreen(
         settingsScreenViewModel.getSettings()
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.tertiary)) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.tertiary)
+    ) {
         TopBar(title = "الإعدادات")
 
         if (settingsScreenViewModel.ShowAboutDialog) {
-            AboutDialog(onDismiss = {settingsScreenViewModel.ShowAboutDialog = false} )
+            AboutDialog(onDismiss = { settingsScreenViewModel.ShowAboutDialog = false })
         }
 
         if (settingsScreenViewModel.ShowContactDialog) {
@@ -79,31 +87,40 @@ fun SettingsScreen(
                         modifier = Modifier
                             .fillMaxHeight(0.8f)
                     ) {
-                        Text(
+                        OttrojjaText(
                             "لإقتراحاتكم وللإبلاغ عن اي مشاكل تقنية في التطبيق بإمكانكم تعبئة الاستبيان عبر الضغط على الزر ادناه او التواصل معنا على البريد الإلكتروني للمشروع",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontSize = 20.sp,
+                            style = OttrojjaTheme.typography.bodyMedium,
                             textAlign = TextAlign.Start,
                         )
-                        Text(
-                            text = "ottrojjaapp@gmail.com",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                textDirection = TextDirection.Ltr,
-                                textAlign = TextAlign.Center
-                            ),
-                            fontSize = 22.sp,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
+                        Row(modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable(
+                                onClick = {
+                                    sendMail(context = context,
+                                        to = "ottrojjaapp@gmail.com",
+                                        subject = "ملاحظات لتطبيق الاترجة"
+                                    )
+                                },
+                                onLongClick = {
                                     Helpers.copyToClipboard(
                                         context,
                                         "ottrojjaapp@gmail.com",
                                         "تم النسخ بنجاح!"
                                     )
                                 }
-                                .padding(0.dp, 8.dp)
-                        )
+                            )
+                            .padding(0.dp, 8.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            OttrojjaText(
+                                text = "ottrojjaapp@gmail.com",
+                                style = OttrojjaTheme.typography.bodyMedium.copy(
+                                    textDirection = TextDirection.Ltr,
+                                    textAlign = TextAlign.Center
+                                ),
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
 
                         Row(
                             horizontalArrangement = Arrangement.Center,
@@ -112,20 +129,16 @@ fun SettingsScreen(
                                 .fillMaxWidth()
                                 .padding(0.dp, 8.dp)
                         ) {
-                            Button(onClick = {
-                                val intent = Intent(
-                                    Intent.ACTION_VIEW,
-                                    "https://docs.google.com/forms/d/e/1FAIpQLScPRdpxkyl39QC7aK3-KioCddZE2ioXJ8GZ6_XLZsu42eopxA/viewform?usp=header".toUri()
-                                )
-                                context.startActivity(intent)
-                            }) {
-                                Text(
-                                    "فتح الاستبيان",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontSize = 20.sp,
-                                    textAlign = TextAlign.End
-                                )
-                            }
+                            OttrojjaButton(
+                                onClick = {
+                                    val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        "https://docs.google.com/forms/d/e/1FAIpQLScPRdpxkyl39QC7aK3-KioCddZE2ioXJ8GZ6_XLZsu42eopxA/viewform?usp=header".toUri()
+                                    )
+                                    context.startActivity(intent)
+                                },
+                                text = "فتح الاستبيان"
+                            )
                         }
                     }
                     Row(
@@ -134,14 +147,10 @@ fun SettingsScreen(
                             .fillMaxHeight(),
                         horizontalArrangement = Arrangement.End,
                     ) {
-                        Button(onClick = { settingsScreenViewModel.ShowContactDialog = false }) {
-                            Text(
-                                "إغلاق",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontSize = 20.sp,
-                                textAlign = TextAlign.End
-                            )
-                        }
+                        OttrojjaButton(
+                            onClick = { settingsScreenViewModel.ShowContactDialog = false },
+                            text = "إغلاق"
+                        )
                     }
                 }
             }
@@ -196,24 +205,35 @@ fun SettingsItem(textContent: String, onClick: () -> Unit, content: @Composable(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = textContent, color = Color.Black)
+            OttrojjaText(text = textContent, color = Color.Black, style = OttrojjaTheme.typography.bodyLarge)
             content()
         }
         ListHorizontalDivider()
     }
 }
 
-fun sendMail(context: Context, to: String, subject: String) {
+fun sendMail(
+    context: Context,
+    to: String,
+    subject: String
+) {
     try {
-        val intent = Intent(Intent.ACTION_SEND)
-        intent.type = "vnd.android.cursor.item/email"
-        intent.putExtra(Intent.EXTRA_EMAIL, arrayOf(to))
-        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
-        context.startActivity(intent)
-    } catch (e: ActivityNotFoundException) {
-        Toast.makeText(context, "خدمة البريد الالكتروني غير متوفرة", Toast.LENGTH_LONG).show()
-    } catch (t: Throwable) {
-        Toast.makeText(context, "حدث خطأ", Toast.LENGTH_LONG).show()
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:$to")
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+        }
+
+        context.startActivity(
+            Intent.createChooser(intent, "اختر تطبيق البريد")
+        )
+
+    } catch (e: Exception) {
+        Toast.makeText(
+            context,
+            "خدمة البريد الالكتروني غير متوفرة",
+            Toast.LENGTH_LONG
+        ).show()
+        Helpers.reportException(e, "SettingsScreen")
     }
 }
 
@@ -232,10 +252,9 @@ fun AboutDialog(onDismiss: () -> Unit) {
             horizontalAlignment = Alignment.Start,
             modifier = Modifier.fillMaxSize()
         ) {
-            Text(
+            OttrojjaText(
                 stringResource(R.string.about_app),
-                style = MaterialTheme.typography.bodyMedium,
-                fontSize = 20.sp,
+                style = OttrojjaTheme.typography.bodyMedium,
                 textAlign = TextAlign.Start,
                 modifier = Modifier
                     .fillMaxHeight(0.9f)
@@ -248,14 +267,10 @@ fun AboutDialog(onDismiss: () -> Unit) {
                     .fillMaxHeight(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                Button(onClick = { onDismiss() }) {
-                    Text(
-                        "إغلاق",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontSize = 20.sp,
-                        textAlign = TextAlign.End
-                    )
-                }
+                OttrojjaButton(
+                    onClick = { onDismiss() },
+                    text = "إغلاق"
+                )
             }
         }
     }

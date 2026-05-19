@@ -1,6 +1,6 @@
 package com.ottrojja.ui.theme
 
-import androidx.compose.material3.Typography
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -23,73 +23,137 @@ val timeNormal = FontFamily(
     Font(R.font.timenormal, FontWeight.Normal, FontStyle.Normal)
 )
 
-// Set of Material typography styles to start with
-val Typography = Typography(
+val Typography = OttrojjaTypography(
     bodyLarge = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 26.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp,
-        textDirection = TextDirection.Rtl
+        lineHeight = 30.sp,
+        letterSpacing = 0.sp,
+        textDirection = TextDirection.Rtl,
+        platformStyle = PlatformTextStyle(
+            includeFontPadding = false
+        )
     ),
     bodyMedium = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 18.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp,
-        textDirection = TextDirection.Rtl
+        lineHeight = 30.sp,
+        letterSpacing = 0.sp,
+        textDirection = TextDirection.Rtl,
+        platformStyle = PlatformTextStyle(
+            includeFontPadding = false
+        )
     ),
     bodySmall = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp,
-        textDirection = TextDirection.Rtl
-    ),
-    titleLarge = TextStyle( // this is used with search and verse section
-        fontFamily = uthmanic,
-        fontWeight = FontWeight.Normal,
-        fontSize = 18.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp,
+        lineHeight = 30.sp,
+        letterSpacing = 0.sp,
         textDirection = TextDirection.Rtl,
-        localeList = LocaleList(Locale("ar"))
+        platformStyle = PlatformTextStyle(
+            includeFontPadding = false
+        )
     ),
-    labelLarge = TextStyle(  // this is used with teacher
+    quranTextLarge = TextStyle(  // this is used with teacher
         fontFamily = uthmanic,
         fontWeight = FontWeight.Normal,
         fontSize = 28.sp,
         lineHeight = 32.sp,
-        letterSpacing = 0.5.sp,
+        letterSpacing = 0.sp,
         textDirection = TextDirection.Rtl,
         textAlign = TextAlign.Center,
-        localeList = LocaleList(Locale("ar"))
-
+        localeList = LocaleList(Locale("ar")),
+        platformStyle = PlatformTextStyle(
+            includeFontPadding = false
+        )
     ),
-    labelSmall = TextStyle(  // this is used with teacher
+    quranTextMedium = TextStyle( // this is used with search and verse section
+        fontFamily = uthmanic,
+        fontWeight = FontWeight.Normal,
+        fontSize = 20.sp,
+        lineHeight = 30.sp,
+        letterSpacing = 0.sp,
+        textDirection = TextDirection.Rtl,
+        localeList = LocaleList(Locale("ar")),
+        platformStyle = PlatformTextStyle(
+            includeFontPadding = false
+        )
+    ),
+    quranTextSmall = TextStyle(  // this is used with teacher
         fontFamily = uthmanic,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp,
+        lineHeight = 30.sp,
+        letterSpacing = 0.sp,
         textDirection = TextDirection.Rtl,
         textAlign = TextAlign.Start,
-        localeList = LocaleList(Locale("ar"))
+        localeList = LocaleList(Locale("ar")),
+        platformStyle = PlatformTextStyle(
+            includeFontPadding = false
+        )
     ),
-    displayLarge = TextStyle(
+    bodySpecialLarge = TextStyle(
         fontFamily = qalam,
         fontWeight = FontWeight.Normal,
         fontSize = 24.sp,
-        lineHeight = 26.sp, // original 24
-        letterSpacing = 0.6.sp, // original 0.5
-        textDirection = TextDirection.Rtl
+        lineHeight = 30.sp,
+        letterSpacing = 0.sp,
+        textDirection = TextDirection.Rtl,
+        platformStyle = PlatformTextStyle(
+            includeFontPadding = false
+        )
     ),
-    displayMedium = TextStyle(
+    bodySpecialMedium = TextStyle(
         fontFamily = qalam,
         fontWeight = FontWeight.Normal,
         fontSize = 20.sp,
-        lineHeight = 24.sp,
+        lineHeight = 30.sp,
+        letterSpacing = 0.sp,
+        textDirection = TextDirection.Rtl,
+        platformStyle = PlatformTextStyle(
+            includeFontPadding = false
+        )
+    ),
+    title = TextStyle(
+        fontFamily = qalam,
+        fontWeight = FontWeight.Normal,
+        fontSize = 28.sp,
+        lineHeight = 30.sp,
+        letterSpacing = 0.sp,
+        textDirection = TextDirection.Rtl,
+        platformStyle = PlatformTextStyle(
+            includeFontPadding = false
+        )
+    ),
+    counter = TextStyle(
+        fontFamily = timeNormal,
+        fontWeight = FontWeight.Normal,
+        fontSize = 42.sp,
+        lineHeight = 30.sp,
         letterSpacing = 0.5.sp,
-        textDirection = TextDirection.Rtl
-    )
+        platformStyle = PlatformTextStyle(
+            includeFontPadding = false
+        )
+    ),
+    navLabel = TextStyle(
+        fontWeight = FontWeight.Bold,
+        lineHeight = 30.sp,
+        letterSpacing = 0.sp,
+        textDirection = TextDirection.Rtl,
+        platformStyle = PlatformTextStyle(
+            includeFontPadding = false
+        )
+    ),
+
+    tabLabel = TextStyle(
+        fontWeight = FontWeight.Normal,
+        lineHeight = 30.sp,
+        letterSpacing = 0.sp,
+        textDirection = TextDirection.Rtl,
+        platformStyle = PlatformTextStyle(
+            includeFontPadding = false
+        )
+    ),
+
 )
+

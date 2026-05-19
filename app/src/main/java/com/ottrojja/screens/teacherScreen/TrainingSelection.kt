@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.RangeSelector
 import com.ottrojja.composables.rangeSelectionItem.RangeSelectionSegment
 import com.ottrojja.room.entities.ChapterData
@@ -74,13 +75,9 @@ fun TrainingSelection(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Button(onClick = { startTraining() }) {
-            Text(
-                text = "ابدأ",
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
+        OttrojjaButton(
+            onClick = { startTraining() },
+            text = "ابدأ",
+        )
     }
-
-
 }

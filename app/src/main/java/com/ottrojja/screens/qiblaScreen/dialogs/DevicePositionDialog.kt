@@ -20,9 +20,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ottrojja.R
+import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun DevicePositionDialog(onDismiss: () -> Unit) {
@@ -41,8 +43,8 @@ fun DevicePositionDialog(onDismiss: () -> Unit) {
                     .padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text("يرجى إبقاء الجهاز مسطحا لتحديد اتجاه القبلة بدقة",
-                        style = MaterialTheme.typography.bodyLarge,
+                    OttrojjaText("يرجى إبقاء الجهاز مسطحا لتحديد اتجاه القبلة بدقة",
+                        style = OttrojjaTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
@@ -58,14 +60,10 @@ fun DevicePositionDialog(onDismiss: () -> Unit) {
                     .padding(top = 4.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
-                Button(onClick = { onDismiss() }) {
-                    Text(
-                        "إغلاق",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontSize = 20.sp,
-                        textAlign = TextAlign.End
-                    )
-                }
+                OttrojjaButton(
+                    onClick = { onDismiss() },
+                    text = "إغلاق"
+                )
             }
         }
     }
