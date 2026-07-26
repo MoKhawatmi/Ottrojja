@@ -38,7 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.ButtonAction
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.TopBar

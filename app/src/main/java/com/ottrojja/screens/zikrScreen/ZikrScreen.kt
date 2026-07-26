@@ -40,7 +40,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers.copyToClipboard
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.composables.dialogs.LoadingDialog
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider

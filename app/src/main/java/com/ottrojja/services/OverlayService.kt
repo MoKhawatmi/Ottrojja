@@ -1,6 +1,5 @@
 package com.ottrojja.services
 
-import android.animation.ValueAnimator
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -19,7 +18,6 @@ import android.view.WindowManager
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.TextView
-import androidx.core.animation.doOnEnd
 import androidx.core.app.NotificationCompat
 import com.ottrojja.R
 import com.ottrojja.classes.DynamicAzkarHelper

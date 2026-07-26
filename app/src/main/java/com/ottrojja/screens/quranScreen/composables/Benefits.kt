@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -17,9 +18,11 @@ import com.ottrojja.R
 
 @Composable
 fun BenefitSectionSeparator() {
-    Image(painter = painterResource(R.drawable.benefit_seperator),
+    Image(
+        painter = painterResource(R.drawable.benefit_seperator),
         contentDescription = "",
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
     )
 }
 

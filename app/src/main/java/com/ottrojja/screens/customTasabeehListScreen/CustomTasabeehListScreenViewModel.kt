@@ -24,7 +24,7 @@ import com.google.gson.Gson
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.JsonParser
 import com.ottrojja.classes.ModalFormMode
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.Tasabeeh
 import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.room.entities.TasabeehList

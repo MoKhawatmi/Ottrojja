@@ -45,7 +45,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -69,7 +68,7 @@ import androidx.navigation.NavController
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.room.entities.PageContentItemType
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.IsTablet
 import com.ottrojja.composables.ListHorizontalDivider
@@ -80,6 +79,7 @@ import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.screens.quranScreen.dialogs.RepetitionOptionsDialog
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.screens.mainScreen.BrowsingOption
+import com.ottrojja.screens.quranScreen.classes.TafseerContent
 import com.ottrojja.screens.quranScreen.composables.Benefits
 import com.ottrojja.screens.quranScreen.composables.TafseerBottomSheet
 import com.ottrojja.screens.quranScreen.composables.YouTube
@@ -124,6 +124,13 @@ fun QuranScreen(
             reportException(exception = e, file = "QuranScreen")
         }
     }
+
+    LaunchedEffect(Unit) {
+        quranViewModel.navigation.collect { pageNum ->
+            navController.navigate(Screen.QuranScreen.invokeRoute(pageNum))
+        }
+    }
+
 
     BackHandler {
         handleBackBehaviour()
@@ -322,11 +329,19 @@ fun QuranScreen(
                 context,
                 showTafseerSheet = quranViewModel.showTafseerSheet,
                 onDismiss = { quranViewModel.showTafseerSheet = false },
-                verseText = quranViewModel.tafseerTargetVerse?.verseText?:"",
-                tafseer = quranViewModel.verseTafseer,
+                verseText = quranViewModel.tafseerTargetVerse?.verseText ?: "",
+                contentText = when (quranViewModel.tafseerSheetMode) {
+                    TafseerSheetMode.التفسير -> quranViewModel.verseTafseer
+                    TafseerSheetMode.الإعراب -> quranViewModel.verseE3rab
+                    TafseerSheetMode.أسباب_النزول -> quranViewModel.verseCauseOfRevelation
+                    TafseerSheetMode.معاني_المفردات -> quranViewModel.verseMeanings
+                    TafseerSheetMode.المشابهات -> quranViewModel.verseMutashabihat
+                },
+                /*tafseer = quranViewModel.verseTafseer,
                 e3rab =  quranViewModel.verseE3rab,
                 causeOfRevelation =  quranViewModel.verseCauseOfRevelation,
                 verseMeanings = quranViewModel.verseMeanings,
+                mutashabihat = quranViewModel.verseMutashabihat,*/
                 selectedTafseer = quranViewModel.selectedTafseer,
                 onClickTafseerOptions = { quranViewModel.showTafseerOptions = true },
                 mode = quranViewModel.tafseerSheetMode,
@@ -389,7 +404,7 @@ fun QuranScreen(
         PageSelectionDialog(
             onDismissRequest = { quranViewModel.showPageSelectionDialog = false },
             pages = quranViewModel.getPagesList(),
-            scrollPageNumber= if(quranViewModel.versesSelectionMode == VersesSelectionMode.END) quranViewModel.endPlayingPage else quranViewModel.startPlayingPage,
+            scrollPageNumber = if (quranViewModel.versesSelectionMode == VersesSelectionMode.END) quranViewModel.endPlayingPage else quranViewModel.startPlayingPage,
             onSelect = { value ->
                 if (quranViewModel.versesSelectionMode == VersesSelectionMode.END) {
                     quranViewModel.endPlayingPage = value.toInt();

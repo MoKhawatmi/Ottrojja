@@ -12,6 +12,7 @@ data class OttrojjaTypography(
 
     val bodySpecialLarge: TextStyle,
     val bodySpecialMedium: TextStyle,
+    val bodySpecialBasic: TextStyle,
 
     val title: TextStyle,
 
@@ -23,5 +24,6 @@ data class OttrojjaTypography(
 
     val navLabel: TextStyle,
 
-    val tabLabel: TextStyle
+    val tabLabel: TextStyle,
+
 )

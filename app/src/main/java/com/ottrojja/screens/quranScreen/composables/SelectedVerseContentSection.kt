@@ -34,13 +34,14 @@ import com.ottrojja.composables.OttrojjaElevatedButton
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.screens.quranScreen.TafseerSheetMode
+import com.ottrojja.screens.quranScreen.classes.TafseerContent
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun SelectedVerseContentSection(
     context: Context,
     verseText: String,
-    text: String,
+    text: List<TafseerContent>,
     copiedMessage: String,
     atFirstVerse: Boolean,
     atLastVerse: Boolean,
@@ -53,6 +54,8 @@ fun SelectedVerseContentSection(
 ) {
 
     var verseTextExpanded by remember { mutableStateOf(false) }
+
+    val enclosedVerseText = "\uFD3F$verseText\uFD3E";
 
     Column(horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -90,7 +93,7 @@ fun SelectedVerseContentSection(
                 OttrojjaElevatedButton(onClick = {
                     copyToClipboard(
                         context,
-                        text,
+                        text.joinToString(separator = " , ") { it.text },
                         copiedMessage
                     )
                 }, icon = Icons.Default.ContentCopy)
@@ -125,27 +128,32 @@ fun SelectedVerseContentSection(
             Column {
                 if (verseText.isNotBlank()) {
                     OttrojjaText(
-                        text = if (verseTextExpanded) "{$verseText}" else "{$verseText}".truncate(30),
+                        text = if (verseTextExpanded) enclosedVerseText else enclosedVerseText.truncate(30),
                         color = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier
                             .padding(10.dp)
                             .fillMaxWidth()
                             .clickable(onClick = { verseTextExpanded = !verseTextExpanded }),
-                        style = OttrojjaTheme.typography.bodyMedium,
+                        style = OttrojjaTheme.typography.quranTextMedium,
                         textAlign = TextAlign.Right,
                     )
                 }
 
-                OttrojjaText(
-                    text = text,
-                    color = Color.Black,
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth(),
-                    style = OttrojjaTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Right,
-                )
-
+                text.forEach {
+                    OttrojjaText(
+                        text = it.text,
+                        color = Color.Black,
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth()
+                            .then(
+                                if (it.action != null) Modifier.clickable(onClick = { it.action() })
+                                else Modifier
+                            ),
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Right,
+                    )
+                }
             }
         }
     }

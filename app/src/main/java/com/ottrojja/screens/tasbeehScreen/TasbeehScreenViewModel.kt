@@ -15,7 +15,8 @@ import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.DataStore.DataStoreRepository
 import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.Helpers.reportException
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.interfaces.TabItem
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.Tasabeeh
 import com.ottrojja.room.entities.TasabeehList
 import kotlinx.coroutines.Dispatchers
@@ -136,8 +137,10 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
 
 }
 
-enum class TasbeehTab {
-    المسبحة, تسابيح, القوائم
+enum class TasbeehTab(override val displayName: String): TabItem {
+    المسبحة(displayName = "المسبحة"),
+    تسابيح(displayName = "تسابيح"),
+    القوائم(displayName = "القوائم")
 }
 
 class TasbeehViewModelFactory(

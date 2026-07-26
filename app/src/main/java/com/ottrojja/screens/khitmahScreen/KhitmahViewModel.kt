@@ -10,7 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.Helpers.reportException
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.SearchResult
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahMark

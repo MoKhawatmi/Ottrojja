@@ -77,7 +77,7 @@ fun OttrojjaTextArea(value: String?,
             shape = RoundedCornerShape(8.dp),
             supportingText = {
                 maxLength?.let {
-                    OttrojjaText("${value?.length ?: 0} / $maxLength")
+                    OttrojjaText("${value?.length ?: 0} / $maxLength", style = OttrojjaTheme.typography.bodySmall)
                 }
             }
         )

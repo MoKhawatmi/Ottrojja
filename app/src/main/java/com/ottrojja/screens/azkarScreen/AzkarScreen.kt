@@ -31,7 +31,7 @@ import androidx.navigation.NavController
 import com.ottrojja.R
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.TopBar
@@ -64,7 +64,7 @@ fun AzkarScreen(
                     modifier = Modifier
                         .padding(4.dp)
                         .fillMaxWidth()
-                        .background(Helpers.ottrojjaBrush, shape = RoundedCornerShape(12.dp))
+                        .background(Helpers.generateBrandBrush(MaterialTheme.colorScheme.primary), shape = RoundedCornerShape(12.dp))
                         .clip(RoundedCornerShape(12))
                         .clickable {
                             navController.navigate(

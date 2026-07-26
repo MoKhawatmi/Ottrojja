@@ -3,9 +3,9 @@ package com.ottrojja.ui.theme
 import androidx.compose.ui.graphics.Color
 
 //icon text color C1DB3F
-val md_theme_light_primary = Color(0xFF194D65)
+val md_theme_light_primary = Color(0xFF08428E)
 val md_theme_light_onPrimary = Color(0xFFFFFFFF)
-val md_theme_light_primaryContainer = Color(0xFFDBE1FF)
+val md_theme_light_primaryContainer = Color(0xFFEFF4F6)
 val md_theme_light_onPrimaryContainer = Color(0xFF00174A)
 val md_theme_light_secondary = Color(0xFFD0B968)
 val md_theme_light_onSecondary = Color(0xFFFFFFFF)

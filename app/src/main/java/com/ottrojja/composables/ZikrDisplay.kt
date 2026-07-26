@@ -7,5 +7,5 @@ import com.ottrojja.classes.DynamicAzkarHelper
 @Composable
 fun ZikrDisplay() {
     val context = LocalContext.current
-    OttrojjaPrimaryTextDisplay(DynamicAzkarHelper.getNextZekr(context))
+    OttrojjaPrimaryTextDisplay(text = DynamicAzkarHelper.getNextZekr(context))
 }

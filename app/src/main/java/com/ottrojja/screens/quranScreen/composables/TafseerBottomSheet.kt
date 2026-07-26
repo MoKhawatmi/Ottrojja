@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.screens.quranScreen.TafseerSheetMode
+import com.ottrojja.screens.quranScreen.classes.TafseerContent
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,10 +36,7 @@ fun TafseerBottomSheet(
     showTafseerSheet: Boolean,
     onDismiss: () -> Unit,
     verseText: String,
-    tafseer: String,
-    e3rab: String,
-    causeOfRevelation: String,
-    verseMeanings: String,
+    contentText: List<TafseerContent>,
     selectedTafseer: String,
     onClickTafseerOptions: () -> Unit,
     mode: TafseerSheetMode,
@@ -63,19 +61,13 @@ fun TafseerBottomSheet(
             SelectedVerseContentSection(
                 context = context,
                 verseText = verseText,
-                text = when (mode) {
-                    TafseerSheetMode.التفسير -> tafseer
-                    TafseerSheetMode.الإعراب -> e3rab
-                    TafseerSheetMode.أسباب_النزول -> causeOfRevelation
-                    TafseerSheetMode.معاني_المفردات -> verseMeanings
-                    else -> ""
-                },
+                text = contentText,
                 copiedMessage = when (mode) {
                     TafseerSheetMode.التفسير -> "تم تسخ التفسير بنجاح"
                     TafseerSheetMode.الإعراب -> "تم تسخ الإعراب بنجاح"
                     TafseerSheetMode.أسباب_النزول -> "تم تسخ سبب النزول بنجاح"
                     TafseerSheetMode.معاني_المفردات -> "تم تسخ معاني المفردات بنجاح"
-                    else -> ""
+                    TafseerSheetMode.المشابهات -> "تم نسخ الآيات المشابهات بنجاح"
                 },
                 atFirstVerse = atFirstVerse,
                 atLastVerse = atLastVerse,

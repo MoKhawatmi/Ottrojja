@@ -12,6 +12,8 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.ColorUtils
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -141,15 +143,25 @@ object Helpers {
         return resultCode == ConnectionResult.SUCCESS
     }
 
-    val ottrojjaBrush = Brush.linearGradient(
-        colors = listOf(
-            Color(0xFF1E5C77), // lighter teal (a bit more bright)
-            Color(0xFF194D65), // your base color
-            Color(0xFF123C4F), // deeper blue teal
-            Color(0xFF194D65), // back to your base
-            Color(0xFF1E5C77)  // back to lighter
+    fun generateBrandBrush(
+        baseColor: Color,
+        lightenAmount: Float = 0.06f,
+        darkenAmount: Float = 0.06f
+    ): Brush {
+        val lighter = adjustLightness(baseColor, lightenAmount)
+        val darker = adjustLightness(baseColor, -darkenAmount)
+
+        return Brush.linearGradient(
+            colors = listOf(lighter, baseColor, darker, baseColor, lighter)
         )
-    )
+    }
+
+    fun adjustLightness(color: Color, amount: Float): Color {
+        val hsl = FloatArray(3)
+        ColorUtils.colorToHSL(color.toArgb(), hsl)
+        hsl[2] = (hsl[2] + amount).coerceIn(0f, 1f)
+        return Color(ColorUtils.HSLToColor(hsl))
+    }
 
     fun String.truncate(maxLength: Int): String {
         return if (this.length <= maxLength) this

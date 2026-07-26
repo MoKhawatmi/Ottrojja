@@ -39,6 +39,16 @@ interface QuranDao {
     @Query("SELECT count(*) FROM QuranPage")
     suspend fun getPagesCount(): Int
 
+    @Query("""
+    SELECT * FROM QuranPage
+    WHERE benefits IS NOT NULL
+      AND benefits != '[]'
+    ORDER BY RANDOM()
+    LIMIT 1
+    """
+    )
+    suspend fun getRandomPageWithBenefits(): QuranPage
+
     /****************************Page Content*********************************/
 
     @Query("SELECT * FROM PageContent")
@@ -55,11 +65,21 @@ interface QuranDao {
       AND (surahNum < :endSurah OR (surahNum = :endSurah AND verseNum <= :endVerse)) AND type = 'verse'
 """
     )
-    suspend fun getPagesContentRange(startingSurah: Int, startingVerse: Int, endSurah: Int, endVerse: Int): List<PageContent>
+    suspend fun getPagesContentRange(startingSurah: Int,
+                                     startingVerse: Int,
+                                     endSurah: Int,
+                                     endVerse: Int): List<PageContent>
 
 
     @Query("SELECT * FROM PageContent WHERE surahNum = :surahNum AND type = 'verse'")
     suspend fun getChapterVerses(surahNum: Int): List<PageContent>
+
+    @Query("""
+    SELECT *
+    FROM PageContent
+    WHERE (surahNum || ':' || verseNum) IN (:mutashabihat)
+""")
+    suspend fun getSpecificVerses(mutashabihat: List<String>): List<PageContent>
 
     @Query("SELECT * FROM PageContent WHERE pageNum = :pageNum")
     suspend fun fetchPageVerses(pageNum: String): List<PageContent>

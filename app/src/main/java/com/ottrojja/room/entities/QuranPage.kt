@@ -37,6 +37,7 @@ data class PageContent(
     @ColumnInfo(name = "verseNum") val verseNum: Int?,
     @ColumnInfo(name = "verseText") val verseText: String?,
     @ColumnInfo(name = "verseTextPlain") val verseTextPlain: String?,
+    @ColumnInfo(name = "mutashabihat") val mutashabihat: List<String> = emptyList(),
 )
 
 enum class PageContentItemType{

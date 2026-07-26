@@ -26,7 +26,7 @@ import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
 import com.ottrojja.classes.QuranListeningMode
 import com.ottrojja.classes.QuranPlayingParameters
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.StorageBase
 import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.services.QuranPlayerService

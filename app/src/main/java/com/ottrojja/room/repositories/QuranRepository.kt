@@ -1,31 +1,28 @@
-package com.ottrojja.classes
+package com.ottrojja.room.repositories
 
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
-import com.ottrojja.room.entities.BookmarkEntity
-import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.dao.KhitmahDao
-import com.ottrojja.room.entities.KhitmahMark
-import com.ottrojja.room.relations.KhitmahWithMarks
 import com.ottrojja.room.dao.QuranDao
 import com.ottrojja.room.dao.TasabeehDao
-import com.ottrojja.room.entities.CauseOfRevelation
-import com.ottrojja.room.entities.CustomTasbeeh
-import com.ottrojja.room.entities.TasabeehList
-import com.ottrojja.room.relations.ListWithTasabeeh
 import com.ottrojja.room.entities.Azkar
+import com.ottrojja.room.entities.BookmarkEntity
+import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.room.entities.ChapterData
-import com.ottrojja.screens.mainScreen.PartData
+import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.room.entities.E3rabData
+import com.ottrojja.room.entities.Khitmah
+import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.Quarter
 import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.room.entities.TafseerData
+import com.ottrojja.room.entities.TasabeehList
 import com.ottrojja.room.entities.VerseMeanings
+import com.ottrojja.room.relations.KhitmahWithMarks
+import com.ottrojja.room.relations.ListWithTasabeeh
 import com.ottrojja.room.relations.PartWithQuarters
 import com.ottrojja.room.relations.QuranPageWithContent
+import com.ottrojja.screens.mainScreen.PartData
 import kotlinx.coroutines.flow.Flow
 
 class QuranRepository(private val quranDao: QuranDao,
@@ -55,6 +52,10 @@ class QuranRepository(private val quranDao: QuranDao,
         return quranDao.getPagesCount()
     }
 
+    suspend fun getRandomPageWithBenefits(): QuranPage{
+        return quranDao.getRandomPageWithBenefits()
+    }
+
     /****************************Page Content*********************************/
 
 
@@ -76,6 +77,11 @@ class QuranRepository(private val quranDao: QuranDao,
     suspend fun getChapterVerses(surahNum: Int): List<PageContent> {
         return quranDao.getChapterVerses(surahNum)
     }
+
+    suspend fun getSpecificVerses(mutashabihat: List<String>): List<PageContent>{
+        return quranDao.getSpecificVerses(mutashabihat = mutashabihat)
+    }
+
 
     suspend fun fetchPageVerses(pageNum: String): List<PageContent> {
         return quranDao.fetchPageVerses(pageNum)

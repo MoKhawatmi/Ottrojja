@@ -53,7 +53,7 @@ import androidx.navigation.NavController
 import com.ottrojja.R
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.ModalFormMode
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.composables.EmptyListMessage
 import com.ottrojja.composables.TopBar
 import sh.calvin.reorderable.ReorderableItem

@@ -170,7 +170,7 @@ fun PageTraining(
                         val textMeasurer = rememberTextMeasurer()
                         val textLayoutResult: TextLayoutResult =
                             textMeasurer.measure(
-                                text = AnnotatedString("$it  "
+                                text = AnnotatedString("__${it}__"
                                 ), //extra spacing for input field sizing
                                 style = LocalTextStyle.current
                             )
@@ -198,18 +198,11 @@ fun PageTraining(
                     }
                 }
                 OttrojjaText(
-                    text = buildString {
-                        append("\uFD3F")
-                        append(
-                            Helpers.convertToIndianNumbers("${currentVerse.verseNum!!}")
-                        )
-                        append("\uFD3E")
-                    },
-                    style = OttrojjaTheme.typography.bodyLarge,
+                    text = "\uFD3F" + Helpers.convertToIndianNumbers("${currentVerse.verseNum!!}") + "\uFD3E",
+                    style = OttrojjaTheme.typography.bodySpecialLarge,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .padding(2.dp)
-                        .offset(y = 10.dp)
                 )
 
             }
@@ -283,8 +276,10 @@ fun PageTraining(
                         text = currentVerse?.verseText ?: "",
                         number = currentVerse?.verseNum ?: 0,
                         color = MaterialTheme.colorScheme.primary,
-                        textStyle = OttrojjaTheme.typography.quranTextLarge.copy(textAlign = TextAlign.Center),
-                        numberAfter = true
+                        textStyle = OttrojjaTheme.typography.quranTextLarge,
+                        numberTextStyle = OttrojjaTheme.typography.bodySpecialLarge.copy(textAlign = TextAlign.Center),
+                        numberAfter = true,
+                        textAlign = TextAlign.Center
                     )
                 }
             }
@@ -299,6 +294,7 @@ fun PageTraining(
                 if (isPlaying) {
                     Image(painter = painterResource(R.drawable.playing),
                         contentDescription = "pause",
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
                         modifier = Modifier
                             .padding(10.dp, 0.dp)
                             .clickable { onPauseClicked() }

@@ -19,8 +19,9 @@ import com.ottrojja.classes.DataStore.DataStoreRepository
 import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.OverlayBootstrap
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.SearchResult
+import com.ottrojja.interfaces.TabItem
 import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.room.relations.PartWithQuarters
 import kotlinx.coroutines.CoroutineScope
@@ -229,8 +230,11 @@ class MainViewModel(private val repository: QuranRepository, application: Applic
 
 }
 
-enum class BrowsingOption {
-    الصفحات, السور, الاجزاء, البحث
+enum class BrowsingOption(override val displayName: String) : TabItem{
+    الصفحات(displayName = "الصفحات"),
+    السور(displayName = "السور"),
+    الاجزاء(displayName = "الأجزاء"),
+    البحث(displayName = "البحث")
 }
 
 class MainViewModelFactory(

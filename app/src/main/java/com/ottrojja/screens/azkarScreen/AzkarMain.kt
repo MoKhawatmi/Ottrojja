@@ -76,7 +76,7 @@ fun AzkarSectionItem(imageId: Int, title: String, onClick: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .height(250.dp)
-            .background(Helpers.ottrojjaBrush, shape = RoundedCornerShape(12.dp))
+            .background(Helpers.generateBrandBrush(MaterialTheme.colorScheme.primary), shape = RoundedCornerShape(12.dp))
             .clip(RoundedCornerShape(12))
             .clickable { onClick() }
             .padding(horizontal = 6.dp, vertical = 16.dp)

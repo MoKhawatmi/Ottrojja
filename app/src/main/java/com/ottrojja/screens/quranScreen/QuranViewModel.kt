@@ -30,17 +30,21 @@ import com.ottrojja.classes.Helpers.isServiceRunning
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
 import com.ottrojja.room.entities.PageContentItemType
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.StorageBase
+import com.ottrojja.interfaces.TabItem
 import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.room.relations.QuranPageWithContent
+import com.ottrojja.screens.quranScreen.classes.TafseerContent
 import com.ottrojja.services.PagePlayerService
 import com.ottrojja.services.PageServiceInterface
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -257,15 +261,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             _showVerseOptions = value
         }
 
-    val tafseerNamesMap = hashMapOf<String, String>(
-        "تفسير البغوي" to "baghawy",
-        "تفسير الجلالين" to "jalalayn",
-        "تفسير ابن كثير" to "katheer",
-        "التفسير الميسر" to "muyassar",
-        "تفسير القرطبي" to "qortoby",
-        "تفسير السعدي" to "saadi",
-        "تفسير الوسيط" to "waseet",
-    )
 
     private var _selectedTafseer by mutableStateOf("تفسير السعدي")
     var selectedTafseer: String
@@ -279,11 +274,13 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         viewModelScope.launch(Dispatchers.IO) {
             val surah = _tafseerTargetVerse?.surahNum.toString()
             val verse = _tafseerTargetVerse?.verseNum.toString()
-            _verseTafseer = repository.getVerseTafseerData(
+            _verseTafseer = listOf(TafseerContent(repository.getVerseTafseerData(
                 surah,
                 verse,
                 tafseerNamesMap.get(value)!!
             ).text
+            )
+            )
         }
     }
 
@@ -455,7 +452,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         _vmChangedPage.value = !(_currentPageObject?.page?.pageNum == pageNum);
         _shouldAutoPlay.value = shouldAutoPlay
         setCurrentPage(pageNum, takeOnSelectedPageVerses)
-        // _vmChangedPage.value = false;
     }
 
     var downloadIndex = 0;
@@ -465,12 +461,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         _isDownloading.value = true;
         downloadVerse()
     }
-
-    /*fun updateIsCurrentPagePlaying() {
-        println("${audioService?.getPlayingPageNum()} =? ${_currentPageObject?.page?.pageNum}")
-        _isCurrentPagePlaying.value = audioService?.getPlayingPageNum() == _currentPageObject?.page?.pageNum
-        println("_isCurrentPagePlaying ${_isCurrentPagePlaying.value}")
-    }*/
 
     fun downloadVerse() {
         val item = _versesPlayList[downloadIndex];
@@ -589,11 +579,11 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         _nightReadingMode = sharedPreferences.getBoolean("nightReadingMode", false)
     }
 
-    enum class PageTab {
-        الصفحة,
-        الفوائد,
-        التفسير,
-        الفيديو
+    enum class PageTab(override val displayName: String) : TabItem {
+        الصفحة(displayName = "الصفحة"),
+        الفوائد(displayName = "الفوائد"),
+        التفسير(displayName = "التفسير"),
+        الفيديو(displayName = "الفيديو")
     }
 
     fun sharePage() {
@@ -670,6 +660,16 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
 
     /*****************************TAFSEER MODAL CONTROL***********************************/
 
+    val tafseerNamesMap = hashMapOf<String, String>(
+        "تفسير البغوي" to "baghawy",
+        "تفسير الجلالين" to "jalalayn",
+        "تفسير ابن كثير" to "katheer",
+        "التفسير الميسر" to "muyassar",
+        "تفسير القرطبي" to "qortoby",
+        "تفسير السعدي" to "saadi",
+        "تفسير الوسيط" to "waseet",
+    )
+
     private var _tafseerChapterVerse by mutableStateOf("")
     val tafseerChapterVerse: String
         get() = _tafseerChapterVerse
@@ -684,58 +684,81 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 val verse = value?.verseNum.toString()
                 val chapterName = repository.getChapter(surah.toInt()).chapterName
                 if (chapterName.isNotBlank()) {
-                    _tafseerChapterVerse = "الاية ${
-                        Helpers.convertToIndianNumbers(verse
-                        )
-                    } من سورة $chapterName"
+                    _tafseerChapterVerse = "الاية ${Helpers.convertToIndianNumbers(verse)} من سورة $chapterName"
                 } else {
                     _tafseerChapterVerse = ""
                 }
-                println(value)
-                println("tafseer for $surah-$verse at ${tafseerNamesMap.get(_selectedTafseer)}")
 
-                _verseTafseer = repository.getVerseTafseerData(surah, verse, tafseerNamesMap.get(_selectedTafseer)!!).text
-                _verseE3rab = repository.getVerseE3rabData(surah, verse).text
+                _verseTafseer = listOf(TafseerContent(text = repository.getVerseTafseerData(surah, verse, tafseerNamesMap.get(_selectedTafseer)!!).text))
+                _verseE3rab = listOf(TafseerContent(text = repository.getVerseE3rabData(surah, verse).text))
                 val causesOfRevelation = repository.getCauseOfRevelation(surah, verse)
                 if (causesOfRevelation.size == 0) {
-                    _verseCauseOfRevelation = "لم يرد في المرجع سبب لنزول الآية"
+                    _verseCauseOfRevelation = listOf(TafseerContent(text = "لم يرد في المرجع سبب لنزول الآية"))
                 } else {
-                    var concatCauses = ""
-                    causesOfRevelation.forEach { cause -> concatCauses += "${cause.text}\n\n" }
-                    _verseCauseOfRevelation = concatCauses
+                    var causesList = mutableListOf<TafseerContent>()
+                    causesOfRevelation.forEach { cause -> causesList.add(TafseerContent(cause.text)) }
+                    _verseCauseOfRevelation = causesList
                 }
-                _verseMeanings = repository.getSingleVerseMeanings(surah, verse)?.text
-                    ?: "لم يرد في المرجع معاني لمفردات الاية"
+                _verseMeanings = listOf(TafseerContent(
+                    text = repository.getSingleVerseMeanings(surah, verse)?.text
+                        ?: "لم يرد في المرجع معاني لمفردات الاية"
+                )
+                )
+                val verses = repository.getSpecificVerses(value?.mutashabihat ?: emptyList())
+                val formatted = if (verses.isEmpty()) {
+                    listOf(TafseerContent("لم يرد في المرجع آيات مشابهة"))
+                } else {
+                    verses.map { verse ->
+                        TafseerContent(
+                            formulateMutashabeh(verse),
+                            { viewModelScope.launch { _navigation.send(verse.pageNum) } }) }
+                }
+                withContext(Dispatchers.Main) {
+                    _verseMutashabihat = formatted
+                }
             }
         }
 
-    private var _verseTafseer by mutableStateOf("")
-    var verseTafseer: String
+    suspend private fun formulateMutashabeh(verse: PageContent): String {
+        val chapterName = repository.getChapter(verse.surahNum).chapterName
+        return "{${verse.verseText}}\n${chapterName} - ${verse.verseNum}"
+    }
+
+    private var _verseTafseer by mutableStateOf(listOf(TafseerContent("")))
+    var verseTafseer: List<TafseerContent>
         get() = _verseTafseer
         set(value) {
             _verseTafseer = value
         }
 
-    private var _verseE3rab by mutableStateOf("")
-    var verseE3rab: String
+    private var _verseE3rab by mutableStateOf(listOf(TafseerContent("")))
+    var verseE3rab: List<TafseerContent>
         get() = _verseE3rab
         set(value) {
             _verseE3rab = value
         }
 
-    private var _verseCauseOfRevelation by mutableStateOf("")
-    var verseCauseOfRevelation: String
+    private var _verseCauseOfRevelation by mutableStateOf(listOf(TafseerContent("")))
+    var verseCauseOfRevelation: List<TafseerContent>
         get() = _verseCauseOfRevelation
         set(value) {
             _verseCauseOfRevelation = value
         }
 
-    private var _verseMeanings by mutableStateOf("")
-    var verseMeanings: String
+    private var _verseMeanings by mutableStateOf(listOf(TafseerContent("")))
+    var verseMeanings: List<TafseerContent>
         get() = _verseMeanings
         set(value) {
             _verseMeanings = value
         }
+
+    private var _verseMutashabihat by mutableStateOf(listOf(TafseerContent("")))
+    var verseMutashabihat: List<TafseerContent>
+        get() = _verseMutashabihat
+        set(value) {
+            _verseMutashabihat = value
+        }
+
 
     private var _showTafseerSheet by mutableStateOf(false)
     var showTafseerSheet: Boolean
@@ -845,38 +868,6 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                         }
                     }
                 }
-
-                /* viewModelScope.launch {
-                     audioService?.getStartPlayingIndex()?.collect { state ->
-                         if (_isCurrentPagePlaying.value) {
-                             startPlayingIndex = state;
-                         }
-                     }
-                 }
-
-                 viewModelScope.launch {
-                     audioService?.getStartPlayingItem()?.collect { state ->
-                         if (_isCurrentPagePlaying.value) {
-                             _selectedVerse = state;
-                         }
-                     }
-                 }
-
-                 viewModelScope.launch {
-                     audioService?.getEndPlayingIndex()?.collect { state ->
-                         if (_isCurrentPagePlaying.value) {
-                             endPlayingIndex = state;
-                         }
-                     }
-                 }
-
-                 viewModelScope.launch {
-                     audioService?.getEndPlayingItem()?.collect { state ->
-                         if (_isCurrentPagePlaying.value) {
-                             _selectedEndVerse = state;
-                         }
-                     }
-                 }*/
 
                 viewModelScope.launch {
                     audioService?.getPlaybackSpeed()?.collect { state ->
@@ -1069,6 +1060,10 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
         }
     }
+
+    private val _navigation = Channel<String>()
+    val navigation = _navigation.receiveAsFlow()
+
 }
 
 enum class VersesSelectionMode {
@@ -1076,12 +1071,17 @@ enum class VersesSelectionMode {
 }
 
 
-enum class RepetitionTab {
-    الاية, المقطع
+enum class RepetitionTab(override val displayName: String) : TabItem {
+    الاية(displayName = "تكرار الآية"),
+    المقطع(displayName = "تكرار المقطع")
 }
 
-enum class TafseerSheetMode {
-    التفسير, الإعراب, أسباب_النزول, معاني_المفردات
+enum class TafseerSheetMode(override val displayName: String) : TabItem {
+    التفسير(displayName = "التفسير"),
+    الإعراب(displayName = "الإعراب"),
+    أسباب_النزول(displayName = "أسباب النزول"),
+    معاني_المفردات(displayName = "معاني المفردات"),
+    المشابهات(displayName = "المشابهات"),
 }
 
 class QuranScreenViewModelFactory(

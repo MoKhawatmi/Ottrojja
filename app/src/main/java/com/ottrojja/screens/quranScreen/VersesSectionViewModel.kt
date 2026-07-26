@@ -13,7 +13,7 @@ import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.room.entities.PageContent
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.screens.listeningScreen.ListeningViewModel.SelectionPhase
 import kotlinx.coroutines.CompletableDeferred

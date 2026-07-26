@@ -29,18 +29,41 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 import com.ottrojja.R
+
+
+@Composable
+fun rememberAdaptiveOrbSize(
+    minSize: Dp = 60.dp,
+    maxSize: Dp = 64.dp,
+    smallScreen: Dp = 360.dp,   // at or below this → minSize
+    largeScreen: Dp = 400.dp    // at or above this → maxSize
+): Dp {
+    val configuration = LocalConfiguration.current
+    val screenMin = minOf(
+        configuration.screenWidthDp,
+        configuration.screenHeightDp
+    ).dp
+
+    val fraction = ((screenMin - smallScreen) / (largeScreen - smallScreen))
+        .coerceIn(0f, 1f)
+
+    return lerp(minSize, maxSize, fraction)
+}
 
 @Composable
 fun FloatingNavOrb(
-    compSize: Dp = 64.dp,
     baseColor: Color = Color(0xFF194D65),
     onClick: () -> Unit,
     expanded: Boolean
 ) {
+    val compSize = rememberAdaptiveOrbSize()
+
     val interactionSource = remember { MutableInteractionSource() }
     val infinite = rememberInfiniteTransition(label = "orb")
 
@@ -161,7 +184,9 @@ fun FloatingNavOrb(
             painter = painterResource(R.drawable.docking_toggle),
             contentDescription = null,
             tint = Color(0xFFFFE566),
-            modifier = Modifier.align(Alignment.Center).rotate(rotation)
+            modifier = Modifier
+                .align(Alignment.Center)
+                .rotate(rotation)
         )
     }
 }

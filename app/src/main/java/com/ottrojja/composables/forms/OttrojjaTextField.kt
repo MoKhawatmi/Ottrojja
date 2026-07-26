@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 enum class TextFieldInputType {
@@ -83,7 +84,7 @@ fun OttrojjaTextField(value: String?,
             shape = RoundedCornerShape(8.dp),
             supportingText = {
                 maxLength?.let {
-                    Text("${value?.length ?: 0} / $maxLength")
+                    OttrojjaText("${value?.length ?: 0} / $maxLength", style = OttrojjaTheme.typography.bodySmall)
                 }
             }
         )

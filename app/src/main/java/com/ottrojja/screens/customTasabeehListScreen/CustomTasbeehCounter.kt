@@ -45,11 +45,12 @@ import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.timeNormal
 
 @Composable
-fun CustomTasbeehCounter(item: CustomTasbeeh,
-                         deleteCustomTasbeeh: () -> Unit,
-                         editCustomTasbeeh: () -> Unit,
-                         tasbeehCount: Int,
-                         onCountChanged: (Int) -> Unit,
+fun CustomTasbeehCounter(
+    item: CustomTasbeeh,
+    deleteCustomTasbeeh: () -> Unit,
+    editCustomTasbeeh: () -> Unit,
+    tasbeehCount: Int,
+    onCountChanged: (Int) -> Unit,
 ) {
     val context = LocalContext.current;
 
@@ -174,11 +175,12 @@ fun CustomTasbeehCounter(item: CustomTasbeeh,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            OttrojjaText(text = item.text,
-                style = OttrojjaTheme.typography.bodyMedium.copy(
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.primary
-                )
+            OttrojjaText(
+                text = item.text,
+                style = OttrojjaTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
@@ -190,7 +192,7 @@ fun CustomTasbeehCounter(item: CustomTasbeeh,
             ElevatedButton(
                 onClick = {
                     if (tasbeehCount > 0) {
-                        onCountChanged(tasbeehCount-1)
+                        onCountChanged(tasbeehCount - 1)
                     }
                 },
                 elevation = ButtonDefaults.elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),

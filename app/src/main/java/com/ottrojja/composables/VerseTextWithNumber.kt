@@ -2,6 +2,7 @@ package com.ottrojja.composables
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -9,51 +10,53 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.Helpers.convertToIndianNumbers
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
-fun VerseTextWithNumber(modifier: Modifier = Modifier,
-                        text: String,
-                        number: Int,
-                        numberAfter: Boolean = false,
-                        color: Color = Color.Black,
-                        textStyle: TextStyle= OttrojjaTheme.typography.quranTextMedium
+fun VerseTextWithNumber(
+    modifier: Modifier = Modifier,
+    text: String,
+    number: Int,
+    numberAfter: Boolean = false,
+    color: Color = Color.Black,
+    textStyle: TextStyle = OttrojjaTheme.typography.quranTextMedium,
+    numberTextStyle: TextStyle = OttrojjaTheme.typography.bodySpecialMedium,
+    textAlign: TextAlign = TextAlign.Start
 ) {
 
-    val numberContent = OttrojjaText(
-        text = buildString {
-            append("\uFD3F")
-            append(Helpers.convertToIndianNumbers("$number"))
-            append("\uFD3E")
+    val verseNumberStr="\uFD3F${convertToIndianNumbers("$number")}\uFD3E"
+
+    OttrojjaText(
+        text = buildAnnotatedString {
+            if (!numberAfter) {
+                withStyle(
+                    style = numberTextStyle.toSpanStyle().copy(color = color),
+                ) {
+                    append(verseNumberStr)
+                }
+            }
+
+            withStyle(
+                style = textStyle.toSpanStyle().copy(color = color)
+            ) {
+                append("\uFD3F$text\uFD3E")
+            }
+
+            if (numberAfter) {
+                withStyle(
+                    style = numberTextStyle.toSpanStyle().copy(color = color),
+                ) {
+                    append(verseNumberStr)
+                }
+            }
         },
-        style = OttrojjaTheme.typography.bodySmall,
-        color = color,
-        modifier = Modifier.offset(y = 2.dp)
+        modifier = modifier.fillMaxWidth(),
+        textAlign = textAlign
     )
-
-
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.Top
-    ) {
-
-        if (!numberAfter) {
-            numberContent
-        }
-
-        OttrojjaText(
-            text = text,
-            style = textStyle,
-            color = color,
-            modifier = Modifier.padding(horizontal = 2.dp)
-        )
-
-        if (numberAfter) {
-            numberContent
-        }
-
-    }
 }

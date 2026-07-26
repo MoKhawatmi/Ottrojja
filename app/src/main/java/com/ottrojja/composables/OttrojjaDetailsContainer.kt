@@ -22,11 +22,12 @@ import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun OttrojjaDetailsContainer(
-    title: String?=null,
-    content: @Composable () -> Unit
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    content: @Composable () -> Unit,
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
     ) {
 
@@ -47,7 +48,7 @@ fun OttrojjaDetailsContainer(
         }
 
         // Floating pill title
-        if(title!=null){
+        if (title != null) {
             Surface(
                 shape = RoundedCornerShape(50),
                 color = MaterialTheme.colorScheme.primary,

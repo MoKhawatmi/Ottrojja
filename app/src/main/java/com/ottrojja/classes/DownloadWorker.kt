@@ -108,7 +108,7 @@ class DownloadWorker(
             )
 
         } catch (e: Exception) {
-            reportException(e, "DownloadWorker")
+            reportException(exception=e, file="DownloadWorker", details = "$url}")
             retryOrFail()
         } finally {
             tempFile.delete()

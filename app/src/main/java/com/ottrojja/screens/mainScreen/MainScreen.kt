@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,8 +29,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.ArrowCircleLeft
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -55,10 +59,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.sp
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers.convertToIndianNumbers
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.SearchResult
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
@@ -70,6 +79,7 @@ import com.ottrojja.composables.ZikrDisplay
 import com.ottrojja.composables.adviceDisplay.AdviceDisplay
 import com.ottrojja.composables.exactAlarmsPermissionHandler.ExactAlarmsPermissionHandler
 import com.ottrojja.composables.overlayPermissionHandler.OverlayPermissionHandler
+import com.ottrojja.composables.radnomBenefitDisplay.RandomBenefitDisplay
 import com.ottrojja.screens.mainScreen.Composables.ChaptersMenu
 import com.ottrojja.screens.mainScreen.Composables.MainScreenTab
 import com.ottrojja.screens.mainScreen.Composables.PartsMenu
@@ -163,11 +173,21 @@ fun MainScreen(
                             .fillMaxSize()
                             .padding(4.dp, 0.dp)
                     ) {
-                        OttrojjaText(
+                        BasicText(
                             text = "مَثَلُ الْمُؤْمِنِ الَّذِي يَقْرَأُ الْقُرْآنَ كَمَثَلِ الْأُتْرُجَّةِ، رِيحُهَا طَيِّبٌ وَطَعْمُهَا طَيِّبٌ",
-                            style = OttrojjaTheme.typography.bodySpecialLarge,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            maxLines = 2,
+                            softWrap = true,
+                            overflow = TextOverflow.Visible,
+                            autoSize = TextAutoSize.StepBased(
+                                minFontSize = 16.sp,
+                                maxFontSize = 24.sp,
+                                stepSize = 1.sp
+                            ),
+                            style = OttrojjaTheme.typography.bodySpecialBasic.copy(
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                textAlign = TextAlign.Center
+                            ),
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -251,6 +271,7 @@ fun MainScreen(
 
                     AdviceDisplay()
                     ZikrDisplay()
+                    RandomBenefitDisplay(navController = navController, repository = repository)
 
                     Spacer(modifier = Modifier.height(25.dp))
                 }
@@ -307,7 +328,7 @@ fun MainScreen(
                                     mainViewModel.searchInQuran(newText)
                                 }
                             },
-                            leadingIcon = painterResource(id = R.drawable.search),
+                            leadingIcon = Icons.Default.Search,
                             modifier = Modifier.fillMaxWidth(0.9f)
                         )
                     }
@@ -444,9 +465,19 @@ fun SearchMenu(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     OttrojjaText(
-                        text = "{${item.verseText}} ${convertToIndianNumbers("${item.verseNum}")} - ${item.surahName}",
-                        style = OttrojjaTheme.typography.quranTextMedium,
-                        color = Color.Black
+                        text = buildAnnotatedString {
+                            withStyle(
+                                style = OttrojjaTheme.typography.quranTextMedium.toSpanStyle().copy(color = Color.Black)
+                            ) {
+                                append("\uFD3F${item.verseText}\uFD3E")
+                            }
+
+                            withStyle(
+                                style = OttrojjaTheme.typography.bodySpecialMedium.toSpanStyle().copy(color = Color.Black),
+                            ) {
+                                append("[${item.surahName}: ${convertToIndianNumbers("${item.verseNum}")}]")
+                            }
+                        }
                     )
                 }
                 ListHorizontalDivider()

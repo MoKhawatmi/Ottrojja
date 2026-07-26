@@ -26,7 +26,7 @@ import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.room.entities.PageContent
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.classes.VerseWithAnswer
 import com.ottrojja.room.entities.ChapterData

@@ -1,13 +1,12 @@
 package com.ottrojja.composables.floatingNavigationDock
 
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -21,16 +20,6 @@ fun CollapsedDock(
     expanded: Boolean,
     toggleExpanded: () -> Unit,
 ) {
-    val rotation by animateFloatAsState(
-        targetValue = if (expanded) 180f else 0f,
-        label = "arrowRotation"
-    )
-    val orbRotation by animateFloatAsState(
-        targetValue = if (expanded) 45f else 0f,
-        label = "orbRotation"
-    )
-
-
 
     Row(modifier = Modifier
         .fillMaxWidth()
@@ -72,7 +61,7 @@ fun CollapsedDock(
             modifier = Modifier.weight(0.4f),
             contentAlignment = Alignment.Center
         ) {
-            FloatingNavOrb(onClick = { toggleExpanded() }, expanded = expanded)
+            FloatingNavOrb(onClick = { toggleExpanded() }, expanded = expanded, baseColor = MaterialTheme.colorScheme.primary)
         }
 
         Row(modifier = Modifier.weight(1f),

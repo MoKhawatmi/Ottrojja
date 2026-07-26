@@ -252,10 +252,6 @@ fun ReminderScreen(repository: ReminderRepository) {
                 ListHorizontalDivider()
             }
         }
-
-
-        /*OttrojjaButton(text = "test", onClick = { reminderVM.sendTestNotification() })
-        OttrojjaButton(text = "test2", onClick = { reminderVM.sendTestScheduledNotification() })*/
     }
 }
 

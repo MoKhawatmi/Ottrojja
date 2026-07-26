@@ -41,7 +41,7 @@ import com.binayshaw7777.kotstep.model.tabVerticalWithLabel
 import com.binayshaw7777.kotstep.ui.vertical.VerticalStepper
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.ExpandableItem
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaText

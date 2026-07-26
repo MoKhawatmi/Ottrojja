@@ -168,7 +168,7 @@ fun NamesOfGodItem(
                 clip = false
             )
             .clip(RoundedCornerShape(16.dp))
-            .background(Helpers.ottrojjaBrush)
+            .background(Helpers.generateBrandBrush(MaterialTheme.colorScheme.primary))
             .combinedClickable(onClick = { updateExpanded() },
                 onLongClick = {
                     copyContent()

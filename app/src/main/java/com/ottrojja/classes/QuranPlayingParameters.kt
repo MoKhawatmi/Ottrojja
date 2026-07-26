@@ -1,5 +1,6 @@
 package com.ottrojja.classes
 
+import com.ottrojja.interfaces.TabItem
 import com.ottrojja.room.entities.ChapterData
 
 data class QuranPlayingParameters(
@@ -16,6 +17,7 @@ data class QuranPlayingParameters(
     val verseRangeRepetitions: String = "0",
 )
 
-enum class QuranListeningMode {
-    مقطع_ايات, سورة_كاملة
+enum class QuranListeningMode(override val displayName: String): TabItem {
+    مقطع_ايات(displayName = "مقطع آيات"),
+    سورة_كاملة(displayName = "سورة كاملة")
 }

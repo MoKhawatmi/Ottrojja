@@ -25,8 +25,9 @@ import com.ottrojja.classes.Helpers.isServiceRunning
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
 import com.ottrojja.services.AzkarPlayerService
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.StorageBase
+import com.ottrojja.interfaces.TabItem
 import com.ottrojja.room.entities.Azkar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -333,9 +334,9 @@ class ZikrViewModel(
         }
     }
 
-    enum class ZikrTab {
-        الذكر,
-        الفيديو
+    enum class ZikrTab(override val displayName: String): TabItem {
+        الذكر(displayName = "الذكر"),
+        الفيديو(displayName = "الفيديو")
     }
 }
 

@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -36,10 +37,15 @@ fun BenefitItem(
     val context = LocalContext.current;
     Row(
         modifier = Modifier
-            .padding(5.dp)
+            .padding(6.dp)
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(16.dp),
+                clip = false
+            )
             .fillMaxWidth()
-            .clip(shape = RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.primary)
+            .clip(shape = RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .combinedClickable(
                 onClick = {},
                 onLongClick = {
@@ -58,21 +64,21 @@ fun BenefitItem(
                     startActivity(context, shareIntent, null)
                 },
             )
-            .padding(5.dp),
+            .padding(6.dp),
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         Icon(
             painterResource(id = R.drawable.lightbulb),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onPrimary,
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .padding(0.dp, 6.dp, 4.dp, 6.dp)
                 .fillMaxWidth(0.08f)
         )
         OttrojjaText(
             text = benefitContent,
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = MaterialTheme.colorScheme.primary,
             style = OttrojjaTheme.typography.bodyMedium,
             modifier = Modifier
                 .padding(0.dp, 6.dp)

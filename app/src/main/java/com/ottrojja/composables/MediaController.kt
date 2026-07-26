@@ -74,6 +74,7 @@ fun MediaController(
                 if (isPlaying && !isDownloading) {
                     Image(painter = painterResource(R.drawable.faster),
                         contentDescription = "faster",
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
                         modifier = Modifier
                             .clickable { onFasterClicked() }
                             .size(25.dp))
@@ -99,7 +100,9 @@ fun MediaController(
                         modifier = Modifier
                             .padding(10.dp, 0.dp)
                             .clickable { onPauseClicked() }
-                            .size(35.dp))
+                            .size(35.dp),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary))
+
                 } else {
                     Image(painter = painterResource(R.drawable.play),
                         contentDescription = "play",
@@ -120,6 +123,7 @@ fun MediaController(
                     }
                     Image(painter = painterResource(R.drawable.slower),
                         contentDescription = "slower",
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
                         modifier = Modifier
                             .clickable { onSlowerClicked() }
                             .size(25.dp))

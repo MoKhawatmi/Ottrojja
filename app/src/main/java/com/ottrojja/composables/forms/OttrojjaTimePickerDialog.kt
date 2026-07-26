@@ -78,27 +78,12 @@ fun OttrojjaTimePickerDialog(
                         modifier = Modifier.weight(1f)
                     )
                 }
-
-
-
-                /*{
-                    TimeInput(
-                        state = timePickerState,
-                        colors = TimePickerDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.secondary,
-                            timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.secondary,
-                            timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.secondary,
-                            timeSelectorSelectedContentColor = MaterialTheme.colorScheme.onSecondary,
-                            timeSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSecondary,
-                        )
-                    )
-                }*/
             }
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                OttrojjaButton(text = "تأكيد", onClick = { onConfirm(selectedHour, selectedMinute); onDismiss() })
-                Spacer(modifier = Modifier.size(8.dp))
                 OttrojjaButton(text = "الغاء", onClick = { onDismiss() })
+                Spacer(modifier = Modifier.size(8.dp))
+                OttrojjaButton(text = "تأكيد", onClick = { onConfirm(selectedHour, selectedMinute); onDismiss() })
             }
         }
     }

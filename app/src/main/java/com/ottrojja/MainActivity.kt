@@ -13,6 +13,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -29,17 +39,20 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.reportException
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.ui.theme.OttrojjaAppTheme
 import java.util.Locale
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
+import androidx.core.view.WindowCompat
 import com.ottrojja.composables.floatingNavigationDock.FloatingNavigationDock
 import com.ottrojja.room.database.DatabaseProvider
 import com.ottrojja.room.repositories.ReminderRepository
@@ -57,10 +70,11 @@ class MainActivity : ComponentActivity() {
         actionBar?.hide()
 
         enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark("#FF194D65".toColorInt()),
+            statusBarStyle = SystemBarStyle.dark("#FF08428E".toColorInt()),
             navigationBarStyle = SystemBarStyle.dark(Color.Black.toArgb())
         )
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         getResources().getConfiguration().setLayoutDirection(Locale("ar"));
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -94,12 +108,10 @@ class MainActivity : ComponentActivity() {
         println("Version: ${BuildConfig.VERSION_NAME}")
 
         setContent {
-            var showNavPopUp by remember { mutableStateOf(false) }
-
             var dockExpanded by rememberSaveable { mutableStateOf(false) }
 
             // IMPORTANT: this is your ONLY bottom padding source
-            val dockHeightCollapsed = 78.dp
+            val dockHeightCollapsed = 82.dp
 
 
             OttrojjaAppTheme {
@@ -111,14 +123,6 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     val currentBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentRoute = currentBackStackEntry?.destination?.route
-                    /*// show bottom bar navigation only in these routes
-                    val bottomBarRoutes = listOf(Screen.MainScreen.route, Screen.AzkarMain.route,
-                        Screen.TeacherScreen.route, Screen.ListeningScreen.route,
-                        Screen.TasbeehScreen.route, Screen.BookmarksScreen.route,
-                        Screen.KhitmahListScreen.route, Screen.SettingsScreen.route,
-                        Screen.BlessingsScreen.route, Screen.QiblaScreen.route,
-                        Screen.ReminderScreen.route
-                    )*/
                     val currentScreen = Screen.allScreens.find {
                         Helpers.routesMatch(
                             currentRoute = currentRoute,
@@ -126,7 +130,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     Scaffold(
-                        contentWindowInsets = WindowInsets.safeDrawing
+                        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime)
                     ) { innerPadding ->
 
                         Box(
@@ -135,7 +139,6 @@ class MainActivity : ComponentActivity() {
                                 .padding(innerPadding) // keeps system insets
                         ) {
 
-                            // 1. NAV GRAPH (NO extra padding inside screens anymore)
                             NavGraph(
                                 navController = navController,
                                 repository = quranRepository,
@@ -145,8 +148,24 @@ class MainActivity : ComponentActivity() {
                                     .padding(bottom = if (currentScreen?.showsBottomBar == true) dockHeightCollapsed else 0.dp)
                             )
 
-                            // 2. FLOATING DOCK OVERLAY
-                            if (currentScreen?.showsBottomBar == true) {
+                            AnimatedVisibility(
+                                visible = currentScreen?.showsBottomBar == true,
+                                enter = slideInVertically(
+                                    animationSpec = spring(
+                                        dampingRatio = 0.8f,  // 0.65
+                                        stiffness = 250f           // 400
+                                    ),
+                                    initialOffsetY = { it }  // start fully below
+                                ) + fadeIn(
+                                    animationSpec = tween(220, easing = EaseOut)
+                                ),
+                                exit = slideOutVertically(
+                                    animationSpec = tween(180, easing = EaseIn),
+                                    targetOffsetY = { it }
+                                ) + fadeOut(
+                                    animationSpec = tween(150)
+                                )
+                            ) {
                                 FloatingNavigationDock(
                                     navController = navController,
                                     expanded = dockExpanded,

@@ -109,11 +109,8 @@ class PagePlayerService : Service(), PageServiceInterface {
                     if (playbackState == Player.STATE_ENDED) {
                         length = 0;
                         val repeatActive = selectedMappedRepetitions > 0;
-                        // println("repeated times $repeatedTimes")
 
                         if (_isPlaying.value) {
-                            /*println("current index: ${_currentPlayingIndex.value}")
-                            println("size - 1: ${_versesPlayList.size - 1}")*/
                             // Repetition logic
 
                             if (repeatActive && _versesPlayList.value[_currentPlayingIndex.value].type == PageContentItemType.verse) {
@@ -236,48 +233,6 @@ class PagePlayerService : Service(), PageServiceInterface {
         _currentPlayingIndex.value = 0;
     }
 
-    /*override fun getPlayingIndex(): StateFlow<Int> {
-        return _currentPlayingIndex;
-    }
-
-    override fun setPlayingIndex(index: Int) {
-        logDebug("setting service current playing index to $index")
-        _currentPlayingIndex.value = index;
-    }*/
-
-    /*override fun getStartPlayingIndex(): StateFlow<Int?> {
-        return _startPlayingIndex;
-    }
-
-    override fun setStartPlayingIndex(index: Int) {
-        logDebug("setting service start playing index to $index")
-        _startPlayingIndex.value = index;
-    }*/
-
-    /*override fun getStartPlayingItem(): StateFlow<PageContent?> {
-        return _startPlayingItem;
-    }
-
-    override fun setStartPlayingItem(item: PageContent?) {
-        _startPlayingItem.value = item;
-    }
-
-    override fun getEndPlayingIndex(): StateFlow<Int?> {
-        return _endPlayingIndex;
-    }
-
-    override fun setEndPlayingIndex(index: Int?) {
-        _endPlayingIndex.value = index;
-    }
-
-    override fun getEndPlayingItem(): StateFlow<PageContent?> {
-        return _endPlayingItem;
-    }
-
-    override fun setEndPlayingItem(item: PageContent?) {
-        _endPlayingItem.value = item;
-    }*/
-
     override fun getPlaybackSpeed(): StateFlow<Float> {
         return _playbackSpeed;
     }
@@ -350,22 +305,6 @@ class PagePlayerService : Service(), PageServiceInterface {
     override fun setSelectionEndVersesList(value: List<PageContent>) {
         _selectionEndVersesList.value = value
     }
-
-    /*override fun getStartPlayingPage(): StateFlow<Int> {
-        return _startPlayingPage;
-    }
-
-    override fun setStartPlayingPage(value: Int) {
-        _startPlayingPage.value = value;
-    }
-
-    override fun getEndPlayingPage(): StateFlow<Int> {
-        return _endPlayingPage;
-    }
-
-    override fun setEndPlayingPage(value: Int) {
-        _endPlayingPage.value = value;
-    }*/
 
     override fun playAudio() {
         logDebug("play audio")

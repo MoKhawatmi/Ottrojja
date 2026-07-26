@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.Bookmark
 import com.ottrojja.classes.Helpers.reportException
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.room.entities.BookmarkEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

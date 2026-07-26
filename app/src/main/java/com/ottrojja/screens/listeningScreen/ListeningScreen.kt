@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.QuranListeningMode
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.dialogs.LoadingDialog
 import com.ottrojja.composables.MediaController
@@ -88,7 +90,7 @@ fun ListeningScreen(
                 PillShapedTextFieldWithIcon(
                     value = listeningViewModel.searchFilter,
                     onValueChange = { newValue -> listeningViewModel.searchFilter = newValue },
-                    leadingIcon = painterResource(id = R.drawable.search),
+                    leadingIcon = Icons.Default.Search,
                     modifier = Modifier.fillMaxWidth(0.9f),
                     placeHolder = "اسم او رقم السورة"
                 )

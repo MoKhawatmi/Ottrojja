@@ -114,6 +114,16 @@ val Typography = OttrojjaTypography(
             includeFontPadding = false
         )
     ),
+    bodySpecialBasic = TextStyle(
+        fontFamily = qalam,
+        fontWeight = FontWeight.Normal,
+        lineHeight = 26.sp,
+        letterSpacing = 0.sp,
+        textDirection = TextDirection.Rtl,
+        platformStyle = PlatformTextStyle(
+            includeFontPadding = false
+        )
+    ),
     title = TextStyle(
         fontFamily = qalam,
         fontWeight = FontWeight.Normal,

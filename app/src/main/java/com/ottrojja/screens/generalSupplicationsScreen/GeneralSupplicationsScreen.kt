@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -86,7 +87,7 @@ fun GeneralSupplicationsScreen(generalSupplicationsViewModel: GeneralSupplicatio
                                 listState.scrollToItem(0)
                             }
                         },
-                        leadingIcon = painterResource(id = R.drawable.search),
+                        leadingIcon = Icons.Default.Search,
                         modifier = Modifier.fillMaxWidth(0.9f)
                     )
                 }
@@ -112,7 +113,7 @@ fun GeneralSupplicationsScreen(generalSupplicationsViewModel: GeneralSupplicatio
                             )
                             .clickable { generalSupplicationsViewModel.selectedSupplications = item }
                             .clip(RoundedCornerShape(16.dp))
-                            .background(Helpers.ottrojjaBrush)
+                            .background(Helpers.generateBrandBrush(MaterialTheme.colorScheme.primary))
                             .padding(8.dp, 16.dp)
                     ) {
                         Row(

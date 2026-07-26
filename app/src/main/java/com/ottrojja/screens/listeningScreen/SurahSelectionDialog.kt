@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -65,7 +67,7 @@ fun SurahSelectionDialog(
                 PillShapedTextFieldWithIcon(
                     value = searchFilter,
                     onValueChange = { newValue -> searchFilterChanged(newValue) },
-                    leadingIcon = painterResource(id = R.drawable.search),
+                    leadingIcon = Icons.Default.Search,
                     modifier = Modifier.fillMaxWidth(0.9f),
                     placeHolder = "اسم او رقم السورة"
                 )

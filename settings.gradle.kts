@@ -7,7 +7,7 @@ pluginManagement {
     }
 
     plugins {
-        id("org.jetbrains.kotlin.android") version "2.1.0" // update here
+        id("org.jetbrains.kotlin.android") version "2.4.0"
     }
 
 }

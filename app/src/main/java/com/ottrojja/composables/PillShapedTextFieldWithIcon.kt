@@ -22,15 +22,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun PillShapedTextFieldWithIcon(
     value: String,
     onValueChange: (String) -> Unit,
-    leadingIcon: Painter,
+    leadingIcon: ImageVector,
     modifier: Modifier = Modifier,
     placeHolder: String = ""
 ) {
@@ -60,7 +61,7 @@ fun PillShapedTextFieldWithIcon(
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
-            textStyle = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.primary),
+            textStyle = OttrojjaTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.primary),
             visualTransformation = VisualTransformation.None,
             singleLine = true,
             modifier = Modifier

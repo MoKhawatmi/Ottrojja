@@ -11,7 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.validateReminders
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.screens.loadingScreen.classes.SyncLocalData
 import com.ottrojja.screens.loadingScreen.classes.SyncQuranFile
 import kotlinx.coroutines.Dispatchers

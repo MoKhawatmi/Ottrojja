@@ -39,6 +39,17 @@ class Converters {
     fun toRepeatType(value: String): ReminderRepeatType =
         ReminderRepeatType.valueOf(value)
 
+    @TypeConverter
+    fun fromList(list: List<String>?): String {
+        if (list.isNullOrEmpty()) return "[]"
+        return Json.encodeToString(list)
+    }
+
+    @TypeConverter
+    fun toList(value: String?): List<String> {
+        if (value.isNullOrBlank()) return emptyList()
+        return Json.decodeFromString(value)
+    }
 
 
 }

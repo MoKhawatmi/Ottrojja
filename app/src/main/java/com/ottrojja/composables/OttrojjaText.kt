@@ -5,6 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -23,18 +24,39 @@ fun OttrojjaText(
     textAlign: TextAlign = TextAlign.Start,
     truncate: Int = Int.MAX_VALUE,
     fontWeight: FontWeight = FontWeight.Normal,
-    textDecoration: TextDecoration= TextDecoration.None
+    textDecoration: TextDecoration= TextDecoration.None,
+    overflow: TextOverflow = TextOverflow.Ellipsis
 ) {
     Text(
         text = text.truncate(truncate),
         modifier = modifier,
         style = style,
         softWrap = true,
-        overflow = TextOverflow.Ellipsis,
+        overflow = overflow,
         maxLines = maxLines,
         color = color,
         textAlign = textAlign,
         fontWeight = fontWeight,
         textDecoration= textDecoration
+    )
+}
+
+@Composable
+fun OttrojjaText(
+    text: AnnotatedString,
+    modifier: Modifier = Modifier,
+    style: TextStyle = OttrojjaTheme.typography.bodyLarge,
+    maxLines: Int = Int.MAX_VALUE,
+    textAlign: TextAlign = TextAlign.Start,
+    overflow: TextOverflow = TextOverflow.Ellipsis
+) {
+    Text(
+        text = text,
+        modifier = modifier,
+        style = style,
+        softWrap = true,
+        overflow = overflow,
+        maxLines = maxLines,
+        textAlign = textAlign
     )
 }

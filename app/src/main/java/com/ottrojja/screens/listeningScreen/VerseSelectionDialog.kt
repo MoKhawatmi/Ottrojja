@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -62,7 +64,7 @@ fun VerseSelectionDialog(onDismiss: () -> Unit,
                 PillShapedTextFieldWithIcon(
                     value = searchFilter, //no hoisting this search filter as it is just a simple Int filter
                     onValueChange = { newValue -> searchFilter = newValue },
-                    leadingIcon = painterResource(id = R.drawable.search),
+                    leadingIcon = Icons.Default.Search,
                     modifier = Modifier.fillMaxWidth(0.9f),
                     placeHolder = "الاية"
                 )

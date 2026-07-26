@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.ottrojja.screens.blessingsScreen.classes.Blessing
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.SupabaseProvider
+import com.ottrojja.screens.blessingsScreen.classes.BlessingCategory
 import io.github.jan.supabase.SupabaseClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +17,9 @@ import kotlinx.coroutines.withContext
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 
 class BlessingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -29,6 +32,13 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     var blessingsList = MutableStateFlow(emptyList<Blessing>())
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery
+
+    private val _filterCategory = MutableStateFlow(BlessingCategory.ALL)
+    val filterCategory = _filterCategory
+
 
     private var _loading = mutableStateOf(false)
     var loading: Boolean
@@ -43,6 +53,30 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
         set(value: Boolean) {
             _isRefreshing.value = value
         }
+
+    init {
+        observeSearch()
+    }
+
+    private fun observeSearch() {
+        viewModelScope.launch {
+            _searchQuery
+                .debounce(500)
+                .distinctUntilChanged()
+                .collectLatest {
+                    refresh()
+                }
+        }
+    }
+
+    fun updateSearch(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun updateCategory(category: BlessingCategory) {
+        _filterCategory.value = category
+        refresh()
+    }
 
 
     var page: Long = 1;
@@ -61,6 +95,22 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
                 supabase.from("blessings").select(Columns.ALL) {
                     range(from = from, to = to);
                     order(column = "id", order = Order.DESCENDING)
+                    if (searchQuery.value.isNotBlank()) {
+                        filter {
+                            ilike(
+                                column = "text",
+                                pattern = "%${searchQuery.value}%"
+                            )
+                        }
+                    }
+                    if (_filterCategory.value != BlessingCategory.ALL) {
+                        filter {
+                            eq(
+                                column = "category",
+                                value = _filterCategory.value
+                            )
+                        }
+                    }
                 }.decodeList<Blessing>();
             } catch (e: Exception) {
                 e.printStackTrace()

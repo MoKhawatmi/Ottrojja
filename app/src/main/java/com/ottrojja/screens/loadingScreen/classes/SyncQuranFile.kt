@@ -9,7 +9,7 @@ import com.ottrojja.classes.Helpers.checkNetworkConnectivity
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.JsonParser
 import com.ottrojja.classes.NetworkClient.ottrojjaClient
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.StorageBase
 import com.ottrojja.classes.downloadOnce
 import com.ottrojja.room.entities.QuranPage

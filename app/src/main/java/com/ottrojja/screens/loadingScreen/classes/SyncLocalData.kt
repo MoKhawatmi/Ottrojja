@@ -3,7 +3,7 @@ package com.ottrojja.screens.loadingScreen.classes
 import android.content.Context
 import android.content.SharedPreferences
 import com.ottrojja.classes.JsonParser
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.room.entities.*
 import com.ottrojja.screens.mainScreen.PartData

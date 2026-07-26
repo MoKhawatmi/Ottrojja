@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -43,7 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers
-import com.ottrojja.classes.QuranRepository
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaItemSelectionDialog
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
@@ -177,6 +178,12 @@ fun VersesSection(
                                 textColor = Color.Black,
                                 action = { onSheetRequest(item.pageContent, TafseerSheetMode.معاني_المفردات) }
                             ),
+                            FlexibleAction(
+                                text = "المشابهات",
+                                bgColor = MaterialTheme.colorScheme.primary,
+                                textColor = MaterialTheme.colorScheme.onPrimary,
+                                action = { onSheetRequest(item.pageContent, TafseerSheetMode.المشابهات) }
+                            ),
                         )
                     )
                 }
@@ -232,7 +239,7 @@ fun SelectVerseDialog(onDismissRequest: () -> Unit,
             PillShapedTextFieldWithIcon(
                 value = searchFilter,
                 onValueChange = { newValue -> onSearchFilterChange(newValue) },
-                leadingIcon = painterResource(id = R.drawable.search),
+                leadingIcon = Icons.Default.Search,
                 modifier = Modifier.fillMaxWidth(0.9f),
                 placeHolder = "الاية"
             )

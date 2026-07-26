@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Icon
@@ -30,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.screens.blessingsScreen.classes.Blessing
 import com.ottrojja.composables.ListHorizontalDivider
+import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.ui.theme.OttrojjaTheme
 
@@ -41,77 +44,96 @@ fun BlessingItem(item: Blessing, onShareClick: () -> Unit) {
     val lineBreaks = item.text.count { it == '\n' }
     val canExpand = lineBreaks > 7 || item.text.length > 400
 
-    Box(modifier = Modifier
-        .padding(bottom = 12.dp)
-        .fillMaxWidth()
-        .background(MaterialTheme.colorScheme.background)
-        .animateContentSize(animationSpec = tween(
-            durationMillis = 300,
-            easing = LinearOutSlowInEasing,
-        )
-        )
-        .then(
-            if (expanded || !canExpand) Modifier.fillMaxHeight() else Modifier.height(250.dp)
-        )
-        .clickable(enabled = canExpand) { expanded = !expanded }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp)
+    OttrojjaDetailsContainer() {
+        Box(modifier = Modifier
+            .padding(bottom = 12.dp)
+            .fillMaxWidth()
+            .animateContentSize(animationSpec = tween(
+                durationMillis = 300,
+                easing = LinearOutSlowInEasing,
+            )
+            )
+            .then(
+                if (expanded || !canExpand) Modifier.fillMaxHeight() else Modifier.height(250.dp)
+            )
+            .clickable(enabled = canExpand) { expanded = !expanded }
         ) {
-            Row(
-                horizontalArrangement = Arrangement.End,
+
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(top = 4.dp)
             ) {
-                Icon(
-                    Icons.Default.ContentCopy,
-                    contentDescription = "share blessing",
-                    tint = MaterialTheme.colorScheme.primary,
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
-                        .padding(top = 4.dp, end = 4.dp, start = 4.dp, bottom = 0.dp
-                        )
-                        .clickable { onShareClick() }
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                OttrojjaText(
-                    text = item.text,
-                    color = MaterialTheme.colorScheme.primary,
-                    style = OttrojjaTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Right,
-                    modifier = Modifier.padding(6.dp, 8.dp)
-                )
-            }
-            ListHorizontalDivider()
-        }
-
-        if (!expanded && canExpand) {
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .align(alignment = Alignment.BottomCenter)
-                    .height(125.dp)
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.White)
-                        )
+                        .fillMaxWidth()
+                ) {
+                    Icon(
+                        Icons.Default.ContentCopy,
+                        contentDescription = "share blessing",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .padding(top = 4.dp, end = 4.dp, start = 4.dp, bottom = 0.dp
+                            )
+                            .clickable { onShareClick() }
                     )
-            ) {
-                OttrojjaText(
-                    text = "عرض المزيد",
-                    style = OttrojjaTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
+
+                    Row(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(8.dp))
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, alignment = Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = item.category.icon,
+                            contentDescription = "category icon",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        OttrojjaText(text = item.category.title, color = MaterialTheme.colorScheme.primary, style = OttrojjaTheme.typography.bodySmall)
+                    }
+
+
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    OttrojjaText(
+                        text = item.text,
+                        color = MaterialTheme.colorScheme.primary,
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Right,
+                        modifier = Modifier.padding(6.dp, 8.dp)
+                    )
+                }
+            }
+
+            if (!expanded && canExpand) {
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .align(alignment = Alignment.BottomCenter)
+                        .height(125.dp)
+                        .fillMaxWidth()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.5f))
+                            )
+                        )
+                ) {
+                    OttrojjaText(
+                        text = "عرض المزيد",
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
             }
         }
     }

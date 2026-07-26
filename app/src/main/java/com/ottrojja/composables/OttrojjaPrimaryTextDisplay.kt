@@ -25,14 +25,14 @@ import com.ottrojja.ui.theme.OttrojjaTheme
 import kotlin.math.*
 
 @Composable
-fun OttrojjaPrimaryTextDisplay(text: String, details: String? = null, loading: Boolean = false) {
+fun OttrojjaPrimaryTextDisplay(modifier: Modifier=Modifier, text: String, details: String? = null, loading: Boolean = false) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .padding(12.dp)
             .shadow(elevation = 2.dp, shape = RoundedCornerShape(16.dp), clip = false)
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(brush = Helpers.ottrojjaBrush)
+            .background(brush = Helpers.generateBrandBrush(MaterialTheme.colorScheme.primary))
             .padding(8.dp, 16.dp)
             .heightIn(min = 200.dp),
         contentAlignment = Alignment.Center
