@@ -62,19 +62,19 @@ android {
 dependencies {
 
     implementation("androidx.core:core-ktx:1.19.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
     implementation("androidx.activity:activity-compose:1.13.0")
-    implementation(platform("androidx.compose:compose-bom:2026.05.01"))
+    implementation(platform("androidx.compose:compose-bom:2026.08.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3:1.4.0")
-    implementation("androidx.compose.foundation:foundation:1.11.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
-    implementation("androidx.lifecycle:lifecycle-process:2.10.0")
+    implementation("androidx.compose.foundation:foundation:1.12.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
+    implementation("androidx.lifecycle:lifecycle-process:2.11.0")
     implementation("androidx.compose.material3:material3-window-size-class-android:1.4.0")
-    implementation("androidx.lifecycle:lifecycle-service:2.10.0")
-    implementation("androidx.compose.foundation:foundation-layout:1.11.2")
+    implementation("androidx.lifecycle:lifecycle-service:2.11.0")
+    implementation("androidx.compose.foundation:foundation-layout:1.12.0")
     testImplementation("junit:junit:4.13.2")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
@@ -92,7 +92,7 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.2.0")
     implementation("com.google.accompanist:accompanist-drawablepainter:0.37.3")
 
-    implementation("com.squareup.okhttp3:okhttp:5.3.2")
+    implementation("com.squareup.okhttp3:okhttp:5.4.0")
 
     implementation("androidx.room:room-runtime:2.8.4")
     implementation("androidx.room:room-ktx:2.8.4")
@@ -100,15 +100,15 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
 
-    implementation("androidx.media3:media3-exoplayer:1.10.1")
+    implementation("androidx.media3:media3-exoplayer:1.11.0")
 
-    implementation(platform("io.github.jan-tennert.supabase:bom:3.6.0"))
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.7.0"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
-    implementation("io.ktor:ktor-client-android:3.5.0")
+    implementation("io.ktor:ktor-client-android:3.5.2")
 
     implementation("com.github.binayshaw7777:KotStep:3.0.1")
 
-    implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation("com.google.android.gms:play-services-location:21.4.0")
 
     implementation("sh.calvin.reorderable:reorderable:3.1.0")
 

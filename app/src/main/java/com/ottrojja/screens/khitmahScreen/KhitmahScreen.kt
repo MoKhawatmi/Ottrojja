@@ -47,6 +47,7 @@ import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.TopBar
 import com.ottrojja.room.entities.KhitmahMark
+import com.ottrojja.screens.khitmahListScreen.classes.KhitmahStatus
 import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.complete_green
 import java.text.SimpleDateFormat
@@ -98,7 +99,7 @@ fun KhitmahScreen(
             mainAction = ButtonAction(icon = Icons.Filled.ArrowBack,
                 action = { navController.popBackStack() }),
             secondaryActions = listOf(
-                if (khitmahViewModel.khitmah?.isComplete == true) {
+                if (khitmahViewModel.khitmah?.status == KhitmahStatus.COMPLETE) {
                     ButtonAction(
                         icon = Icons.Outlined.Pending,
                         action = { khitmahViewModel.toggleKhitmahStatus(); },
@@ -135,20 +136,20 @@ fun KhitmahScreen(
                     modifier = Modifier
                         .clip(RoundedCornerShape(50))
                         .background(
-                            if (khitmahViewModel.khitmah?.isComplete == true) complete_green else MaterialTheme.colorScheme.primary,
+                            if (khitmahViewModel.khitmah?.status == KhitmahStatus.COMPLETE) complete_green else MaterialTheme.colorScheme.primary,
                             RoundedCornerShape(50)
                         )
                         .padding(horizontal = 12.dp, vertical = 4.dp)
 
                 ) {
                     OttrojjaText(
-                        text = if (khitmahViewModel.khitmah?.isComplete == true) "مكتملة" else "جارية",
+                        text = if (khitmahViewModel.khitmah?.status == KhitmahStatus.COMPLETE) "مكتملة" else "جارية",
                         style = OttrojjaTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onPrimary,
                         textAlign = TextAlign.Start,
                     )
                     Icon(
-                        if (khitmahViewModel.khitmah?.isComplete == true) Icons.Default.CheckCircle else Icons.Outlined.Pending,
+                        if (khitmahViewModel.khitmah?.status == KhitmahStatus.COMPLETE) Icons.Default.CheckCircle else Icons.Outlined.Pending,
                         contentDescription = "completion status",
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier
@@ -168,7 +169,7 @@ fun KhitmahScreen(
                 VerticalStepper(
                     style = tabVerticalWithLabel(
                         totalSteps = khitmahViewModel.khitmahMarks.size,
-                        currentStep = if (khitmahViewModel.khitmah?.isComplete == true) khitmahViewModel.khitmahMarks.size else khitmahViewModel.khitmahMarks.size - 1,
+                        currentStep = if (khitmahViewModel.khitmah?.status == KhitmahStatus.COMPLETE) khitmahViewModel.khitmahMarks.size else khitmahViewModel.khitmahMarks.size - 1,
                         trailingLabels = khitmahViewModel.khitmahMarks.map { mark ->
                             {
                                 MarkItem(

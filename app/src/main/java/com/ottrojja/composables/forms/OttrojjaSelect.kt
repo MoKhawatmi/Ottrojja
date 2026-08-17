@@ -22,7 +22,11 @@ import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
-fun OttrojjaSelect(value: String?, onClick: () -> Unit, disabled: Boolean = false, error: String?) {
+fun OttrojjaSelect(label: String?=null,
+                   value: String?,
+                   onClick: () -> Unit,
+                   disabled: Boolean = false,
+                   error: String?=null) {
     val backgroundColor = if (!disabled) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outline
     val contentColor = if (!disabled) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onTertiary
 
@@ -42,7 +46,7 @@ fun OttrojjaSelect(value: String?, onClick: () -> Unit, disabled: Boolean = fals
             verticalAlignment = Alignment.CenterVertically
         ) {
             OttrojjaText(
-                text = value ?: "",
+                text = if (label != null && label.isNotEmpty()) "$label: $value" else value ?: "",
                 style = OttrojjaTheme.typography.bodyMedium,
                 color = contentColor
             )

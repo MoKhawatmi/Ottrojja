@@ -95,7 +95,8 @@ fun NavGraph(navController: NavHostController,
         composable(route = Screen.KhitmahListScreen.route) {
             KhitmahList(
                 navController = navController,
-                repository = repository
+                quranRepository = repository,
+                reminderRepository= reminderRepository
             )
         }
 

@@ -21,6 +21,7 @@ import com.ottrojja.room.entities.Azkar
 import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.room.entities.E3rabData
+import com.ottrojja.room.entities.KhitmahSession
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.Quarter
 import com.ottrojja.room.entities.Reminder
@@ -32,7 +33,7 @@ import com.ottrojja.room.entities.VerseMeanings
     entities = [QuranPage::class, PageContent::class, ChapterData::class, PartData::class,
         TafseerData::class, E3rabData::class, Azkar::class,
         CauseOfRevelation::class, BookmarkEntity::class, Khitmah::class,
-        KhitmahMark::class, CustomTasbeeh::class, TasabeehList::class, VerseMeanings::class, Quarter::class,
+        KhitmahMark::class, KhitmahSession::class ,CustomTasbeeh::class, TasabeehList::class, VerseMeanings::class, Quarter::class,
         Reminder::class],
     version = 11
 )

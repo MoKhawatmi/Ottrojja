@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.ottrojja.screens.blessingsScreen.classes.Blessing
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.SupabaseProvider
+import com.ottrojja.classes.TextParser.OttrojjaTextParser
 import com.ottrojja.screens.blessingsScreen.classes.BlessingCategory
 import io.github.jan.supabase.SupabaseClient
 import kotlinx.coroutines.Dispatchers
@@ -111,7 +112,11 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
                             )
                         }
                     }
-                }.decodeList<Blessing>();
+                }.decodeList<Blessing>().map { blessing ->
+                    blessing.copy(
+                        content = OttrojjaTextParser.parse(blessing.text)
+                    )
+                };
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "BlessingsViewModel")

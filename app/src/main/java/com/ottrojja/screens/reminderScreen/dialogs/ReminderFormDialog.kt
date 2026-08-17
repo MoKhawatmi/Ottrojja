@@ -105,7 +105,8 @@ fun ReminderFormDialog(
             )
 
             OttrojjaSelect(
-                value = "التوقيت: ${Helpers.formatMilitaryTime(reminderInWork.hour, reminderInWork.minute)}",
+                label= "التوقيت: ",
+                value = "${Helpers.formatMilitaryTime(reminderInWork.hour, reminderInWork.minute)}",
                 onClick = { invokeTimePicker() },
                 error = formValidationResult.errors["time"]
             )

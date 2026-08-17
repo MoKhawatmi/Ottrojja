@@ -34,6 +34,7 @@ import com.ottrojja.screens.blessingsScreen.classes.Blessing
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.composables.OttrojjaTextBlock
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 
@@ -94,21 +95,13 @@ fun BlessingItem(item: Blessing, onShareClick: () -> Unit) {
                         )
                         OttrojjaText(text = item.category.title, color = MaterialTheme.colorScheme.primary, style = OttrojjaTheme.typography.bodySmall)
                     }
-
-
                 }
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                 ) {
-                    OttrojjaText(
-                        text = item.text,
-                        color = MaterialTheme.colorScheme.primary,
-                        style = OttrojjaTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier.padding(6.dp, 8.dp)
-                    )
+                    item.content.forEach { OttrojjaTextBlock(it) }
                 }
             }
 

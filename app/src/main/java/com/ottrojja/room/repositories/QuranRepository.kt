@@ -12,6 +12,7 @@ import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.room.entities.E3rabData
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahMark
+import com.ottrojja.room.entities.KhitmahSession
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.Quarter
 import com.ottrojja.room.entities.QuranPage
@@ -19,6 +20,7 @@ import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.TasabeehList
 import com.ottrojja.room.entities.VerseMeanings
 import com.ottrojja.room.relations.KhitmahWithMarks
+import com.ottrojja.room.relations.KhitmahWithSession
 import com.ottrojja.room.relations.ListWithTasabeeh
 import com.ottrojja.room.relations.PartWithQuarters
 import com.ottrojja.room.relations.QuranPageWithContent
@@ -52,7 +54,7 @@ class QuranRepository(private val quranDao: QuranDao,
         return quranDao.getPagesCount()
     }
 
-    suspend fun getRandomPageWithBenefits(): QuranPage{
+    suspend fun getRandomPageWithBenefits(): QuranPage {
         return quranDao.getRandomPageWithBenefits()
     }
 
@@ -78,7 +80,7 @@ class QuranRepository(private val quranDao: QuranDao,
         return quranDao.getChapterVerses(surahNum)
     }
 
-    suspend fun getSpecificVerses(mutashabihat: List<String>): List<PageContent>{
+    suspend fun getSpecificVerses(mutashabihat: List<String>): List<PageContent> {
         return quranDao.getSpecificVerses(mutashabihat = mutashabihat)
     }
 
@@ -224,38 +226,57 @@ class QuranRepository(private val quranDao: QuranDao,
         quranDao.deleteBookmark(bookmark)
     }
 
-    /*******************KHITMAH MANAGEMENT*************************/
+    /******************* KHITMAH MANAGEMENT *************************/
 
     suspend fun insertKhitmah(khitmah: Khitmah): Long {
         return khitmahDao.insertKhitmah(khitmah)
-    }
-
-    suspend fun insertKhitmahMark(khitmahMark: KhitmahMark) {
-        khitmahDao.insertKhitmahMark(khitmahMark)
-    }
-
-    suspend fun getAllKhitmah(): Flow<List<Khitmah>> {
-        return khitmahDao.getAllKhitmah()
-    }
-
-    suspend fun getKhitmah(id: Int): KhitmahWithMarks {
-        return khitmahDao.getKhitmah(id)
-    }
-
-    suspend fun deleteKhitmah(khitmah: Khitmah) {
-        khitmahDao.deleteKhitmah(khitmah)
-    }
-
-    suspend fun deleteKhitmahMark(khitmahMark: KhitmahMark) {
-        khitmahDao.deleteKhitmahMark(khitmahMark)
     }
 
     suspend fun updateKhitmah(khitmah: Khitmah) {
         khitmahDao.updateKhitmah(khitmah)
     }
 
-    suspend fun deleteKhitmahMarkById(id: Int) {
-        khitmahDao.deleteKhitmahMarkById(id)
+    suspend fun deleteKhitmah(khitmah: Khitmah) {
+        khitmahDao.deleteKhitmah(khitmah)
+    }
+
+    fun getAllKhitmah(): Flow<List<Khitmah>> {
+        return khitmahDao.getAllKhitmah()
+    }
+
+    suspend fun getKhitmah(id: Int): KhitmahWithSession? {
+        return khitmahDao.getKhitmah(id)
+    }
+
+
+    /******************* KHITMAH SESSION MANAGEMENT *************************/
+
+    suspend fun insertSession(session: KhitmahSession): Long {
+        return khitmahDao.insertSession(session)
+    }
+
+    suspend fun updateSession(session: KhitmahSession) {
+        khitmahDao.updateSession(session)
+    }
+
+    suspend fun deleteSession(session: KhitmahSession) {
+        khitmahDao.deleteSession(session)
+    }
+
+    suspend fun deleteSessionById(id: Int) {
+        khitmahDao.deleteSessionById(id)
+    }
+
+    fun getSessions(khitmahId: Int): Flow<List<KhitmahSession>> {
+        return khitmahDao.getSessions(khitmahId)
+    }
+
+    suspend fun getLatestSession(khitmahId: Int): KhitmahSession? {
+        return khitmahDao.getLatestSession(khitmahId)
+    }
+
+    fun getSessionCount(khitmahId: Int): Flow<Int> {
+        return khitmahDao.getSessionCount(khitmahId)
     }
 
 

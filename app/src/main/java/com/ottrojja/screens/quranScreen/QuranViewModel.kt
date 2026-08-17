@@ -1024,7 +1024,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         }
 
     fun fetchKhitmahList() {
-        try {
+        /*try {
             viewModelScope.launch(Dispatchers.IO) {
                 repository.getAllKhitmah().collect { state ->
                     withContext(Dispatchers.Main) {
@@ -1036,7 +1036,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
             e.printStackTrace()
             reportException(exception = e, file = "QuranViewModel")
             Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
-        }
+        }*/
     }
 
     fun assignPageToKhitmah(khitmah: Khitmah) {
@@ -1045,10 +1045,10 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         )
         try {
             viewModelScope.launch(Dispatchers.IO) {
-                repository.insertKhitmahMark(khitmahMark);
+                /*repository.insertKhitmahMark(khitmahMark);
                 repository.updateKhitmah(
                     khitmah.copy(latestPage = _currentPageObject?.page?.pageNum!!)
-                )
+                )*/
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "تمت إضافة الصفحة للختمة بنجاح", Toast.LENGTH_LONG
                     ).show()

@@ -36,7 +36,7 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
 
     fun fetchKhitmah(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
+            /*try {
                 withContext(Dispatchers.Main) {
                     _khitmahMarks.clear()
                 }
@@ -58,14 +58,14 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 }
-            }
+            }*/
         }
     }
 
     fun removeKhitmahMark(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                repository.deleteKhitmahMarkById(id)
+                //repository.deleteKhitmahMarkById(id)
                 withContext(Dispatchers.Main) {
                     val indexOfItem = _khitmahMarks.indexOfFirst { khitmahMark -> khitmahMark.data.id == id };
                     _khitmahMarks.removeAt(index = indexOfItem)
@@ -73,19 +73,19 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
                 }
                 //need a better approach for this
                 if (_khitmahMarks.isNotEmpty()) {
-                    if (_khitmah.value?.latestPage != _khitmahMarks.last().data.pageNum) {
+                    /*if (_khitmah.value?.latestPage != _khitmahMarks.last().data.pageNum) {
                         _khitmah.value?.let {
                             repository.updateKhitmah(
                                 it.copy(latestPage = _khitmahMarks.last().data.pageNum)
                             )
                         }
-                    }
+                    }*/
                 } else {
-                    _khitmah.value?.let {
+                    /*_khitmah.value?.let {
                         repository.updateKhitmah(
                             it.copy(latestPage = "")
                         )
-                    }
+                    }*/
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -121,7 +121,7 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
     }
 
     fun toggleKhitmahStatus() {
-        viewModelScope.launch(Dispatchers.IO) {
+       /* viewModelScope.launch(Dispatchers.IO) {
             try {
                 repository.updateKhitmah(
                     _khitmah.value!!.copy(isComplete = !_khitmah.value!!.isComplete)
@@ -137,7 +137,7 @@ class KhitmahViewModel(private val repository: QuranRepository, application: App
                     Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
                 }
             }
-        }
+        }*/
     }
 
 
