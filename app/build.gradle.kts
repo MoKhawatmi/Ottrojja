@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
     id("kotlinx-serialization")
+    id("org.jetbrains.kotlin.plugin.parcelize")
     id("com.google.devtools.ksp")
 }
 
@@ -106,7 +107,7 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.ktor:ktor-client-android:3.5.2")
 
-    implementation("com.github.binayshaw7777:KotStep:3.0.1")
+    implementation("com.github.binayshaw7777:KotStep:3.1.0")
 
     implementation("com.google.android.gms:play-services-location:21.4.0")
 

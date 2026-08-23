@@ -147,7 +147,7 @@ fun VersesSection(
                     visible = item.expanded,
                 ) {
                     OttrojjaFlexibleActions(
-                        listOf(
+                        actionList = listOf(
                             FlexibleAction(
                                 text = "مشاركة",
                                 bgColor = MaterialTheme.colorScheme.tertiary,

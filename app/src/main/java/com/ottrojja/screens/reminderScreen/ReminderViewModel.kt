@@ -117,7 +117,7 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
     }
 
 
-    fun toggleItemExpanded(id: Int) {
+    fun toggleItemExpanded(id: Long) {
         _reminders.update { currentList ->
             currentList.map { item ->
                 if (item.data.id == id) item.copy(expanded = !item.expanded)
@@ -126,7 +126,7 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
         }
     }
 
-    fun toggleReminderEnabled(id: Int) {
+    fun toggleReminderEnabled(id: Long) {
         val reminder = _reminders.value
             .find { it.data.id == id }
             ?.data

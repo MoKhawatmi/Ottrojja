@@ -1,6 +1,5 @@
 package com.ottrojja.screens.quranScreen
 
-import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.Application
 import android.content.res.Configuration
@@ -8,10 +7,11 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -20,18 +20,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -47,6 +43,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,17 +52,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.room.repositories.QuranRepository
@@ -78,9 +70,12 @@ import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.screens.quranScreen.dialogs.RepetitionOptionsDialog
 import com.ottrojja.composables.SecondaryTopBar
+import com.ottrojja.composables.dialogs.OttrojjaAlertDialog
+import com.ottrojja.screens.Khitmah.SessionForm.SessionForm
 import com.ottrojja.screens.mainScreen.BrowsingOption
-import com.ottrojja.screens.quranScreen.classes.TafseerContent
+import com.ottrojja.screens.quranScreen.classes.QuranReaderContext
 import com.ottrojja.screens.quranScreen.composables.Benefits
+import com.ottrojja.screens.quranScreen.composables.SinglePage
 import com.ottrojja.screens.quranScreen.composables.TafseerBottomSheet
 import com.ottrojja.screens.quranScreen.composables.YouTube
 import com.ottrojja.screens.quranScreen.dialogs.AddToKhitmahDialog
@@ -91,27 +86,71 @@ import com.ottrojja.screens.quranScreen.dialogs.SelectVerseDialog
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 
-@SuppressLint("UnrememberedMutableState", "DiscouragedApi")
 @Composable
 fun QuranScreen(
     navController: NavController,
     pageNum: String,
+    readerContext: QuranReaderContext,
     repository: QuranRepository
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
     val configuration = LocalConfiguration.current
 
+
     val quranViewModel: QuranViewModel = viewModel(
-        factory = QuranScreenViewModelFactory(repository, application)
+        factory = QuranScreenViewModelFactory(repository, readerContext, application)
     )
+    var showFinishSessionAlert by remember { mutableStateOf(false) }
+    val showFinishSessionForm by quranViewModel.showFinishSessionForm.collectAsState()
+
+    when (readerContext) {
+
+        QuranReaderContext.Normal -> {
+            println(readerContext)
+        }
+
+        is QuranReaderContext.Khitmah -> {
+            println(readerContext)
+        }
+    }
 
     fun handleBackBehaviour() {
         if (quranViewModel.selectedTab != QuranViewModel.PageTab.الصفحة) {
             quranViewModel.selectedTab = QuranViewModel.PageTab.الصفحة
+        } else if (readerContext is QuranReaderContext.Khitmah) {
+            showFinishSessionAlert = true;
+            return;
         } else {
             navController.popBackStack()
         }
+    }
+
+    if (showFinishSessionAlert) {
+        OttrojjaAlertDialog(
+            onDismiss = { showFinishSessionAlert = false; },
+            onConfirm = {
+                quranViewModel.invokeSessionForm();
+                showFinishSessionAlert = false;
+            },
+            title = "إنهاء جلسة القراءة",
+            text = "هل انت بصدد انهاء جلسة القراءة للختمة الحالية؟",
+            confirmText = "نعم"
+        )
+    }
+
+    if (showFinishSessionForm) {
+        val readerContext = readerContext as QuranReaderContext.Khitmah
+        SessionForm(
+            khitmahId = readerContext.khitmahId,
+            startPage = quranViewModel.getFirstSessionPage(),
+            endPage = quranViewModel.getLastSessionPage(),
+            onDismiss = {
+                quranViewModel.toggleFinishSessionForm(false)
+            },
+            onFinished = { navController.navigate(Screen.KhitmahScreen.invokeRoute("${readerContext.khitmahId}")) },
+            repository = repository
+        )
     }
 
     LaunchedEffect(Unit) {
@@ -299,7 +338,8 @@ fun QuranScreen(
                         setVmChangedPage = { value -> quranViewModel.vmChangedPage = value },
                         quranPagesNumbers = quranViewModel.quranPagesNumbers,
                         terminatePagePlayerService = { quranViewModel.terminatePagePlayerService() },
-                        disableAutoPageSwiping = { quranViewModel.autoSwipePagesWithAudio = false; }
+                        disableAutoPageSwiping = { quranViewModel.autoSwipePagesWithAudio = false; },
+                        readerContext = readerContext
                     )
                 }
 
@@ -475,7 +515,8 @@ fun PagesContainer(
     setVmChangedPage: (Boolean) -> Unit,
     quranPagesNumbers: List<String>,
     terminatePagePlayerService: () -> Unit,
-    disableAutoPageSwiping: () -> Unit
+    disableAutoPageSwiping: () -> Unit,
+    readerContext: QuranReaderContext,
 ) {
 
     val pagerState = rememberPagerState(
@@ -537,6 +578,34 @@ fun PagesContainer(
         }
 
         AnimatedVisibility(
+            visible = showController && readerContext is QuranReaderContext.Khitmah,
+            enter = fadeIn()/*slideInVertically(initialOffsetY = { -it }) + expandVertically(
+                expandFrom = Alignment.Bottom
+            )*/,
+            exit = fadeOut()/*slideOutVertically() + shrinkVertically()*/,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .offset(y = 16.dp)
+        ) {
+            val khitmahContext = readerContext as? QuranReaderContext.Khitmah
+            if (khitmahContext != null) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(16.dp))
+                        .padding(vertical = 12.dp, horizontal = 16.dp)
+                ) {
+                    OttrojjaText(
+                        text = "${khitmahContext.khitmahName} | إنهاء",
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        }
+
+        AnimatedVisibility(
             visible = showController,
             enter = slideInVertically(initialOffsetY = { -it }) + expandVertically(
                 expandFrom = Alignment.Bottom
@@ -587,68 +656,4 @@ fun PagesContainer(
     }
 }
 
-@Composable
-fun SinglePage(pageNum: String, nightReadingMode: Boolean) {
-    val pagePath = "p_$pageNum"
-    val configuration = LocalConfiguration.current
-    val context = LocalContext.current
 
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) Modifier.verticalScroll(
-            rememberScrollState()
-        ) else Modifier,
-
-        ) {
-        Image(
-            painter = painterResource(
-                LocalContext.current.getResources()
-                    .getIdentifier(pagePath, "drawable", context.packageName)
-            ),
-            contentDescription = "page",
-            modifier = Modifier
-                .fillMaxWidth(
-                    if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 0.75f else 1.0f
-                )
-                .fillMaxHeight(0.92f),
-            contentScale = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) ContentScale.Crop else ContentScale.Fit,
-            colorFilter = if (!nightReadingMode) null else ColorFilter.colorMatrix(
-                ColorMatrix(
-                    floatArrayOf(
-                        -1f, 0f, 0f, 0f, 255f,
-                        0f, -1f, 0f, 0f, 255f,
-                        0f, 0f, -1f, 0f, 255f,
-                        0f, 0f, 0f, 1f, 0f
-                    )
-                )
-            )
-        )
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(12.dp, 2.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .height(2.dp)
-                    .weight(0.5f)
-                    .background(MaterialTheme.colorScheme.secondary)
-            ) {}
-            OttrojjaText(
-                text = "صفحة ${Helpers.convertToIndianNumbers(pageNum)}",
-                style = OttrojjaTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier
-                    .padding(4.dp, 0.dp)
-                    .offset(y = -2.dp)
-            )
-            Row(
-                modifier = Modifier
-                    .height(2.dp)
-                    .weight(0.5f)
-                    .background(MaterialTheme.colorScheme.secondary)
-            ) {}
-        }
-    }
-}

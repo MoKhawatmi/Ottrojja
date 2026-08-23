@@ -12,16 +12,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun OttrojjaFlexibleActions(actionList: List<FlexibleAction>) {
+fun OttrojjaFlexibleActions(modifier: Modifier= Modifier, actionList: List<FlexibleAction>) {
     val MAX_PER_ROW = 3
     val remainder = actionList.size % MAX_PER_ROW
     val fillers = if (remainder == 0) 0 else MAX_PER_ROW - remainder
 
     FlowRow(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background)
-            .padding(8.dp), maxItemsInEachRow = MAX_PER_ROW,
+            .padding(8.dp),
+        maxItemsInEachRow = MAX_PER_ROW,
     ) {
         actionList.forEach {
             FlexActionOption(
@@ -30,7 +31,8 @@ fun OttrojjaFlexibleActions(actionList: List<FlexibleAction>) {
                 textColor = it.textColor,
                 onClick = {
                     it.action()
-                }
+                },
+                icon = it.icon
             )
         }
         repeat(fillers) {
@@ -38,7 +40,7 @@ fun OttrojjaFlexibleActions(actionList: List<FlexibleAction>) {
                 modifier = Modifier
                     .weight(1f)
             ) {
-                //empty column as filelr
+                //empty column as filler
             }
         }
     }

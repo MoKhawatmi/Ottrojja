@@ -7,7 +7,7 @@ import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
 
 @Entity
 data class Reminder(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long = 0,
     val title: String,
     val customMessage: String?,
     val hour: Int,

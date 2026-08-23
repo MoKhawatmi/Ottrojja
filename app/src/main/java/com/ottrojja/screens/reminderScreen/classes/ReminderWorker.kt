@@ -1,6 +1,7 @@
 package com.ottrojja.screens.reminderScreen.classes
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.ottrojja.classes.Helpers.reportException
@@ -15,17 +16,25 @@ class ReminderWorker(
 
     override suspend fun doWork(): Result {
         return try {
-            val id = inputData.getInt("REMINDER_ID", -1)
+            val id = inputData.getLong("REMINDER_ID", -1L)
 
             //Result.failure()= “This work permanently failed. Do NOT retry.”
-            if (id == -1) return Result.failure()
+            if (id == -1L) {
+                Log.e("ReminderWorker", "Missing or invalid REMINDER_ID")
+                return Result.failure()
+            }
+
 
             val db = DatabaseProvider.getDatabase(applicationContext)
             val repository = ReminderRepository(db.reminderDao())
             val scheduler = ReminderScheduler(applicationContext)
 
             val reminder = repository.getById(id)
-                ?: return Result.failure()
+
+            if (reminder == null) {
+                Log.e("ReminderWorker", "Reminder not found: $id")
+                return Result.failure()
+            }
 
             if (!reminder.isEnabled) return Result.success()
 

@@ -30,7 +30,7 @@ interface ReminderDao {
     fun getAll(): Flow<List<Reminder>>
 
     @Query("SELECT * FROM reminder WHERE id = :id")
-    suspend fun getById(id: Int): Reminder?
+    suspend fun getById(id: Long): Reminder?
 
     @Query("SELECT * FROM reminder WHERE isEnabled = 1")
     suspend fun getEnabled(): List<Reminder>

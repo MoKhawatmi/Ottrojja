@@ -37,6 +37,8 @@ fun OttrojjaAlertDialog(
     onConfirm: () -> Unit,
     title: String,
     text: String,
+    confirmText: String = "الموافقة",
+    cancelText: String = "الغاء",
     content: (@Composable (() -> Unit))? = null
 ) {
     OttrojjaDialog(
@@ -81,9 +83,9 @@ fun OttrojjaAlertDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                OttrojjaButton(text = "الغاء", onClick = onDismiss)
+                OttrojjaButton(text = cancelText, onClick = onDismiss)
                 Spacer(modifier = Modifier.width(10.dp))
-                OttrojjaButton(text = "الموافقة", onClick = onConfirm)
+                OttrojjaButton(text = confirmText, onClick = onConfirm)
             }
         }
     }

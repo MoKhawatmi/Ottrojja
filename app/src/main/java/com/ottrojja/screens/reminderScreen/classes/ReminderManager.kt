@@ -31,7 +31,7 @@ class ReminderManager(
 
         val reminderId = repository.insertReminder(reminder)
 
-        val insertedReminder = repository.getById(reminderId.toInt())
+        val insertedReminder = repository.getById(reminderId)
             ?: throw Exception("Could not retrieve newly inserted reminder")
 
         scheduler.scheduleReminder(insertedReminder)
@@ -45,13 +45,13 @@ class ReminderManager(
 
         val result = repository.upsertReminder(reminder)
 
-        val reminderId = if (reminder.id != 0) {
-            reminder.id
+        val reminderId = if (reminder.id != 0L) {
+            reminder.id as Long
         } else {
             result
         }
 
-        val savedReminder = repository.getById(reminderId.toInt())
+        val savedReminder = repository.getById(reminderId)
             ?: throw Exception("Could not retrieve newly upserted reminder")
 
         scheduler.scheduleReminder(savedReminder)
@@ -83,7 +83,7 @@ class ReminderManager(
 
     suspend fun insertMainReminderIfNotExists() {
         val mainReminder = Reminder(
-            id = 0,
+            id = 1L,
             title = "المذكر اليومي",
             customMessage = null,
             hour = 12,

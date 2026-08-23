@@ -1,4 +1,4 @@
-package com.ottrojja.screens.khitmahListScreen.classes
+package com.ottrojja.screens.Khitmah.KhitmahForm
 
 import com.ottrojja.room.entities.Khitmah
 

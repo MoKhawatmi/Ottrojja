@@ -1,6 +1,8 @@
 package com.ottrojja.room.repositories
 
 import androidx.room.Query
+import com.ottrojja.classes.QuranRangeException
+import com.ottrojja.composables.quranRangeSelector.QuranRangeState
 import com.ottrojja.room.dao.KhitmahDao
 import com.ottrojja.room.dao.QuranDao
 import com.ottrojja.room.dao.TasabeehDao
@@ -14,6 +16,7 @@ import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.room.entities.KhitmahSession
 import com.ottrojja.room.entities.PageContent
+import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.room.entities.Quarter
 import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.room.entities.TafseerData
@@ -24,6 +27,7 @@ import com.ottrojja.room.relations.KhitmahWithSession
 import com.ottrojja.room.relations.ListWithTasabeeh
 import com.ottrojja.room.relations.PartWithQuarters
 import com.ottrojja.room.relations.QuranPageWithContent
+import com.ottrojja.screens.Khitmah.classes.KhitmahListItem
 import com.ottrojja.screens.mainScreen.PartData
 import kotlinx.coroutines.flow.Flow
 
@@ -69,6 +73,15 @@ class QuranRepository(private val quranDao: QuranDao,
         return quranDao.searchPagesContent(query)
     }
 
+    suspend fun getPageContent(surahNum: Int, verseNum: Int): PageContent {
+        return quranDao.getPageContent(surahNum, verseNum)
+    }
+
+    suspend fun getPageContentById(verseId: Int): PageContent {
+        return quranDao.getPageContentById(verseId)
+    }
+
+
     suspend fun getPagesContentRange(startingSurah: Int,
                                      startingVerse: Int,
                                      endSurah: Int,
@@ -96,6 +109,81 @@ class QuranRepository(private val quranDao: QuranDao,
 
     suspend fun insertPagesContent(pagesContent: List<PageContent>) {
         quranDao.insertPagesContent(pagesContent)
+    }
+
+    suspend fun getQuranRangeFromPages(
+        pages: Set<Int>
+    ): QuranRangeState {
+        require(pages.isNotEmpty()) {
+            "Cannot create Quran range from empty pages"
+        }
+
+        val firstPageNumber = pages.minOrNull()!!
+        val lastPageNumber = pages.maxOrNull()!!
+
+        val firstPage = fetchPageVerses("$firstPageNumber")
+            .filter { it.type == PageContentItemType.verse }
+
+        if (firstPage.isEmpty()) {
+            throw QuranRangeException(
+                "No verses found for page $firstPageNumber"
+            )
+        }
+
+        val lastPage = fetchPageVerses("$lastPageNumber")
+            .filter { it.type == PageContentItemType.verse }
+
+        if (lastPage.isEmpty()) {
+            throw QuranRangeException(
+                "No verses found for page $lastPageNumber"
+            )
+        }
+
+        val startVerse = firstPage.first()
+        val endVerse = lastPage.last()
+
+        val startSurah = getChapter(startVerse.surahNum)
+            ?: throw QuranRangeException(
+                "Surah ${startVerse.surahNum} not found"
+            )
+
+        val endSurah = getChapter(endVerse.surahNum)
+            ?: throw QuranRangeException(
+                "Surah ${endVerse.surahNum} not found"
+            )
+
+        return QuranRangeState(
+            startSurah = startSurah,
+            startVerse = startVerse,
+            endSurah = endSurah,
+            endVerse = endVerse
+        )
+    }
+
+    suspend fun getQuranRangeFromDetails(
+        startSurahId: Int,
+        startVerseId: Int,
+        endSurahId: Int,
+        endVerseId: Int
+    ): QuranRangeState {
+        val startSurah = getChapter(startSurahId)
+            ?: throw QuranRangeException("Surah $startSurahId not found")
+
+        val endSurah = getChapter(endSurahId)
+            ?: throw QuranRangeException("Surah $endSurahId not found")
+
+        val startVerse = getPageContentById(startVerseId)
+            ?: throw QuranRangeException("Verse $startVerseId not found")
+
+        val endVerse = getPageContentById(endVerseId)
+            ?: throw QuranRangeException("Verse $endVerseId not found")
+
+        return QuranRangeState(
+            startSurah = startSurah,
+            startVerse = startVerse,
+            endSurah = endSurah,
+            endVerse = endVerse
+        )
     }
 
     /****************************Chapters*********************************/
@@ -248,6 +336,9 @@ class QuranRepository(private val quranDao: QuranDao,
         return khitmahDao.getKhitmah(id)
     }
 
+    fun getKhitmahList(): Flow<List<KhitmahListItem>> {
+        return khitmahDao.getKhitmahList()
+    }
 
     /******************* KHITMAH SESSION MANAGEMENT *************************/
 

@@ -37,11 +37,16 @@ import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.room.relations.QuranPageWithContent
+import com.ottrojja.screens.quranScreen.classes.QuranReaderContext
 import com.ottrojja.screens.quranScreen.classes.TafseerContent
 import com.ottrojja.services.PagePlayerService
 import com.ottrojja.services.PageServiceInterface
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -52,7 +57,10 @@ import java.io.FileOutputStream
 import java.io.IOException
 
 
-class QuranViewModel(private val repository: QuranRepository, application: Application) :
+class QuranViewModel(
+    private val repository: QuranRepository,
+    private val readerContext: QuranReaderContext,
+    application: Application) :
     AndroidViewModel(application) {
     val context = application.applicationContext;
     val sharedPreferences: SharedPreferences = application.getSharedPreferences(
@@ -151,6 +159,19 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                 reportException(exception = e, file = "QuranViewModel")
             }
         }
+        if (readerContext !is QuranReaderContext.Khitmah) {
+            return
+        }
+
+        pageRecordingJob?.cancel()
+
+        pageRecordingJob = viewModelScope.launch {
+            delay(2_000)
+
+            sessionPages += value.toInt()
+            println(sessionPages)
+        }
+
     }
 
     private var _currentPageObject by mutableStateOf<QuranPageWithContent?>(null)
@@ -711,7 +732,8 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
                     verses.map { verse ->
                         TafseerContent(
                             formulateMutashabeh(verse),
-                            { viewModelScope.launch { _navigation.send(verse.pageNum) } }) }
+                            { viewModelScope.launch { _navigation.send(verse.pageNum) } })
+                    }
                 }
                 withContext(Dispatchers.Main) {
                     _verseMutashabihat = formatted
@@ -1009,6 +1031,22 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     /*****************************KHITMAH CONTROL***********************************/
+    private var pageRecordingJob: Job? = null //used on page change, responsible for session pages addition
+    private val sessionPages = mutableSetOf<Int>()
+
+    fun getFirstSessionPage():Int{
+        return sessionPages.min()
+    }
+
+    fun getLastSessionPage():Int{
+        return sessionPages.max()
+    }
+
+
+    private val _showFinishSessionForm = MutableStateFlow<Boolean>(false)
+    val showFinishSessionForm: StateFlow<Boolean> = _showFinishSessionForm
+
+
     private val _khitmahList = mutableStateOf(emptyList<Khitmah>())
     var khitmahList: List<Khitmah>
         get() = _khitmahList.value
@@ -1022,6 +1060,14 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
         set(value) {
             _showAddToKhitmahDialog.value = value;
         }
+
+    fun toggleFinishSessionForm(value: Boolean) {
+        _showFinishSessionForm.value = value
+    }
+
+    fun invokeSessionForm() {
+        toggleFinishSessionForm(true)
+    }
 
     fun fetchKhitmahList() {
         /*try {
@@ -1040,7 +1086,7 @@ class QuranViewModel(private val repository: QuranRepository, application: Appli
     }
 
     fun assignPageToKhitmah(khitmah: Khitmah) {
-        val khitmahMark = KhitmahMark(khitmahId = khitmah.id,
+        val khitmahMark = KhitmahMark(khitmahId = khitmah.id.toInt(),
             pageNum = _currentPageObject?.page?.pageNum!!
         )
         try {
@@ -1086,11 +1132,12 @@ enum class TafseerSheetMode(override val displayName: String) : TabItem {
 
 class QuranScreenViewModelFactory(
     private val repository: QuranRepository,
+    private val readerContext: QuranReaderContext,
     private val application: Application
 ) : ViewModelProvider.AndroidViewModelFactory(application) {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(QuranViewModel::class.java)) {
-            return QuranViewModel(repository, application) as T
+            return QuranViewModel(repository, readerContext, application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -17,7 +17,7 @@ object ReminderNotificationHelper {
 
     fun showReminderNotification(
         context: Context,
-        id: Int,
+        id: Long,
         title: String,
         message: String
     ) {
@@ -40,7 +40,7 @@ object ReminderNotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
 
-        manager.notify(id, notification)
+        manager.notify(id.toInt(), notification)
     }
 
     private fun createChannel(manager: NotificationManager) {

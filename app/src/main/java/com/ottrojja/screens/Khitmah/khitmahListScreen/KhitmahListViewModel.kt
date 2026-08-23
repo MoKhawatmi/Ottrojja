@@ -1,4 +1,4 @@
-package com.ottrojja.screens.khitmahListScreen
+package com.ottrojja.screens.Khitmah.khitmahListScreen
 
 import android.app.Application
 import android.widget.Toast
@@ -9,18 +9,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.room.repositories.QuranRepository
-import com.ottrojja.room.entities.Khitmah
-import com.ottrojja.room.entities.Reminder
 import com.ottrojja.room.repositories.ReminderRepository
-import com.ottrojja.screens.khitmahListScreen.classes.KhitmahFormMode
-import com.ottrojja.screens.khitmahListScreen.classes.KhitmahFormState
+import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahFormState
+import com.ottrojja.screens.Khitmah.classes.KhitmahListItem
 import com.ottrojja.screens.reminderScreen.classes.ReminderManager
 import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
-import com.ottrojja.screens.reminderScreen.classes.ReminderScheduler
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -30,49 +24,25 @@ class KhitmahListViewModel(private val quranRepository: QuranRepository,
     AndroidViewModel(application) {
     val context = application.applicationContext;
 
-    private val _khitmahList = mutableStateOf(emptyList<Khitmah>())
-    var khitmahList: List<Khitmah>
+    private val _khitmahList = mutableStateOf(emptyList<KhitmahListItem>())
+    var khitmahList: List<KhitmahListItem>
         get() = _khitmahList.value
         set(value) {
             _khitmahList.value = value;
         }
 
-    private val _formState = MutableStateFlow(KhitmahFormState())
-    val formState = _formState.asStateFlow()
+    private val _khitmahDialog = mutableStateOf(false)
+    var khitmahDialog: Boolean
+        get() = _khitmahDialog.value
+        set(value) {
+            _khitmahDialog.value = value;
+        }
 
-
-    fun updateKhitmahInWork(khitmah: Khitmah) {
-        _formState.value = _formState.value.copy(
-            khitmah = khitmah
-        )
-    }
-
-    fun updateReminderEnabled(enabled: Boolean) {
-        _formState.value = _formState.value.copy(
-            reminderEnabled = enabled
-        )
-    }
-
-    fun updateReminderTime(time: String) {
-        _formState.value = _formState.value.copy(
-            reminderTime = time
-        )
-    }
-
-    fun setFormMode(mode: KhitmahFormMode) {
-        _formState.value = _formState.value.copy(
-            mode = mode
-        )
-    }
-
-    fun resetForm() {
-        _formState.value = KhitmahFormState()
-    }
 
     fun fetchKhitmahList() {
         try {
             viewModelScope.launch(Dispatchers.IO) {
-                quranRepository.getAllKhitmah().collect { state ->
+                quranRepository.getKhitmahList().collect { state ->
                     withContext(Dispatchers.Main) {
                         _khitmahList.value = state;
                     }
@@ -85,25 +55,28 @@ class KhitmahListViewModel(private val quranRepository: QuranRepository,
         }
     }
 
-    fun createKhitmah() {
+    fun createKhitmah(formState: KhitmahFormState) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val form = _formState.value
+                val reminderId = if (formState.reminderEnabled) {
+                    val (hour, minute) = formState.reminderTime
+                        .split(":")
+                        .map(String::toInt)
 
-                quranRepository.insertKhitmah(
-                    form.khitmah.copy()
-                )
-
-                if (form.reminderEnabled) {
-                    val reminderManager = ReminderManager(reminderRepository, context)
-                    reminderManager.createReminder(
-                        title = "مذكر ختمة ${form.khitmah.title}",
-                        customMessage = "موعدك للاستمرار في ختمة ${form.khitmah.title}",
-                        hour = form.reminderTime.split(":").get(0).toInt(),
-                        minute = form.reminderTime.split(":").get(1).toInt(),
+                    ReminderManager(reminderRepository, context).createReminder(
+                        title = "مذكر ختمة ${formState.khitmah.title}",
+                        customMessage = "موعدك للاستمرار في ختمة ${formState.khitmah.title}",
+                        hour = hour,
+                        minute = minute,
                         repeatType = ReminderRepeatType.DAILY
                     )
+                } else {
+                    null
                 }
+
+                quranRepository.insertKhitmah(
+                    formState.khitmah.copy(reminderId = reminderId)
+                )
 
                 withContext(Dispatchers.Main) {
                     Toast.makeText(

@@ -13,8 +13,8 @@ class ReminderReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
 
-        val id = intent.getIntExtra("REMINDER_ID", -1)
-        if (id == -1) return
+        val id = intent.getLongExtra("REMINDER_ID", -1)
+        if (id == -1L) return
 
         val work = OneTimeWorkRequestBuilder<ReminderWorker>()
             .setInputData(workDataOf("REMINDER_ID" to id))

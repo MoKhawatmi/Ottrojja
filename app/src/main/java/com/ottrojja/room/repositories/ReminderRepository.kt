@@ -28,7 +28,7 @@ class ReminderRepository(
 
     fun getAllReminders(): Flow<List<Reminder>> = dao.getAll()
 
-    suspend fun getById(id: Int): Reminder? {
+    suspend fun getById(id: Long): Reminder? {
         return dao.getById(id)
     }
 

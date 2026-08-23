@@ -27,6 +27,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
@@ -257,8 +259,8 @@ fun ReminderScreen(repository: ReminderRepository) {
 
 @Composable
 fun ReminderItem(reminder: ExpandableItem<Reminder>,
-                 toggleExpand: (Int) -> Unit,
-                 toggleEnabled: (Int) -> Unit,
+                 toggleExpand: (Long) -> Unit,
+                 toggleEnabled: (Long) -> Unit,
                  invokeEditDialog: (Reminder) -> Unit,
                  deleteReminder: (Reminder) -> Unit,
                  getNextTriggerTime: (Reminder) -> String
@@ -379,19 +381,22 @@ fun ReminderItem(reminder: ExpandableItem<Reminder>,
                 )
 
                 OttrojjaFlexibleActions(
-                    listOfNotNull(
+                    actionList = listOfNotNull(
                         FlexibleAction(
                             text = "تعديل",
                             bgColor = MaterialTheme.colorScheme.primary,
                             textColor = MaterialTheme.colorScheme.onPrimary,
-                            action = { invokeEditDialog(reminder.data) }
+                            action = { invokeEditDialog(reminder.data) },
+                            icon = Icons.Default.Edit
+
                         ),
                         if (!reminder.data.isMain) {
                             FlexibleAction(
                                 text = "حذف",
                                 bgColor = MaterialTheme.colorScheme.error,
                                 textColor = MaterialTheme.colorScheme.onError,
-                                action = { deleteReminder(reminder.data) }
+                                action = { deleteReminder(reminder.data) },
+                                icon = Icons.Default.Close
                             )
                         } else null
                     )

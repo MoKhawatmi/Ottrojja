@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.compose.runtime.snapshots.toInt
 import com.ottrojja.broadcaseReceivers.ReminderReceiver
 import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
 import com.ottrojja.room.entities.Reminder
@@ -28,7 +29,7 @@ class ReminderScheduler(private val context: Context) {
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            reminder.id,
+            reminder.id.toInt(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         ) // FLAG_UPDATE_CURRENT handles rescheduling by auto updating intent with new reminder data that has same id (requestCode)
@@ -61,7 +62,7 @@ class ReminderScheduler(private val context: Context) {
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            reminder.id,
+            reminder.id.toInt(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )

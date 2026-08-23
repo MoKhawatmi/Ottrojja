@@ -5,7 +5,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import kotlinx.datetime.LocalDate
 
 @Entity(
     foreignKeys = [
@@ -22,8 +21,8 @@ import kotlinx.datetime.LocalDate
     ]
 )
 data class KhitmahSession(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int = 0,
-    @ColumnInfo(name = "khitmahId") val khitmahId: Int,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long = 0,
+    @ColumnInfo(name = "khitmahId") val khitmahId: Long,
     @ColumnInfo(name = "startPage") val startPage: Int,
     @ColumnInfo(name = "startVerseId") val startVerseId: Int,
     @ColumnInfo(name = "startSurahId") val startSurahId: Int,

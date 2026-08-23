@@ -2,6 +2,7 @@ package com.ottrojja
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,13 +20,14 @@ import com.ottrojja.screens.blessingsScreen.BlessingsScreen
 import com.ottrojja.screens.listeningScreen.ListeningScreen
 import com.ottrojja.screens.generalSupplicationsScreen.GeneralSupplicationsScreen
 import com.ottrojja.screens.jwam3Screen.Jwam3Screen
-import com.ottrojja.screens.khitmahListScreen.KhitmahList
-import com.ottrojja.screens.khitmahScreen.KhitmahScreen
+import com.ottrojja.screens.Khitmah.khitmahListScreen.KhitmahList
+import com.ottrojja.screens.Khitmah.khitmahScreen.KhitmahScreen
 import com.ottrojja.screens.loadingScreen.LoadingScreen
 import com.ottrojja.screens.mainScreen.MainScreen
 import com.ottrojja.screens.namesOfGodScreen.NamesOfGod
 import com.ottrojja.screens.qiblaScreen.QiblaScreen
 import com.ottrojja.screens.quranScreen.QuranScreen
+import com.ottrojja.screens.quranScreen.classes.QuranReaderContext
 import com.ottrojja.screens.reminderScreen.ReminderScreen
 import com.ottrojja.screens.settingsScreen.SettingsScreen
 import com.ottrojja.screens.tasbeehScreen.TasbeehScreen
@@ -121,11 +123,31 @@ fun NavGraph(navController: NavHostController,
             LoadingScreen(navController, repository)
         }
 
-        composable(route = Screen.QuranScreen.route, arguments = listOf(navArgument("pageNum") {
-            type = NavType.StringType
-        })) {
-            val pageNum = requireNotNull(it.arguments).getString("pageNum")
-            QuranScreen(navController, pageNum!!, repository)
+        composable(
+            route = Screen.QuranScreen.route,
+            arguments = listOf(
+                navArgument("pageNum") {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+
+            val pageNum = requireNotNull(
+                backStackEntry.arguments?.getString("pageNum")
+            )
+
+            val readerContext =
+                navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<QuranReaderContext>("quranReaderContext")
+                    ?: QuranReaderContext.Normal
+
+            QuranScreen(
+                navController = navController,
+                pageNum = pageNum,
+                readerContext = readerContext,
+                repository = repository
+            )
         }
 
         composable(route = Screen.ZikrScreen.route, arguments = listOf(navArgument("zikerTitle") {
@@ -139,7 +161,7 @@ fun NavGraph(navController: NavHostController,
             type = NavType.IntType
         })) {
             val id = requireNotNull(it.arguments).getInt("id")
-            KhitmahScreen(navController, repository, id)
+            KhitmahScreen(navController, repository, reminderRepository, id)
         }
 
         composable(route = Screen.CustomTasabeehListScreen.route,
@@ -151,6 +173,19 @@ fun NavGraph(navController: NavHostController,
             CustomTasabeehListScreen(navController, repository, id)
         }
     }
+}
+
+fun NavController.navigateToQuran(
+    pageNum: String,
+    context: QuranReaderContext = QuranReaderContext.Normal
+) {
+    currentBackStackEntry
+        ?.savedStateHandle
+        ?.set("quranReaderContext", context)
+
+    navigate(
+        Screen.QuranScreen.invokeRoute(pageNum)
+    )
 }
 
 

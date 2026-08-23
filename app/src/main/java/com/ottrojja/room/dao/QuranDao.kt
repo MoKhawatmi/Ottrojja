@@ -59,6 +59,13 @@ interface QuranDao {
     )
     suspend fun searchPagesContent(query: String): List<PageContent>
 
+    @Query(" SELECT * FROM PageContent WHERE (surahNum = :surahNum AND verseNum >= :verseNum) AND type = 'verse'")
+    suspend fun getPageContent(surahNum: Int, verseNum: Int ): PageContent
+
+    @Query(" SELECT * FROM PageContent WHERE (id = :verseId) AND type = 'verse'")
+    suspend fun getPageContentById(verseId: Int): PageContent
+
+
     @Query("""
     SELECT * FROM PageContent
     WHERE (surahNum > :startingSurah OR (surahNum = :startingSurah AND verseNum >= :startingVerse))

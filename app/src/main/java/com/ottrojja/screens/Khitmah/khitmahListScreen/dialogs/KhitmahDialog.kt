@@ -1,4 +1,4 @@
-package com.ottrojja.screens.khitmahListScreen.dialogs
+package com.ottrojja.screens.Khitmah.khitmahListScreen.dialogs
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -14,10 +14,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,9 +26,9 @@ import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.forms.OttrojjaSelect
 import com.ottrojja.composables.forms.OttrojjaTextField
 import com.ottrojja.composables.forms.SwitchRow
-import com.ottrojja.composables.forms.SwitchWithIcon
 import com.ottrojja.room.entities.Khitmah
-import com.ottrojja.screens.khitmahListScreen.classes.KhitmahFormState
+import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahFormMode
+import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahFormState
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
@@ -44,7 +40,6 @@ fun KhitmahDialog(
     invokeTargetDatePicker: () -> Unit,
     invokeReminderTimePicker: () -> Unit,
     toggleIncludeReminder: () -> Unit,
-    onReminderTimeChange: (String) -> Unit,
 ) {
 
 
@@ -63,7 +58,10 @@ fun KhitmahDialog(
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 OttrojjaText(
-                    text = "إضافة ختمة",
+                    text = if (formState.mode == KhitmahFormMode.CREATE)
+                        "إضافة ختمة"
+                    else
+                        "تعديل الختمة",
                     textAlign = TextAlign.Center,
                     style = OttrojjaTheme.typography.bodyLarge
                 )
@@ -145,7 +143,10 @@ fun KhitmahDialog(
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
                         .padding(vertical = 2.dp),
-                    text = "إضافة"
+                    text = if (formState.mode == KhitmahFormMode.CREATE)
+                        "إضافة"
+                    else
+                        "تعديل"
                 )
 
                 OttrojjaButton(

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,27 +20,35 @@ fun SwitchRow(
     onCheckedChange: (Boolean) -> Unit,
     disabled: Boolean = false
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .toggleable(
-                value = checked,
-                enabled = !disabled,
-                onValueChange = onCheckedChange
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        OttrojjaText(
-            text = label,
-            textAlign = TextAlign.Center,
-            style = OttrojjaTheme.typography.bodyMedium
-        )
+    val backgroundColor = if (!disabled) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outline
+    val contentColor = if (!disabled) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onTertiary
 
-        SwitchWithIcon(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            disabled = disabled
-        )
+    OttrojjaFormFieldContainer(
+        modifier = Modifier.toggleable(
+            value = checked,
+            enabled = !disabled,
+            onValueChange = onCheckedChange
+        ),
+        backgroundColor = backgroundColor,
+        contentColor = contentColor,
+        ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            OttrojjaText(
+                text = label,
+                textAlign = TextAlign.Center,
+                style = OttrojjaTheme.typography.bodyMedium
+            )
+
+            SwitchWithIcon(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                disabled = disabled
+            )
+        }
     }
 }

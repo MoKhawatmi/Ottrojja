@@ -9,6 +9,7 @@ import androidx.room.Update
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahSession
 import com.ottrojja.room.relations.KhitmahWithSession
+import com.ottrojja.screens.Khitmah.classes.KhitmahListItem
 import kotlinx.coroutines.flow.Flow
 
 
@@ -33,6 +34,45 @@ interface KhitmahDao {
 
     @Query("SELECT * FROM Khitmah WHERE id = :id")
     suspend fun getKhitmah(id: Int): KhitmahWithSession?
+
+    @Query("""
+    SELECT
+        k.*,
+
+        (
+            SELECT s.endPage
+            FROM KhitmahSession s
+            WHERE s.khitmahId = k.id
+            ORDER BY s.timestamp DESC, s.id DESC
+            LIMIT 1
+        ) AS latestEndPage,
+
+        (
+            SELECT s.endVerseId
+            FROM KhitmahSession s
+            WHERE s.khitmahId = k.id
+            ORDER BY s.timestamp DESC, s.id DESC
+            LIMIT 1
+        ) AS latestEndVerseId,
+
+        (
+            SELECT s.readingDate
+            FROM KhitmahSession s
+            WHERE s.khitmahId = k.id
+            ORDER BY s.timestamp DESC, s.id DESC
+            LIMIT 1
+        ) AS latestReadingDate,
+
+        (
+            SELECT COUNT(*)
+            FROM KhitmahSession s
+            WHERE s.khitmahId = k.id
+        ) AS sessionCount
+
+    FROM Khitmah k
+    ORDER BY k.id DESC
+""")
+    fun getKhitmahList(): Flow<List<KhitmahListItem>>
 
 
     // ─────────────────────────────────────

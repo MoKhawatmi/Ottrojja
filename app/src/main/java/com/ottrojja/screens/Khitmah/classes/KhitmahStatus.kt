@@ -1,4 +1,4 @@
-package com.ottrojja.screens.khitmahListScreen.classes
+package com.ottrojja.screens.Khitmah.classes
 
 enum class KhitmahStatus(val displayName: String) {
     IN_PROGRESS("جارية"),
