@@ -2,34 +2,41 @@ package com.ottrojja.screens.Khitmah.khitmahScreen
 
 import android.app.Application
 import android.widget.Toast
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.composables.quranRangeSelector.QuranRangeState
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.room.entities.Khitmah
-import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.room.entities.KhitmahSession
 import com.ottrojja.room.entities.Reminder
 import com.ottrojja.room.repositories.ReminderRepository
 import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahFormState
+import com.ottrojja.screens.Khitmah.classes.DayReadingInfo
+import com.ottrojja.screens.mainScreen.PartData
 import com.ottrojja.screens.reminderScreen.classes.ReminderManager
 import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
+import java.time.YearMonth
 
 class KhitmahViewModel(private val quranRepository: QuranRepository,
                        private val reminderRepository: ReminderRepository,
                        application: Application) :
     AndroidViewModel(application) {
     val context = application.applicationContext;
+
+    private val _parts = MutableStateFlow<List<PartData>>(emptyList())
+    val parts: StateFlow<List<PartData>> = _parts.asStateFlow()
 
     private val _khitmah = MutableStateFlow<Khitmah?>(null)
     val khitmah: StateFlow<Khitmah?> = _khitmah
@@ -49,6 +56,55 @@ class KhitmahViewModel(private val quranRepository: QuranRepository,
     private val _selectedSessionRangeLoading = MutableStateFlow<Boolean>(false)
     val selectedSessionRangeLoading: StateFlow<Boolean> = _selectedSessionRangeLoading
 
+    private val _selectedDay = MutableStateFlow<LocalDate?>(null)
+    val selectedDay = _selectedDay.asStateFlow()
+
+    private val _selectedDayReading = MutableStateFlow<DayReadingInfo?>(null)
+    val selectedDayReading = _selectedDayReading.asStateFlow()
+
+    private val _calendarMonthProgress = MutableStateFlow(0)
+    val calendarMonthProgress = _calendarMonthProgress.asStateFlow()
+
+    init {
+        loadParts()
+    }
+
+
+    private fun loadParts() {
+        viewModelScope.launch {
+            _parts.value = quranRepository.getAllParts()
+        }
+    }
+
+    fun calculatePartProgress(part: PartData): Float {
+        val totalPages = part.partLastPage.toInt() - part.partStartPage.toInt() + 1
+
+        if (totalPages <= 0) {
+            return 0f
+        }
+
+        val completedPages = (part.partStartPage.toInt()..part.partLastPage.toInt()).count { page ->
+            sessions.value.any { session ->
+                page in session.startPage..session.endPage
+            }
+        }
+
+        return completedPages.toFloat() / totalPages
+    }
+
+
+    fun calendarMonthChanged(month: YearMonth) {
+        val sessionCount = _sessions.value.count { session ->
+            runCatching {
+                val date = LocalDate.parse(session.readingDate)
+
+                date.year == month.year &&
+                        date.month == month.month
+            }.getOrDefault(false)
+        }
+
+        _calendarMonthProgress.value = sessionCount;
+    }
 
     fun fetchKhitmah(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -87,50 +143,6 @@ class KhitmahViewModel(private val quranRepository: QuranRepository,
         }
     }
 
-    private val _khitmahMarks = mutableStateListOf<ExpandableItem<KhitmahMark>>() // mutableStateOf(emptyList<ExpandableItem<KhitmahMark>>())
-    val khitmahMarks: MutableList<ExpandableItem<KhitmahMark>>
-        get() = _khitmahMarks
-
-    fun removeKhitmahMark(id: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                //repository.deleteKhitmahMarkById(id)
-                withContext(Dispatchers.Main) {
-                    val indexOfItem = _khitmahMarks.indexOfFirst { khitmahMark -> khitmahMark.data.id == id };
-                    _khitmahMarks.removeAt(index = indexOfItem)
-                    Toast.makeText(context, " تم الحذف بنجاح", Toast.LENGTH_LONG).show()
-                }
-                //need a better approach for this
-                if (_khitmahMarks.isNotEmpty()) {
-                    /*if (_khitmah.value?.latestPage != _khitmahMarks.last().data.pageNum) {
-                        _khitmah.value?.let {
-                            repository.updateKhitmah(
-                                it.copy(latestPage = _khitmahMarks.last().data.pageNum)
-                            )
-                        }
-                    }*/
-                } else {
-                    /*_khitmah.value?.let {
-                        repository.updateKhitmah(
-                            it.copy(latestPage = "")
-                        )
-                    }*/
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                reportException(exception = e, file = "KhitmahViewModel")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-    }
-
-    fun toggleMarkExpanded(id: Int) {
-        val indexOfItem = _khitmahMarks.indexOfFirst { khitmahMark -> khitmahMark.data.id == id };
-        val foundItem = _khitmahMarks.get(indexOfItem)
-        _khitmahMarks.set(indexOfItem, foundItem.copy(expanded = !foundItem.expanded));
-    }
 
     fun deleteKhitmah() {
         viewModelScope.launch(Dispatchers.IO) {

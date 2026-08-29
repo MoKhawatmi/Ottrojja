@@ -69,7 +69,7 @@ fun SessionForm(
         )
     }
 
-    fun dismissForm(){
+    fun dismissForm() {
         viewModel.reset()
         onDismiss()
     }
@@ -83,7 +83,7 @@ fun SessionForm(
             .clip(RoundedCornerShape(12.dp))
             .padding(12.dp),
 
-        onDismissRequest = {dismissForm()},
+        onDismissRequest = { dismissForm() },
         useDefaultWidth = false
     ) {
         val state = uiState
@@ -166,30 +166,29 @@ fun SessionForm(
                     label = "تأملات أو ملاحظات",
                     maxLength = 250
                 )
-            }
-
-
-            Spacer(
-                modifier = Modifier.height(16.dp)
-            )
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Bottom,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                OttrojjaButton(
-                    modifier = Modifier.fillMaxWidth(0.6f),
-                    text = if (state.isEditMode) "حفظ التعديلات" else "حفظ الجلسة",
-                    onClick = {
-                        viewModel.save(onSuccess = { dismissForm(); onFinished(); })
-                    }
+                Spacer(
+                    modifier = Modifier.height(16.dp)
                 )
-                OttrojjaButton(
-                    modifier = Modifier.fillMaxWidth(0.6f),
-                    text = "الغاء",
-                    onClick = { dismissForm() }
-                )
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.Bottom,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    OttrojjaButton(
+                        modifier = Modifier.fillMaxWidth(0.6f),
+                        text = if (state.isEditMode) "حفظ التعديلات" else "حفظ الجلسة",
+                        onClick = {
+                            viewModel.save(onSuccess = { dismissForm(); onFinished(); })
+                        }
+                    )
+                    OttrojjaButton(
+                        modifier = Modifier.fillMaxWidth(0.6f),
+                        text = "الغاء",
+                        onClick = { dismissForm() }
+                    )
+                }
+
             }
         }
     }

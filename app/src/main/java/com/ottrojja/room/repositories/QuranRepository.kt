@@ -1,6 +1,5 @@
 package com.ottrojja.room.repositories
 
-import androidx.room.Query
 import com.ottrojja.classes.QuranRangeException
 import com.ottrojja.composables.quranRangeSelector.QuranRangeState
 import com.ottrojja.room.dao.KhitmahDao
@@ -13,7 +12,6 @@ import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.room.entities.E3rabData
 import com.ottrojja.room.entities.Khitmah
-import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.room.entities.KhitmahSession
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.PageContentItemType
@@ -22,7 +20,6 @@ import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.TasabeehList
 import com.ottrojja.room.entities.VerseMeanings
-import com.ottrojja.room.relations.KhitmahWithMarks
 import com.ottrojja.room.relations.KhitmahWithSession
 import com.ottrojja.room.relations.ListWithTasabeeh
 import com.ottrojja.room.relations.PartWithQuarters

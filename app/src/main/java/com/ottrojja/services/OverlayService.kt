@@ -55,12 +55,15 @@ class OverlayService : Service() {
         showOverlay()
     }
 
+    private var dismissRunnable: Runnable? = null
+    private var isRemoving = false
+
     private fun showOverlay() {
+        if (overlayView != null || isRemoving) return // extra reentrancy guard
 
         val inflater = LayoutInflater.from(this)
         val view = inflater.inflate(R.layout.overlay_layout, null)
         val textView = view.findViewById<TextView>(R.id.txtReminder)
-
 
         textView.text = DynamicAzkarHelper.getNextZekr(this)
 
@@ -76,11 +79,19 @@ class OverlayService : Service() {
             y = 100
         }
 
+        try {
+            windowManager.addView(view, params)
+        } catch (e: Exception) {
+            // Known transient OS issue (e.g. "InputChannel is not initialized").
+            // Bail out gracefully instead of crashing the service.
+            overlayView = null
+            stopSelf() // or just return, depending on whether you want to retry later
+            return
+        }
+
         overlayView = view
-        windowManager.addView(view, params)
 
         view.alpha = 0f
-
         view.animate().cancel()
         view.animate()
             .alpha(1f)
@@ -88,18 +99,12 @@ class OverlayService : Service() {
             .setInterpolator(DecelerateInterpolator())
             .start()
 
-        view.setOnClickListener {
-            removeOverlay()
-        }
+        view.setOnClickListener { removeOverlay() }
 
-        dismissRunnable = Runnable {
-            removeOverlay()
-        }
+        dismissRunnable = Runnable { removeOverlay() }
         handler.postDelayed(dismissRunnable!!, 5_000)
     }
 
-    private var dismissRunnable: Runnable? = null
-    private var isRemoving = false
 
     private fun removeOverlay() {
         val view = overlayView ?: return
@@ -129,7 +134,6 @@ class OverlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
 
-        super.onDestroy()
         handler.removeCallbacksAndMessages(null)
         overlayView?.let { windowManager.removeView(it) }
     }

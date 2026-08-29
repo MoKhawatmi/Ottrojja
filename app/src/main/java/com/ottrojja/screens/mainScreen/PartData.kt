@@ -11,5 +11,6 @@ data class PartData(
     @PrimaryKey @ColumnInfo(name = "partId") val partId: String,
     @ColumnInfo(name = "partName") val partName: String,
     @ColumnInfo(name = "partStartPage") val partStartPage: String,
+    @ColumnInfo(name = "partLastPage") val partLastPage: String,
     @ColumnInfo(name = "firstWords") val firstWords: String
 )

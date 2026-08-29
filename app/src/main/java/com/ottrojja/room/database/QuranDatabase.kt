@@ -11,7 +11,6 @@ import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.dao.KhitmahDao
-import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.room.dao.QuranDao
 import com.ottrojja.room.dao.ReminderDao
 import com.ottrojja.room.dao.TasabeehDao
@@ -33,9 +32,9 @@ import com.ottrojja.room.entities.VerseMeanings
     entities = [QuranPage::class, PageContent::class, ChapterData::class, PartData::class,
         TafseerData::class, E3rabData::class, Azkar::class,
         CauseOfRevelation::class, BookmarkEntity::class, Khitmah::class,
-        KhitmahMark::class, KhitmahSession::class ,CustomTasbeeh::class, TasabeehList::class, VerseMeanings::class, Quarter::class,
+        KhitmahSession::class, CustomTasbeeh::class, TasabeehList::class, VerseMeanings::class, Quarter::class,
         Reminder::class],
-    version = 11
+    version = 12
 )
 abstract class QuranDatabase : RoomDatabase() {
     abstract fun quranDao(): QuranDao
@@ -44,12 +43,94 @@ abstract class QuranDatabase : RoomDatabase() {
     abstract fun reminderDao(): ReminderDao
 }
 
+val MIGRATION_11_12 = object : Migration(11, 12) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+
+        // Drop old tables
+        db.execSQL("DROP TABLE IF EXISTS `KhitmahMark`")
+        db.execSQL("DROP TABLE IF EXISTS `Khitmah`")
+
+        // Recreate Khitmah with the new schema
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `Khitmah` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `title` TEXT NOT NULL,
+                `createdAt` INTEGER NOT NULL,
+                `targetDate` TEXT,
+                `reminderId` INTEGER,
+                `status` TEXT NOT NULL,
+                FOREIGN KEY(`reminderId`)
+                    REFERENCES `Reminder`(`id`)
+                    ON UPDATE NO ACTION
+                    ON DELETE SET NULL
+            )
+            """.trimIndent()
+        )
+
+        // Recreate Khitmah indices
+        db.execSQL(
+            """
+            CREATE INDEX IF NOT EXISTS `index_Khitmah_reminderId`
+            ON `Khitmah` (`reminderId`)
+            """.trimIndent()
+        )
+
+        // Create KhitmahSession
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `KhitmahSession` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `khitmahId` INTEGER NOT NULL,
+                `startPage` INTEGER NOT NULL,
+                `startVerseId` INTEGER NOT NULL,
+                `startSurahId` INTEGER NOT NULL,
+                `endPage` INTEGER NOT NULL,
+                `endVerseId` INTEGER NOT NULL,
+                `endSurahId` INTEGER NOT NULL,
+                `timestamp` INTEGER NOT NULL,
+                `readingDate` TEXT NOT NULL,
+                `reflection` TEXT,
+                FOREIGN KEY(`khitmahId`)
+                    REFERENCES `Khitmah`(`id`)
+                    ON UPDATE NO ACTION
+                    ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+
+        // Create KhitmahSession indices
+        db.execSQL(
+            """
+            CREATE INDEX IF NOT EXISTS `index_KhitmahSession_khitmahId`
+            ON `KhitmahSession` (`khitmahId`)
+            """.trimIndent()
+        )
+
+        db.execSQL(
+            """
+            CREATE INDEX IF NOT EXISTS `index_KhitmahSession_readingDate`
+            ON `KhitmahSession` (`readingDate`)
+            """.trimIndent()
+        )
+
+        db.execSQL("""
+            ALTER TABLE PartData
+            ADD COLUMN partLastPage TEXT NOT NULL DEFAULT '1'
+        """.trimIndent()
+        )
+
+    }
+}
+
+
 val MIGRATION_10_11 = object : Migration(10, 11) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("""
             ALTER TABLE PageContent
             ADD COLUMN mutashabihat TEXT NOT NULL DEFAULT '[]'
-        """.trimIndent())
+        """.trimIndent()
+        )
     }
 }
 
@@ -82,7 +163,8 @@ val MIGRATION_8_9 = object : Migration(8, 9) {
                 nextTrigger INTEGER NOT NULL,
                 isMain INTEGER NOT NULL
             )
-        """.trimIndent())
+        """.trimIndent()
+        )
     }
 }
 

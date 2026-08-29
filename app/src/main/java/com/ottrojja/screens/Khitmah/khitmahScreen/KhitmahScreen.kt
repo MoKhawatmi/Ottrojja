@@ -30,17 +30,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.binayshaw7777.kotstep.model.LineDefault
 import com.binayshaw7777.kotstep.model.StepDefaults
 import com.binayshaw7777.kotstep.model.StepStyle
 import com.binayshaw7777.kotstep.model.iconVerticalWithLabel
-import com.binayshaw7777.kotstep.model.tabVerticalWithLabel
 import com.binayshaw7777.kotstep.ui.vertical.VerticalStepper
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.TopBar
 import com.ottrojja.navigateToQuran
@@ -50,6 +51,9 @@ import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahFormMode
 import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahFormState
 import com.ottrojja.screens.Khitmah.SessionForm.SessionForm
 import com.ottrojja.screens.Khitmah.classes.KhitmahStatus
+import com.ottrojja.screens.Khitmah.khitmahScreen.Composables.KhitmahCalendar
+import com.ottrojja.screens.Khitmah.khitmahScreen.Composables.PartProgress
+import com.ottrojja.screens.Khitmah.khitmahScreen.Composables.SessionStepItem
 import com.ottrojja.screens.quranScreen.classes.QuranReaderContext
 import com.ottrojja.ui.theme.OttrojjaTheme
 
@@ -77,7 +81,7 @@ fun KhitmahScreen(
     val reminder by viewmodel.reminder.collectAsState()
     val sessions by viewmodel.sessions.collectAsState()
     val selectedSession by viewmodel.selectedSession.collectAsState()
-
+    val monthSessionCount by viewmodel.calendarMonthProgress.collectAsState()
 
     fun confirmDeleteKhitmah() {
         val alertDialogBuilder = AlertDialog.Builder(context)
@@ -211,18 +215,31 @@ fun KhitmahScreen(
                     )
                 }
             )
+
+            PartProgress(viewmodel)
+
+            OttrojjaDetailsContainer(modifier = Modifier.padding(8.dp)) {
+                KhitmahCalendar(
+                    sessions = sessions,
+                    sessionCount = monthSessionCount,
+                    onMonthChanged = { month ->
+                        viewmodel.calendarMonthChanged(month)
+                    }
+                )
+            }
+
             Column(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.Start,
                 modifier = Modifier
-                    .padding(4.dp)
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
+                    .padding(top = 4.dp, start = 4.dp, end = 4.dp, bottom = 8.dp)
             ) {
                 VerticalStepper(
                     style = iconVerticalWithLabel(
                         totalSteps = sessions.size,
-                        icons= List(sessions.size) { Icons.Default.Check },
+                        icons = List(sessions.size) { Icons.Default.Check },
                         currentStep = if (khitmah?.status == KhitmahStatus.COMPLETE) sessions.size else sessions.size - 1,
                         trailingLabels = sessions.map { session ->
                             {
@@ -259,7 +276,6 @@ fun KhitmahScreen(
                 ) {
                     println("clicked")
                 }
-
             }
         }
     }

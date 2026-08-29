@@ -1,4 +1,4 @@
-package com.ottrojja.screens.Khitmah.khitmahScreen
+package com.ottrojja.screens.Khitmah.khitmahScreen.Composables
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -201,7 +201,8 @@ fun SessionStepItem(
                                         action = { onDelete(item.id) },
                                         icon = Icons.Default.Close
                                     )
-                                )
+                                ),
+                                bgColor = Color.Transparent
                             )
                         }
                     }

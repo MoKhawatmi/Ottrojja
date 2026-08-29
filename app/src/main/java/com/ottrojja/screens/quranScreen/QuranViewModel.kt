@@ -35,7 +35,6 @@ import com.ottrojja.classes.StorageBase
 import com.ottrojja.interfaces.TabItem
 import com.ottrojja.room.entities.BookmarkEntity
 import com.ottrojja.room.entities.Khitmah
-import com.ottrojja.room.entities.KhitmahMark
 import com.ottrojja.room.relations.QuranPageWithContent
 import com.ottrojja.screens.quranScreen.classes.QuranReaderContext
 import com.ottrojja.screens.quranScreen.classes.TafseerContent
@@ -1086,7 +1085,7 @@ class QuranViewModel(
     }
 
     fun assignPageToKhitmah(khitmah: Khitmah) {
-        val khitmahMark = KhitmahMark(khitmahId = khitmah.id.toInt(),
+      /*  val khitmahMark = KhitmahMark(khitmahId = khitmah.id.toInt(),
             pageNum = _currentPageObject?.page?.pageNum!!
         )
         try {
@@ -1104,7 +1103,7 @@ class QuranViewModel(
             e.printStackTrace()
             reportException(exception = e, file = "QuranViewModel")
             Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
-        }
+        }*/
     }
 
     private val _navigation = Channel<String>()

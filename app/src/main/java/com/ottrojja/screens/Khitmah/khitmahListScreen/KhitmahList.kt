@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -35,14 +37,17 @@ import com.ottrojja.composables.CircleStatusIndicator
 import com.ottrojja.composables.EmptyListMessage
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ListHorizontalDivider
+import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.navigateToQuran
 import com.ottrojja.room.repositories.ReminderRepository
 import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahForm
 import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahFormMode
 import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahFormState
 import com.ottrojja.screens.Khitmah.classes.KhitmahStatus
 import com.ottrojja.screens.Khitmah.khitmahListScreen.composables.KhitmahItemProgress
+import com.ottrojja.screens.quranScreen.classes.QuranReaderContext
 import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.complete_green
 
@@ -134,6 +139,24 @@ fun KhitmahList(
                                 )
                             }
                             /*****/
+                            Row(verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Book,
+                                    contentDescription = "Start Date",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+
+                                OttrojjaText(
+                                    text = "${item.khitmah.status.displayName}",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = OttrojjaTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Right,
+                                )
+                            }
+                            /*****/
                             item.latestEndPage?.let {
                                 Row(verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
@@ -187,10 +210,51 @@ fun KhitmahList(
                                     textAlign = TextAlign.Right,
                                 )
                             }
+
+                            /*****/
+                            item.latestReadingDate?.let {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.CalendarMonth,
+                                        contentDescription = "Latest Reading Date",
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    OttrojjaText(
+                                        text = "آخر قراءة: ${it}",
+                                        color = MaterialTheme.colorScheme.primary,
+                                        style = OttrojjaTheme.typography.bodyMedium,
+                                        textAlign = TextAlign.Right,
+                                    )
+                                }
+                            }
                         }
-                        KhitmahItemProgress(
-                            latestPage = item.latestEndPage ?: 0
-                        )
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            KhitmahItemProgress(
+                                latestPage = item.latestEndPage ?: 0
+                            )
+
+                            OttrojjaButton(
+                                text = if (item.latestEndPage != null) "متابعة" else "البدء",
+                                onClick = {
+                                    navController.navigateToQuran(
+                                        pageNum = "${item.latestEndPage ?: 1}",
+                                        context = QuranReaderContext.Khitmah(
+                                            khitmahId = item.khitmah.id,
+                                            khitmahName = item.khitmah.title
+                                        )
+                                    )
+                                },
+                                iconAfter = Icons.Filled.PlayArrow
+                            )
+
+                        }
                     }
                 }
             }
