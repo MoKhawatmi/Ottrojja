@@ -43,7 +43,7 @@ fun OttrojjaTimePickerDialog(
 
     OttrojjaDialog(onDismissRequest = { onDismiss() }) {
         Column(modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(start = 2.dp, end = 2.dp, top = 12.dp, bottom = 2.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {

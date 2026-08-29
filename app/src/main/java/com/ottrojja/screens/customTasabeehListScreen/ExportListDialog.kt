@@ -75,19 +75,24 @@ fun ExportListDialog(
                     onChange = { newText: String ->
                         onFileTitleChanged(newText)
                     },
-                    label = "تصدير الاذكار",
+                    label = "اسم الملف",
                 )
             }
 
 
-            Row(modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                OttrojjaText(
-                    text = "سيتم تصدير الاذكار الى ملف ${fileTitle}.json في مسار downloads",
-                    style = OttrojjaTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
-                )
+            if (fileTitle.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    val displayName = if (fileTitle.endsWith(".json")) fileTitle else "$fileTitle.json"
+
+                    OttrojjaText(
+                        text = "سيتم حفظ الملف باسم \"$displayName\" في مجلد Download الخاص بجهازك (وليس سحابيًا)، ويمكنك الوصول إليه من ملفات الجهاز",
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(6.dp))

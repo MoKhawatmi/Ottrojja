@@ -51,6 +51,7 @@ fun CustomTasbeehCounter(
     editCustomTasbeeh: () -> Unit,
     tasbeehCount: Int,
     onCountChanged: (Int) -> Unit,
+    onHapticFeedback: () -> Unit,
 ) {
     val context = LocalContext.current;
 
@@ -192,7 +193,14 @@ fun CustomTasbeehCounter(
             ElevatedButton(
                 onClick = {
                     if (tasbeehCount > 0) {
-                        onCountChanged(tasbeehCount - 1)
+                        val newCount = tasbeehCount - 1
+                        onCountChanged(newCount)
+
+                        if (newCount == 0) {
+                            onHapticFeedback()
+                        }
+                    } else {
+                        onHapticFeedback()
                     }
                 },
                 elevation = ButtonDefaults.elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),

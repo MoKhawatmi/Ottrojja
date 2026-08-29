@@ -1,10 +1,10 @@
 package com.ottrojja.screens.customTasabeehListScreen
 
-import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Application
+import android.app.DownloadManager
 import android.content.ContentValues
 import android.content.Context
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -13,8 +13,6 @@ import android.widget.Toast
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -253,65 +251,30 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
     }
 
     fun exportListAsJson() {
-        val gson = com.google.gson.Gson()
+        val gson = Gson()
         val jsonString = gson.toJson(_customTasabeeh)
 
         println(jsonString)
-        saveJsonToDownloads(context, _exportFileTitle.value, jsonString)
+
+        val fileName = if (_exportFileTitle.value.endsWith(".json")) {
+            _exportFileTitle.value
+        } else {
+            "${_exportFileTitle.value}.json"
+        }
+
+        saveJsonToDownloads(context, fileName, jsonString)
     }
 
     fun saveJsonToDownloads(context: Context, fileName: String, jsonString: String) {
         try {
-            val resolver = context.contentResolver
-
-            val contentValues = ContentValues().apply {
-                put(MediaStore.Downloads.DISPLAY_NAME, fileName)
-                put(MediaStore.Downloads.MIME_TYPE, "application/json")
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    // Android 10+
-                    put(
-                        MediaStore.MediaColumns.RELATIVE_PATH,
-                        Environment.DIRECTORY_DOWNLOADS
-                    )
-                } else {
-                    // Android 7–9 (REQUIRED)
-                    val downloadsDir =
-                        Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_DOWNLOADS
-                        )
-
-                    if (!downloadsDir.exists()) {
-                        downloadsDir.mkdirs()
-                    }
-
-                    put(
-                        MediaStore.MediaColumns.DATA,
-                        File(downloadsDir, fileName).absolutePath
-                    )
-                }
-
-            }
-
-
-            val contentUri: Uri =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    MediaStore.Downloads.EXTERNAL_CONTENT_URI
-                } else {
-                    MediaStore.Files.getContentUri("external")
-                }
-
-            val uri = resolver.insert(contentUri, contentValues)
-
-
-            uri?.let {
-                resolver.openOutputStream(it)?.use { outputStream ->
-                    outputStream.write(jsonString.toByteArray())
-                    outputStream.flush()
-                }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                saveJsonToDownloadsModern(context, fileName, jsonString)
+            } else {
+                saveJsonToDownloadsLegacy(context, fileName, jsonString)
             }
 
             Toast.makeText(context, "تم التصدير بنجاح", Toast.LENGTH_SHORT).show()
-            exportListDialog = false;
+            exportListDialog = false
 
         } catch (e: Exception) {
             e.printStackTrace()
@@ -320,13 +283,59 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
         }
     }
 
+    // Android 10+ (API 29+): MediaStore.Downloads is a live, indexed collection —
+    // insert + write is enough, no manual scan needed.
+    @SuppressLint("NewApi")
+    private fun saveJsonToDownloadsModern(context: Context, fileName: String, jsonString: String) {
+        val resolver = context.contentResolver
+
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+            put(MediaStore.Downloads.MIME_TYPE, "application/json")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+        }
+
+        val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+
+        uri?.let {
+            resolver.openOutputStream(it)?.use { outputStream ->
+                outputStream.write(jsonString.toByteArray())
+                outputStream.flush()
+            }
+        } ?: throw Exception("MediaStore insert returned null Uri")
+    }
+
+    // Android 7–9 (API 24–28): write the raw file directly, then register it with
+    // DownloadManager — this is the provider the stock Downloads app actually reads from.
+    // MediaStore.Files inserts / MediaScannerConnection do NOT populate that provider.
+    private fun saveJsonToDownloadsLegacy(context: Context, fileName: String, jsonString: String) {
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        if (!downloadsDir.exists()) {
+            downloadsDir.mkdirs()
+        }
+
+        val file = File(downloadsDir, fileName)
+        file.writeText(jsonString)
+
+        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        downloadManager.addCompletedDownload(
+            fileName,
+            "Ottrojja export",
+            true,
+            "application/json",
+            file.absolutePath,
+            file.length(),
+            true
+        )
+    }
+
     /****************Handle Import*************************/
     fun readJsonFromUri(
         context: Context,
         uri: Uri
     ): String {
         val mime = context.contentResolver.getType(uri)
-        if (mime != "application/json" && mime != "text/plain" && mime!="application/octet-stream") {
+        if (mime != "application/json" && mime != "text/plain" && mime != "application/octet-stream") {
             throw IllegalArgumentException("Not a JSON file")
         }
 
@@ -348,7 +357,7 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
 
 
                 repository.insertMultCustomTasbeeh(importedTasabeeh.map { item -> CustomTasbeeh(listId = _customTasabeehList.value!!.id, text = item.text, count = item.count, position = 0) })
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     updateTasabeehListPositions()
                 }
             } catch (e: Exception) {

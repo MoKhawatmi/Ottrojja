@@ -5,6 +5,9 @@ import android.app.AlertDialog
 import android.app.Application
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -67,6 +70,29 @@ fun CustomTasabeehListScreen(
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
+
+    val vibrator = remember {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            context.getSystemService(VibratorManager::class.java).defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Vibrator::class.java)
+        }
+    }
+
+    fun hapticFeedback() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(
+                    30L,
+                    VibrationEffect.DEFAULT_AMPLITUDE
+                )
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(30L)
+        }
+    }
 
     val customTasabeehListScreenViewModel: CustomTasabeehListScreenViewModel = viewModel(
         factory = CustomTasabeehListScreenViewModelFactory(repository, application)
@@ -268,6 +294,7 @@ fun CustomTasabeehListScreen(
                                 onCountChanged = { value ->
                                     customTasabeehListScreenViewModel.itemCounts.put(item.id, value)
                                 },
+                                onHapticFeedback = { hapticFeedback() }
                             )
                             IconButton(
                                 modifier = Modifier.draggableHandle(
