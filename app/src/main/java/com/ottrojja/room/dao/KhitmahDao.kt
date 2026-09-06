@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahSession
@@ -33,7 +34,7 @@ interface KhitmahDao {
     fun getAllKhitmah(): Flow<List<Khitmah>>
 
     @Query("SELECT * FROM Khitmah WHERE id = :id")
-    suspend fun getKhitmah(id: Int): KhitmahWithSession?
+    suspend fun getKhitmah(id: Long): KhitmahWithSession?
 
     @Query("""
     SELECT
@@ -56,12 +57,12 @@ interface KhitmahDao {
         ) AS latestEndVerseId,
 
         (
-            SELECT s.readingDate
+            SELECT s.timestamp
             FROM KhitmahSession s
             WHERE s.khitmahId = k.id
             ORDER BY s.timestamp DESC, s.id DESC
             LIMIT 1
-        ) AS latestReadingDate,
+        ) AS latestReadingTimestamp,
 
         (
             SELECT COUNT(*)
@@ -73,6 +74,16 @@ interface KhitmahDao {
     ORDER BY k.id DESC
 """)
     fun getKhitmahList(): Flow<List<KhitmahListItem>>
+
+    @Query("""
+    UPDATE Khitmah
+    SET pagesRead = :pagesRead
+    WHERE id = :khitmahId
+""")
+    suspend fun updatePagesRead(
+        khitmahId: Long,
+        pagesRead: Int
+    )
 
 
     // ─────────────────────────────────────
@@ -99,6 +110,14 @@ interface KhitmahDao {
     fun getSessions(khitmahId: Int): Flow<List<KhitmahSession>>
 
     @Query("""
+        SELECT * FROM KhitmahSession
+        WHERE khitmahId = :khitmahId
+        ORDER BY readingDate ASC
+    """)
+    fun getSessionsForKhitmah(khitmahId: Long): List<KhitmahSession>
+
+
+    @Query("""
     SELECT * FROM KhitmahSession
     WHERE khitmahId = :khitmahId
     ORDER BY readingDate DESC, timestamp DESC
@@ -111,32 +130,53 @@ interface KhitmahDao {
     WHERE khitmahId = :khitmahId
 """)
     fun getSessionCount(khitmahId: Int): Flow<Int>
+
+    // ─────────────────────────────────────
+    // Transactions
+    // ─────────────────────────────────────
+
+    @Transaction
+    suspend fun insertSessionAndUpdatePagesRead(
+        session: KhitmahSession
+    ): Long {
+        val id = insertSession(session)
+
+        recalculatePagesReadInternal(session.khitmahId)
+
+        return id
+    }
+
+    @Transaction
+    suspend fun updateSessionAndPagesRead(
+        session: KhitmahSession
+    ) {
+        updateSession(session)
+
+        recalculatePagesReadInternal(session.khitmahId)
+    }
+
+    @Transaction
+    suspend fun deleteSessionAndUpdatePagesRead(
+        session: KhitmahSession
+    ) {
+        deleteSession(session)
+        recalculatePagesReadInternal(session.khitmahId)
+    }
+
+    // ─────────────────────────────────────
+    // Heleprs
+    // ─────────────────────────────────────
+
+    private suspend fun recalculatePagesReadInternal(
+        khitmahId: Long
+    ) {
+        val sessions = getSessionsForKhitmah(khitmahId)
+
+        val pagesRead = sessions
+            .flatMap { it.startPage..it.endPage }
+            .toSet()
+            .size
+
+        updatePagesRead(khitmahId, pagesRead)
+    }
 }
-
-/*@Dao
-interface KhitmahDao {
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertKhitmah(khitmah: Khitmah): Long
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertKhitmahMark(khitmahMark: KhitmahMark)
-
-    @Query("SELECT * FROM Khitmah")
-    fun getAllKhitmah(): Flow<List<Khitmah>>
-
-    @Query("SELECT * FROM Khitmah WHERE id=:id")
-    fun getKhitmah(id: Int): KhitmahWithMarks
-
-    @Delete
-    fun deleteKhitmah(khitmah: Khitmah)
-
-    @Delete
-    fun deleteKhitmahMark(khitmahMark: KhitmahMark)
-
-    @Update
-    fun updateKhitmah(khitmah: Khitmah)
-
-    @Query("DELETE FROM KhitmahMark WHERE id = :id")
-    fun deleteKhitmahMarkById(id: Int)
-}*/

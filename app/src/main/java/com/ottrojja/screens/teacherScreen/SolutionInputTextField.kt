@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.VisualTransformation
@@ -30,7 +29,8 @@ import androidx.compose.ui.unit.sp
 import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.ui.theme.OttrojjaTheme
-import com.ottrojja.ui.theme.okay_green
+import com.ottrojja.ui.theme.complete_container
+import com.ottrojja.ui.theme.complete_content
 
 @Composable
 fun SolutionInputTextField(
@@ -54,11 +54,11 @@ fun SolutionInputTextField(
         .padding(horizontal = 2.dp, vertical = 1.dp)
         .width(desiredWidth)
         .background(
-            if (value.status == AnswerStatus.UNCHECKED) MaterialTheme.colorScheme.background else if (value.status == AnswerStatus.RIGHT) Color(0xFFE2FFD6) else MaterialTheme.colorScheme.errorContainer
+            if (value.status == AnswerStatus.UNCHECKED) MaterialTheme.colorScheme.background else if (value.status == AnswerStatus.RIGHT) complete_container else MaterialTheme.colorScheme.errorContainer
         )
         .border(
             1.dp,
-            if (value.status == AnswerStatus.UNCHECKED) MaterialTheme.colorScheme.primary else if (value.status == AnswerStatus.RIGHT) okay_green else MaterialTheme.colorScheme.error,
+            if (value.status == AnswerStatus.UNCHECKED) MaterialTheme.colorScheme.primary else if (value.status == AnswerStatus.RIGHT) complete_content else MaterialTheme.colorScheme.error,
             shape = RoundedCornerShape(6.dp)
         )
         .onFocusChanged { isFocused = it.isFocused }
@@ -73,7 +73,7 @@ fun SolutionInputTextField(
             textStyle = OttrojjaTheme.typography.quranTextLarge.copy(
                 fontSize = 24.sp,
                 color = if (value.status == AnswerStatus.UNCHECKED) MaterialTheme.colorScheme.primary else if (value.status == AnswerStatus.RIGHT)
-                    okay_green else MaterialTheme.colorScheme.error
+                    complete_content else MaterialTheme.colorScheme.error
             ),
             visualTransformation = VisualTransformation.None,
             singleLine = true,

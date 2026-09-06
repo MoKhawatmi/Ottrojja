@@ -158,9 +158,9 @@ fun NavGraph(navController: NavHostController,
         }
 
         composable(route = Screen.KhitmahScreen.route, arguments = listOf(navArgument("id") {
-            type = NavType.IntType
+            type = NavType.LongType
         })) {
-            val id = requireNotNull(it.arguments).getInt("id")
+            val id = requireNotNull(it.arguments).getLong("id")
             KhitmahScreen(navController, repository, reminderRepository, id)
         }
 

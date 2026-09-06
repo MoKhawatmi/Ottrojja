@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
+import com.ottrojja.classes.Helpers
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.screens.Khitmah.classes.DayReadingInfo
 import com.ottrojja.ui.theme.OttrojjaTheme
@@ -40,7 +42,8 @@ fun KhitmahCalendarDay(
     isCurrentMonth: Boolean,
     hasReading: Boolean,
     readingInfo: DayReadingInfo?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    isCreationDate: Boolean,
 ) {
     val isToday = date == LocalDate.now()
 
@@ -100,9 +103,24 @@ fun KhitmahCalendarDay(
             )
         }
 
+        // Creation date indicator
+        if (isCreationDate) {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .rotate(45f)
+                    .background(
+                        color = MaterialTheme.colorScheme.secondary,
+                        shape = RoundedCornerShape(1.dp)
+                    )
+                    .align(Alignment.BottomCenter)
+            )
+        }
+
+
         OttrojjaText(
-            text = date.dayOfMonth.toString(),
-            color = if (isCurrentMonth && hasReading) {
+            text = Helpers.convertToIndianNumbers(date.dayOfMonth.toString()),
+            color = if (hasReading) {
                 MaterialTheme.colorScheme.onPrimary
             } else if (isCurrentMonth) {
                 MaterialTheme.colorScheme.primary

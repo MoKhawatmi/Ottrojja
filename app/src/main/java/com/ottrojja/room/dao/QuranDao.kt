@@ -18,6 +18,7 @@ import com.ottrojja.room.entities.TafseerData
 import com.ottrojja.room.entities.VerseMeanings
 import com.ottrojja.room.relations.PartWithQuarters
 import com.ottrojja.room.relations.QuranPageWithContent
+import com.ottrojja.screens.Khitmah.classes.SurahVerseRange
 
 @Dao
 interface QuranDao {
@@ -106,8 +107,21 @@ interface QuranDao {
     @Query("SELECT * FROM ChapterData WHERE surahId=:surahNum")
     suspend fun getChapter(surahNum: Int): ChapterData
 
+    @Query("""
+    SELECT
+        CAST(surahNum AS INTEGER) AS surahNum,
+        MIN(id) AS firstVerseId,
+        MAX(id) AS lastVerseId
+    FROM PageContent
+    WHERE type = 'verse'
+    GROUP BY surahNum
+    ORDER BY CAST(surahNum AS INTEGER)
+""")
+    suspend fun getSurahVerseRanges(): List<SurahVerseRange>
+
     @Query("SELECT count(*) FROM ChapterData")
     suspend fun getChaptersCount(): Int
+
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertParts(parts: List<PartData>)

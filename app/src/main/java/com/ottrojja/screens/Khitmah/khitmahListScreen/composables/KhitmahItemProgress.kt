@@ -16,10 +16,10 @@ import kotlin.math.roundToInt
 
 @Composable
 fun KhitmahItemProgress(
-    latestPage: Int,
+    totalPagesRead: Int,
     modifier: Modifier = Modifier
 ) {
-    val progress = (latestPage / 604f).coerceIn(0f, 1f)
+    val progress = (totalPagesRead / 604f).coerceIn(0f, 1f)
     val percentage = (progress * 100).roundToInt()
 
     Box(

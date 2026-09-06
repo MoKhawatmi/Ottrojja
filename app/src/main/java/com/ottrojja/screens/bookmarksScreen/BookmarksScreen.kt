@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.R
+import com.ottrojja.classes.Helpers
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.EmptyListMessage
@@ -111,9 +112,7 @@ fun BookmarksScreen(
                             )
 
                             OttrojjaText(
-                                text = SimpleDateFormat("HH:mm dd.MM.yyyy", Locale.US).format(
-                                    Date(item.timeStamp)
-                                ),
+                                text = Helpers.formatDateTime(item.timeStamp),
                                 color = MaterialTheme.colorScheme.outlineVariant,
                                 style = OttrojjaTheme.typography.bodySmall,
                                 textAlign = TextAlign.Right,

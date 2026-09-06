@@ -38,6 +38,7 @@
         android:enableOnBackInvokedCallback="true"
         android:windowSoftInputMode="adjustNothing"
         >
+
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize"

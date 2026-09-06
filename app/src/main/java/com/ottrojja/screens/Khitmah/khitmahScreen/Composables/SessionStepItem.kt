@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ottrojja.classes.Helpers
 import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaLoadingIndicator
 import com.ottrojja.composables.OttrojjaText
@@ -80,7 +81,7 @@ fun SessionStepItem(
                         )
 
                         OttrojjaText(
-                            text = item.readingDate,
+                            text = Helpers.formatDateTime(item.timestamp),
                             color = MaterialTheme.colorScheme.outlineVariant,
                             style = OttrojjaTheme.typography.bodySmall,
                             textAlign = TextAlign.Right,

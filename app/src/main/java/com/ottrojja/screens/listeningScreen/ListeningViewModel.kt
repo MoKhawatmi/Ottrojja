@@ -124,7 +124,7 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
 
                 if (_startingSurah.value!!.surahId > _endSurah.value!!.surahId
                     || (_startingSurah.value!!.surahId == _endSurah.value!!.surahId && _startingVerse.value > _endVerse.value)) {
-                    Toast.makeText(context, "موضع بداية التلاوة لا يجب ان يرد بعد موضع النهاية",
+                    Toast.makeText(context, "موضع بداية التلاوة يجب ان لا يرد بعد موضع النهاية",
                         Toast.LENGTH_LONG
                     ).show()
                     return;

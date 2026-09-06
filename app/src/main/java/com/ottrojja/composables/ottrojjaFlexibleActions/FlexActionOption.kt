@@ -36,7 +36,7 @@ fun RowScope.FlexActionOption(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = if (icon != null) Arrangement.SpaceBetween else Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
         ) {
             OttrojjaText(

@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -84,13 +85,13 @@ fun CustomTasabeehListScreen(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             vibrator.vibrate(
                 VibrationEffect.createOneShot(
-                    30L,
-                    VibrationEffect.DEFAULT_AMPLITUDE
+                    75L,
+                    VibrationEffect.EFFECT_HEAVY_CLICK
                 )
             )
         } else {
             @Suppress("DEPRECATION")
-            vibrator.vibrate(30L)
+            vibrator.vibrate(75L)
         }
     }
 

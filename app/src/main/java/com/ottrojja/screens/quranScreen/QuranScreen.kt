@@ -20,22 +20,29 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -52,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -148,7 +156,13 @@ fun QuranScreen(
             onDismiss = {
                 quranViewModel.toggleFinishSessionForm(false)
             },
-            onFinished = { navController.navigate(Screen.KhitmahScreen.invokeRoute("${readerContext.khitmahId}")) },
+            onFinished = {
+                navController.navigate(Screen.KhitmahScreen.invokeRoute("${readerContext.khitmahId}")) {
+                    popUpTo(navController.currentDestination?.route ?: return@navigate) {
+                        inclusive = true
+                    }
+                }
+            },
             repository = repository
         )
     }
@@ -339,7 +353,8 @@ fun QuranScreen(
                         quranPagesNumbers = quranViewModel.quranPagesNumbers,
                         terminatePagePlayerService = { quranViewModel.terminatePagePlayerService() },
                         disableAutoPageSwiping = { quranViewModel.autoSwipePagesWithAudio = false; },
-                        readerContext = readerContext
+                        readerContext = readerContext,
+                        khitmahPillClick = { showFinishSessionAlert = true; }
                     )
                 }
 
@@ -517,6 +532,7 @@ fun PagesContainer(
     terminatePagePlayerService: () -> Unit,
     disableAutoPageSwiping: () -> Unit,
     readerContext: QuranReaderContext,
+    khitmahPillClick: () -> Unit
 ) {
 
     val pagerState = rememberPagerState(
@@ -579,25 +595,68 @@ fun PagesContainer(
 
         AnimatedVisibility(
             visible = showController && readerContext is QuranReaderContext.Khitmah,
-            enter = fadeIn()/*slideInVertically(initialOffsetY = { -it }) + expandVertically(
-                expandFrom = Alignment.Bottom
-            )*/,
-            exit = fadeOut()/*slideOutVertically() + shrinkVertically()*/,
+            enter = fadeIn(),
+            exit = fadeOut(),
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .offset(y = 16.dp)
         ) {
             val khitmahContext = readerContext as? QuranReaderContext.Khitmah
+
             if (khitmahContext != null) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
                     modifier = Modifier
-                        .background(MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(16.dp))
-                        .padding(vertical = 12.dp, horizontal = 16.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable {
+                            khitmahPillClick()
+                        }
+                        .padding(
+                            horizontal = 14.dp,
+                            vertical = 10.dp
+                        )
                 ) {
+                    Icon(
+                        imageVector = Icons.Default.MenuBook,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
                     OttrojjaText(
-                        text = "${khitmahContext.khitmahName} | إنهاء",
+                        text = khitmahContext.khitmahName,
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        maxLines = 1
+                    )
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .width(1.dp)
+                            .height(20.dp)
+                            .background(
+                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.25f)
+                            )
+                    )
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Icon(
+                        imageVector = Icons.Default.StopCircle,
+                        contentDescription = "إنهاء الجلسة",
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(5.dp))
+
+                    OttrojjaText(
+                        text = "إنهاء",
                         style = OttrojjaTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimary
                     )

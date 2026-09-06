@@ -29,7 +29,7 @@ import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.VerseTextWithNumber
 import com.ottrojja.ui.theme.OttrojjaTheme
-import com.ottrojja.ui.theme.okay_green
+import com.ottrojja.ui.theme.complete_content
 
 
 @Composable
@@ -60,7 +60,7 @@ fun FinalResults(selectedTrainingVerses: List<VerseWithAnswer>,
                                 )
                                 .border(
                                     1.dp,
-                                    if (item.answerCorrect) okay_green else MaterialTheme.colorScheme.error,
+                                    if (item.answerCorrect) complete_content else MaterialTheme.colorScheme.error,
                                     shape = RoundedCornerShape(6.dp)
                                 )
                                 .padding(12.dp),
@@ -70,14 +70,14 @@ fun FinalResults(selectedTrainingVerses: List<VerseWithAnswer>,
                                 modifier = Modifier.fillMaxWidth(0.9f),
                                 text = item.verse.verseText ?: "",
                                 number = item.verse.verseNum ?: 0,
-                                color = if (item.answerCorrect) okay_green else MaterialTheme.colorScheme.error
+                                color = if (item.answerCorrect) complete_content else MaterialTheme.colorScheme.error
                             )
                         }
 
                         Icon(
                             imageVector = if (item.answerCorrect) Icons.Default.Check else Icons.Default.Close,
                             contentDescription = "Answer Icon",
-                            tint = if (item.answerCorrect) okay_green else MaterialTheme.colorScheme.error,
+                            tint = if (item.answerCorrect) complete_content else MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(32.dp)
                         )
 

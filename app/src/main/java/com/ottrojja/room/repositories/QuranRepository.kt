@@ -25,6 +25,7 @@ import com.ottrojja.room.relations.ListWithTasabeeh
 import com.ottrojja.room.relations.PartWithQuarters
 import com.ottrojja.room.relations.QuranPageWithContent
 import com.ottrojja.screens.Khitmah.classes.KhitmahListItem
+import com.ottrojja.screens.Khitmah.classes.SurahVerseRange
 import com.ottrojja.screens.mainScreen.PartData
 import kotlinx.coroutines.flow.Flow
 
@@ -198,6 +199,10 @@ class QuranRepository(private val quranDao: QuranDao,
         return quranDao.getChapter(surahNum)
     }
 
+    suspend fun getSurahVerseRanges(): List<SurahVerseRange> {
+        return quranDao.getSurahVerseRanges()
+    }
+
     suspend fun getChaptersCount(): Int {
         return quranDao.getChaptersCount()
     }
@@ -329,7 +334,7 @@ class QuranRepository(private val quranDao: QuranDao,
         return khitmahDao.getAllKhitmah()
     }
 
-    suspend fun getKhitmah(id: Int): KhitmahWithSession? {
+    suspend fun getKhitmah(id: Long): KhitmahWithSession? {
         return khitmahDao.getKhitmah(id)
     }
 
@@ -340,15 +345,15 @@ class QuranRepository(private val quranDao: QuranDao,
     /******************* KHITMAH SESSION MANAGEMENT *************************/
 
     suspend fun insertSession(session: KhitmahSession): Long {
-        return khitmahDao.insertSession(session)
+        return khitmahDao.insertSessionAndUpdatePagesRead(session)
     }
 
     suspend fun updateSession(session: KhitmahSession) {
-        khitmahDao.updateSession(session)
+        khitmahDao.updateSessionAndPagesRead(session)
     }
 
     suspend fun deleteSession(session: KhitmahSession) {
-        khitmahDao.deleteSession(session)
+        khitmahDao.deleteSessionAndUpdatePagesRead(session)
     }
 
     suspend fun deleteSessionById(id: Int) {

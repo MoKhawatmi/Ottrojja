@@ -5,11 +5,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.ottrojja.classes.FormValidationResult
 import com.ottrojja.classes.Helpers.getCurrentIsoDate
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.composables.quranRangeSelector.QuranRangeState
 import com.ottrojja.room.entities.KhitmahSession
 import com.ottrojja.room.repositories.QuranRepository
+import com.ottrojja.screens.Khitmah.FormValidation.validateSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -116,7 +118,9 @@ class SessionFormViewModel(
                 quranRange = range,
                 startPage = range.startVerse?.pageNum?.toInt(),
                 endPage = range.endVerse?.pageNum?.toInt()
-            )
+            )?.also {
+                validateSessionForm(it)
+            }
         }
     }
 
@@ -125,18 +129,39 @@ class SessionFormViewModel(
         _uiState.update {
             it?.copy(
                 reflection = reflection
-            )
+            )?.also {
+                validateSessionForm(it)
+            }
         }
+    }
+
+    private val _validationResult = MutableStateFlow(FormValidationResult(true, emptyMap()))
+    val validationResult: StateFlow<FormValidationResult> = _validationResult.asStateFlow()
+
+    fun validateSessionForm(state: SessionFormState) {
+        _validationResult.value = validateSession(state)
     }
 
 
     fun save(
         onSuccess: () -> Unit
     ) {
+
         val state = _uiState.value ?: return
+
+        val validationResult = validateSession(state)
+        _validationResult.value = validationResult
+
+        if (!validationResult.isValid) {
+            return
+        }
+
+
         val range = state.quranRange ?: return
         val startPage = state.startPage ?: return
         val endPage = state.endPage ?: return
+
+
 
         viewModelScope.launch(Dispatchers.IO) {
             try {

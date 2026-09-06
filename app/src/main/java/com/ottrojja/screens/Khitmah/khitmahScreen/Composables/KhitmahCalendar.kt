@@ -22,7 +22,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.room.entities.KhitmahSession
 import com.ottrojja.screens.Khitmah.classes.DayReadingInfo
@@ -34,6 +36,8 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+import java.time.Instant
+import java.time.ZoneId
 
 @Composable
 fun KhitmahCalendar(
@@ -41,8 +45,12 @@ fun KhitmahCalendar(
     modifier: Modifier = Modifier,
     sessionCount: Int,
     onMonthChanged: (YearMonth) -> Unit,
+    createdAt: Long,
 ) {
 
+    val creationDate = Instant.ofEpochMilli(createdAt)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
 
     val readingDates = remember(sessions) {
         sessions
@@ -75,38 +83,70 @@ fun KhitmahCalendar(
             }
     }
 
-    Box(
-        modifier = modifier
-            .animateContentSize(
-                animationSpec = tween(
-                    durationMillis = 300,
-                    easing = FastOutSlowInEasing
+    OttrojjaDetailsContainer(modifier = Modifier.padding(8.dp)) {
+        Box(
+            modifier = modifier
+                .animateContentSize(
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
                 )
-            )
-    ) {
-        StaticCalendar(
-            firstDayOfWeek = DayOfWeek.MONDAY,
-            dayContent = { dayState ->
+        ) {
+            StaticCalendar(
+                firstDayOfWeek = DayOfWeek.MONDAY,
+                daysOfWeekHeader = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        DayOfWeek.entries
+                            .sortedBy { it.value }
+                            .forEach { dayOfWeek ->
+                                OttrojjaText(
+                                    text = dayOfWeek.shortArabicName(),
+                                    modifier = Modifier.weight(1f),
+                                    textAlign = TextAlign.Center,
+                                    style = OttrojjaTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                    }
+                },
+                dayContent = { dayState ->
+                    KhitmahCalendarDay(
+                        date = dayState.date,
+                        isCurrentMonth = dayState.isFromCurrentMonth,
+                        hasReading = dayState.date in readingDates,
+                        isCreationDate = dayState.date == creationDate,
+                        onClick = {},
+                        readingInfo = dayReadingInfo[dayState.date]
+                    )                },
 
-                KhitmahCalendarDay(
-                    date = dayState.date,
-                    isCurrentMonth = dayState.isFromCurrentMonth,
-                    hasReading = dayState.date in readingDates,
-                    onClick = {},
-                    readingInfo = dayReadingInfo[dayState.date]
-                )
-            },
-            monthHeader = { monthState ->
-                LaunchedEffect(monthState.currentMonth) {
-                    onMonthChanged(monthState.currentMonth)
+                monthHeader = { monthState ->
+                    LaunchedEffect(monthState.currentMonth) {
+                        onMonthChanged(monthState.currentMonth)
+                    }
+
+                    KhitmahMonthHeader(
+                        monthState = monthState,
+                        sessionCount = sessionCount
+                    )
                 }
+            )
+        }
+    }
+}
 
-                KhitmahMonthHeader(
-                    monthState = monthState,
-                    sessionCount = sessionCount
-                )
-            }
-        )
+private fun DayOfWeek.shortArabicName(): String {
+    return when (this) {
+        DayOfWeek.MONDAY -> "اث"
+        DayOfWeek.TUESDAY -> "ثل"
+        DayOfWeek.WEDNESDAY -> "أر"
+        DayOfWeek.THURSDAY -> "خم"
+        DayOfWeek.FRIDAY -> "جم"
+        DayOfWeek.SATURDAY -> "سب"
+        DayOfWeek.SUNDAY -> "أح"
     }
 }
 
@@ -176,7 +216,7 @@ private fun KhitmahMonthHeader(
         }
 
         OttrojjaText(
-            text = "$sessionCount جلسات",
+            text = "الجلسات: $sessionCount",
             style = OttrojjaTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.secondary
         )

@@ -27,5 +27,6 @@ data class Khitmah(
     @ColumnInfo(name = "createdAt") val createdAt: Long = System.currentTimeMillis(),
     @ColumnInfo(name = "targetDate") val targetDate: String? = null, //yyyy-MM-dd
     @ColumnInfo(name = "reminderId") val reminderId: Long? = null, //Optional reference to an existing reminder.
-    @ColumnInfo(name = "status") val status: KhitmahStatus = KhitmahStatus.IN_PROGRESS
+    @ColumnInfo(name = "status") val status: KhitmahStatus = KhitmahStatus.IN_PROGRESS,
+    @ColumnInfo(name = "pagesRead") val pagesRead: Int = 0
 )

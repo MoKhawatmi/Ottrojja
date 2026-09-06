@@ -33,6 +33,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
+import java.time.format.DecimalStyle
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -238,6 +240,17 @@ object Helpers {
         sdf.timeZone = TimeZone.getDefault()
         return sdf.format(Date(millis))
     }
+    fun formatDate(millis: Long): String {
+        val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        sdf.timeZone = TimeZone.getDefault()
+        return sdf.format(Date(millis))
+    }
+
+    val arabicDateFormatter = DateTimeFormatter
+        .ofPattern("dd-MM-yyyy", Locale("ar"))
+        .withDecimalStyle(
+            DecimalStyle.of(Locale("ar"))
+        )
 
     fun formatMilitaryTime(hour: Int, minute: Int): String {
         val cal = Calendar.getInstance().apply {

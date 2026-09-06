@@ -19,6 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,15 +31,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ottrojja.classes.FormValidationResult
 import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaLoadingIndicator
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.composables.forms.OttrojjaFieldError
 import com.ottrojja.composables.forms.OttrojjaFormFieldContainer
 import com.ottrojja.composables.forms.OttrojjaTextArea
 import com.ottrojja.composables.quranRangeSelector.QuranRangeSelector
 import com.ottrojja.room.entities.KhitmahSession
 import com.ottrojja.room.repositories.QuranRepository
+import com.ottrojja.screens.Khitmah.FormValidation.validateSession
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
@@ -59,6 +65,9 @@ fun SessionForm(
     )
 
     val uiState by viewModel.uiState.collectAsState()
+
+
+    val formValidationResult by viewModel.validationResult.collectAsState()
 
     LaunchedEffect(session?.id) {
         viewModel.initialize(
@@ -124,10 +133,14 @@ fun SessionForm(
                 state.quranRange?.let { range ->
                     QuranRangeSelector(
                         range = range,
-                        onRangeChange = viewModel::updateRange,
+                        onRangeChange = { viewModel.updateRange(it) },
                         repository = repository
                     )
                 }
+                formValidationResult.errors["sessionRange"]?.let {
+                    OttrojjaFieldError(it)
+                }
+
 
                 OttrojjaFormFieldContainer(
                     backgroundColor = Color.Transparent,
@@ -162,9 +175,12 @@ fun SessionForm(
 
                 OttrojjaTextArea(
                     value = state.reflection,
-                    onChange = viewModel::updateReflection,
+                    onChange = {
+                        viewModel.updateReflection(it);
+                    },
                     label = "تأملات أو ملاحظات",
-                    maxLength = 250
+                    maxLength = 250,
+                    error = formValidationResult.errors["sessionReflection"]
                 )
                 Spacer(
                     modifier = Modifier.height(16.dp)
@@ -180,7 +196,8 @@ fun SessionForm(
                         text = if (state.isEditMode) "حفظ التعديلات" else "حفظ الجلسة",
                         onClick = {
                             viewModel.save(onSuccess = { dismissForm(); onFinished(); })
-                        }
+                        },
+                        enabled = formValidationResult.isValid
                     )
                     OttrojjaButton(
                         modifier = Modifier.fillMaxWidth(0.6f),

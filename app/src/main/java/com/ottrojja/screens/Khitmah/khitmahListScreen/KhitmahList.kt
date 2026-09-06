@@ -14,10 +14,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AssistantPhoto
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.EventNote
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -110,134 +117,34 @@ fun KhitmahList(
                 OttrojjaDetailsContainer(modifier = Modifier.clickable {
                     navController.navigate(Screen.KhitmahScreen.invokeRoute("${item.khitmah.id}"))
                 }) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.background)
-                            .padding(top = 2.dp, start = 8.dp, bottom = 8.dp, end = 8.dp)
-                    ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Start,
-                                modifier = Modifier
-                                    .padding(bottom = 16.dp)
-                                    .fillMaxWidth()
-                            ) {
-                                CircleStatusIndicator(
-                                    status = item.khitmah.status == KhitmahStatus.COMPLETE,
-                                    truthyColor = complete_green,
-                                    falsyColor = MaterialTheme.colorScheme.primary,
-                                    iconDescription = "Khitmah Status"
-                                )
-                                OttrojjaText(
-                                    text = item.khitmah.title,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    style = OttrojjaTheme.typography.bodyLarge,
-                                    textAlign = TextAlign.Right,
-                                )
-                            }
-                            /*****/
-                            Row(verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Book,
-                                    contentDescription = "Start Date",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-
-                                OttrojjaText(
-                                    text = "${item.khitmah.status.displayName}",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    style = OttrojjaTheme.typography.bodyMedium,
-                                    textAlign = TextAlign.Right,
-                                )
-                            }
-                            /*****/
-                            item.latestEndPage?.let {
-                                Row(verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Book,
-                                        contentDescription = "Latest Page",
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                    OttrojjaText(
-                                        text = "اخر صفحة: ${it}",
-                                        color = MaterialTheme.colorScheme.primary,
-                                        style = OttrojjaTheme.typography.bodyMedium,
-                                        textAlign = TextAlign.Right,
-                                    )
-                                }
-                            }
-                            /*****/
-                            Row(verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Book,
-                                    contentDescription = "Session Count",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                OttrojjaText(
-                                    text = "الجلسات: ${item.sessionCount}",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    style = OttrojjaTheme.typography.bodyMedium,
-                                    textAlign = TextAlign.Right,
-                                )
-                            }
-                            /*****/
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Book,
-                                    contentDescription = "Start Date",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                OttrojjaText(
-                                    text = "تاريخ الإنشاء: ${Helpers.formatDateTime(item.khitmah.createdAt)}",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    style = OttrojjaTheme.typography.bodyMedium,
-                                    textAlign = TextAlign.Right,
-                                )
-                            }
-
-                            /*****/
-                            item.latestReadingDate?.let {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.CalendarMonth,
-                                        contentDescription = "Latest Reading Date",
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                    OttrojjaText(
-                                        text = "آخر قراءة: ${it}",
-                                        color = MaterialTheme.colorScheme.primary,
-                                        style = OttrojjaTheme.typography.bodyMedium,
-                                        textAlign = TextAlign.Right,
-                                    )
-                                }
-                            }
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start,
+                            modifier = Modifier
+                                .padding(bottom = 4.dp)
+                                .fillMaxWidth()
+                        ) {
+                            CircleStatusIndicator(
+                                status = item.khitmah.status == KhitmahStatus.COMPLETE,
+                                truthyColor = complete_green,
+                                falsyColor = MaterialTheme.colorScheme.primary,
+                                iconDescription = "Khitmah Status"
+                            )
+                            OttrojjaText(
+                                text = item.khitmah.title,
+                                color = MaterialTheme.colorScheme.primary,
+                                style = OttrojjaTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Right,
+                            )
                         }
+                        /*****/
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
+                            verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.Top),
                             horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             KhitmahItemProgress(
-                                latestPage = item.latestEndPage ?: 0
+                                totalPagesRead = item.khitmah.pagesRead
                             )
 
                             OttrojjaButton(
@@ -253,7 +160,99 @@ fun KhitmahList(
                                 },
                                 iconAfter = Icons.Filled.PlayArrow
                             )
+                        }
+                        /*****/
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AssistantPhoto,
+                                contentDescription = "Start Date",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
 
+                            OttrojjaText(
+                                text = "${item.khitmah.status.displayName}",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = OttrojjaTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Right,
+                            )
+                        }
+                        /*****/
+                        item.latestEndPage?.let {
+                            Row(verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                                    contentDescription = "Latest Page",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                OttrojjaText(
+                                    text = "اخر صفحة: ${it}",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = OttrojjaTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Right,
+                                )
+                            }
+                        }
+                        /*****/
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.EventNote,
+                                contentDescription = "Session Count",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            OttrojjaText(
+                                text = "عدد الجلسات: ${item.sessionCount}",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = OttrojjaTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Right,
+                            )
+                        }
+                        /*****/
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.CalendarMonth,
+                                contentDescription = "Start Date",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            OttrojjaText(
+                                text = "تاريخ الإنشاء: ${Helpers.formatDate(item.khitmah.createdAt)}",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = OttrojjaTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Right,
+                            )
+                        }
+
+                        /*****/
+                        item.latestReadingTimestamp?.let{
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Schedule,
+                                    contentDescription = "Latest Reading Date",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                OttrojjaText(
+                                    text = "آخر قراءة: ${Helpers.formatDateTime(it)}",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = OttrojjaTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Right,
+                                )
+                            }
                         }
                     }
                 }

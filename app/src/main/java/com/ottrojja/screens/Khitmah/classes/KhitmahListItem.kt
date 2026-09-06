@@ -8,6 +8,6 @@ data class KhitmahListItem(
     val khitmah: Khitmah,
     val latestEndPage: Int?,
     val latestEndVerseId: Int?,
-    val latestReadingDate: String?,
+    val latestReadingTimestamp: Long?,
     val sessionCount: Int
 )
