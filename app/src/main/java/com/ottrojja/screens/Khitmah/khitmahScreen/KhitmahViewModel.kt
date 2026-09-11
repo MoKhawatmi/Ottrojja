@@ -26,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -90,20 +91,27 @@ class KhitmahViewModel(
     }
 
     fun fetchKhitmah(id: Long) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
-                val khitmahWithSessions = quranRepository.getKhitmah(id)
-                    ?: throw Exception("Khitmah not found")
+                quranRepository.getKhitmah(id)
+                    .takeWhile { it != null }
+                    .collect { khitmahWithSessions ->
 
-                val fetchedKhitmah = khitmahWithSessions.khitmah
+                        if (khitmahWithSessions == null) {
+                            throw Exception("Khitmah not found")
+                        }
 
-                val fetchedReminder = fetchedKhitmah.reminderId?.let { reminderId ->
-                    reminderRepository.getById(reminderId)
-                }
+                        val fetchedKhitmah = khitmahWithSessions.khitmah
 
-                _khitmah.value = fetchedKhitmah
-                _sessions.value = khitmahWithSessions.sessions
-                _reminder.value = fetchedReminder
+                        val fetchedReminder = fetchedKhitmah.reminderId?.let { reminderId ->
+                            reminderRepository.getById(reminderId)
+                        }
+
+                        _khitmah.value = fetchedKhitmah
+                        _sessions.value = khitmahWithSessions.sessions
+                        _reminder.value = fetchedReminder
+
+                    }
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -371,7 +379,7 @@ class KhitmahViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 quranRepository.deleteSession(_selectedSession.value!!.session)
-                fetchKhitmah(_khitmah.value!!.id)
+               // fetchKhitmah(_khitmah.value!!.id)
             } catch (e: Exception) {
                 e.printStackTrace()
 

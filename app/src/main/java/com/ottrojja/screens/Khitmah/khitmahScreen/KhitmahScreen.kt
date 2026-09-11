@@ -90,7 +90,6 @@ fun KhitmahScreen(
 
     LaunchedEffect(Unit) {
         viewmodel.fetchKhitmah(id)
-        viewmodel.loadSurahProgress()
     }
     val khitmah by viewmodel.khitmah.collectAsState()
     val reminder by viewmodel.reminder.collectAsState()
@@ -112,7 +111,7 @@ fun KhitmahScreen(
     if (deleteSessionDialog) {
         OttrojjaAlertDialog(
             onDismiss = { deleteSessionDialog = false },
-            onConfirm = { viewmodel.deleteSession(); deleteSessionDialog=false },
+            onConfirm = { viewmodel.deleteSession(); deleteSessionDialog = false },
             title = "حذف الجلسة",
             text = "هل انت متأكد من حذف هذه الجلسة؟"
         )
@@ -254,7 +253,8 @@ fun KhitmahScreen(
                                     )
                                 )
                             },
-                            totalPagesRead = khitmah!!.pagesRead
+                            totalPagesRead = khitmah!!.pagesRead,
+                            reminder = reminder
                         )
 
                         KhitmahCalendar(
@@ -332,6 +332,9 @@ fun KhitmahScreen(
                 }
 
                 KhitmahTab.CHAPTER_PROGRESS -> {
+                    LaunchedEffect(Unit) {
+                        viewmodel.loadSurahProgress()
+                    }
                     ChapterProgress(surahProgress = surahProgress)
                 }
             }

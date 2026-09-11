@@ -9,12 +9,17 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.ottrojja.classes.DataStore.DataStoreRepository
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.validateReminders
+import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.screens.loadingScreen.classes.SyncLocalData
 import com.ottrojja.screens.loadingScreen.classes.SyncQuranFile
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -37,7 +42,42 @@ class LoadingScreenViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             runInitialization()
             validateReminders(context)
+
         }
+    }
+
+    suspend fun seedDefaultTasabeehIfNeeded(context: Context) {
+        if (DataStoreRepository.tasabeehSeededFlow.first()) {
+            return
+        }
+
+        val gson = Gson()
+
+        val files = context.assets
+            .list("default_tasabeeh")
+            ?: return
+
+        for (fileName in files) {
+            if (!fileName.endsWith(".json")) continue
+
+            val title = fileName.removeSuffix(".json")
+
+            val json = context.assets
+                .open("default_tasabeeh/$fileName")
+                .bufferedReader()
+                .use { it.readText() }
+
+            val type = object : TypeToken<List<CustomTasbeeh>>() {}.type
+
+            val items = gson.fromJson<List<CustomTasbeeh>>(json, type)
+
+            repository.insertListWithTasabeeh(
+                title = title,
+                tasabeeh = items
+            )
+        }
+
+        DataStoreRepository.tasabeehSeededTrue()
     }
 
     private suspend fun runInitialization() {
@@ -46,6 +86,7 @@ class LoadingScreenViewModel(
             localDataSync.sync()      // all assets except pagesContent
             quranFileSync.sync()      // quran pages inserted into DB here
             localDataSync.syncPagesContent()  // safe now — FK dependency satisfied
+            seedDefaultTasabeehIfNeeded(context)
         } catch (e: Exception) {
             e.printStackTrace()
             reportException(exception = e, file = "LoadingScreenViewModel")

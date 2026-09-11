@@ -33,8 +33,9 @@ interface KhitmahDao {
     @Query("SELECT * FROM Khitmah ORDER BY id DESC")
     fun getAllKhitmah(): Flow<List<Khitmah>>
 
-    @Query("SELECT * FROM Khitmah WHERE id = :id")
-    suspend fun getKhitmah(id: Long): KhitmahWithSession?
+    @Transaction
+    @Query("SELECT * FROM khitmah WHERE id = :id")
+    fun getKhitmah(id: Long): Flow<KhitmahWithSession?>
 
     @Query("""
     SELECT

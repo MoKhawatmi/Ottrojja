@@ -1,51 +1,37 @@
-package com.ottrojja.screens.customTasabeehListScreen
+package com.ottrojja.screens.customTasabeehListScreen.dialogs
 
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.ottrojja.classes.ModalFormMode
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
-import com.ottrojja.composables.forms.OttrojjaTextArea
 import com.ottrojja.composables.forms.OttrojjaTextField
-import com.ottrojja.composables.forms.TextFieldInputType
-import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
-fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
-                           onConfirm: () -> Unit,
-                           callImportTasbeehDialog: () -> Unit,
-                           tasbeehInWork: CustomTasbeeh,
-                           onTasbeehChange: (CustomTasbeeh) -> Unit,
-                           mode: ModalFormMode
+fun ExportListDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    fileTitle: String,
+    onFileTitleChanged: (String) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -66,67 +52,48 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                 horizontalArrangement = Arrangement.Center
             ) {
                 OttrojjaText(
-                    text = if (mode == ModalFormMode.ADD) "إضافة ذكر" else "تعديل الذكر",
+                    text = "تصدير الاذكار",
                     textAlign = TextAlign.Center,
-                    style = OttrojjaTheme.typography.bodyLarge
+                    style = OttrojjaTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSecondary
                 )
             }
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 6.dp),
                 color = MaterialTheme.colorScheme.onTertiary
             )
-            Row(
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .fillMaxWidth()
-                    .border(2.dp,
-                        MaterialTheme.colorScheme.onSecondary, RoundedCornerShape(8.dp)
-                    )
-                    .clickable { callImportTasbeehDialog() }
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OttrojjaText(
-                    text = "إستيراد من قائمة الاذكار",
-                    style = OttrojjaTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondary
-                )
-                Icon(Icons.Default.Link,
-                    contentDescription = "import tasbeeh",
-                    tint = MaterialTheme.colorScheme.onSecondary
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OttrojjaTextArea(
-                    value = tasbeehInWork.text,
-                    onChange = { value -> onTasbeehChange(tasbeehInWork.copy(text = value)) },
-                    label = "نص الذكر"
-                )
-            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OttrojjaTextField(
-                    value = "${tasbeehInWork.count}",
+                    value = fileTitle,
                     onChange = { newText: String ->
-                        val filteredText = newText.filter { it.isDigit() } // Allow only digits
-                        val intValue = filteredText.toIntOrNull() ?: 0 // Convert to integer safely
-                        if (intValue <= 1000000) {
-                            onTasbeehChange(tasbeehInWork.copy(count = intValue))
-                        }
+                        onFileTitleChanged(newText)
                     },
-                    label = "مرات الذكر",
-                    inputType = TextFieldInputType.NUMBER,
+                    label = "اسم الملف",
                 )
             }
 
+
+            if (fileTitle.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    val displayName = if (fileTitle.endsWith(".json")) fileTitle else "$fileTitle.json"
+
+                    OttrojjaText(
+                        text = "سيتم حفظ الملف باسم \"$displayName\" في مجلد Download الخاص بجهازك (وليس سحابيًا)، ويمكنك الوصول إليه من ملفات الجهاز",
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
 
             Column(
                 modifier = Modifier
@@ -137,7 +104,7 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
             ) {
                 Button(
                     onClick = {
-                        if (tasbeehInWork.text.isNotBlank() && tasbeehInWork.count.toString().isNotBlank()) {
+                        if (fileTitle.isNotBlank()) {
                             onConfirm()
                         } else {
                             Toast.makeText(context, "يرجى التأكد من البيانات المدخلة", Toast.LENGTH_LONG).show()
@@ -148,7 +115,7 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                         .padding(vertical = 2.dp)
                 ) {
                     OttrojjaText(
-                        text = if (mode == ModalFormMode.ADD) "إضافة" else "تعديل",
+                        text = "تصدير",
                         style = OttrojjaTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
@@ -160,14 +127,14 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                         .fillMaxWidth(0.6f)
                         .padding(vertical = 2.dp)
                 ) {
-                    Text(
+                    OttrojjaText(
                         text = "إلغاء",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }
 
         }
     }
-
 }

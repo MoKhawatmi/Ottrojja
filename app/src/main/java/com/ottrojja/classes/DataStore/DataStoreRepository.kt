@@ -19,6 +19,7 @@ object DataStoreRepository {
     private val FLOATING_AZKAR = booleanPreferencesKey("floating_azkar")
     private val USER_TASABEEH_COUNT = intPreferencesKey("tasbeeh_count")
     private val MAIN_SCREEN_ADVICE = stringPreferencesKey("main_screen_advice")
+    private val DEFAULT_TASABEEH_SEEDED = booleanPreferencesKey("default_tasabeeh_seeded")
 
     /*******************FLOATING AZKAR*********************/
     val floatingAzkarFlow: Flow<Boolean> =
@@ -44,6 +45,18 @@ object DataStoreRepository {
             it[USER_TASABEEH_COUNT] = 0
         }
     }
+
+    /*******************DEFAULT TASABEEH*********************/
+    val tasabeehSeededFlow: Flow<Boolean> = datastore.data.map {
+        it[DEFAULT_TASABEEH_SEEDED] ?: false
+    }
+
+    suspend fun tasabeehSeededTrue() {
+        datastore.edit {
+            it[DEFAULT_TASABEEH_SEEDED] = true;
+        }
+    }
+
 
     /*******************ADVICE*********************/
 

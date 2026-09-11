@@ -26,7 +26,10 @@ interface ReminderDao {
     @Update
     suspend fun updateReminder(reminder: Reminder)
 
-    @Query("SELECT * FROM reminder ORDER BY id ASC")
+    @Query("""
+    SELECT * FROM reminder
+    ORDER BY isMain DESC, id ASC
+""")
     fun getAll(): Flow<List<Reminder>>
 
     @Query("SELECT * FROM reminder WHERE id = :id")

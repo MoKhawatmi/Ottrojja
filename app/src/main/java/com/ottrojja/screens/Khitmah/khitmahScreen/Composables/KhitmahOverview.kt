@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.EventNote
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.automirrored.outlined.TrendingUp
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -46,6 +47,7 @@ import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahSession
+import com.ottrojja.room.entities.Reminder
 import com.ottrojja.screens.Khitmah.classes.KhitmahStatus
 import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.complete_container
@@ -63,7 +65,8 @@ fun KhitmahOverview(
     khitmah: Khitmah,
     sessions: List<KhitmahSession>,
     totalPagesRead: Int,
-    continueKhitmah: () -> Unit
+    continueKhitmah: () -> Unit,
+    reminder: Reminder? = null
 ) {
 
     val totalPages = 604;
@@ -305,6 +308,40 @@ fun KhitmahOverview(
                         .coerceAtLeast(0),
                     modifier = Modifier.fillMaxWidth()
                 )
+            }
+
+            if (reminder != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+
+                    Spacer(
+                        modifier = Modifier.width(10.dp)
+                    )
+
+                    Column {
+
+                        OttrojjaText(
+                            text = "${reminder.title}",
+                            style = OttrojjaTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+
+                        OttrojjaText(
+                            text = "يوميا الساعة ${reminder.hour}:${reminder.minute}",
+                            style = OttrojjaTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
         }
     }

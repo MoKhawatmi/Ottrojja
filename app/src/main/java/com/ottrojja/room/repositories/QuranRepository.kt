@@ -1,5 +1,6 @@
 package com.ottrojja.room.repositories
 
+import androidx.room.Transaction
 import com.ottrojja.classes.QuranRangeException
 import com.ottrojja.composables.quranRangeSelector.QuranRangeState
 import com.ottrojja.room.dao.KhitmahDao
@@ -334,7 +335,7 @@ class QuranRepository(private val quranDao: QuranDao,
         return khitmahDao.getAllKhitmah()
     }
 
-    suspend fun getKhitmah(id: Long): KhitmahWithSession? {
+    fun getKhitmah(id: Long): Flow<KhitmahWithSession?> {
         return khitmahDao.getKhitmah(id)
     }
 
@@ -413,6 +414,13 @@ class QuranRepository(private val quranDao: QuranDao,
 
     suspend fun getMaxPosition(listId: Int): Int {
         return tasabeehDao.getMaxPosition(listId)
+    }
+
+    suspend fun insertListWithTasabeeh(
+        title: String,
+        tasabeeh: List<CustomTasbeeh>
+    ) {
+        tasabeehDao.insertListWithTasabeeh(title, tasabeeh)
     }
 
 

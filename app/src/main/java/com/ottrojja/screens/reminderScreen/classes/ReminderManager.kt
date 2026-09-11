@@ -83,7 +83,6 @@ class ReminderManager(
 
     suspend fun insertMainReminderIfNotExists() {
         val mainReminder = Reminder(
-            id = 1L,
             title = "المذكر اليومي",
             customMessage = null,
             hour = 12,

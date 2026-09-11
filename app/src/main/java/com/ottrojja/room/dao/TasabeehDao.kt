@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import com.ottrojja.room.entities.CustomTasbeeh
@@ -43,5 +44,25 @@ interface TasabeehDao {
 
     @Query("SELECT COALESCE(MAX(position), 0) FROM CustomTasbeeh WHERE listId = :listId")
     suspend fun getMaxPosition(listId: Int): Int
+
+    @Transaction
+    suspend fun insertListWithTasabeeh(
+        title: String,
+        tasabeeh: List<CustomTasbeeh>
+    ) {
+        val listId = insertTasabeehList(
+            TasabeehList(title = title)
+        ).toInt()
+
+        insertMultCustomTasbeeh(
+            tasabeeh.map {
+                it.copy(
+                    id = 0,
+                    listId = listId
+                )
+            }
+        )
+    }
+
 
 }

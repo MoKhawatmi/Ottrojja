@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ottrojja.classes.Helpers
 import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.room.entities.KhitmahSession
@@ -121,7 +122,8 @@ fun KhitmahCalendar(
                         isCreationDate = dayState.date == creationDate,
                         onClick = {},
                         readingInfo = dayReadingInfo[dayState.date]
-                    )                },
+                    )
+                },
 
                 monthHeader = { monthState ->
                     LaunchedEffect(monthState.currentMonth) {
@@ -196,7 +198,7 @@ private fun KhitmahMonthHeader(
             )
 
             OttrojjaText(
-                text = monthState.currentMonth.year.toString(),
+                text = Helpers.convertToIndianNumbers(monthState.currentMonth.year.toString()),
                 style = OttrojjaTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary
             )
