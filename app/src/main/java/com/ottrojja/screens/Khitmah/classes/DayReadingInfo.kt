@@ -1,9 +1,8 @@
 package com.ottrojja.screens.Khitmah.classes
 
-import java.time.LocalDate
+import com.ottrojja.room.entities.KhitmahSession
 
 data class DayReadingInfo(
     val sessionCount: Int,
-    val startPage: Int,
-    val endPage: Int
+    val sessions: List<KhitmahSession>
 )

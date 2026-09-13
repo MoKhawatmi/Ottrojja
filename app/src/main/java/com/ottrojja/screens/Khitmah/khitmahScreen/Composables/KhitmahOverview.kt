@@ -99,13 +99,12 @@ fun KhitmahOverview(
      * Finish: July 30
      * => 60 days
      */
-    val firstReadingDate = sessions
-        .mapNotNull { it.readingDate.let(LocalDate::parse) }
-        .minOrNull()
+    val readingDates = sessions.mapNotNull {
+        runCatching { LocalDate.parse(it.readingDate) }.getOrNull()
+    }
 
-    val lastReadingDate = sessions
-        .mapNotNull { it.readingDate.let(LocalDate::parse) }
-        .maxOrNull()
+    val firstReadingDate = readingDates.minOrNull()
+    val lastReadingDate = readingDates.maxOrNull()
 
     val durationDays = if (
         firstReadingDate != null &&

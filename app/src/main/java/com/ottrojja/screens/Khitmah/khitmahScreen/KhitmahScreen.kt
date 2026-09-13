@@ -102,7 +102,12 @@ fun KhitmahScreen(
     if (deleteKhitmahDialog) {
         OttrojjaAlertDialog(
             onDismiss = { deleteKhitmahDialog = false },
-            onConfirm = { viewmodel.deleteKhitmah(); deleteKhitmahDialog = false; navController.popBackStack() },
+            onConfirm = {
+                viewmodel.deleteKhitmah(onSuccess = {
+                    deleteKhitmahDialog = false;
+                    navController.popBackStack()
+                });
+            },
             title = "حذف الختمة",
             text = "هل انت متأكد من حذف هذه الختمة؟"
         )
@@ -145,7 +150,7 @@ fun KhitmahScreen(
                 endPage = session.session.endPage,
                 session = session.session,
                 onDismiss = { editSessionForm = false },
-                onFinished = {},
+                onFinished = {/* do nothing */ },
                 repository = quranRepository
             )
         }
@@ -162,23 +167,14 @@ fun KhitmahScreen(
             mainAction = ButtonAction(icon = Icons.Filled.ArrowBack,
                 action = { navController.popBackStack() }),
             secondaryActions = listOf(
-                ButtonAction(icon = Icons.Default.Edit, action = { editKhitmahForm = true },
+                ButtonAction(
+                    icon = Icons.Default.Edit,
+                    action = { editKhitmahForm = true },
                     title = "تعديل"
                 ),
-                if (khitmah?.status == KhitmahStatus.COMPLETE) {
-                    ButtonAction(
-                        icon = Icons.Outlined.Pending,
-                        action = { viewmodel.toggleKhitmahStatus(); },
-                        title = "تعيين كجارية"
-                    )
-                } else {
-                    ButtonAction(
-                        icon = Icons.Default.CheckCircle,
-                        action = { viewmodel.toggleKhitmahStatus(); },
-                        title = "تعيين كمكتملة"
-                    )
-                },
-                ButtonAction(icon = Icons.Default.Close, action = { deleteKhitmahDialog = true },
+                ButtonAction(
+                    icon = Icons.Default.Close,
+                    action = { deleteKhitmahDialog = true },
                     title = "حذف"
                 ),
             )

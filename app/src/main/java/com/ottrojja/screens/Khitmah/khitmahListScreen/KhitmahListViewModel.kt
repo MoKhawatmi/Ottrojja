@@ -40,30 +40,34 @@ class KhitmahListViewModel(private val quranRepository: QuranRepository,
 
 
     fun fetchKhitmahList() {
-        try {
-            viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
                 quranRepository.getKhitmahList().collect { state ->
                     withContext(Dispatchers.Main) {
                         _khitmahList.value = state;
                     }
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                reportException(exception = e, file = "KhitmahListViewModel")
+                Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            reportException(exception = e, file = "KhitmahListViewModel")
-            Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
         }
     }
 
+    val reminderManager = ReminderManager(reminderRepository, context)
+
     fun createKhitmah(formState: KhitmahFormState) {
         viewModelScope.launch(Dispatchers.IO) {
+            var reminderId: Long? = null
+
             try {
-                val reminderId = if (formState.reminderEnabled) {
+                reminderId = if (formState.reminderEnabled) {
                     val (hour, minute) = formState.reminderTime
                         .split(":")
                         .map(String::toInt)
 
-                    ReminderManager(reminderRepository, context).createReminder(
+                    reminderManager.createReminder(
                         title = "مذكر ختمة ${formState.khitmah.title}",
                         customMessage = "موعدك للاستمرار في ختمة ${formState.khitmah.title}",
                         hour = hour,
@@ -86,7 +90,18 @@ class KhitmahListViewModel(private val quranRepository: QuranRepository,
                     ).show()
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                reminderId?.let { id ->
+                    try {
+                        reminderManager.deleteReminderById(id)
+                    } catch (cleanupException: Exception) {
+                        reportException(
+                            exception = cleanupException,
+                            file = "KhitmahListViewModel",
+                            details = "Failed to cleanup reminder $id after Khitmah creation failed"
+                        )
+                    }
+                }
+
                 reportException(
                     exception = e,
                     file = "KhitmahListViewModel"

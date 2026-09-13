@@ -74,7 +74,10 @@ fun KhitmahForm(
     var showTimePicker by remember { mutableStateOf(false) }
 
     fun calculateSuggestedPagesPerDay(): Int {
-        val pageCount = 604
+        if (formState.khitmah.targetDate.isNullOrBlank()) {
+            return 0;
+        }
+        val pageCount = (604 - formState.khitmah.pagesRead).coerceAtLeast(0)
         val targetDate = LocalDate.parse(formState.khitmah.targetDate)
         val today = LocalDate.now()
 
@@ -90,60 +93,64 @@ fun KhitmahForm(
     }
 
     if (showDatePicker) {
-        val arabicConfiguration = Configuration(LocalConfiguration.current).apply {
-            setLocale(Locale("ar"))
-        }
-
-        CompositionLocalProvider(
-            LocalConfiguration provides arabicConfiguration,
-            LocalLayoutDirection provides LayoutDirection.Rtl
-        ) {
-            val datePickerState = rememberDatePickerState(
-                selectableDates = object : SelectableDates {
-                    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                        // Get today's start-of-day in UTC to match the picker's UTC millis
-                        val todayUtcMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-                            set(Calendar.HOUR_OF_DAY, 0)
-                            set(Calendar.MINUTE, 0)
-                            set(Calendar.SECOND, 0)
-                            set(Calendar.MILLISECOND, 0)
-                        }.timeInMillis
-
-                        return utcTimeMillis >= todayUtcMillis
-                    }
-
-                    override fun isSelectableYear(year: Int): Boolean {
-                        return year >= Calendar.getInstance().get(Calendar.YEAR)
-                    }
-                }
-            )
-
-            DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            val calendar = Calendar.getInstance().apply { timeInMillis = millis }
-                            val dateString = String.format(
-                                Locale.US,
-                                "%04d-%02d-%02d",
-                                calendar.get(Calendar.YEAR),
-                                calendar.get(Calendar.MONTH) + 1,
-                                calendar.get(Calendar.DAY_OF_MONTH)
-                            )
-                            formState = formState.copy(
-                                khitmah = formState.khitmah.copy(targetDate = dateString)
-                            )
-                            showDatePicker = false
-                        }
-                    }) { Text("تأكيد") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDatePicker = false }) { Text("إلغاء") }
-                }
-            ) {
-                DatePicker(state = datePickerState)
+        val initialSelectedDateMillis = formState.khitmah.targetDate
+            ?.takeIf { it.isNotBlank() }
+            ?.let { dateString ->
+                LocalDate.parse(dateString)
+                    .atStartOfDay(TimeZone.getTimeZone("UTC").toZoneId())
+                    .toInstant()
+                    .toEpochMilli()
             }
+
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = initialSelectedDateMillis,
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    // Get today's start-of-day in UTC to match the picker's UTC millis
+                    val todayUtcMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }.timeInMillis
+
+                    return utcTimeMillis >= todayUtcMillis
+                }
+
+                override fun isSelectableYear(year: Int): Boolean {
+                    return year >= Calendar.getInstance().get(Calendar.YEAR)
+                }
+            }
+        )
+
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+                            .apply {
+                                timeInMillis = millis
+                            }
+                        val dateString = String.format(
+                            Locale.US,
+                            "%04d-%02d-%02d",
+                            calendar.get(Calendar.YEAR),
+                            calendar.get(Calendar.MONTH) + 1,
+                            calendar.get(Calendar.DAY_OF_MONTH)
+                        )
+                        formState = formState.copy(
+                            khitmah = formState.khitmah.copy(targetDate = dateString)
+                        )
+                        showDatePicker = false
+                    }
+                }) { Text("تأكيد") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("إلغاء") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
 
@@ -224,54 +231,62 @@ fun KhitmahForm(
                 value = formState.khitmah.targetDate,
                 onClick = {
                     showDatePicker = true
+                },
+                clearable = true,
+                onClear = {
+                    formState = formState.copy(
+                        khitmah = formState.khitmah.copy(targetDate = null)
+                    )
                 }
             )
 
             AnimatedVisibility(
                 visible = !formState.khitmah.targetDate.isNullOrBlank()
             ) {
-                val pagesPerDay = calculateSuggestedPagesPerDay()
+                formState.khitmah.targetDate?.let {
+                    val pagesPerDay = calculateSuggestedPagesPerDay()
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            MaterialTheme.colorScheme.secondary
-                        )
-                        .padding(
-                            horizontal = 16.dp,
-                            vertical = 14.dp
-                        ),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                MaterialTheme.colorScheme.secondary
+                            )
+                            .padding(
+                                horizontal = 16.dp,
+                                vertical = 14.dp
+                            ),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.MenuBook,
-                            tint = MaterialTheme.colorScheme.onSecondary,
-                            contentDescription = ""
-                        )
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MenuBook,
+                                tint = MaterialTheme.colorScheme.onSecondary,
+                                contentDescription = ""
+                            )
+
+                            OttrojjaText(
+                                text = "معدل الصفحات اليومي",
+                                style = OttrojjaTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSecondary
+                            )
+                        }
 
                         OttrojjaText(
-                            text = "معدل الصفحات اليومي",
-                            style = OttrojjaTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSecondary
+                            text = " $pagesPerDay صفحة يومياً",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSecondary,
+                            modifier = Modifier.padding(top = 6.dp)
                         )
                     }
-
-                    OttrojjaText(
-                        text = " $pagesPerDay صفحة يومياً",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondary,
-                        modifier = Modifier.padding(top = 6.dp)
-                    )
                 }
             }
 

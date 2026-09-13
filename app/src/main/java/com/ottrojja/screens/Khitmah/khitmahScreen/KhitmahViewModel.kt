@@ -111,6 +111,16 @@ class KhitmahViewModel(
                         _sessions.value = khitmahWithSessions.sessions
                         _reminder.value = fetchedReminder
 
+                        // Refresh the selected session's range if that session still exists
+                        _selectedSession.value?.let { selected ->
+                            val updatedSession = khitmahWithSessions.sessions.find {
+                                it.id == selected.session.id
+                            }
+
+                            if (updatedSession != null) {
+                                updateSelectedSession(updatedSession)
+                            }
+                        }
                     }
 
             } catch (e: Exception) {
@@ -261,7 +271,7 @@ class KhitmahViewModel(
     // Khitmah operations
     // -------------------------------------------------------------------------
 
-    fun deleteKhitmah() {
+    fun deleteKhitmah(onSuccess: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val khitmah = _khitmah.value ?: return@launch
@@ -273,7 +283,9 @@ class KhitmahViewModel(
                 }
 
                 quranRepository.deleteKhitmah(khitmah)
-
+                withContext(Dispatchers.Main) {
+                    onSuccess()
+                }
                 showToast("تم الحذف بنجاح")
 
             } catch (e: Exception) {
@@ -379,7 +391,7 @@ class KhitmahViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 quranRepository.deleteSession(_selectedSession.value!!.session)
-               // fetchKhitmah(_khitmah.value!!.id)
+                _selectedSession.value = null
             } catch (e: Exception) {
                 e.printStackTrace()
 
@@ -393,6 +405,28 @@ class KhitmahViewModel(
         }
     }
 
+    suspend fun updateSelectedSession(session: KhitmahSession) {
+        _selectedSession.value = SelectedSessionState(
+            session = session,
+            range = null,
+            isLoading = true
+        )
+
+        val range = quranRepository.getQuranRangeFromDetails(
+            startSurahId = session.startSurahId,
+            startVerseId = session.startVerseId,
+            endSurahId = session.endSurahId,
+            endVerseId = session.endVerseId
+        )
+
+        _selectedSession.value = SelectedSessionState(
+            session = session,
+            range = range,
+            isLoading = false
+        )
+
+    }
+
     fun selectSession(session: KhitmahSession) {
         if (_selectedSession.value?.session?.id == session.id) {
             _selectedSession.value = null
@@ -400,23 +434,16 @@ class KhitmahViewModel(
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            _selectedSession.value = SelectedSessionState(
-                session = session,
-                isLoading = true
-            )
-
-            val range = quranRepository.getQuranRangeFromDetails(
-                startSurahId = session.startSurahId,
-                startVerseId = session.startVerseId,
-                endSurahId = session.endSurahId,
-                endVerseId = session.endVerseId
-            )
-
-            _selectedSession.value = SelectedSessionState(
-                session = session,
-                range = range,
-                isLoading = false
-            )
+            try {
+                updateSelectedSession(session)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                reportException(
+                    exception = e,
+                    file = "KhitmahViewModel"
+                )
+                showErrorToast()
+            }
         }
     }
 

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -21,7 +22,10 @@ fun OttrojjaSelect(label: String? = null,
                    value: String?,
                    onClick: () -> Unit,
                    disabled: Boolean = false,
-                   error: String? = null) {
+                   error: String? = null,
+                   clearable: Boolean = false,
+                   onClear: () -> Unit = {}
+) {
     val backgroundColor = if (!disabled) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outline
     val contentColor = if (!disabled) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onTertiary
 
@@ -39,14 +43,26 @@ fun OttrojjaSelect(label: String? = null,
             verticalAlignment = Alignment.CenterVertically
         ) {
             OttrojjaText(
-                text = if (label != null && label.isNotEmpty()) "$label: $value" else value ?: "",
+                text = if (label != null && label.isNotEmpty()) "$label: ${value ?: ""}" else value ?: "",
                 style = OttrojjaTheme.typography.bodyMedium,
                 color = contentColor
             )
-            Icon(Icons.Default.ArrowDropDown,
-                contentDescription = "Open select options",
-                tint = contentColor
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp, alignment = Alignment.End)) {
+                if (clearable && value?.isNotBlank() == true) {
+                    Icon(
+                        Icons.Default.Clear,
+                        contentDescription = "clear",
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.clickable(onClick = { onClear() })
+                    )
+                }
+                Icon(
+                    Icons.Default.ArrowDropDown,
+                    contentDescription = "Open select options",
+                    tint = contentColor
+                )
+            }
+
         }
         if (error != null && !error.isEmpty()) {
             OttrojjaFieldError(error)

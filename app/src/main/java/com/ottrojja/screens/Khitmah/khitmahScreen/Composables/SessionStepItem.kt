@@ -41,7 +41,7 @@ fun SessionStepItem(
     item: KhitmahSession,
     itemQuranRange: QuranRangeState?,
     onClick: (KhitmahSession) -> Unit,
-    onDelete: (Long) -> Unit,
+    onDelete: () -> Unit,
     itemExpanded: Boolean,
     itemLoading: Boolean,
     invokeEditSessionForm: () -> Unit
@@ -199,7 +199,7 @@ fun SessionStepItem(
                                         text = "حذف",
                                         bgColor = MaterialTheme.colorScheme.error,
                                         textColor = MaterialTheme.colorScheme.onError,
-                                        action = { onDelete(item.id) },
+                                        action = { onDelete() },
                                         icon = Icons.Default.Close
                                     )
                                 ),

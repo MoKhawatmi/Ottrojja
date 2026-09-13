@@ -81,6 +81,12 @@ class ReminderManager(
         repository.deleteReminder(reminder)
     }
 
+    suspend fun deleteReminderById(id: Long) {
+        repository.getById(id)?.let {
+            deleteReminder(it)
+        }
+    }
+
     suspend fun insertMainReminderIfNotExists() {
         val mainReminder = Reminder(
             title = "المذكر اليومي",

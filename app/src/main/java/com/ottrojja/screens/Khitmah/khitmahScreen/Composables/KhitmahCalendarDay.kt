@@ -3,13 +3,19 @@ package com.ottrojja.screens.Khitmah.khitmahScreen.Composables
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -19,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
@@ -139,26 +146,121 @@ fun KhitmahCalendarDay(
 private fun KhitmahDayPopupContent(
     readingInfo: DayReadingInfo?
 ) {
-    Column(modifier = Modifier.padding(12.dp)) {
-        if (readingInfo == null) {
-            OttrojjaText(
-                text = "لم يتم تسجيل قراءة",
-                style = OttrojjaTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-        } else {
-            OttrojjaText(
-                text = "الجلسات: ${readingInfo.sessionCount}",
-                style = OttrojjaTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary
+    if (readingInfo == null) {
+        OttrojjaText(
+            text = "لم يتم تسجيل قراءة",
+            style = OttrojjaTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(16.dp)
+        )
+        return
+    }
+
+    val totalPagesRead = readingInfo.sessions.sumOf {
+        it.endPage - it.startPage + 1
+    }
+
+    val maxVisibleRanges = 4
+    val visibleSessions = readingInfo.sessions.take(maxVisibleRanges)
+    val remainingSessions = readingInfo.sessions.size - visibleSessions.size
+
+    Column(
+        modifier = Modifier
+            .widthIn(min = 180.dp, max = 260.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        // Statistics
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            PopupStatistic(
+                value = readingInfo.sessionCount.toString(),
+                label = "جلسات"
             )
 
-            OttrojjaText(
-                text = "الصفحات: ${readingInfo.startPage}–${readingInfo.endPage}",
-                style = OttrojjaTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary
+            PopupStatistic(
+                value = totalPagesRead.toString(),
+                label = "صفحات"
             )
         }
+
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+
+        // Reading ranges
+        Column(
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            OttrojjaText(
+                text = "الصفحات المقروءة",
+                style = OttrojjaTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            visibleSessions.forEach { session ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(
+                            MaterialTheme.colorScheme.surfaceVariant
+                        )
+                        .padding(
+                            horizontal = 10.dp,
+                            vertical = 6.dp
+                        ),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OttrojjaText(
+                        text = "${session.startPage} – ${session.endPage}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    OttrojjaText(
+                        text = "${session.endPage - session.startPage + 1}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            if (remainingSessions > 0) {
+                OttrojjaText(
+                    text = "+ $remainingSessions أخرى",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RowScope.PopupStatistic(
+    value: String,
+    label: String
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.weight(1f)
+    ) {
+        OttrojjaText(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        OttrojjaText(
+            text = label,
+            style = OttrojjaTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

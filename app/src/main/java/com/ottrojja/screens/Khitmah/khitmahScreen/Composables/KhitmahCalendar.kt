@@ -74,12 +74,11 @@ fun KhitmahCalendar(
             .mapValues { (_, entries) ->
                 val daySessions = entries
                     .map { it.second }
-                    .sortedBy { it.startPage }
+                    .sortedBy { it.timestamp }
 
                 DayReadingInfo(
                     sessionCount = daySessions.size,
-                    startPage = daySessions.first().startPage,
-                    endPage = daySessions.last().endPage
+                    sessions = daySessions
                 )
             }
     }
