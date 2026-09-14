@@ -15,7 +15,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,7 +55,6 @@ fun ListeningOptionsDialog(
             .padding(8.dp)
             .wrapContentHeight()
             .fillMaxWidth(0.9f)
-            .background(MaterialTheme.colorScheme.secondary)
             .padding(8.dp)
             .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest = onDismissRequest,
@@ -68,7 +66,7 @@ fun ListeningOptionsDialog(
                     text = "خيارات الإستماع",
                     textAlign = TextAlign.Center,
                     style = OttrojjaTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSecondary
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             HorizontalDivider(
@@ -129,12 +127,10 @@ fun ListeningOptionsDialog(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(onClick = { takeOnCurrentPageParameters() }) {
-                    OttrojjaText(
-                        text = "ايات الحالية",
-                        style = OttrojjaTheme.typography.bodySmall,
-                    )
-                }
+                OttrojjaButton(
+                    onClick = { takeOnCurrentPageParameters() },
+                    text = "ايات الحالية"
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -147,7 +143,11 @@ fun ListeningOptionsDialog(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                OttrojjaText("مرات التكرار", style = OttrojjaTheme.typography.bodyMedium)
+                OttrojjaText(
+                    "مرات التكرار",
+                    style = OttrojjaTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
                 Row(
                     modifier = Modifier
                         .padding(0.dp, 6.dp, 6.dp, 5.dp)
@@ -192,8 +192,16 @@ fun ListeningOptionsDialog(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    OttrojjaText("تشغيل متتال للصفحات", style = OttrojjaTheme.typography.bodyMedium)
-                    OttrojjaText("(غير متوفر في الخلفية حاليا)", style = OttrojjaTheme.typography.bodySmall)
+                    OttrojjaText(
+                        "تشغيل متتال للصفحات",
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    OttrojjaText(
+                        "(غير متوفر في الخلفية حاليا)",
+                        style = OttrojjaTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
                 Checkbox(
                     checked = continuousPlay,
@@ -216,18 +224,24 @@ fun ListeningOptionsDialog(
 }
 
 @Composable
-fun InteractiveSelection(onClick: () -> Unit,
-                         titleText: String,
-                         contentText: String,
-                         disabled: Boolean,
-                         modifier: Modifier) {
+fun InteractiveSelection(
+    onClick: () -> Unit,
+    titleText: String,
+    contentText: String,
+    disabled: Boolean,
+    modifier: Modifier) {
     Column(
         modifier = modifier
             .clickable { if (!disabled) onClick(); },
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        OttrojjaText(titleText, style = OttrojjaTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+        OttrojjaText(
+            titleText,
+            style = OttrojjaTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.primary
+        )
         Row(
             modifier = Modifier
                 .padding(0.dp, 6.dp, 6.dp, 5.dp)

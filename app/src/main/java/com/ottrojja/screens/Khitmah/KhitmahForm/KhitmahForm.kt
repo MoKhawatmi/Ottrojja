@@ -181,7 +181,6 @@ fun KhitmahForm(
             .padding(8.dp)
             .wrapContentHeight()
             .fillMaxWidth(0.9f)
-            .background(MaterialTheme.colorScheme.secondary)
             .padding(8.dp)
             .clip(RoundedCornerShape(12.dp)),
         onDismissRequest = onDismiss,
@@ -203,7 +202,8 @@ fun KhitmahForm(
                     else
                         "تعديل الختمة",
                     textAlign = TextAlign.Center,
-                    style = OttrojjaTheme.typography.bodyLarge
+                    style = OttrojjaTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
@@ -267,7 +267,7 @@ fun KhitmahForm(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.MenuBook,
-                                tint = MaterialTheme.colorScheme.onSecondary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 contentDescription = ""
                             )
 
@@ -275,7 +275,7 @@ fun KhitmahForm(
                                 text = "معدل الصفحات اليومي",
                                 style = OttrojjaTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSecondary
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
 
@@ -283,7 +283,7 @@ fun KhitmahForm(
                             text = " $pagesPerDay صفحة يومياً",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSecondary,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(top = 6.dp)
                         )
                     }

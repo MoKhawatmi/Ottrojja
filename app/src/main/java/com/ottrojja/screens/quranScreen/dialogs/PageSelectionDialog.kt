@@ -70,7 +70,7 @@ fun PageSelectionDialog(
                             text = "ص${item}",
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Right,
-                            color = MaterialTheme.colorScheme.onSecondary,
+                            color = MaterialTheme.colorScheme.primary,
                             style = OttrojjaTheme.typography.bodyLarge
                         )
                     }

@@ -20,13 +20,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ottrojja.composables.OttrojjaItemSelectionDialog
+import com.ottrojja.composables.dialogs.OttrojjaItemSelectionDialog
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 import com.ottrojja.composables.RangeSelector
 import com.ottrojja.composables.rangeSelectionItem.RangeSelectionSegment
 import com.ottrojja.room.repositories.QuranRepository
-import com.ottrojja.screens.listeningScreen.VerseSelectionDialog
+import com.ottrojja.screens.listeningScreen.dialogs.VerseSelectionDialog
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
@@ -102,7 +102,7 @@ fun QuranRangeSelector(
                 ) {
                     OttrojjaText(
                         text = "${item.surahId}. ${item.chapterName}",
-                        color = MaterialTheme.colorScheme.onSecondary,
+                        color = MaterialTheme.colorScheme.primary,
                         style = OttrojjaTheme.typography.bodyLarge
                     )
                 }

@@ -28,7 +28,6 @@ fun SelectTafseerDialog(
     OttrojjaDialog(contentModifier = Modifier
         .padding(8.dp)
         .wrapContentHeight()
-        .background(MaterialTheme.colorScheme.secondary)
         .padding(8.dp)
         .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest= {onDismissRequest()}){
@@ -42,7 +41,7 @@ fun SelectTafseerDialog(
                         text = tafseer,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Right,
-                        color = MaterialTheme.colorScheme.onSecondary,
+                        color = MaterialTheme.colorScheme.primary,
                         style = OttrojjaTheme.typography.bodyLarge
                     )
                 }

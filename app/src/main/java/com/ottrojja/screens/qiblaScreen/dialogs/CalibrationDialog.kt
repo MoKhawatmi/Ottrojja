@@ -48,29 +48,30 @@ fun CalibrationDialog(onDismiss: () -> Unit) {
                     OttrojjaText("معايرة البوصلة",
                         style = OttrojjaTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSecondary
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
 
-                Image(painter = painterResource(R.drawable.calibration),
+                Image(
+                    painter = painterResource(R.drawable.calibration),
                     contentDescription = "calibration",
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 OttrojjaText("لمعايرة بوصلة الجهاز لتحديد اتجاه القبلة بدقة يرجى:",
                     style = OttrojjaTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
+                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.primary
                 )
                 OttrojjaText("١. أمساك الجهاز بشكل مسطح", style = OttrojjaTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
+                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.primary
                 )
                 OttrojjaText("٢. تحريكه في نمط بشكل رقم 8", style = OttrojjaTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
+                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.primary
                 )
                 OttrojjaText(
                     "٣. تجنب التداخل المغناطيسي وأبعد الجهاز عن أي أجهزة كهربائية أو معادن أو مغناطيسات",
                     style = OttrojjaTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSecondary
+                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.primary
                 )
             }
             Row(

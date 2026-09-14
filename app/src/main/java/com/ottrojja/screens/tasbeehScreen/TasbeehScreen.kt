@@ -22,6 +22,7 @@ import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.SecondaryTopBar
+import com.ottrojja.screens.tasbeehScreen.dialogs.AddTasabeehListDialog
 
 @Composable
 fun TasbeehScreen(
@@ -40,13 +41,19 @@ fun TasbeehScreen(
     }
 
     if (tasbeehScreenViewModel.showAddListDialog) {
-        AddTasabeehListDialog(onDismiss = { tasbeehScreenViewModel.showAddListDialog = false },
-            onConfirm = { title -> tasbeehScreenViewModel.createTasabeehList(title) })
+        AddTasabeehListDialog(
+            onDismiss = { tasbeehScreenViewModel.showAddListDialog = false },
+            onConfirm = { title -> tasbeehScreenViewModel.createTasabeehList(title) }
+        )
     }
 
     val tasbeehCount by tasbeehScreenViewModel.tasbeehCount.collectAsState(0)
 
-    Column(modifier = Modifier.fillMaxHeight().background(MaterialTheme.colorScheme.tertiary)) {
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .background(MaterialTheme.colorScheme.tertiary)
+    ) {
         TopBar(title = "المسبحة")
         SecondaryTopBar {
             Row(

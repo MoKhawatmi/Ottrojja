@@ -26,7 +26,7 @@ fun OttrojjaDialog(
     @SuppressLint("ModifierParameter") contentModifier: Modifier = Modifier
         .padding(8.dp)
         .wrapContentHeight()
-        .background(MaterialTheme.colorScheme.secondary)
+        .background(MaterialTheme.colorScheme.background)
         .padding(8.dp)
         .clip(shape = RoundedCornerShape(12.dp)),
     onDismissRequest: () -> Unit,
@@ -40,7 +40,7 @@ fun OttrojjaDialog(
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
+                containerColor = MaterialTheme.colorScheme.background,
             ),
         ) {
             Box(modifier = contentModifier) {

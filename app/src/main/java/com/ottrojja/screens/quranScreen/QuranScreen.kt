@@ -86,7 +86,6 @@ import com.ottrojja.screens.quranScreen.composables.Benefits
 import com.ottrojja.screens.quranScreen.composables.SinglePage
 import com.ottrojja.screens.quranScreen.composables.TafseerBottomSheet
 import com.ottrojja.screens.quranScreen.composables.YouTube
-import com.ottrojja.screens.quranScreen.dialogs.AddToKhitmahDialog
 import com.ottrojja.screens.quranScreen.dialogs.ListeningOptionsDialog
 import com.ottrojja.screens.quranScreen.dialogs.PageSelectionDialog
 import com.ottrojja.screens.quranScreen.dialogs.SelectTafseerDialog
@@ -171,7 +170,6 @@ fun QuranScreen(
         try {
             quranViewModel.setCurrentPage(pageNum)
             quranViewModel.getNightReadingMode()
-            quranViewModel.fetchKhitmahList()
         } catch (e: Exception) {
             Log.e("error", "Error getting current page in quran screen: $e")
             reportException(exception = e, file = "QuranScreen")
@@ -265,24 +263,6 @@ fun QuranScreen(
                                                 )
                                             },
                                             onClick = { quranViewModel.sharePage(); expanded = false; }
-                                        )
-                                        ListHorizontalDivider()
-                                        DropdownMenuItem(
-                                            text = {
-                                                OttrojjaText(
-                                                    "إضافة الى ختمة",
-                                                    style = OttrojjaTheme.typography.bodyMedium,
-                                                    color = MaterialTheme.colorScheme.primary
-                                                )
-                                            },
-                                            trailingIcon = {
-                                                Icon(
-                                                    Icons.Default.Add,
-                                                    contentDescription = "add to khitmah",
-                                                    tint = MaterialTheme.colorScheme.primary
-                                                )
-                                            },
-                                            onClick = { quranViewModel.showAddToKhitmahDialog = true; expanded = false; }
                                         )
                                         ListHorizontalDivider()
                                         DropdownMenuItem(
@@ -498,14 +478,6 @@ fun QuranScreen(
                 quranViewModel.showTafseerOptions = false
             },
             quranViewModel.tafseerNamesMap
-        )
-    }
-
-    if (quranViewModel.showAddToKhitmahDialog) {
-        AddToKhitmahDialog(
-            onDismiss = { quranViewModel.showAddToKhitmahDialog = false },
-            khitmahList = quranViewModel.khitmahList,
-            assignPageToKhitmah = { khitmah -> quranViewModel.assignPageToKhitmah(khitmah) }
         )
     }
 }

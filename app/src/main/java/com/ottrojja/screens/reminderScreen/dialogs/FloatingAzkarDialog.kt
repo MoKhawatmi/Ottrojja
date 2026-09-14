@@ -33,7 +33,6 @@ fun FloatingAzkarDialog(onDismiss: () -> Unit) {
             .padding(8.dp)
             .wrapContentHeight()
             .fillMaxWidth(0.9f)
-            .background(MaterialTheme.colorScheme.secondary)
             .padding(8.dp)
             .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest = { onDismiss() },
@@ -42,7 +41,8 @@ fun FloatingAzkarDialog(onDismiss: () -> Unit) {
 
         Column(modifier = Modifier
             .wrapContentHeight()
-            .padding(4.dp)) {
+            .padding(4.dp)
+        ) {
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -50,7 +50,7 @@ fun FloatingAzkarDialog(onDismiss: () -> Unit) {
                     text = "اذكار الشاشة",
                     textAlign = TextAlign.Center,
                     style = OttrojjaTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSecondary
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             HorizontalDivider(
@@ -59,19 +59,23 @@ fun FloatingAzkarDialog(onDismiss: () -> Unit) {
             )
 
             Row(modifier = Modifier
-                .fillMaxWidth(), horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 OttrojjaText(
                     text = "تظهر الأذكار العائمة على شاشة جهازك بشكل خفيف وغير مزعج كل 30 دقيقة، لتذكيرك بذكر الله في خضم انشغالك اليومي. تساعدك هذه الرسائل القصيرة على الحفاظ على صلتك بالله وتجديد النية والطمأنينة أينما كنت.",
                     style = OttrojjaTheme.typography.bodyMedium,
                     textAlign = TextAlign.Start,
-                    color = MaterialTheme.colorScheme.onSecondary
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
             Row(modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically
+                .padding(12.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.floating_zikr_example),
@@ -81,8 +85,15 @@ fun FloatingAzkarDialog(onDismiss: () -> Unit) {
                     alignment = Alignment.Center
                 )
             }
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                OttrojjaButton(text = "إغلاق", onClick = { onDismiss() })
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            )
+            {
+                OttrojjaButton(
+                    text = "إغلاق",
+                    onClick = { onDismiss() }
+                )
             }
         }
     }

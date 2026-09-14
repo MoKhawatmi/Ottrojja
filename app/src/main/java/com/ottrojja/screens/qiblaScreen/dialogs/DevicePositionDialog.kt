@@ -32,7 +32,8 @@ fun DevicePositionDialog(onDismiss: () -> Unit) {
         .padding(8.dp)
         .wrapContentHeight()
         .clip(shape = RoundedCornerShape(12.dp)), onDismissRequest = { onDismiss() }) {
-        Column(verticalArrangement = Arrangement.SpaceBetween,
+        Column(
+            verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Column(modifier = Modifier
@@ -46,7 +47,7 @@ fun DevicePositionDialog(onDismiss: () -> Unit) {
                     OttrojjaText("يرجى إبقاء الجهاز مسطحا لتحديد اتجاه القبلة بدقة",
                         style = OttrojjaTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSecondary
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
                 Image(painter = painterResource(R.drawable.flat_device),

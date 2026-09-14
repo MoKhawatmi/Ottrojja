@@ -33,7 +33,6 @@ fun SelectVerseDialog(
     OttrojjaDialog(onDismissRequest = { onDismissRequest() }, contentModifier = Modifier
         .padding(8.dp)
         .fillMaxHeight(0.4f)
-        .background(MaterialTheme.colorScheme.secondary)
         .padding(8.dp)
         .clip(shape = RoundedCornerShape(12.dp))
     ) {
@@ -48,7 +47,7 @@ fun SelectVerseDialog(
                             text = "الاية ${option.verseNum}",
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Right,
-                            color = MaterialTheme.colorScheme.onSecondary,
+                            color = MaterialTheme.colorScheme.primary,
                             style = OttrojjaTheme.typography.bodyMedium,
                         )
                     }

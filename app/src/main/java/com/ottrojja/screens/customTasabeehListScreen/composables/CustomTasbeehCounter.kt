@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.composables.dialogs.OttrojjaAlertDialog
 import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.ui.theme.OttrojjaTheme
 
@@ -52,21 +53,16 @@ fun CustomTasbeehCounter(
     val context = LocalContext.current;
 
     var expanded by remember { mutableStateOf(false) }
+    var alertTasbeehReset by remember { mutableStateOf(false) }
 
-    fun confirmTasbeehReset() {
-        val builder: AlertDialog.Builder = AlertDialog.Builder(context)
-        builder
-            .setMessage("هل انت متأكد من إعادة العدد الى البداية؟")
-            .setPositiveButton("نعم") { dialog, which ->
-                onCountChanged(item.count);
-            }
-            .setNegativeButton("إلغاء") { dialog, which ->
-                dialog.dismiss()
-            }
-        val dialog: AlertDialog = builder.create()
-        dialog.show()
+    if (alertTasbeehReset) {
+        OttrojjaAlertDialog(
+            onDismiss = { alertTasbeehReset = false },
+            onConfirm = { onCountChanged(item.count); alertTasbeehReset = false },
+            text = "هل انت متأكد من إعادة العدد الى البداية؟",
+            confirmText = "نعم"
+        )
     }
-
 
     fun confirmDeleteCustomTasbeeh() {
         val alertDialogBuilder = AlertDialog.Builder(context)
@@ -212,7 +208,7 @@ fun CustomTasbeehCounter(
             }
             ElevatedButton(
                 onClick = {
-                    confirmTasbeehReset()
+                    alertTasbeehReset = true;
                 },
                 elevation = ButtonDefaults.elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
                 shape = RoundedCornerShape(4.dp),

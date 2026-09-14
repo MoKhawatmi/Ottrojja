@@ -103,7 +103,7 @@ fun TimeInputPart(
                     OttrojjaText(
                         text = number.toString().padStart(2, '0'),
                         style = OttrojjaTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSecondary
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }

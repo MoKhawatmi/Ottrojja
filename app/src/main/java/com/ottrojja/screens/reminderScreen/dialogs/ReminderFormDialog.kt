@@ -1,6 +1,5 @@
 package com.ottrojja.screens.reminderScreen.dialogs
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,7 +43,6 @@ fun ReminderFormDialog(
             .padding(8.dp)
             .wrapContentHeight()
             .fillMaxWidth(0.9f)
-            .background(MaterialTheme.colorScheme.secondary)
             .padding(8.dp)
             .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest = { onDismiss() },
@@ -59,7 +56,8 @@ fun ReminderFormDialog(
                 OttrojjaText(
                     text = if (mode == ModalFormMode.ADD) "إضافة مذكر" else "تعديل مذكر",
                     textAlign = TextAlign.Center,
-                    style = OttrojjaTheme.typography.bodyLarge
+                    style = OttrojjaTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             HorizontalDivider(

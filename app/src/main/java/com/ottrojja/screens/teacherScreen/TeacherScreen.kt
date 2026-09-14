@@ -1,7 +1,6 @@
 package com.ottrojja.screens.teacherScreen
 
 import android.app.Application
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,7 +17,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -33,7 +31,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.AnswerStatus
@@ -45,8 +42,8 @@ import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.screens.listeningScreen.ListeningViewModel
-import com.ottrojja.screens.listeningScreen.SurahSelectionDialog
-import com.ottrojja.screens.listeningScreen.VerseSelectionDialog
+import com.ottrojja.screens.listeningScreen.dialogs.SurahSelectionDialog
+import com.ottrojja.screens.listeningScreen.dialogs.VerseSelectionDialog
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
@@ -86,10 +83,6 @@ fun TeacherScreen(
                 teacherScreenViewModel.surahSelected(value);
                 teacherScreenViewModel.searchFilter = ""
             },
-            selectionPhase = teacherScreenViewModel.selectionPhase,
-            checkIfChapterDownloaded = { false },
-            downloadChapter = { },
-            isDownloading = false
         )
     }
 
@@ -206,7 +199,6 @@ fun InstructionsDialog(onDismiss: () -> Unit) {
             .padding(8.dp)
             .wrapContentHeight()
             .fillMaxWidth(0.9f)
-            .background(MaterialTheme.colorScheme.secondary)
             .padding(8.dp)
             .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest = { onDismiss() },
@@ -235,16 +227,16 @@ fun InstructionsDialog(onDismiss: () -> Unit) {
                         Icon(
                             painterResource(id = R.drawable.lightbulb),
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .padding(0.dp, 2.dp, 4.dp, 2.dp)
                                 .fillMaxWidth(0.08f)
                         )
                         OttrojjaText(
-                            text=item,
+                            text = item,
                             style = OttrojjaTheme.typography.bodyLarge,
                             textAlign = TextAlign.Start,
-                            color = MaterialTheme.colorScheme.onSecondary,
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }

@@ -20,8 +20,8 @@ fun SwitchRow(
     onCheckedChange: (Boolean) -> Unit,
     disabled: Boolean = false
 ) {
-    val backgroundColor = if (!disabled) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outline
-    val contentColor = if (!disabled) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onTertiary
+    val backgroundColor = if (!disabled) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.outline
+    val contentColor = if (!disabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onTertiary
 
     OttrojjaFormFieldContainer(
         modifier = Modifier.toggleable(
@@ -41,7 +41,8 @@ fun SwitchRow(
             OttrojjaText(
                 text = label,
                 textAlign = TextAlign.Center,
-                style = OttrojjaTheme.typography.bodyMedium
+                style = OttrojjaTheme.typography.bodyMedium,
+                color = contentColor
             )
 
             SwitchWithIcon(

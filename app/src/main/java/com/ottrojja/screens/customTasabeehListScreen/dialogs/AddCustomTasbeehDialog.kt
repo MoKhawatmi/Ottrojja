@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.ModalFormMode
+import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.forms.OttrojjaTextArea
@@ -35,12 +36,13 @@ import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
-fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
-                           onConfirm: () -> Unit,
-                           callImportTasbeehDialog: () -> Unit,
-                           tasbeehInWork: CustomTasbeeh,
-                           onTasbeehChange: (CustomTasbeeh) -> Unit,
-                           mode: ModalFormMode
+fun AddCustomTasbeehDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    callImportTasbeehDialog: () -> Unit,
+    tasbeehInWork: CustomTasbeeh,
+    onTasbeehChange: (CustomTasbeeh) -> Unit,
+    mode: ModalFormMode
 ) {
     val context = LocalContext.current
 
@@ -49,7 +51,6 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
             .padding(8.dp)
             .wrapContentHeight()
             .fillMaxWidth(0.9f)
-            .background(MaterialTheme.colorScheme.secondary)
             .padding(8.dp)
             .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest = { onDismiss() },
@@ -63,7 +64,8 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                 OttrojjaText(
                     text = if (mode == ModalFormMode.ADD) "إضافة ذكر" else "تعديل الذكر",
                     textAlign = TextAlign.Center,
-                    style = OttrojjaTheme.typography.bodyLarge
+                    style = OttrojjaTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             HorizontalDivider(
@@ -75,7 +77,7 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                     .padding(top = 8.dp)
                     .fillMaxWidth()
                     .border(2.dp,
-                        MaterialTheme.colorScheme.onSecondary, RoundedCornerShape(8.dp)
+                        MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp)
                     )
                     .clickable { callImportTasbeehDialog() }
                     .padding(8.dp),
@@ -85,11 +87,11 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                 OttrojjaText(
                     text = "إستيراد من قائمة الاذكار",
                     style = OttrojjaTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondary
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Icon(Icons.Default.Link,
                     contentDescription = "import tasbeeh",
-                    tint = MaterialTheme.colorScheme.onSecondary
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
             Row(
@@ -128,9 +130,11 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                     .fillMaxWidth()
                     .padding(top = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.spacedBy(2.dp, alignment = Alignment.CenterVertically)
             ) {
-                Button(
+                OttrojjaButton(
+                    modifier = Modifier.fillMaxWidth(0.6f),
+                    text = if (mode == ModalFormMode.ADD) "إضافة" else "تعديل",
                     onClick = {
                         if (tasbeehInWork.text.isNotBlank() && tasbeehInWork.count.toString().isNotBlank()) {
                             onConfirm()
@@ -138,30 +142,16 @@ fun AddCustomTasbeehDialog(onDismiss: () -> Unit,
                             Toast.makeText(context, "يرجى التأكد من البيانات المدخلة", Toast.LENGTH_LONG).show()
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .padding(vertical = 2.dp)
-                ) {
-                    OttrojjaText(
-                        text = if (mode == ModalFormMode.ADD) "إضافة" else "تعديل",
-                        style = OttrojjaTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
+                )
 
-                Button(
-                    onClick = { onDismiss() },
-                    modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .padding(vertical = 2.dp)
-                ) {
-                    Text(
-                        text = "إلغاء",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+                OttrojjaButton(
+                    modifier = Modifier.fillMaxWidth(0.6f),
+                    text = "إلغاء",
+                    onClick = {
+                        onDismiss()
+                    },
+                )
             }
-
         }
     }
 

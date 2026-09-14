@@ -1,4 +1,4 @@
-package com.ottrojja.screens.tasbeehScreen
+package com.ottrojja.screens.tasbeehScreen.dialogs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +33,6 @@ fun AddTasabeehListDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
             .padding(8.dp)
             .wrapContentHeight()
             .fillMaxWidth(0.9f)
-            .background(MaterialTheme.colorScheme.secondary)
             .padding(8.dp)
             .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest = { onDismiss() },
@@ -46,7 +45,8 @@ fun AddTasabeehListDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                 OttrojjaText(
                     text = "إضافة قائمة ذكر",
                     textAlign = TextAlign.Center,
-                    style = OttrojjaTheme.typography.bodyLarge
+                    style = OttrojjaTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             HorizontalDivider(

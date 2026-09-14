@@ -1,6 +1,5 @@
 package com.ottrojja.screens.tasbeehScreen
 
-import android.app.AlertDialog
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,19 +21,19 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.composables.dialogs.OttrojjaAlertDialog
 import com.ottrojja.ui.theme.OttrojjaTheme
-import com.ottrojja.ui.theme.timeNormal
 
 @Composable
 fun CounterContent(
@@ -42,21 +41,16 @@ fun CounterContent(
     increaseCount: () -> Unit,
     resetCount: () -> Unit
 ) {
-    val context = LocalContext.current
 
-    fun confirmTasbeehReset() {
-        val builder: AlertDialog.Builder = AlertDialog.Builder(context)
-        builder
-            .setMessage("هل انت متأكد من إعادة العدد الى البداية؟")
-            .setPositiveButton("نعم") { dialog, which ->
-                resetCount()
-            }
-            .setNegativeButton("إلغاء") { dialog, which ->
-                dialog.dismiss()
-            }
+    var alertTasbeehReset by remember { mutableStateOf(false) }
 
-        val dialog: AlertDialog = builder.create()
-        dialog.show()
+    if (alertTasbeehReset) {
+        OttrojjaAlertDialog(
+            onDismiss = { alertTasbeehReset = false },
+            onConfirm = { resetCount(); alertTasbeehReset = false },
+            text = "هل انت متأكد من إعادة العدد الى البداية؟",
+            confirmText = "نعم"
+        )
     }
 
 
@@ -99,7 +93,7 @@ fun CounterContent(
             .fillMaxWidth()
     ) {
         Button(
-            onClick = { confirmTasbeehReset() },
+            onClick = { alertTasbeehReset = true },
             modifier = Modifier
                 .size(50.dp),
             shape = CircleShape,

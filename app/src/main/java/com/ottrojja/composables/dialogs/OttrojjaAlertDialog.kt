@@ -35,7 +35,7 @@ import com.ottrojja.ui.theme.OttrojjaTheme
 fun OttrojjaAlertDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
-    title: String,
+    title: String="",
     text: String,
     confirmText: String = "الموافقة",
     cancelText: String = "الغاء",
@@ -47,7 +47,6 @@ fun OttrojjaAlertDialog(
             .padding(8.dp)
             .wrapContentHeight()
             .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.7f)
-            .background(MaterialTheme.colorScheme.secondary)
             .padding(8.dp)
             .clip(RoundedCornerShape(12.dp))
     ) {
@@ -60,18 +59,19 @@ fun OttrojjaAlertDialog(
                     .weight(1f, fill = false)
                     .verticalScroll(scrollState)
             ) {
-                OttrojjaText(
-                    text = title,
-                    style = OttrojjaTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSecondary,
-                )
-
-                Spacer(Modifier.height(8.dp))
+                if(title.isNotBlank()){
+                    OttrojjaText(
+                        text = title,
+                        style = OttrojjaTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
 
                 OttrojjaText(
                     text = text,
                     style = OttrojjaTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondary
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 content?.invoke()

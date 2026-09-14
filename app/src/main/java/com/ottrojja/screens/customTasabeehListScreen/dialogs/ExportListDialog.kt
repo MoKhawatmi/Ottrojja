@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.forms.OttrojjaTextField
@@ -40,7 +41,6 @@ fun ExportListDialog(
             .padding(8.dp)
             .wrapContentHeight()
             .fillMaxWidth(0.9f)
-            .background(MaterialTheme.colorScheme.secondary)
             .padding(8.dp)
             .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest = { onDismiss() },
@@ -55,7 +55,7 @@ fun ExportListDialog(
                     text = "تصدير الاذكار",
                     textAlign = TextAlign.Center,
                     style = OttrojjaTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSecondary
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             HorizontalDivider(
@@ -88,7 +88,8 @@ fun ExportListDialog(
                     OttrojjaText(
                         text = "سيتم حفظ الملف باسم \"$displayName\" في مجلد Download الخاص بجهازك (وليس سحابيًا)، ويمكنك الوصول إليه من ملفات الجهاز",
                         style = OttrojjaTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -100,9 +101,11 @@ fun ExportListDialog(
                     .fillMaxWidth()
                     .padding(top = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.spacedBy(2.dp, alignment = Alignment.CenterVertically)
             ) {
-                Button(
+                OttrojjaButton(
+                    modifier = Modifier.fillMaxWidth(0.6f),
+                    text = "تصدير",
                     onClick = {
                         if (fileTitle.isNotBlank()) {
                             onConfirm()
@@ -110,31 +113,16 @@ fun ExportListDialog(
                             Toast.makeText(context, "يرجى التأكد من البيانات المدخلة", Toast.LENGTH_LONG).show()
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .padding(vertical = 2.dp)
-                ) {
-                    OttrojjaText(
-                        text = "تصدير",
-                        style = OttrojjaTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
+                )
 
-                Button(
-                    onClick = { onDismiss() },
-                    modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .padding(vertical = 2.dp)
-                ) {
-                    OttrojjaText(
-                        text = "إلغاء",
-                        style = OttrojjaTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
+                OttrojjaButton(
+                    modifier = Modifier.fillMaxWidth(0.6f),
+                    text = "إلغاء",
+                    onClick = {
+                        onDismiss()
+                    },
+                )
             }
-
         }
     }
 }

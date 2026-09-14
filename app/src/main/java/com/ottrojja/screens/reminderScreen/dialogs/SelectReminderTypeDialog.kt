@@ -10,7 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
-import com.ottrojja.composables.OttrojjaItemSelectionDialog
+import com.ottrojja.composables.dialogs.OttrojjaItemSelectionDialog
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.ui.theme.OttrojjaTheme
 
@@ -22,11 +22,16 @@ fun SelectReminderTypeDialog(onDismiss: () -> Unit, onSelect: (ReminderRepeatTyp
         selectionItems = ReminderRepeatType.entries,
         onSelect = { item -> onSelect(item) },
         itemContent = { item ->
-            Row(modifier = Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start) {
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
                 OttrojjaText(
                     text = item.displayName,
                     style = OttrojjaTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSecondary
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }

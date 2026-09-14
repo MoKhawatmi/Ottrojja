@@ -88,7 +88,6 @@ fun SessionForm(
             .padding(8.dp)
             .wrapContentHeight()
             .fillMaxWidth(0.9f)
-            .background(MaterialTheme.colorScheme.secondary)
             .clip(RoundedCornerShape(12.dp))
             .padding(12.dp),
 
@@ -98,7 +97,9 @@ fun SessionForm(
         val state = uiState
 
         if (state == null) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
             ) {
@@ -120,7 +121,8 @@ fun SessionForm(
                     } else {
                         "حفظ جلسة القراءة"
                     },
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 

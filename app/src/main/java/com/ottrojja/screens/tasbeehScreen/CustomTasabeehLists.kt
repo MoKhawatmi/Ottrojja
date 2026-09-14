@@ -33,14 +33,19 @@ import com.ottrojja.room.entities.TasabeehList
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
-fun CustomTasabeehLists(navController: NavController,
-                        customTasabeehLists: List<TasabeehList>,
-                        onClickAdd: () -> Unit) {
+fun CustomTasabeehLists(
+    navController: NavController,
+    customTasabeehLists: List<TasabeehList>,
+    onClickAdd: () -> Unit
+) {
     Box(modifier = Modifier
         .fillMaxWidth()
         .fillMaxHeight()
     ) {
-        Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.tertiary)) {
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.tertiary)
+        ) {
             LazyColumn {
                 if (customTasabeehLists.isEmpty()) {
                     item {

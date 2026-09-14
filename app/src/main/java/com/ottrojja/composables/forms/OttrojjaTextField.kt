@@ -31,8 +31,8 @@ fun OttrojjaTextField(value: String?,
                       error: String? = "",
                       inputType: TextFieldInputType = TextFieldInputType.TEXT
 ) {
-    val backgroundColor = if (!disabled) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outline
-    val contentColor = if (!disabled) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onTertiary
+    val backgroundColor = if (!disabled) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.outline
+    val contentColor = if (!disabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onTertiary
 
     val keyboardType = when (inputType) {
         TextFieldInputType.TEXT -> KeyboardType.Text
@@ -76,9 +76,9 @@ fun OttrojjaTextField(value: String?,
                 disabledTextColor = contentColor,
                 disabledLabelColor = contentColor,
                 disabledContainerColor = backgroundColor,
-                focusedSupportingTextColor = MaterialTheme.colorScheme.onSecondary,
-                disabledSupportingTextColor = MaterialTheme.colorScheme.onSecondary,
-                unfocusedSupportingTextColor = MaterialTheme.colorScheme.onSecondary
+                focusedSupportingTextColor = MaterialTheme.colorScheme.primary,
+                disabledSupportingTextColor = MaterialTheme.colorScheme.primary,
+                unfocusedSupportingTextColor = MaterialTheme.colorScheme.primary
             ),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             shape = RoundedCornerShape(8.dp),

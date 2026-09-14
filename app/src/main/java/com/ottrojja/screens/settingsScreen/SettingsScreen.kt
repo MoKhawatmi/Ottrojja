@@ -45,6 +45,8 @@ import com.ottrojja.composables.forms.SwitchWithIcon
 import androidx.core.net.toUri
 import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.screens.settingsScreen.dialogs.AboutDialog
+import com.ottrojja.screens.settingsScreen.dialogs.ContactDialog
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 
@@ -69,91 +71,10 @@ fun SettingsScreen(
         }
 
         if (settingsScreenViewModel.ShowContactDialog) {
-            OttrojjaDialog(contentModifier = Modifier
-                .padding(8.dp)
-                .fillMaxHeight(0.5f)
-                .background(MaterialTheme.colorScheme.secondary)
-                .padding(8.dp)
-                .clip(shape = RoundedCornerShape(12.dp)),
-                onDismissRequest = {
-                    settingsScreenViewModel.ShowContactDialog = false
-                }) {
-                Column(
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    horizontalAlignment = Alignment.Start,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxHeight(0.8f)
-                    ) {
-                        OttrojjaText(
-                            "لإقتراحاتكم وللإبلاغ عن اي مشاكل تقنية في التطبيق بإمكانكم تعبئة الاستبيان عبر الضغط على الزر ادناه او التواصل معنا على البريد الإلكتروني للمشروع",
-                            style = OttrojjaTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Start,
-                        )
-                        Row(modifier = Modifier
-                            .fillMaxWidth()
-                            .combinedClickable(
-                                onClick = {
-                                    sendMail(context = context,
-                                        to = "ottrojjaapp@gmail.com",
-                                        subject = "ملاحظات لتطبيق الاترجة"
-                                    )
-                                },
-                                onLongClick = {
-                                    Helpers.copyToClipboard(
-                                        context,
-                                        "ottrojjaapp@gmail.com",
-                                        "تم النسخ بنجاح!"
-                                    )
-                                }
-                            )
-                            .padding(0.dp, 8.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            OttrojjaText(
-                                text = "ottrojjaapp@gmail.com",
-                                style = OttrojjaTheme.typography.bodyMedium.copy(
-                                    textDirection = TextDirection.Ltr,
-                                    textAlign = TextAlign.Center
-                                ),
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(0.dp, 8.dp)
-                        ) {
-                            OttrojjaButton(
-                                onClick = {
-                                    val intent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        "https://docs.google.com/forms/d/e/1FAIpQLScPRdpxkyl39QC7aK3-KioCddZE2ioXJ8GZ6_XLZsu42eopxA/viewform?usp=header".toUri()
-                                    )
-                                    context.startActivity(intent)
-                                },
-                                text = "فتح الاستبيان"
-                            )
-                        }
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
-                        OttrojjaButton(
-                            onClick = { settingsScreenViewModel.ShowContactDialog = false },
-                            text = "إغلاق"
-                        )
-                    }
-                }
-            }
+            ContactDialog(
+                onDismiss = { settingsScreenViewModel.ShowContactDialog = false },
+                context = context
+            )
         }
 
         SettingsItem(
@@ -237,41 +158,3 @@ fun sendMail(
     }
 }
 
-@Composable
-fun AboutDialog(onDismiss: () -> Unit) {
-    OttrojjaDialog(contentModifier = Modifier
-        .padding(8.dp)
-        .fillMaxHeight(0.7f)
-        .padding(8.dp)
-        .clip(shape = RoundedCornerShape(12.dp)),
-        onDismissRequest = {
-            onDismiss()
-        }) {
-        Column(
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.Start,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            OttrojjaText(
-                stringResource(R.string.about_app),
-                style = OttrojjaTheme.typography.bodyMedium,
-                textAlign = TextAlign.Start,
-                modifier = Modifier
-                    .fillMaxHeight(0.9f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 2.dp)
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                OttrojjaButton(
-                    onClick = { onDismiss() },
-                    text = "إغلاق"
-                )
-            }
-        }
-    }
-}

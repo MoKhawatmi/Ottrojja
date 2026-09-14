@@ -55,11 +55,13 @@ fun OttrojjaTimePickerDialog(
                     OttrojjaText(
                         text = label,
                         style = OttrojjaTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSecondary
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
 
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
                     TimeInputPart(
                         range = 0..59,
                         startNumber = selectedMinute,
@@ -68,7 +70,7 @@ fun OttrojjaTimePickerDialog(
                     )
 
                     Column(modifier = Modifier.padding(horizontal = 10.dp)) {
-                        Text(":", color = MaterialTheme.colorScheme.onSecondary)
+                        Text(":", color = MaterialTheme.colorScheme.primary)
                     }
 
                     TimeInputPart(

@@ -26,8 +26,8 @@ fun OttrojjaSelect(label: String? = null,
                    clearable: Boolean = false,
                    onClear: () -> Unit = {}
 ) {
-    val backgroundColor = if (!disabled) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outline
-    val contentColor = if (!disabled) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onTertiary
+    val backgroundColor = if (!disabled) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.outline
+    val contentColor = if (!disabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onTertiary
 
 
     OttrojjaFormFieldContainer(

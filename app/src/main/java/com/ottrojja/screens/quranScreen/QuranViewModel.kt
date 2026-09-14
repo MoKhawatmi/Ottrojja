@@ -1046,64 +1046,12 @@ class QuranViewModel(
     val showFinishSessionForm: StateFlow<Boolean> = _showFinishSessionForm
 
 
-    private val _khitmahList = mutableStateOf(emptyList<Khitmah>())
-    var khitmahList: List<Khitmah>
-        get() = _khitmahList.value
-        set(value) {
-            _khitmahList.value = value;
-        }
-
-    private val _showAddToKhitmahDialog = mutableStateOf(false)
-    var showAddToKhitmahDialog: Boolean
-        get() = _showAddToKhitmahDialog.value
-        set(value) {
-            _showAddToKhitmahDialog.value = value;
-        }
-
     fun toggleFinishSessionForm(value: Boolean) {
         _showFinishSessionForm.value = value
     }
 
     fun invokeSessionForm() {
         toggleFinishSessionForm(true)
-    }
-
-    fun fetchKhitmahList() {
-        /*try {
-            viewModelScope.launch(Dispatchers.IO) {
-                repository.getAllKhitmah().collect { state ->
-                    withContext(Dispatchers.Main) {
-                        _khitmahList.value = state.filter { !it.isComplete };
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            reportException(exception = e, file = "QuranViewModel")
-            Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
-        }*/
-    }
-
-    fun assignPageToKhitmah(khitmah: Khitmah) {
-      /*  val khitmahMark = KhitmahMark(khitmahId = khitmah.id.toInt(),
-            pageNum = _currentPageObject?.page?.pageNum!!
-        )
-        try {
-            viewModelScope.launch(Dispatchers.IO) {
-                /*repository.insertKhitmahMark(khitmahMark);
-                repository.updateKhitmah(
-                    khitmah.copy(latestPage = _currentPageObject?.page?.pageNum!!)
-                )*/
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "تمت إضافة الصفحة للختمة بنجاح", Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            reportException(exception = e, file = "QuranViewModel")
-            Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
-        }*/
     }
 
     private val _navigation = Channel<String>()
