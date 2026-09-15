@@ -252,7 +252,7 @@ fun KhitmahForm(
                             .padding(top = 8.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .background(
-                                MaterialTheme.colorScheme.secondary
+                                MaterialTheme.colorScheme.primaryContainer
                             )
                             .padding(
                                 horizontal = 16.dp,

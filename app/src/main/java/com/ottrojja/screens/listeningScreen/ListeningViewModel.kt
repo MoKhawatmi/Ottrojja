@@ -89,6 +89,16 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
 
     var clickedPlay = false;
     fun play() {
+        if (_startingSurah.value != null && _endSurah.value != null) {
+
+            if (_startingSurah.value!!.surahId > _endSurah.value!!.surahId
+                || (_startingSurah.value!!.surahId == _endSurah.value!!.surahId && _startingVerse.value > _endVerse.value)) {
+                Toast.makeText(context, "موضع بداية التلاوة يجب ان لا يرد بعد موضع النهاية",
+                    Toast.LENGTH_LONG
+                ).show()
+                return;
+            }
+        }
         // stop other services
         terminateAllServices(context, QuranPlayerService::class.java)
 
@@ -121,15 +131,6 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
             )
         } else {
             if (_startingSurah.value != null && _endSurah.value != null) {
-
-                if (_startingSurah.value!!.surahId > _endSurah.value!!.surahId
-                    || (_startingSurah.value!!.surahId == _endSurah.value!!.surahId && _startingVerse.value > _endVerse.value)) {
-                    Toast.makeText(context, "موضع بداية التلاوة يجب ان لا يرد بعد موضع النهاية",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    return;
-                }
-
                 viewModelScope.launch(Dispatchers.IO) {
                     val versesRange = repository.getPagesContentRange(
                         startingSurah = _startingSurah.value!!.surahId,
@@ -169,15 +170,6 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
             }
         }
     }
-
-    /*
-    fun goNextChapter() {
-        audioService?.playNextChapter()
-    }
-
-    fun goPreviousChapter() {
-        //audioService?.playPreviousChapter()
-    }*/
 
     private var _sliderPosition = mutableStateOf(0f)
     var sliderPosition: Float

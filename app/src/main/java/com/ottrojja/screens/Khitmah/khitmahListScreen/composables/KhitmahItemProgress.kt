@@ -12,14 +12,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.constants.QuranConstants.TOTAL_QURAN_VERSES
 import kotlin.math.roundToInt
 
 @Composable
 fun KhitmahItemProgress(
-    totalPagesRead: Int,
+    totalVersesCovered: Int,
     modifier: Modifier = Modifier
 ) {
-    val progress = (totalPagesRead / 604f).coerceIn(0f, 1f)
+    val progress = (totalVersesCovered / TOTAL_QURAN_VERSES.toFloat()).coerceIn(0f, 1f)
     val percentage = (progress * 100).roundToInt()
 
     Box(
@@ -32,12 +34,14 @@ fun KhitmahItemProgress(
             strokeWidth = 6.dp,
             strokeCap = StrokeCap.Butt,
             gapSize = 0.dp,
+            color = if(percentage==100) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
         )
 
-        Text(
+        OttrojjaText(
             text = "$percentage%",
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }

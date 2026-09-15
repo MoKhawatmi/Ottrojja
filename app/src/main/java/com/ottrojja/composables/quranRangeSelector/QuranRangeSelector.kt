@@ -26,6 +26,7 @@ import com.ottrojja.composables.PillShapedTextFieldWithIcon
 import com.ottrojja.composables.RangeSelector
 import com.ottrojja.composables.rangeSelectionItem.RangeSelectionSegment
 import com.ottrojja.room.repositories.QuranRepository
+import com.ottrojja.screens.listeningScreen.dialogs.SurahSelectionDialog
 import com.ottrojja.screens.listeningScreen.dialogs.VerseSelectionDialog
 import com.ottrojja.ui.theme.OttrojjaTheme
 
@@ -76,37 +77,14 @@ fun QuranRangeSelector(
     val currentRange = uiState.range
 
     if (uiState.showSurahDialog) {
-        OttrojjaItemSelectionDialog(
+        SurahSelectionDialog(
             onDismiss = viewModel::dismissSurahDialog,
-            searchBar = {
-                PillShapedTextFieldWithIcon(
-                    value = uiState.searchQuery,
-                    onValueChange = viewModel::updateSearchQuery,
-                    leadingIcon = Icons.Default.Search,
-                    modifier = Modifier.fillMaxWidth(0.9f),
-                    placeHolder = "اسم او رقم السورة"
-                )
-            },
-            selectionItems = filteredChapters,
-            onSelect = { surah ->
+            chapters = filteredChapters,
+            searchFilter = uiState.searchQuery,
+            searchFilterChanged = viewModel::updateSearchQuery,
+            selectSurah = { surah ->
                 viewModel.surahUpdated(surah)
             },
-            itemContent = { item ->
-                Row(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .fillMaxWidth(),
-
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OttrojjaText(
-                        text = "${item.surahId}. ${item.chapterName}",
-                        color = MaterialTheme.colorScheme.primary,
-                        style = OttrojjaTheme.typography.bodyLarge
-                    )
-                }
-            }
         )
     }
 
@@ -117,6 +95,7 @@ fun QuranRangeSelector(
         ) {
             QuranRangeSelectorViewModel.SelectionTarget.START ->
                 currentRange.startSurah
+
             QuranRangeSelectorViewModel.SelectionTarget.END ->
                 currentRange.endSurah
         }

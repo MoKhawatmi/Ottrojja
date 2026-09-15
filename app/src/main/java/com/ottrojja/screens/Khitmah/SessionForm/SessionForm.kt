@@ -146,7 +146,7 @@ fun SessionForm(
 
                 OttrojjaFormFieldContainer(
                     backgroundColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.onSecondary,
+                    contentColor = MaterialTheme.colorScheme.primary,
                     content = {
                         Row(
                             horizontalArrangement = Arrangement.SpaceBetween,

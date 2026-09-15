@@ -7,6 +7,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.ottrojja.constants.QuranConstants
+import com.ottrojja.constants.QuranConstants.SURAH_HEADER_IDS
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahSession
 import com.ottrojja.room.relations.KhitmahWithSession
@@ -73,19 +75,19 @@ interface KhitmahDao {
 
     FROM Khitmah k
     ORDER BY k.id DESC
-""")
+"""
+    )
     fun getKhitmahList(): Flow<List<KhitmahListItem>>
 
     @Query("""
-    UPDATE Khitmah
-    SET pagesRead = :pagesRead
-    WHERE id = :khitmahId
-""")
-    suspend fun updatePagesRead(
-        khitmahId: Long,
-        pagesRead: Int
+    UPDATE Khitmah SET pagesRead = :pagesRead, versesCovered = :versesCovered WHERE id = :khitmahId
+"""
     )
-
+    suspend fun updateProgress(
+        khitmahId: Long,
+        pagesRead: Int,
+        versesCovered: Int
+    )
 
     // ─────────────────────────────────────
     // KhitmahSession
@@ -107,14 +109,16 @@ interface KhitmahDao {
         SELECT * FROM KhitmahSession
         WHERE khitmahId = :khitmahId
         ORDER BY readingDate ASC
-    """)
+    """
+    )
     fun getSessions(khitmahId: Int): Flow<List<KhitmahSession>>
 
     @Query("""
         SELECT * FROM KhitmahSession
         WHERE khitmahId = :khitmahId
         ORDER BY readingDate ASC
-    """)
+    """
+    )
     fun getSessionsForKhitmah(khitmahId: Long): List<KhitmahSession>
 
 
@@ -123,52 +127,65 @@ interface KhitmahDao {
     WHERE khitmahId = :khitmahId
     ORDER BY readingDate DESC, timestamp DESC
     LIMIT 1
-""")
+"""
+    )
     suspend fun getLatestSession(khitmahId: Int): KhitmahSession?
 
     @Query("""
     SELECT COUNT(*) FROM KhitmahSession
     WHERE khitmahId = :khitmahId
-""")
+"""
+    )
     fun getSessionCount(khitmahId: Int): Flow<Int>
 
-    // ─────────────────────────────────────
-    // Transactions
-    // ─────────────────────────────────────
+// ─────────────────────────────────────
+// Transactions
+// ─────────────────────────────────────
 
     @Transaction
-    suspend fun insertSessionAndUpdatePagesRead(
+    suspend fun insertSessionAndUpdateProgress(
         session: KhitmahSession
     ): Long {
         val id = insertSession(session)
 
-        recalculatePagesReadInternal(session.khitmahId)
+        recalculateProgressInternal(session.khitmahId)
 
         return id
     }
 
     @Transaction
-    suspend fun updateSessionAndPagesRead(
+    suspend fun updateSessionAndProgress(
         session: KhitmahSession
     ) {
         updateSession(session)
 
-        recalculatePagesReadInternal(session.khitmahId)
+        recalculateProgressInternal(session.khitmahId)
     }
 
     @Transaction
-    suspend fun deleteSessionAndUpdatePagesRead(
+    suspend fun deleteSessionAndUpdateProgress(
         session: KhitmahSession
     ) {
         deleteSession(session)
-        recalculatePagesReadInternal(session.khitmahId)
+
+        recalculateProgressInternal(session.khitmahId)
     }
 
     // ─────────────────────────────────────
-    // Heleprs
-    // ─────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────
+    private fun calculateCoveredVerseCount(
+        sessions: List<KhitmahSession>
+    ): Int {
+        return sessions
+            .asSequence()
+            .flatMap { (it.startVerseId..it.endVerseId).asSequence() }
+            .distinct()
+            .count { it !in SURAH_HEADER_IDS }
+    }
 
-    private suspend fun recalculatePagesReadInternal(
+
+    private suspend fun recalculateProgressInternal(
         khitmahId: Long
     ) {
         val sessions = getSessionsForKhitmah(khitmahId)
@@ -178,6 +195,18 @@ interface KhitmahDao {
             .toSet()
             .size
 
-        updatePagesRead(khitmahId, pagesRead)
+        val versesCovered = calculateCoveredVerseCount(sessions)
+
+        /*val versesCovered = sessions
+            .flatMap { it.startVerseId..it.endVerseId }
+            .toSet()
+            .size*/
+
+        updateProgress(
+            khitmahId = khitmahId,
+            pagesRead = pagesRead,
+            versesCovered = versesCovered
+        )
     }
+
 }

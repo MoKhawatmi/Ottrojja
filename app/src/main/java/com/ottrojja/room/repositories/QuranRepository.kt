@@ -346,15 +346,15 @@ class QuranRepository(private val quranDao: QuranDao,
     /******************* KHITMAH SESSION MANAGEMENT *************************/
 
     suspend fun insertSession(session: KhitmahSession): Long {
-        return khitmahDao.insertSessionAndUpdatePagesRead(session)
+        return khitmahDao.insertSessionAndUpdateProgress(session)
     }
 
     suspend fun updateSession(session: KhitmahSession) {
-        khitmahDao.updateSessionAndPagesRead(session)
+        khitmahDao.updateSessionAndProgress(session)
     }
 
     suspend fun deleteSession(session: KhitmahSession) {
-        khitmahDao.deleteSessionAndUpdatePagesRead(session)
+        khitmahDao.deleteSessionAndUpdateProgress(session)
     }
 
     suspend fun deleteSessionById(id: Int) {

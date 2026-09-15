@@ -17,13 +17,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AssistantPhoto
-import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.EventNote
-import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,20 +39,18 @@ import com.ottrojja.classes.Screen
 import com.ottrojja.composables.CircleStatusIndicator
 import com.ottrojja.composables.EmptyListMessage
 import com.ottrojja.composables.TopBar
-import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.constants.QuranConstants.TOTAL_QURAN_VERSES
 import com.ottrojja.navigateToQuran
 import com.ottrojja.room.repositories.ReminderRepository
 import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahForm
 import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahFormMode
 import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahFormState
-import com.ottrojja.screens.Khitmah.classes.KhitmahStatus
 import com.ottrojja.screens.Khitmah.khitmahListScreen.composables.KhitmahItemProgress
 import com.ottrojja.screens.quranScreen.classes.QuranReaderContext
 import com.ottrojja.ui.theme.OttrojjaTheme
-import com.ottrojja.ui.theme.complete_green
 
 @Composable
 fun KhitmahList(
@@ -114,9 +108,11 @@ fun KhitmahList(
             }
 
             items(viewmodel.khitmahList, key = { it.khitmah.id }) { item ->
-                OttrojjaDetailsContainer(modifier = Modifier.clickable {
-                    navController.navigate(Screen.KhitmahScreen.invokeRoute("${item.khitmah.id}"))
-                }) {
+                val khitmahCompleted = item.khitmah.versesCovered == TOTAL_QURAN_VERSES;
+                OttrojjaDetailsContainer(
+                    modifier = Modifier
+                        .clickable { navController.navigate(Screen.KhitmahScreen.invokeRoute("${item.khitmah.id}")) }
+                ) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Start,
@@ -125,8 +121,8 @@ fun KhitmahList(
                                 .fillMaxWidth()
                         ) {
                             CircleStatusIndicator(
-                                status = item.khitmah.status == KhitmahStatus.COMPLETE,
-                                truthyColor = complete_green,
+                                status = khitmahCompleted,
+                                truthyColor = MaterialTheme.colorScheme.secondary,
                                 falsyColor = MaterialTheme.colorScheme.primary,
                                 iconDescription = "Khitmah Status"
                             )
@@ -144,22 +140,23 @@ fun KhitmahList(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             KhitmahItemProgress(
-                                totalPagesRead = item.khitmah.pagesRead
+                                totalVersesCovered = item.khitmah.versesCovered
                             )
-
-                            OttrojjaButton(
-                                text = if (item.latestEndPage != null) "متابعة" else "البدء",
-                                onClick = {
-                                    navController.navigateToQuran(
-                                        pageNum = "${item.latestEndPage ?: 1}",
-                                        context = QuranReaderContext.Khitmah(
-                                            khitmahId = item.khitmah.id,
-                                            khitmahName = item.khitmah.title
+                            if (!khitmahCompleted) {
+                                OttrojjaButton(
+                                    text = if (item.latestEndPage != null) "متابعة" else "البدء",
+                                    onClick = {
+                                        navController.navigateToQuran(
+                                            pageNum = "${item.latestEndPage ?: 1}",
+                                            context = QuranReaderContext.Khitmah(
+                                                khitmahId = item.khitmah.id,
+                                                khitmahName = item.khitmah.title
+                                            )
                                         )
-                                    )
-                                },
-                                iconAfter = Icons.Filled.PlayArrow
-                            )
+                                    },
+                                    iconAfter = Icons.Filled.PlayArrow
+                                )
+                            }
                         }
                         /*****/
                         Row(verticalAlignment = Alignment.CenterVertically,
@@ -169,11 +166,11 @@ fun KhitmahList(
                             Icon(
                                 imageVector = Icons.Default.AssistantPhoto,
                                 contentDescription = "Start Date",
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = if (khitmahCompleted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
                             )
 
                             OttrojjaText(
-                                text = "${item.khitmah.status.displayName}",
+                                text = if (khitmahCompleted) "مكتملة" else "جارية",
                                 color = MaterialTheme.colorScheme.primary,
                                 style = OttrojjaTheme.typography.bodyMedium,
                                 textAlign = TextAlign.Right,
@@ -235,7 +232,7 @@ fun KhitmahList(
                         }
 
                         /*****/
-                        item.latestReadingTimestamp?.let{
+                        item.latestReadingTimestamp?.let {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),

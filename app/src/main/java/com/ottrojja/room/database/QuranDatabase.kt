@@ -59,7 +59,8 @@ val MIGRATION_11_12 = object : Migration(11, 12) {
                 `createdAt` INTEGER NOT NULL,
                 `targetDate` TEXT,
                 `reminderId` INTEGER,
-                `status` TEXT NOT NULL,
+                `pagesRead` INTEGER NOT NULL DEFAULT 0,
+                `versesCovered` INTEGER NOT NULL DEFAULT 0,
                 FOREIGN KEY(`reminderId`)
                     REFERENCES `Reminder`(`id`)
                     ON UPDATE NO ACTION

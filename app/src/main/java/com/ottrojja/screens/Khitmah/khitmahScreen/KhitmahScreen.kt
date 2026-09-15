@@ -1,6 +1,5 @@
 package com.ottrojja.screens.Khitmah.khitmahScreen
 
-import android.app.AlertDialog
 import android.app.Application
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,10 +13,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.outlined.Pending
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -46,19 +43,18 @@ import com.ottrojja.R
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.composables.OttrojjaButton
-import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.dialogs.OttrojjaAlertDialog
+import com.ottrojja.constants.QuranConstants.TOTAL_QURAN_VERSES
 import com.ottrojja.navigateToQuran
 import com.ottrojja.room.repositories.ReminderRepository
 import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahForm
 import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahFormMode
 import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahFormState
 import com.ottrojja.screens.Khitmah.SessionForm.SessionForm
-import com.ottrojja.screens.Khitmah.classes.KhitmahStatus
 import com.ottrojja.screens.Khitmah.classes.KhitmahTab
 import com.ottrojja.screens.Khitmah.khitmahScreen.Composables.ChapterProgress
 import com.ottrojja.screens.Khitmah.khitmahScreen.Composables.KhitmahCalendar
@@ -249,7 +245,6 @@ fun KhitmahScreen(
                                     )
                                 )
                             },
-                            totalPagesRead = khitmah!!.pagesRead,
                             reminder = reminder
                         )
 
@@ -284,7 +279,7 @@ fun KhitmahScreen(
                             style = iconVerticalWithLabel(
                                 totalSteps = sessions.size,
                                 icons = List(sessions.size) { Icons.Default.Check },
-                                currentStep = if (khitmah?.status == KhitmahStatus.COMPLETE) sessions.size else sessions.size - 1,
+                                currentStep = if (khitmah?.versesCovered == TOTAL_QURAN_VERSES) sessions.size else sessions.size - 1,
                                 trailingLabels = sessions.map { session ->
                                     {
                                         val selected = selectedSession

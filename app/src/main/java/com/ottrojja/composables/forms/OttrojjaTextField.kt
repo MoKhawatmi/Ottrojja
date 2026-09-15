@@ -7,12 +7,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.ottrojja.composables.OttrojjaText
@@ -23,13 +27,15 @@ enum class TextFieldInputType {
 }
 
 @Composable
-fun OttrojjaTextField(value: String?,
-                      onChange: (String) -> Unit,
-                      label: String,
-                      maxLength: Int? = null,
-                      disabled: Boolean = false,
-                      error: String? = "",
-                      inputType: TextFieldInputType = TextFieldInputType.TEXT
+fun OttrojjaTextField(
+    value: String?,
+    onChange: (String) -> Unit,
+    label: String,
+    maxLength: Int? = null,
+    disabled: Boolean = false,
+    error: String? = "",
+    inputType: TextFieldInputType = TextFieldInputType.TEXT,
+    leadingIcon: ImageVector = Icons.Default.EditNote
 ) {
     val backgroundColor = if (!disabled) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.outline
     val contentColor = if (!disabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onTertiary
@@ -55,9 +61,17 @@ fun OttrojjaTextField(value: String?,
                 if (disabled && value?.isNotBlank() == true) null else Text(label,
                     modifier = Modifier
                         .background(color = Color.Transparent,
-                            shape = RoundedCornerShape(4.dp))
+                            shape = RoundedCornerShape(4.dp)
+                        )
                         .padding(horizontal = 2.dp, vertical = 1.dp),
                     color = contentColor
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = leadingIcon,
+                    contentDescription = null,
+                    tint = contentColor
                 )
             },
             enabled = !disabled,

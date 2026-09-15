@@ -41,6 +41,7 @@ import java.util.Locale
 import java.util.TimeZone
 
 object Helpers {
+
     fun convertToIndianNumbers(arabicNumber: String): String {
         val arabicDigits = arrayOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
         val indianDigits = arrayOf("٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩")

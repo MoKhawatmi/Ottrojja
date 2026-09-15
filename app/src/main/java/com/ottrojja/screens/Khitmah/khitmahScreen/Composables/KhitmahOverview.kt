@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.EventNote
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.filled.Notifications
@@ -45,17 +44,16 @@ import com.ottrojja.classes.Helpers.arabicDateFormatter
 import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.constants.QuranConstants.TOTAL_QURAN_PAGES
+import com.ottrojja.constants.QuranConstants.TOTAL_QURAN_VERSES
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahSession
 import com.ottrojja.room.entities.Reminder
-import com.ottrojja.screens.Khitmah.classes.KhitmahStatus
 import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.complete_container
 import com.ottrojja.ui.theme.complete_content
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.Locale
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
@@ -64,17 +62,15 @@ fun KhitmahOverview(
     modifier: Modifier = Modifier,
     khitmah: Khitmah,
     sessions: List<KhitmahSession>,
-    totalPagesRead: Int,
     continueKhitmah: () -> Unit,
     reminder: Reminder? = null
 ) {
-
-    val totalPages = 604;
-
-    val progress = (totalPagesRead.toFloat() / totalPages)
+    val progress = (khitmah.versesCovered.toFloat() / TOTAL_QURAN_VERSES)
         .coerceIn(0f, 1f)
 
     val percentage = (progress * 100).roundToInt()
+
+    val isComplete = khitmah.versesCovered == TOTAL_QURAN_VERSES;
 
     /*
      * Reading days
@@ -128,7 +124,7 @@ fun KhitmahOverview(
      * 604 pages / 37 reading days = 16.3 pages/day
      */
     val averagePagesPerDay = if (readingDays > 0) {
-        totalPagesRead.toFloat() / readingDays
+        khitmah.pagesRead.toFloat() / readingDays
     } else {
         0f
     }
@@ -183,31 +179,32 @@ fun KhitmahOverview(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
-                KhitmahStatusBadge(status = khitmah.status)
+                KhitmahStatusBadge(isComplete = isComplete)
             }
             // ---------------------------------------------------------
             // Progress card
             // ---------------------------------------------------------
 
             KhitmahOverviewProgress(
-                totalPagesRead = totalPagesRead,
-                totalPages = totalPages,
+                totalPagesRead = khitmah.pagesRead,
+                totalVersesCovered = khitmah.versesCovered,
                 progress = progress,
                 percentage = percentage
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                OttrojjaButton(
-                    text = "متابعة",
-                    onClick = { continueKhitmah() },
-                    iconAfter = Icons.Filled.PlayArrow
-                )
+            if(!isComplete){
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    OttrojjaButton(
+                        text = "متابعة",
+                        onClick = { continueKhitmah() },
+                        iconAfter = Icons.Filled.PlayArrow
+                    )
+                }
             }
-
             // ---------------------------------------------------------
             // Statistics
             // ---------------------------------------------------------
@@ -248,7 +245,7 @@ fun KhitmahOverview(
                 KhitmahStatItem(
                     modifier = Modifier.weight(1f),
                     icon = Icons.AutoMirrored.Outlined.MenuBook,
-                    value = "$totalPagesRead",
+                    value = "${khitmah.pagesRead}",
                     unit = "صفحة",
                     label = "عدد الصفحات"
                 )
@@ -286,7 +283,7 @@ fun KhitmahOverview(
                     label = "تاريخ البدء"
                 )
 
-                if (khitmah.status == KhitmahStatus.COMPLETE) {
+                if (isComplete) {
                     KhitmahStatItem(
                         modifier = Modifier.weight(1f),
                         icon = Icons.Outlined.CheckCircle,
@@ -303,9 +300,10 @@ fun KhitmahOverview(
             if (targetDate != null) {
                 KhitmahTargetCard(
                     targetDate = targetDate,
-                    remainingPages = (totalPages - totalPagesRead)
+                    remainingPages = (TOTAL_QURAN_PAGES - khitmah.pagesRead)
                         .coerceAtLeast(0),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isComplete = isComplete
                 )
             }
 
@@ -348,10 +346,9 @@ fun KhitmahOverview(
 
 @Composable
 private fun KhitmahStatusBadge(
-    status: KhitmahStatus,
+    isComplete: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val isComplete = status == KhitmahStatus.COMPLETE
     val containerColor =
         if (isComplete) {
             complete_container
@@ -391,7 +388,7 @@ private fun KhitmahStatusBadge(
 @Composable
 private fun KhitmahOverviewProgress(
     totalPagesRead: Int,
-    totalPages: Int,
+    totalVersesCovered: Int,
     progress: Float,
     percentage: Int,
     modifier: Modifier = Modifier
@@ -452,11 +449,21 @@ private fun KhitmahOverviewProgress(
         )
 
         OttrojjaText(
-            text = "$totalPagesRead صفحة من $totalPages",
+            text = "$totalPagesRead صفحة من $TOTAL_QURAN_PAGES",
             style = OttrojjaTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+        OttrojjaText(
+            text = "$totalVersesCovered آية من $TOTAL_QURAN_VERSES",
+            style = OttrojjaTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
 
     }
 }
@@ -539,7 +546,8 @@ private fun KhitmahStatItem(
 private fun KhitmahTargetCard(
     targetDate: LocalDate,
     remainingPages: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isComplete: Boolean
 ) {
     val today = LocalDate.now()
 
@@ -610,40 +618,41 @@ private fun KhitmahTargetCard(
                 )
             }
         }
-
-        HorizontalDivider(
-            color = MaterialTheme.colorScheme.outlineVariant
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            Icon(
-                imageVector = Icons.AutoMirrored.Outlined.MenuBook,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+        if (!isComplete) {
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant
             )
 
-            Spacer(
-                modifier = Modifier.width(10.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
 
-            Column {
-
-                OttrojjaText(
-                    text = "المعدل المقترح",
-                    style = OttrojjaTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.secondary
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.MenuBook,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
                 )
 
-                OttrojjaText(
-                    text = "$recommendedPagesPerDay صفحة يومياً",
-                    style = OttrojjaTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                Spacer(
+                    modifier = Modifier.width(10.dp)
                 )
+
+                Column {
+
+                    OttrojjaText(
+                        text = "المعدل المقترح",
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+
+                    OttrojjaText(
+                        text = "$recommendedPagesPerDay صفحة يومياً",
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }
