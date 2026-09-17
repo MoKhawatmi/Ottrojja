@@ -28,10 +28,13 @@ import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun DevicePositionDialog(onDismiss: () -> Unit) {
-    OttrojjaDialog(contentModifier = Modifier
+    OttrojjaDialog(
+        contentModifier = Modifier
         .padding(8.dp)
         .wrapContentHeight()
-        .clip(shape = RoundedCornerShape(12.dp)), onDismissRequest = { onDismiss() }) {
+        .clip(shape = RoundedCornerShape(12.dp)),
+        onDismissRequest = { onDismiss() }
+    ) {
         Column(
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally

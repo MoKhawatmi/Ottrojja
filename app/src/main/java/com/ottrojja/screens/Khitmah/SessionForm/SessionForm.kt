@@ -1,7 +1,6 @@
 package com.ottrojja.screens.Khitmah.SessionForm
 
 import android.app.Application
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,9 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,18 +27,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ottrojja.classes.FormValidationResult
 import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaLoadingIndicator
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
-import com.ottrojja.composables.forms.OttrojjaFieldError
+import com.ottrojja.composables.forms.OttrojjaFormField
 import com.ottrojja.composables.forms.OttrojjaFormFieldContainer
 import com.ottrojja.composables.forms.OttrojjaTextArea
 import com.ottrojja.composables.quranRangeSelector.QuranRangeSelector
 import com.ottrojja.room.entities.KhitmahSession
 import com.ottrojja.room.repositories.QuranRepository
-import com.ottrojja.screens.Khitmah.FormValidation.validateSession
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
@@ -56,6 +50,7 @@ fun SessionForm(
     repository: QuranRepository
 ) {
     val context = LocalContext.current
+    val reflectionMaxLength = 250;
 
     val viewModel: SessionFormViewModel = viewModel(
         factory = SessionFormViewModelFactory(
@@ -90,9 +85,12 @@ fun SessionForm(
             .fillMaxWidth(0.9f)
             .clip(RoundedCornerShape(12.dp))
             .padding(12.dp),
-
         onDismissRequest = { dismissForm() },
-        useDefaultWidth = false
+        useDefaultWidth = false,
+        title = uiState?.let {
+            if (it.isEditMode) "تعديل جلسة القراءة"
+            else "حفظ جلسة القراءة"
+        }
     ) {
         val state = uiState
 
@@ -100,8 +98,8 @@ fun SessionForm(
             Row(verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
                 OttrojjaLoadingIndicator(indicatorColor = MaterialTheme.colorScheme.primary)
             }
@@ -110,39 +108,18 @@ fun SessionForm(
         }
 
         Column {
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                OttrojjaText(
-                    text = if (state.isEditMode) {
-                        "تعديل جلسة القراءة"
-                    } else {
-                        "حفظ جلسة القراءة"
-                    },
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 6.dp),
-                color = MaterialTheme.colorScheme.onTertiary
-            )
-
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                state.quranRange?.let { range ->
-                    QuranRangeSelector(
-                        range = range,
-                        onRangeChange = { viewModel.updateRange(it) },
-                        repository = repository
-                    )
+                OttrojjaFormField(
+                    error = formValidationResult.errors["sessionRange"]
+                ) {
+                    state.quranRange?.let { range ->
+                        QuranRangeSelector(
+                            range = range,
+                            onRangeChange = { viewModel.updateRange(it) },
+                            repository = repository
+                        )
+                    }
                 }
-                formValidationResult.errors["sessionRange"]?.let {
-                    OttrojjaFieldError(it)
-                }
-
 
                 OttrojjaFormFieldContainer(
                     backgroundColor = Color.Transparent,
@@ -175,15 +152,22 @@ fun SessionForm(
                     modifier = Modifier.height(12.dp)
                 )
 
-                OttrojjaTextArea(
-                    value = state.reflection,
-                    onChange = {
-                        viewModel.updateReflection(it);
-                    },
+                OttrojjaFormField(
                     label = "تأملات أو ملاحظات",
-                    maxLength = 250,
-                    error = formValidationResult.errors["sessionReflection"]
-                )
+                    error = formValidationResult.errors["sessionReflection"],
+                    supportingText = state.reflection
+                        ?.takeIf { it.isNotEmpty() }
+                        ?.let { "${it.length} / $reflectionMaxLength" }
+                ) {
+                    OttrojjaTextArea(
+                        value = state.reflection,
+                        onChange = {
+                            viewModel.updateReflection(it);
+                        },
+                        maxLength = 250,
+                    )
+                }
+
                 Spacer(
                     modifier = Modifier.height(16.dp)
                 )

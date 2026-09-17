@@ -89,7 +89,7 @@ interface QuranDao {
 """)
     suspend fun getSpecificVerses(mutashabihat: List<String>): List<PageContent>
 
-    @Query("SELECT * FROM PageContent WHERE pageNum = :pageNum")
+    @Query("SELECT * FROM PageContent WHERE pageNum = :pageNum ORDER BY id ASC")
     suspend fun fetchPageVerses(pageNum: String): List<PageContent>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

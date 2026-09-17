@@ -1,6 +1,5 @@
 package com.ottrojja.screens.tasbeehScreen.dialogs
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.composables.forms.OttrojjaFormField
 import com.ottrojja.composables.forms.OttrojjaTextField
 import com.ottrojja.ui.theme.OttrojjaTheme
 
@@ -37,35 +37,24 @@ fun AddTasabeehListDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
             .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest = { onDismiss() },
         useDefaultWidth = false,
+        title = "إضافة قائمة ذكر"
     ) {
         var listTitle by remember { mutableStateOf("") }
 
         Column(modifier = Modifier.wrapContentHeight()) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                OttrojjaText(
-                    text = "إضافة قائمة ذكر",
-                    textAlign = TextAlign.Center,
-                    style = OttrojjaTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 6.dp),
-                color = MaterialTheme.colorScheme.onTertiary
-            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OttrojjaTextField(
-                    value = listTitle,
-                    onChange = { listTitle = it },
-                    label = "عنوان القائمة"
-                )
+                OttrojjaFormField(label = "عنوان القائمة") {
+                    OttrojjaTextField(
+                        value = listTitle,
+                        onChange = { listTitle = it },
+                    )
+                }
             }
-
 
             Column(
                 modifier = Modifier

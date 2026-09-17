@@ -19,13 +19,14 @@ fun OttrojjaFormFieldContainer(
     backgroundColor: Color,
     contentColor: Color,
     content: @Composable () -> Unit) {
+    val shape = OttrojjaFieldDefaults.shape
+
     Column(
         modifier = modifier
-            .padding(top = 8.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(shape)
             .background(backgroundColor)
-            .border(2.dp, contentColor, RoundedCornerShape(12.dp))
+            .border(2.dp, contentColor, shape)
             .padding(8.dp)
     ) {
         content()

@@ -26,6 +26,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -49,6 +53,9 @@ class KhitmahViewModel(
 
     private val _khitmah = MutableStateFlow<Khitmah?>(null)
     val khitmah: StateFlow<Khitmah?> = _khitmah.asStateFlow()
+
+    private val _khitmahLoading = MutableStateFlow<Boolean>(false)
+    val khitmahLoading: StateFlow<Boolean> = _khitmahLoading.asStateFlow()
 
     private val _reminder = MutableStateFlow<Reminder?>(null)
     val reminder: StateFlow<Reminder?> = _reminder.asStateFlow()
@@ -94,12 +101,11 @@ class KhitmahViewModel(
         viewModelScope.launch {
             try {
                 quranRepository.getKhitmah(id)
-                    .takeWhile { it != null }
-                    .collect { khitmahWithSessions ->
-
-                        if (khitmahWithSessions == null) {
-                            throw Exception("Khitmah not found")
-                        }
+                    .filterNotNull()
+                    .onStart {
+                        _khitmahLoading.value = true
+                    }
+                    .onEach { khitmahWithSessions ->
 
                         val fetchedKhitmah = khitmahWithSessions.khitmah
 
@@ -111,7 +117,6 @@ class KhitmahViewModel(
                         _sessions.value = khitmahWithSessions.sessions
                         _reminder.value = fetchedReminder
 
-                        // Refresh the selected session's range if that session still exists
                         _selectedSession.value?.let { selected ->
                             val updatedSession = khitmahWithSessions.sessions.find {
                                 it.id == selected.session.id
@@ -119,9 +124,14 @@ class KhitmahViewModel(
 
                             if (updatedSession != null) {
                                 updateSelectedSession(updatedSession)
+                            } else {
+                                _selectedSession.value = null
                             }
                         }
+
+                        _khitmahLoading.value = false
                     }
+                    .collect()
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -132,6 +142,7 @@ class KhitmahViewModel(
                 )
 
                 showErrorToast()
+                _khitmahLoading.value = false
             }
         }
     }

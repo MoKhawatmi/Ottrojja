@@ -16,10 +16,10 @@ fun SwitchWithIcon(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     icon: ImageVector = Icons.Default.Check,
-    disabled: Boolean = false
+    enabled: Boolean = true
 ) {
     Switch(
-        enabled = !disabled,
+        enabled = enabled,
         checked = checked,
         onCheckedChange = {
             onCheckedChange(it)

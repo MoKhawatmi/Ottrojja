@@ -6,7 +6,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -21,6 +26,7 @@ import com.ottrojja.classes.ModalFormMode
 import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.composables.forms.OttrojjaFormField
 import com.ottrojja.composables.forms.OttrojjaSelect
 import com.ottrojja.composables.forms.OttrojjaTextArea
 import com.ottrojja.composables.forms.OttrojjaTextField
@@ -38,6 +44,8 @@ fun ReminderFormDialog(
     onReminderChange: (Reminder) -> Unit,
     mode: ModalFormMode,
 ) {
+    val messageMaxLength = 150;
+
     OttrojjaDialog(
         contentModifier = Modifier
             .padding(8.dp)
@@ -47,37 +55,29 @@ fun ReminderFormDialog(
             .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest = { onDismiss() },
         useDefaultWidth = false,
+        title = if (mode == ModalFormMode.ADD) "إضافة مذكر" else "تعديل مذكر"
     ) {
 
-        Column(modifier = Modifier.wrapContentHeight()) {
-            Row(modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                OttrojjaText(
-                    text = if (mode == ModalFormMode.ADD) "إضافة مذكر" else "تعديل مذكر",
-                    textAlign = TextAlign.Center,
-                    style = OttrojjaTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 6.dp),
-                color = MaterialTheme.colorScheme.onTertiary
-            )
-
+        Column(modifier = Modifier
+            .wrapContentHeight()
+            .verticalScroll(rememberScrollState())
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OttrojjaTextField(
-                    value = reminderInWork.title,
-                    onChange = { onReminderChange(reminderInWork.copy(title = it)) },
+                OttrojjaFormField(
                     label = "عنوان المذكر",
-                    disabled = reminderInWork.isMain,
-                    maxLength = 30,
                     error = formValidationResult.errors["title"]
-                )
+                ) {
+                    OttrojjaTextField(
+                        value = reminderInWork.title,
+                        onChange = { onReminderChange(reminderInWork.copy(title = it)) },
+                        enabled = !reminderInWork.isMain,
+                        maxLength = 30,
+                    )
+                }
             }
 
             Row(
@@ -85,29 +85,46 @@ fun ReminderFormDialog(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OttrojjaTextArea(
-                    value = reminderInWork.customMessage,
-                    onChange = { onReminderChange(reminderInWork.copy(customMessage = it)) },
+
+                OttrojjaFormField(
                     label = "رسالة الإشعار",
-                    disabled = reminderInWork.isMain,
-                    maxLength = 150,
-                    error = formValidationResult.errors["customMessage"]
+                    error = formValidationResult.errors["customMessage"],
+                    supportingText = reminderInWork.customMessage
+                        ?.takeIf { it.isNotEmpty() }
+                        ?.let { "${it.length} / $messageMaxLength" }
+                ) {
+                    OttrojjaTextArea(
+                        value = reminderInWork.customMessage ?: "",
+                        onChange = { onReminderChange(reminderInWork.copy(customMessage = it)) },
+                        maxLength = messageMaxLength,
+                        enabled = !reminderInWork.isMain,
+                    )
+                }
+            }
+
+            OttrojjaFormField(
+                label = "نوع التكرار",
+                error = formValidationResult.errors["repeatType"]
+            ) {
+                OttrojjaSelect(
+                    value = reminderInWork.repeatType.displayName,
+                    onClick = { invokeRepetitionOptions() },
+                    enabled = !reminderInWork.isMain,
+                    leadingIcon = Icons.Default.Repeat
                 )
             }
 
-            OttrojjaSelect(
-                value = reminderInWork.repeatType.displayName,
-                onClick = { invokeRepetitionOptions() },
-                disabled = reminderInWork.isMain,
-                error = formValidationResult.errors["repeatType"]
-            )
-
-            OttrojjaSelect(
-                label= "التوقيت: ",
-                value = "${Helpers.formatMilitaryTime(reminderInWork.hour, reminderInWork.minute)}",
-                onClick = { invokeTimePicker() },
+            OttrojjaFormField(
+                label = "التوقيت",
                 error = formValidationResult.errors["time"]
-            )
+            ) {
+                OttrojjaSelect(
+                    value = "${Helpers.formatMilitaryTime(reminderInWork.hour, reminderInWork.minute)}",
+                    onClick = { invokeTimePicker() },
+                    leadingIcon = Icons.Default.AccessTime
+                )
+            }
+
 
             Column(
                 modifier = Modifier

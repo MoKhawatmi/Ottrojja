@@ -1,7 +1,6 @@
 package com.ottrojja.screens.customTasabeehListScreen.dialogs
 
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -24,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.composables.forms.OttrojjaFormField
 import com.ottrojja.composables.forms.OttrojjaTextField
 import com.ottrojja.ui.theme.OttrojjaTheme
 
@@ -45,36 +44,23 @@ fun ExportListDialog(
             .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest = { onDismiss() },
         useDefaultWidth = false,
+        title = "تصدير الاذكار"
     ) {
 
         Column(modifier = Modifier.wrapContentHeight()) {
-            Row(modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                OttrojjaText(
-                    text = "تصدير الاذكار",
-                    textAlign = TextAlign.Center,
-                    style = OttrojjaTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 6.dp),
-                color = MaterialTheme.colorScheme.onTertiary
-            )
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OttrojjaTextField(
-                    value = fileTitle,
-                    onChange = { newText: String ->
-                        onFileTitleChanged(newText)
-                    },
-                    label = "اسم الملف",
-                )
+                OttrojjaFormField(label = "اسم الملف") {
+                    OttrojjaTextField(
+                        value = fileTitle,
+                        onChange = { newText: String ->
+                            onFileTitleChanged(newText)
+                        }
+                    )
+                }
             }
 
 

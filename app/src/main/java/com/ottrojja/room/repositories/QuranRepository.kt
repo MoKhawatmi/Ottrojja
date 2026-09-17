@@ -357,19 +357,19 @@ class QuranRepository(private val quranDao: QuranDao,
         khitmahDao.deleteSessionAndUpdateProgress(session)
     }
 
-    suspend fun deleteSessionById(id: Int) {
+    suspend fun deleteSessionById(id: Long) {
         khitmahDao.deleteSessionById(id)
     }
 
-    fun getSessions(khitmahId: Int): Flow<List<KhitmahSession>> {
+    fun getSessions(khitmahId: Long): Flow<List<KhitmahSession>> {
         return khitmahDao.getSessions(khitmahId)
     }
 
-    suspend fun getLatestSession(khitmahId: Int): KhitmahSession? {
+    suspend fun getLatestSession(khitmahId: Long): KhitmahSession? {
         return khitmahDao.getLatestSession(khitmahId)
     }
 
-    fun getSessionCount(khitmahId: Int): Flow<Int> {
+    fun getSessionCount(khitmahId: Long): Flow<Int> {
         return khitmahDao.getSessionCount(khitmahId)
     }
 

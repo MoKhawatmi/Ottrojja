@@ -1,5 +1,6 @@
 package com.ottrojja.classes
 
+import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -39,6 +40,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import kotlin.coroutines.cancellation.CancellationException
 
 object Helpers {
 
@@ -204,7 +206,15 @@ object Helpers {
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    fun reportException(exception: Exception, file: String, details: String = "") {
+    fun reportException(
+        exception: Exception,
+        file: String,
+        details: String = ""
+    ) {
+        if (exception is CancellationException) {
+            return
+        }
+
         var supabase: SupabaseClient = SupabaseProvider.client;
         val report = ExceptionReport(
             stacktrace = exception.stackTraceToString(),
@@ -241,6 +251,7 @@ object Helpers {
         sdf.timeZone = TimeZone.getDefault()
         return sdf.format(Date(millis))
     }
+
     fun formatDate(millis: Long): String {
         val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         sdf.timeZone = TimeZone.getDefault()
@@ -262,7 +273,7 @@ object Helpers {
     }
 
 
-    fun getMediaSrcFactory(context: Context): DefaultMediaSourceFactory {
+    @SuppressLint("UnsafeOptInUsageError") fun getMediaSrcFactory(context: Context): DefaultMediaSourceFactory {
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
             .setConnectTimeoutMs(20000)
             .setReadTimeoutMs(20000)
@@ -306,7 +317,7 @@ object Helpers {
         return currentBase == screenBase
     }
 
-    fun getCurrentIsoDate():String{
+    fun getCurrentIsoDate(): String {
         val calendar = Calendar.getInstance()
         return String.format(
             Locale.US,

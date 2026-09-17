@@ -162,14 +162,8 @@ class QuranViewModel(
             return
         }
 
-        pageRecordingJob?.cancel()
-
-        pageRecordingJob = viewModelScope.launch {
-            delay(2_000)
-
-            sessionPages += value.toInt()
-            println(sessionPages)
-        }
+        sessionPages += value.toInt()
+        println(sessionPages)
 
     }
 
@@ -1030,7 +1024,6 @@ class QuranViewModel(
     }
 
     /*****************************KHITMAH CONTROL***********************************/
-    private var pageRecordingJob: Job? = null //used on page change, responsible for session pages addition
     private val sessionPages = mutableSetOf<Int>()
 
     fun getFirstSessionPage():Int{

@@ -58,23 +58,10 @@ fun <T> OttrojjaItemSelectionDialog(
             .fillMaxWidth(0.9f)
             .padding(8.dp)
             .clip(shape = RoundedCornerShape(16.dp)),
-        useDefaultWidth = false
+        useDefaultWidth = false,
+        title = title
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            if (title != null) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                    OttrojjaText(
-                        text = "$title",
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 6.dp),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
 
             if (selectionItems.isEmpty()) {
                 Row(

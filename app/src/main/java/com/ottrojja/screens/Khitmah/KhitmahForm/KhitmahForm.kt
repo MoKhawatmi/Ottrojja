@@ -1,6 +1,5 @@
 package com.ottrojja.screens.Khitmah.KhitmahForm
 
-import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +12,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -25,7 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.Helpers
@@ -47,11 +46,10 @@ import com.ottrojja.composables.forms.SwitchRow
 import com.ottrojja.ui.theme.OttrojjaTheme
 import java.util.Calendar
 import java.util.Locale
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import com.ottrojja.classes.FormValidationResult
-import com.ottrojja.composables.forms.OttrojjaFormFieldContainer
+import com.ottrojja.composables.forms.OttrojjaFormField
+import com.ottrojja.constants.QuranConstants.TOTAL_QURAN_PAGES
 import com.ottrojja.screens.Khitmah.FormValidation.validateKhitmah
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -77,7 +75,7 @@ fun KhitmahForm(
         if (formState.khitmah.targetDate.isNullOrBlank()) {
             return 0;
         }
-        val pageCount = (604 - formState.khitmah.pagesRead).coerceAtLeast(0)
+        val pageCount = (TOTAL_QURAN_PAGES - formState.khitmah.pagesRead).coerceAtLeast(0)
         val targetDate = LocalDate.parse(formState.khitmah.targetDate)
         val today = LocalDate.now()
 
@@ -185,60 +183,46 @@ fun KhitmahForm(
             .clip(RoundedCornerShape(12.dp)),
         onDismissRequest = onDismiss,
         useDefaultWidth = false,
+        title = if (formState.mode == KhitmahFormMode.CREATE) "إضافة ختمة" else "تعديل الختمة"
     ) {
         Column(
             modifier = Modifier.verticalScroll(
                 rememberScrollState()
             )
         ) {
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+            OttrojjaFormField(
+                label = "عنوان الختمة",
+                error = formValidationResult.errors.get("khitmahTitle")
             ) {
-                OttrojjaText(
-                    text = if (formState.mode == KhitmahFormMode.CREATE)
-                        "إضافة ختمة"
-                    else
-                        "تعديل الختمة",
-                    textAlign = TextAlign.Center,
-                    style = OttrojjaTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary
+                OttrojjaTextField(
+                    value = formState.khitmah.title,
+                    onChange = { value ->
+                        formState = formState.copy(
+                            khitmah = formState.khitmah.copy(
+                                title = value
+                            )
+                        );
+                        formValidationResult = validateKhitmah(formState.khitmah)
+                    },
                 )
             }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 6.dp),
-                color = MaterialTheme.colorScheme.onTertiary
-            )
 
-            OttrojjaTextField(
-                value = formState.khitmah.title,
-                onChange = { value ->
-                    formState = formState.copy(
-                        khitmah = formState.khitmah.copy(
-                            title = value
+            OttrojjaFormField(label = "موعد هدف الانهاء (اختياري)") {
+                OttrojjaSelect(
+                    value = formState.khitmah.targetDate,
+                    onClick = {
+                        showDatePicker = true
+                    },
+                    clearable = true,
+                    onClear = {
+                        formState = formState.copy(
+                            khitmah = formState.khitmah.copy(targetDate = null)
                         )
-                    );
-                    formValidationResult = validateKhitmah(formState.khitmah)
-                },
-                label = "عنوان الختمة",
-                error = formValidationResult.errors.get("khitmahTitle")
-            )
-
-            OttrojjaSelect(
-                label = "موعد هدف الانهاء (اختياري)",
-                value = formState.khitmah.targetDate,
-                onClick = {
-                    showDatePicker = true
-                },
-                clearable = true,
-                onClear = {
-                    formState = formState.copy(
-                        khitmah = formState.khitmah.copy(targetDate = null)
-                    )
-                }
-            )
+                    },
+                    leadingIcon = Icons.Default.CalendarMonth
+                )
+            }
 
             AnimatedVisibility(
                 visible = !formState.khitmah.targetDate.isNullOrBlank()
@@ -303,18 +287,20 @@ fun KhitmahForm(
             AnimatedVisibility(
                 visible = formState.reminderEnabled
             ) {
-                OttrojjaSelect(
-                    label = "توقيت المذكر",
-                    value = formState.reminderTime.split(":").let {
-                        Helpers.formatMilitaryTime(
-                            it[0].toInt(),
-                            it[1].toInt()
-                        )
-                    },
-                    onClick = {
-                        showTimePicker = true
-                    }
-                )
+                OttrojjaFormField(label = "توقيت المذكر") {
+                    OttrojjaSelect(
+                        value = formState.reminderTime.split(":").let {
+                            Helpers.formatMilitaryTime(
+                                it[0].toInt(),
+                                it[1].toInt()
+                            )
+                        },
+                        onClick = {
+                            showTimePicker = true
+                        },
+                        leadingIcon = Icons.Default.AccessTime
+                    )
+                }
             }
 
             Column(

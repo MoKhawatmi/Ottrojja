@@ -103,7 +103,7 @@ interface KhitmahDao {
     suspend fun deleteSession(session: KhitmahSession)
 
     @Query("DELETE FROM KhitmahSession WHERE id = :id")
-    suspend fun deleteSessionById(id: Int)
+    suspend fun deleteSessionById(id: Long)
 
     @Query("""
         SELECT * FROM KhitmahSession
@@ -111,12 +111,12 @@ interface KhitmahDao {
         ORDER BY readingDate ASC
     """
     )
-    fun getSessions(khitmahId: Int): Flow<List<KhitmahSession>>
+    fun getSessions(khitmahId: Long): Flow<List<KhitmahSession>>
 
     @Query("""
         SELECT * FROM KhitmahSession
         WHERE khitmahId = :khitmahId
-        ORDER BY readingDate ASC
+        ORDER BY readingDate ASC, timestamp ASC
     """
     )
     fun getSessionsForKhitmah(khitmahId: Long): List<KhitmahSession>
@@ -129,14 +129,14 @@ interface KhitmahDao {
     LIMIT 1
 """
     )
-    suspend fun getLatestSession(khitmahId: Int): KhitmahSession?
+    suspend fun getLatestSession(khitmahId: Long): KhitmahSession?
 
     @Query("""
     SELECT COUNT(*) FROM KhitmahSession
     WHERE khitmahId = :khitmahId
 """
     )
-    fun getSessionCount(khitmahId: Int): Flow<Int>
+    fun getSessionCount(khitmahId: Long): Flow<Int>
 
 // ─────────────────────────────────────
 // Transactions

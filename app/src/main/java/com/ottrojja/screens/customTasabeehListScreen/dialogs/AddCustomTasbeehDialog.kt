@@ -1,7 +1,6 @@
 package com.ottrojja.screens.customTasabeehListScreen.dialogs
 
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,14 +9,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +28,7 @@ import com.ottrojja.classes.ModalFormMode
 import com.ottrojja.composables.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.composables.forms.OttrojjaFormField
 import com.ottrojja.composables.forms.OttrojjaTextArea
 import com.ottrojja.composables.forms.OttrojjaTextField
 import com.ottrojja.composables.forms.TextFieldInputType
@@ -55,29 +55,18 @@ fun AddCustomTasbeehDialog(
             .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest = { onDismiss() },
         useDefaultWidth = false,
+        title = if (mode == ModalFormMode.ADD) "إضافة ذكر" else "تعديل الذكر"
     ) {
 
-        Column(modifier = Modifier.wrapContentHeight()) {
-            Row(modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                OttrojjaText(
-                    text = if (mode == ModalFormMode.ADD) "إضافة ذكر" else "تعديل الذكر",
-                    textAlign = TextAlign.Center,
-                    style = OttrojjaTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 6.dp),
-                color = MaterialTheme.colorScheme.onTertiary
-            )
+        Column(modifier = Modifier
+            .wrapContentHeight()
+            .verticalScroll(rememberScrollState())) {
             Row(
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth()
                     .border(2.dp,
-                        MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp)
+                        MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp)
                     )
                     .clickable { callImportTasbeehDialog() }
                     .padding(8.dp),
@@ -99,29 +88,32 @@ fun AddCustomTasbeehDialog(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OttrojjaTextArea(
-                    value = tasbeehInWork.text,
-                    onChange = { value -> onTasbeehChange(tasbeehInWork.copy(text = value)) },
-                    label = "نص الذكر"
-                )
+                OttrojjaFormField(label = "نص الذكر") {
+                    OttrojjaTextArea(
+                        value = tasbeehInWork.text,
+                        onChange = { value -> onTasbeehChange(tasbeehInWork.copy(text = value)) },
+                    )
+                }
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OttrojjaTextField(
-                    value = "${tasbeehInWork.count}",
-                    onChange = { newText: String ->
-                        val filteredText = newText.filter { it.isDigit() } // Allow only digits
-                        val intValue = filteredText.toIntOrNull() ?: 0 // Convert to integer safely
-                        if (intValue <= 1000000) {
-                            onTasbeehChange(tasbeehInWork.copy(count = intValue))
-                        }
-                    },
-                    label = "مرات الذكر",
-                    inputType = TextFieldInputType.NUMBER,
-                )
+                OttrojjaFormField(label = "مرات الذكر") {
+                    OttrojjaTextField(
+                        value = tasbeehInWork.count.toString(),
+                        onChange = { value ->
+                            onTasbeehChange(
+                                tasbeehInWork.copy(
+                                    count = value.toIntOrNull() ?: 0
+                                )
+                            )
+                        },
+                        inputType = TextFieldInputType.NUMBER,
+                        maxValue = 1_000_000
+                    )
+                }
             }
 
 

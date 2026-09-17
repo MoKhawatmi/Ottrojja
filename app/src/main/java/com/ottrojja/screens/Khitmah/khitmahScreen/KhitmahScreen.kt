@@ -43,6 +43,7 @@ import com.ottrojja.R
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.OttrojjaLoadingIndicator
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.SecondaryTopBar
@@ -84,7 +85,8 @@ fun KhitmahScreen(
     var deleteKhitmahDialog by remember { mutableStateOf(false) }
     var khitmahTab by remember { mutableStateOf(KhitmahTab.OVERVIEW) }
 
-    LaunchedEffect(Unit) {
+
+    LaunchedEffect(id) {
         viewmodel.fetchKhitmah(id)
     }
     val khitmah by viewmodel.khitmah.collectAsState()
@@ -93,6 +95,7 @@ fun KhitmahScreen(
     val selectedSession by viewmodel.selectedSession.collectAsState()
     val monthSessionCount by viewmodel.calendarMonthProgress.collectAsState()
     val surahProgress by viewmodel.surahProgress.collectAsState()
+    val khitmahLoading by viewmodel.khitmahLoading.collectAsState()
 
 
     if (deleteKhitmahDialog) {
@@ -176,7 +179,7 @@ fun KhitmahScreen(
             )
         )
 
-        if (sessions.isEmpty()) {
+        if (sessions.isEmpty() || khitmahLoading) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -191,21 +194,24 @@ fun KhitmahScreen(
                         .fillMaxWidth(),
                     contentDescription = "empty placeholder"
                 )
-                OttrojjaText(
-                    text = "ابدأ ختمتك",
-                    style = OttrojjaTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold
-                )
-                OttrojjaText(
-                    text = "لم تبدأ هذه الختمة بعد.",
-                    style = OttrojjaTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Normal
-                )
-                if (khitmah != null) {
+                if (khitmahLoading) {
+                    OttrojjaLoadingIndicator()
+                } else if (khitmah != null) {
+                    OttrojjaText(
+                        text = "ابدأ ختمتك",
+                        style = OttrojjaTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
+                    OttrojjaText(
+                        text = "لم تبدأ هذه الختمة بعد.",
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Normal
+                    )
+
                     OttrojjaButton(
                         modifier = Modifier.padding(8.dp),
                         text = "ابدأ الان",

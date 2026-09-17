@@ -37,27 +37,13 @@ fun FloatingAzkarDialog(onDismiss: () -> Unit) {
             .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest = { onDismiss() },
         useDefaultWidth = false,
+        title = "أذكار الشاشة"
     ) {
 
         Column(modifier = Modifier
             .wrapContentHeight()
             .padding(4.dp)
         ) {
-            Row(modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                OttrojjaText(
-                    text = "اذكار الشاشة",
-                    textAlign = TextAlign.Center,
-                    style = OttrojjaTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 6.dp),
-                color = MaterialTheme.colorScheme.onTertiary
-            )
-
             Row(modifier = Modifier
                 .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start,

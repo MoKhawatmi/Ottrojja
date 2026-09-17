@@ -59,21 +59,9 @@ fun ListeningOptionsDialog(
             .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest = onDismissRequest,
         useDefaultWidth = false,
+        title = "خيارات الإستماع"
     ) {
         Column(modifier = Modifier.wrapContentHeight()) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                OttrojjaText(
-                    text = "خيارات الإستماع",
-                    textAlign = TextAlign.Center,
-                    style = OttrojjaTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 6.dp),
-                color = MaterialTheme.colorScheme.onTertiary
-            )
-
 
             Row(modifier = Modifier
                 .fillMaxWidth(),

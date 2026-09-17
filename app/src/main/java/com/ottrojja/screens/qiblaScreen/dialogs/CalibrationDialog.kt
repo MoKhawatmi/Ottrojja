@@ -29,29 +29,20 @@ import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
 fun CalibrationDialog(onDismiss: () -> Unit) {
-    OttrojjaDialog(contentModifier = Modifier
+    OttrojjaDialog(
+        contentModifier = Modifier
         .padding(8.dp)
         .wrapContentHeight()
         .clip(shape = RoundedCornerShape(12.dp)),
-        onDismissRequest = { onDismiss() }) {
+        onDismissRequest = { onDismiss() },
+        title = "معايرة البوصلة"
+    ) {
         Column(verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Column(modifier = Modifier
                 .verticalScroll(rememberScrollState())
             ) {
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    OttrojjaText("معايرة البوصلة",
-                        style = OttrojjaTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-
                 Image(
                     painter = painterResource(R.drawable.calibration),
                     contentDescription = "calibration",

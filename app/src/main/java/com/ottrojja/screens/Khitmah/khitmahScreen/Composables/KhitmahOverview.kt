@@ -257,7 +257,7 @@ fun KhitmahOverview(
                         .roundToInt()
                         .toString(),
                     unit = "ص/يوم",
-                    label = "متوسط القراءة"
+                    label = "متوسط التقدم"
                 )
 
                 KhitmahStatItem(
@@ -555,13 +555,15 @@ private fun KhitmahTargetCard(
         .between(today, targetDate)
         .toInt() + 1
 
+    val isOverdue = today.isAfter(targetDate)
+
     val recommendedPagesPerDay = if (remainingDays > 0) {
         ceil(
             remainingPages.toDouble() /
                     remainingDays
         ).toInt()
     } else {
-        remainingPages
+        0
     }
 
     val targetDateFormatted =
@@ -588,7 +590,6 @@ private fun KhitmahTargetCard(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-
                 Icon(
                     imageVector = Icons.Outlined.Event,
                     contentDescription = null,
@@ -611,13 +612,14 @@ private fun KhitmahTargetCard(
                 )
 
                 OttrojjaText(
-                    text = "$targetDateFormatted",
+                    text = targetDateFormatted,
                     style = OttrojjaTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
         }
+
         if (!isComplete) {
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.outlineVariant
@@ -628,33 +630,58 @@ private fun KhitmahTargetCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.MenuBook,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-
-                Spacer(
-                    modifier = Modifier.width(10.dp)
-                )
-
-                Column {
-
-                    OttrojjaText(
-                        text = "المعدل المقترح",
-                        style = OttrojjaTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.secondary
+                if (isOverdue) {
+                    Icon(
+                        imageVector = Icons.Outlined.Event,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
                     )
 
-                    OttrojjaText(
-                        text = "$recommendedPagesPerDay صفحة يومياً",
-                        style = OttrojjaTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                    Spacer(
+                        modifier = Modifier.width(10.dp)
                     )
+
+                    Column {
+                        OttrojjaText(
+                            text = "الموعد قد مضى",
+                            style = OttrojjaTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        OttrojjaText(
+                            text = "لم تكتمل الختمة بعد",
+                            style = OttrojjaTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.MenuBook,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+
+                    Spacer(
+                        modifier = Modifier.width(10.dp)
+                    )
+
+                    Column {
+                        OttrojjaText(
+                            text = "المعدل المقترح",
+                            style = OttrojjaTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+
+                        OttrojjaText(
+                            text = "$recommendedPagesPerDay صفحة يومياً",
+                            style = OttrojjaTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
         }
     }
-
 }
