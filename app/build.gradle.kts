@@ -14,8 +14,8 @@ android {
         applicationId = "com.ottrojja"
         minSdk = 24
         targetSdk = 37
-        versionCode = 47
-        versionName = "1.9.4"
+        versionCode = 49
+        versionName = "1.9.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -63,20 +63,20 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.19.0")
+    implementation("androidx.core:core-ktx:1.19.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
     implementation("androidx.activity:activity-compose:1.13.0")
-    implementation(platform("androidx.compose:compose-bom:2026.08.00"))
+    implementation(platform("androidx.compose:compose-bom:2026.09.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3:1.4.0")
-    implementation("androidx.compose.foundation:foundation:1.12.0")
+    implementation("androidx.compose.foundation:foundation:1.12.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
     implementation("androidx.lifecycle:lifecycle-process:2.11.0")
     implementation("androidx.compose.material3:material3-window-size-class-android:1.4.0")
     implementation("androidx.lifecycle:lifecycle-service:2.11.0")
-    implementation("androidx.compose.foundation:foundation-layout:1.12.0")
+    implementation("androidx.compose.foundation:foundation-layout:1.12.1")
     testImplementation("junit:junit:4.13.2")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
@@ -96,17 +96,17 @@ dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:5.5.0")
 
-    implementation("androidx.room:room-runtime:2.8.4")
-    implementation("androidx.room:room-ktx:2.8.4")
-    ksp("androidx.room:room-compiler:2.8.4")
+    implementation("androidx.room:room-runtime:2.8.5")
+    implementation("androidx.room:room-ktx:2.8.5")
+    ksp("androidx.room:room-compiler:2.8.5")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
 
-    implementation("androidx.media3:media3-exoplayer:1.11.0")
+    implementation("androidx.media3:media3-exoplayer:1.11.1")
 
-    implementation(platform("io.github.jan-tennert.supabase:bom:3.7.0"))
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.8.0"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
-    implementation("io.ktor:ktor-client-android:3.5.2")
+    implementation("io.ktor:ktor-client-android:3.6.0")
 
     implementation("com.github.binayshaw7777:KotStep:3.1.0")
 
@@ -114,7 +114,7 @@ dependencies {
 
     implementation("sh.calvin.reorderable:reorderable:3.1.0")
 
-    implementation("androidx.work:work-runtime-ktx:2.11.2")
+    implementation("androidx.work:work-runtime-ktx:2.12.0")
 
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("io.coil-kt:coil-svg:2.7.0")

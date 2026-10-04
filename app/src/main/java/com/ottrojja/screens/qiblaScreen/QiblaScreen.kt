@@ -15,8 +15,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -64,10 +62,12 @@ import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers.reportException
-import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.OttrojjaWarningBar
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.ui.theme.complete_green
 import com.ottrojja.ui.theme.md_theme_light_primary
 import com.ottrojja.ui.theme.md_theme_light_secondary
@@ -315,7 +315,10 @@ private fun CompassContent(
                 }
                 .catch { e ->
                     e.printStackTrace()
-                    Toast.makeText(context, "حصل خطأ", Toast.LENGTH_LONG).show()
+                    AppToastManager.show(
+                        message = "حصل خطأ يرجى المحاولة لاحقا",
+                        type = AppToastType.ERROR
+                    )
                 }
                 .collectLatest { location ->
                     locationState.value = location
@@ -340,7 +343,10 @@ private fun CompassContent(
         } catch (e: Exception) {
             e.printStackTrace()
             reportException(exception = e, file = "QiblaScreen")
-            Toast.makeText(context, "حصل خطأ", Toast.LENGTH_LONG).show()
+            AppToastManager.show(
+                message = "حصل خطأ يرجى المحاولة لاحقا",
+                type = AppToastType.ERROR
+            )
         }
     }
 

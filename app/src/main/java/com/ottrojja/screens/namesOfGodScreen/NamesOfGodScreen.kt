@@ -41,7 +41,7 @@ import androidx.navigation.NavController
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.NameOfGod
-import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.TopBar
 import com.ottrojja.ui.theme.OttrojjaTheme

@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import androidx.core.view.WindowCompat
+import com.ottrojja.classes.Toast.AppToastHost
 import com.ottrojja.composables.floatingNavigationDock.FloatingNavigationDock
 import com.ottrojja.room.database.DatabaseProvider
 import com.ottrojja.room.repositories.ReminderRepository
@@ -172,6 +173,13 @@ class MainActivity : ComponentActivity() {
                                     onToggle = { dockExpanded = !dockExpanded }
                                 )
                             }
+                            AppToastHost(
+                                bottomOffset = if (currentScreen?.showsBottomBar == true) {
+                                    dockHeightCollapsed + 16.dp
+                                } else {
+                                    16.dp
+                                }
+                            )
                         }
                     }
                 }

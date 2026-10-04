@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,8 +41,10 @@ fun SurahSelectionDialog(
     selectSurah: (ChapterData) -> Unit,
     checkIfChapterDownloaded: (Int) -> Boolean = { false },
     downloadChapter: (Int) -> Unit = {},
+    downloadState: Boolean = false,
     allowDownload: Boolean = false
 ) {
+    LaunchedEffect(downloadState) { }
 
     OttrojjaItemSelectionDialog(
         title = "إختيار السورة",

@@ -39,7 +39,7 @@ import com.ottrojja.classes.Screen
 import com.ottrojja.composables.CircleStatusIndicator
 import com.ottrojja.composables.EmptyListMessage
 import com.ottrojja.composables.TopBar
-import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.constants.QuranConstants.TOTAL_QURAN_VERSES

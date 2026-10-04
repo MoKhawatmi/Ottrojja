@@ -8,6 +8,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.Helpers.reportException
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.room.repositories.ReminderRepository
 import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahFormState
@@ -48,9 +50,7 @@ class KhitmahListViewModel(private val quranRepository: QuranRepository,
                     }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
                 reportException(exception = e, file = "KhitmahListViewModel")
-                Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -82,13 +82,10 @@ class KhitmahListViewModel(private val quranRepository: QuranRepository,
                     formState.khitmah.copy(reminderId = reminderId)
                 )
 
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        context,
-                        "تمت الإضافة بنجاح",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                AppToastManager.show(
+                    message = "تمت الإضافة بنجاح",
+                    type = AppToastType.SUCCESS
+                )
             } catch (e: Exception) {
                 reminderId?.let { id ->
                     try {
@@ -107,13 +104,10 @@ class KhitmahListViewModel(private val quranRepository: QuranRepository,
                     file = "KhitmahListViewModel"
                 )
 
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        context,
-                        "حصل خطأ يرجى المحاولة لاحقا",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
             }
         }
     }

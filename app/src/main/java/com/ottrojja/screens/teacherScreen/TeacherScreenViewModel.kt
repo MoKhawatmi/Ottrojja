@@ -29,11 +29,19 @@ import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.TeacherAnswer
 import com.ottrojja.classes.VerseWithAnswer
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
+import com.ottrojja.composables.quranRangeSelector.QuranRangeState
 import com.ottrojja.room.entities.ChapterData
+import com.ottrojja.screens.Khitmah.SessionForm.SessionFormState
 import com.ottrojja.screens.listeningScreen.ListeningViewModel
 import com.ottrojja.screens.listeningScreen.ListeningViewModel.SelectionPhase
+import com.ottrojja.screens.teacherScreen.classes.TeacherMode
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -43,34 +51,46 @@ import java.io.FileOutputStream
 import java.io.IOException
 import kotlin.random.Random
 
-class TeacherScreenViewModel(private val repository: QuranRepository, application: Application) :
-    AndroidViewModel(application), LifecycleObserver {
+class TeacherScreenViewModel(
+    private val repository: QuranRepository,
+    application: Application)
+    : AndroidViewModel(application), LifecycleObserver {
     val context = application.applicationContext;
 
-    private val chaptersList = CompletableDeferred<List<ChapterData>>()
-    private var completedChaptersList = emptyList<ChapterData>()
 
-    suspend fun initChaptersList() {
-        println("Fetching chapters list")
+    private val _quranRange = MutableStateFlow<QuranRangeState?>(null)
+    val quranRange: StateFlow<QuranRangeState?> = _quranRange.asStateFlow()
+
+
+    var chaptersList = emptyList<ChapterData>()
+
+    fun initChaptersList() {
         viewModelScope.launch(Dispatchers.IO) {
-            val chapters = repository.getAllChapters()
-            chaptersList.complete(chapters)
-            completedChaptersList = chaptersList.await()
-            if (_startingSurah.value == null) {
-                _startingSurah.value = chaptersList.await().get(0);
-            }
-            if (_endSurah.value == null) {
-                _endSurah.value = chaptersList.await().get(0);
+            try {
+                chaptersList = repository.getAllChapters()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                reportException(e, "TeacherScreenViewModel")
             }
         }
     }
 
-    /*private val _selectedTrainingVerses = mutableStateOf(emptyList<PageContent>())
-    var selectedTrainingVerses: List<PageContent>
-        get() = _selectedTrainingVerses.value
-        set(value: List<PageContent>) {
-            _selectedTrainingVerses.value = value
-        }*/
+    fun initQuranRange() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _quranRange.value = repository.getQuranRangeFromPages(
+                    pages = setOf(1, 1)
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+                reportException(e, "TeacherScreenViewModel")
+            }
+        }
+    }
+
+    fun updateQuranRange(range: QuranRangeState) {
+        _quranRange.value = range;
+    }
 
     private val _selectedTrainingVerses = mutableStateListOf<VerseWithAnswer>()
     val selectedTrainingVerses: MutableList<VerseWithAnswer>
@@ -113,99 +133,9 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             _mode.value = value
         }
 
-    private var _searchFilter = mutableStateOf("")
-    var searchFilter: String
-        get() = _searchFilter.value
-        set(value) {
-            _searchFilter.value = value
-        }
-
-    suspend fun getChaptersList(): List<ChapterData> {
-        return chaptersList.await().filter { chapter ->
-            chapter.chapterName.contains(_searchFilter.value)
-                    || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter.value)
-                    || chapter.surahId.toString() == _searchFilter.value
-        };
-    }
-
     fun getChapterName(id: Int): String {
-        return completedChaptersList.find { chapter -> chapter.surahId == id }?.chapterName ?: "";
+        return chaptersList.find { chapter -> chapter.surahId == id }?.chapterName ?: "";
     }
-
-    private var _showSurahSelectionDialog = mutableStateOf(false)
-    var showSurahSelectionDialog: Boolean
-        get() = _showSurahSelectionDialog.value
-        set(value) {
-            _showSurahSelectionDialog.value = value
-        }
-
-    private var _showVerseSelectionDialog = mutableStateOf(false)
-    var showVerseSelectionDialog: Boolean
-        get() = _showVerseSelectionDialog.value
-        set(value) {
-            _showVerseSelectionDialog.value = value
-        }
-
-    private var _selectionPhase = mutableStateOf(ListeningViewModel.SelectionPhase.START)
-    var selectionPhase: ListeningViewModel.SelectionPhase
-        get() = _selectionPhase.value
-        set(value) {
-            _selectionPhase.value = value
-        }
-
-    private var _startingSurah = mutableStateOf<ChapterData?>(null)
-    var startingSurah: ChapterData?
-        get() = _startingSurah.value
-        set(value) {
-            _startingSurah.value = value
-        }
-
-    private var _startingVerse = mutableStateOf(1)
-    var startingVerse: Int
-        get() = _startingVerse.value
-        set(value) {
-            _startingVerse.value = value
-        }
-
-    private var _endSurah = mutableStateOf<ChapterData?>(null)
-    var endSurah: ChapterData?
-        get() = _endSurah.value
-        set(value) {
-            _endSurah.value = value
-        }
-
-    private var _endVerse = mutableStateOf(1)
-    var endVerse: Int
-        get() = _endVerse.value
-        set(value) {
-            _endVerse.value = value
-        }
-
-    fun surahSelected(surah: ChapterData) {
-        when (_selectionPhase.value) {
-            SelectionPhase.START -> {
-                _startingSurah.value = surah;
-                _startingVerse.value = 1;
-            }
-
-            SelectionPhase.END -> {
-                _endSurah.value = surah;
-                _endVerse.value = 1;
-            }
-
-            SelectionPhase.PLAY -> {}
-
-        }
-    }
-
-    fun verseSelected(verse: Int) {
-        if (_selectionPhase.value == SelectionPhase.START) {
-            _startingVerse.value = verse;
-        } else {
-            _endVerse.value = verse;
-        }
-    }
-
 
     val MAX_TRIES = 3;
 
@@ -232,23 +162,26 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         }
 
     fun startTraining() {
-
-        if (_startingSurah.value != null && _endSurah.value != null) {
-            if (_startingSurah.value!!.surahId > _endSurah.value!!.surahId
-                || (_startingSurah.value!!.surahId == _endSurah.value!!.surahId && _startingVerse.value > _endVerse.value)) {
-                Toast.makeText(context, "موضع البداية لا يجب ان يرد بعد موضع النهاية",
-                    Toast.LENGTH_LONG
-                ).show()
+        val range = _quranRange.value
+        if (range != null) {
+            if (range.endVerse!!.id < range.startVerse!!.id) {
+                AppToastManager.show(
+                    message = "موضع البداية لا يجب ان يرد بعد موضع النهاية",
+                    type = AppToastType.ERROR
+                )
                 return;
             }
+        } else {
+            return;
         }
+
 
         viewModelScope.launch(Dispatchers.IO) {
             val versesRange = repository.getPagesContentRange(
-                startingSurah = _startingSurah.value!!.surahId,
-                startingVerse = _startingVerse.value,
-                endSurah = _endSurah.value!!.surahId,
-                endVerse = _endVerse.value,
+                startingSurah = range.startSurah!!.surahId,
+                startingVerse = range.startVerse.verseNum!!,
+                endSurah = range.endSurah!!.surahId,
+                endVerse = range.endVerse.verseNum!!,
             )
 
             _selectedTrainingVerses.addAll(
@@ -308,12 +241,7 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
             _allRight.value = true;
             _correctVersesAnswered.value++;
             _selectedTrainingVerses.set(_currentVerseIndex.value, VerseWithAnswer(verse = _currentVerse.value!!, answerCorrect = true))
-        }/* else if (!allRight) {
-
-            if (_reachedMaxTries.value) {
-
-            }
-        }*/
+        }
 
         if (_currentTry.value == MAX_TRIES) {
             _reachedMaxTries.value = true;
@@ -356,7 +284,6 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         _currentTry.value = 0;
         _allRight.value = false;
         _currentVerseIndex.value = 0;
-        //_selectedTrainingVerses.value = emptyList<PageContent>();
         _selectedTrainingVerses.clear()
         _hasStarted.value = false;
         _correctVersesAnswered.value = 0;
@@ -374,8 +301,6 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         val hiddenIndices = if (verseWordsNum == 1) indices else indices.take(
             Math.ceil((verseWordsNum * 50) / 100.0).toInt()
         )
-        println(verseWordsNum)
-        println(hiddenIndices)
         hiddenIndices.forEach { index ->
             solutionMap.put(
                 index,
@@ -428,7 +353,10 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
 
     fun downloadVerse(localFile: File) {
         if (!Helpers.checkNetworkConnectivity(context)) {
-            Toast.makeText(context, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG).show()
+            AppToastManager.show(
+                message = "لا يوجد اتصال بالانترنت",
+                type = AppToastType.ERROR
+            )
             return;
         }
         val tempFile = File.createTempFile("temp_", ".mp3", context.getExternalFilesDir(null))
@@ -468,9 +396,15 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
                     reportException(exception = e, file = "TeacherScreenViewModel")
                     withContext(Dispatchers.Main) {
                         if (e.message?.contains("ENOSPC") == true) {
-                            Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
+                            AppToastManager.show(
+                                message = context.resources.getString(R.string.enospc),
+                                type = AppToastType.ERROR
+                            )
                         } else {
-                            Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
+                            AppToastManager.show(
+                                message = "حدث خطأ اثناء التحميل",
+                                type = AppToastType.ERROR
+                            )
                         }
                     }
                     localFile.delete()
@@ -513,8 +447,10 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
         } catch (e: Exception) {
             e.printStackTrace()
             reportException(exception = e, file = "TeacherScreenViewModel")
-            Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
-                .show()
+            AppToastManager.show(
+                message = "حصل خطأ، يرجى المحاولة لاحقا",
+                type = AppToastType.ERROR
+            )
         }
     }
 
@@ -562,17 +498,16 @@ class TeacherScreenViewModel(private val repository: QuranRepository, applicatio
                 override fun onPlayerError(error: PlaybackException) {
                     super.onPlayerError(error)
                     error.printStackTrace()
-                    Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
-                        .show()
+                    reportException(error, "TeacherScreenViewModel")
+                    AppToastManager.show(
+                        message = "حصل خطأ، يرجى المحاولة لاحقا",
+                        type = AppToastType.ERROR
+                    )
                 }
             }
         )
     }
 
-
-    enum class TeacherMode {
-        SELECTION, TRAINING, RESULTS
-    }
 }
 
 class TeacherScreenViewModelFactory(

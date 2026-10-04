@@ -28,7 +28,7 @@ interface TasabeehDao {
     fun getTasabeehLists(): Flow<List<TasabeehList>>
 
     @Query("SELECT * FROM TasabeehList WHERE id=:id")
-    fun getTasabeehList(id: Int): Flow<ListWithTasabeeh?>
+    fun getTasabeehList(id: Int): ListWithTasabeeh?
 
     @Delete
     fun deleteTasabeehList(tasabeehList: TasabeehList)
@@ -45,6 +45,9 @@ interface TasabeehDao {
     @Query("SELECT COALESCE(MAX(position), 0) FROM CustomTasbeeh WHERE listId = :listId")
     suspend fun getMaxPosition(listId: Int): Int
 
+    @Query("UPDATE CustomTasbeeh SET currentCount = :currentCount WHERE id = :id")
+    suspend fun updateTasbeehCurrentCount(id: Int, currentCount: Int)
+
     @Transaction
     suspend fun insertListWithTasabeeh(
         title: String,
@@ -58,7 +61,8 @@ interface TasabeehDao {
             tasabeeh.map {
                 it.copy(
                     id = 0,
-                    listId = listId
+                    listId = listId,
+                    currentCount = it.count
                 )
             }
         )

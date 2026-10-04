@@ -21,6 +21,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers.getMediaSrcFactory
 import com.ottrojja.classes.Helpers.reportException
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.screens.quranScreen.RepetitionTab
@@ -180,8 +182,10 @@ class PagePlayerService : Service(), PageServiceInterface {
                     logDebug("Error in player; PagePlayerService")
                     error.printStackTrace()
                     reportException(exception = error, file = "PagePlayerService")
-                    Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG
-                    ).show()
+                    AppToastManager.show(
+                        message = "حصل خطأ يرجى المحاولة لاحقا",
+                        type = AppToastType.ERROR
+                    )
                 }
             }
         )

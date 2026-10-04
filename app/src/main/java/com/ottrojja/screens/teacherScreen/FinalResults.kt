@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.VerseWithAnswer
 import androidx.compose.material3.Icon
 import androidx.compose.ui.Alignment
-import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.VerseTextWithNumber
 import com.ottrojja.ui.theme.OttrojjaTheme

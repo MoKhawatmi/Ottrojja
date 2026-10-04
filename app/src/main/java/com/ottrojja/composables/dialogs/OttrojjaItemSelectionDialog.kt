@@ -59,7 +59,8 @@ fun <T> OttrojjaItemSelectionDialog(
             .padding(8.dp)
             .clip(shape = RoundedCornerShape(16.dp)),
         useDefaultWidth = false,
-        title = title
+        title = title,
+        allowVerticalScroll = false
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
 
@@ -80,19 +81,21 @@ fun <T> OttrojjaItemSelectionDialog(
                     )
                 }
             } else {
-                Row(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.Bottom
-                )
-                {
-                    searchBar?.invoke()
+                searchBar?.let {
+                    Row(
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.Bottom
+                    )
+                    {
+                        it.invoke()
+                    }
                 }
 
                 LazyColumn(
-                    Modifier.fillMaxHeight(),
+                    Modifier.weight(1f),
                     state = listState,
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {

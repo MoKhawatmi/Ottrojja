@@ -98,9 +98,9 @@ fun ListeningScreen(
             },
             checkIfChapterDownloaded = { id -> listeningViewModel.checkIfChapterDownloaded(id) },
             downloadChapter = { id -> listeningViewModel.downloadChapter(id) },
-            allowDownload = listeningViewModel.selectionPhase == ListeningViewModel.SelectionPhase.PLAY
-
-        )
+            allowDownload = listeningViewModel.selectionPhase == ListeningViewModel.SelectionPhase.PLAY,
+            downloadState = listeningViewModel.isDownloading,
+            )
     }
 
     if (listeningViewModel.showVerseSelectionDialog) {
@@ -147,6 +147,7 @@ fun ListeningScreen(
                 .fillMaxWidth()
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
+                .padding(12.dp)
             ) {
                 if (listeningViewModel.listeningMode == QuranListeningMode.مقطع_ايات) {
                     Column {

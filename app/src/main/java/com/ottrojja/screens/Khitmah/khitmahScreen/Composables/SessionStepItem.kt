@@ -139,7 +139,7 @@ fun SessionStepItem(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 OttrojjaText(
-                                    text = "القراءة: ${itemQuranRange?.startSurah?.chapterName}: ${itemQuranRange?.startVerse?.verseNum} - ${itemQuranRange?.endSurah?.chapterName}: ${itemQuranRange?.endVerse?.verseNum}",
+                                    text = if(itemQuranRange!=null)"القراءة: ${itemQuranRange?.startSurah?.chapterName}: ${itemQuranRange?.startVerse?.verseNum} - ${itemQuranRange?.endSurah?.chapterName}: ${itemQuranRange?.endVerse?.verseNum}" else "",
                                     style = OttrojjaTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -158,7 +158,7 @@ fun SessionStepItem(
                                 )
 
                                 OttrojjaText(
-                                    text = "الصفحات: ${(item.endPage - item.startPage) + 1} صفحة",
+                                    text = if(item!=null) "الصفحات: ${(item.endPage - item.startPage) + 1} صفحة" else "",
                                     style = OttrojjaTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -178,7 +178,7 @@ fun SessionStepItem(
                                     )
 
                                     OttrojjaText(
-                                        text = "ملاحظات: ${item.reflection}",
+                                        text = if(item!=null)"ملاحظات: ${item.reflection}" else "",
                                         style = OttrojjaTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.primary
                                     )

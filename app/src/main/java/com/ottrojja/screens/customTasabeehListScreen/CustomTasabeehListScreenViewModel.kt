@@ -24,14 +24,20 @@ import com.ottrojja.classes.JsonParser
 import com.ottrojja.classes.ModalFormMode
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.Tasabeeh
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.room.entities.TasabeehList
+import com.ottrojja.screens.customTasabeehListScreen.classes.ImportedCustomTasbeeh
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.milliseconds
 
 class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
                                         application: Application) : AndroidViewModel(application) {
@@ -83,10 +89,8 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
         _exportFileTitle.value = "";
     }
 
-
-    private val _tasbeehInWork = mutableStateOf(
-        CustomTasbeeh(text = "", count = 0, listId = 0, position = 0)
-    )
+    val baseCustomTasbeeh = CustomTasbeeh(text = "", count = 0, listId = 0, position = 0, currentCount = 0);
+    private val _tasbeehInWork = mutableStateOf(baseCustomTasbeeh.copy())
     var tasbeehInWork: CustomTasbeeh
         get() = _tasbeehInWork.value
         set(value) {
@@ -96,58 +100,69 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
     fun fetchCustomTasabeehList(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                repository.getTasabeehList(id).collect { state ->
-                    withContext(Dispatchers.Main) {
-                        _customTasabeeh.clear()
-                        if (state != null) {
-                            _customTasabeehList.value = state.tasabeehList;
-                            // i'd like to use this line to thank the roomdb dev team for not adding order by functionality to @relation queries, which led us to this wonderful moment
-                            _customTasabeeh.addAll(state.customTasabeeh.sortedBy { it.position })
-                        }
+                val state = repository.getTasabeehList(id)
+                withContext(Dispatchers.Main) {
+                    _customTasabeeh.clear()
+                    if (state != null) {
+                        _customTasabeehList.value = state.tasabeehList
+                        // i'd like to use this line to thank the roomdb dev team for not adding order by functionality to @relation queries, which led us to this wonderful moment
+                        _customTasabeeh.addAll(state.customTasabeeh.sortedBy { it.position })
+                        state.customTasabeeh.forEach { itemCounts[it.id] = it.currentCount }
+                        val validIds = state.customTasabeeh.map { it.id }.toSet()
+                        itemCounts.keys.retainAll(validIds) // removed deleted or no longer existing ids from counts
+
                     }
                 }
-            } catch (e: CancellationException) {
-                //nothing
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
-                }
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
             }
         }
     }
 
+
     fun upsertCustomTasbeeh() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                val listId = _customTasabeehList.value!!.id
                 if (customTasbeehModalMode == ModalFormMode.ADD) {
-                    val nextPos = repository.getMaxPosition(_customTasabeehList.value!!.id) + 1
+                    val nextPos = repository.getMaxPosition(listId) + 1
                     repository.insertCustomTasbeeh(
-                        tasbeehInWork.copy(listId = _customTasabeehList.value!!.id,
+                        tasbeehInWork.copy(listId = listId,
                             position = nextPos
                         )
                     )
                 } else {
                     repository.insertCustomTasbeeh(
-                        tasbeehInWork.copy(listId = _customTasabeehList.value!!.id)
+                        tasbeehInWork.copy(listId = listId)
                     )
                 }
+                fetchCustomTasabeehList(listId)
                 withContext(Dispatchers.Main) {
                     if (customTasbeehModalMode == ModalFormMode.ADD) {
-                        Toast.makeText(context, "تمت الإضافة بنجاح", Toast.LENGTH_LONG).show()
+                        AppToastManager.show(
+                            message = "تمت الإضافة بنجاح",
+                            type = AppToastType.SUCCESS
+                        )
                     } else {
-                        itemCounts.put(_tasbeehInWork.value.id, _tasbeehInWork.value.count)
-                        Toast.makeText(context, "تم التعديل بنجاح", Toast.LENGTH_LONG).show()
+                        AppToastManager.show(
+                            message = "تم التعديل بنجاح",
+                            type = AppToastType.SUCCESS
+                        )
                     }
                 }
                 closeCustomTasbeehModal()
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
-                }
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
             }
         }
     }
@@ -157,16 +172,18 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
             try {
                 _customTasabeehList.value?.let {
                     repository.deleteTasabeehList(it)
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "تم الحذف بنجاح", Toast.LENGTH_LONG).show()
-                    }
+                    AppToastManager.show(
+                        message = "تم الحذف بنجاح",
+                        type = AppToastType.SUCCESS
+                    )
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
-                }
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
             }
         }
     }
@@ -175,15 +192,50 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 repository.deleteCustomTasabeeh(item)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "تم الحذف بنجاح", Toast.LENGTH_LONG).show()
+                fetchCustomTasabeehList(item.listId)
+                AppToastManager.show(
+                    message = "تم الحذف بنجاح",
+                    type = AppToastType.SUCCESS
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+                reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
+            }
+        }
+    }
+
+    private val countPersistJobs = mutableMapOf<Int, Job>()
+
+    fun onTasbeehCountChanged(item: CustomTasbeeh, newCount: Int) {
+        itemCounts[item.id] = newCount // instant UI update
+
+        countPersistJobs[item.id]?.cancel()
+        countPersistJobs[item.id] = viewModelScope.launch(Dispatchers.IO) {
+            delay(400.milliseconds)
+            try {
+                repository.updateTasbeehCurrentCount(item.id, newCount)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
+            }
+        }
+    }
+
+    fun flushPendingCounts() {
+        countPersistJobs.values.forEach { it.cancel() }
+        countPersistJobs.clear()
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                itemCounts.forEach { (id, count) ->
+                    repository.updateTasbeehCurrentCount(id, count)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
-                }
             }
         }
     }
@@ -212,19 +264,20 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
         } catch (e: Exception) {
             e.printStackTrace()
             reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
-            Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
+            AppToastManager.show(
+                message = "حصل خطأ يرجى المحاولة لاحقا",
+                type = AppToastType.ERROR
+            )
         }
     }
 
     // to keep count of each tasbeeh counter by their id, useful for updating and checking
-    var itemCounts = mutableStateMapOf<Int, Int>().apply {
-        customTasabeeh.forEach { put(it.id, it.count) }
-    }
+    var itemCounts = mutableStateMapOf<Int, Int>()
 
     fun closeCustomTasbeehModal() {
         _addTasbeehDialog.value = false;
         // reset form
-        _tasbeehInWork.value = CustomTasbeeh(text = "", count = 0, listId = 0, position = 0);
+        _tasbeehInWork.value = baseCustomTasbeeh.copy();
     }
 
     suspend fun updateUIListOnDrag(toIndex: Int, fromIndex: Int) {
@@ -245,11 +298,36 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
-                Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
             }
         }
     }
 
+    fun resetAllCounters() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                countPersistJobs.values.forEach { it.cancel() }
+                countPersistJobs.clear()
+
+                _customTasabeeh.forEach {
+                    repository.updateTasbeehCurrentCount(it.id, it.count)
+                }
+                _customTasabeehList.value?.let {
+                    fetchCustomTasabeehList(it.id)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
+            }
+        }
+    }
     fun exportListAsJson() {
         val gson = Gson()
         val jsonString = gson.toJson(_customTasabeeh)
@@ -273,12 +351,19 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
                 saveJsonToDownloadsLegacy(context, fileName, jsonString)
             }
 
-            Toast.makeText(context, "تم التصدير بنجاح", Toast.LENGTH_SHORT).show()
+            AppToastManager.show(
+                message = "تم التصدير بنجاح",
+                type = AppToastType.SUCCESS
+            )
+
             exportListDialog = false
 
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_SHORT).show()
+            AppToastManager.show(
+                message = "حصل خطأ يرجى المحاولة لاحقا",
+                type = AppToastType.ERROR
+            )
             reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
         }
     }
@@ -351,19 +436,29 @@ class CustomTasabeehListScreenViewModel(private val repository: QuranRepository,
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val jsonString = readJsonFromUri(context, uri)
+                val listType = object : TypeToken<List<ImportedCustomTasbeeh>>() {}.type
+                val importedTasabeeh = gson.fromJson<List<ImportedCustomTasbeeh>>(jsonString, listType)
+                val listId = _customTasabeehList.value!!.id
 
-                val listType = object : TypeToken<List<CustomTasbeeh>>() {}.type
-                val importedTasabeeh = gson.fromJson<List<CustomTasbeeh>>(jsonString, listType)
-
-
-                repository.insertMultCustomTasbeeh(importedTasabeeh.map { item -> CustomTasbeeh(listId = _customTasabeehList.value!!.id, text = item.text, count = item.count, position = 0) })
-                withContext(Dispatchers.Main) {
-                    updateTasabeehListPositions()
-                }
+                repository.insertMultCustomTasbeeh(
+                    importedTasabeeh.map { item ->
+                        CustomTasbeeh(
+                            listId = listId,
+                            text = item.text,
+                            count = item.count,
+                            currentCount = item.currentCount ?: item.count,
+                            position = 0
+                        )
+                    }
+                )
+                fetchCustomTasabeehList(listId)
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "CustomTasabeehListScreenViewModel")
-                Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_SHORT).show()
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
             }
         }
     }

@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -18,7 +16,6 @@ import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableDates
@@ -33,10 +30,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.Helpers
-import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.forms.OttrojjaSelect
@@ -48,6 +44,7 @@ import java.util.Calendar
 import java.util.Locale
 import androidx.compose.ui.text.font.FontWeight
 import com.ottrojja.classes.FormValidationResult
+import com.ottrojja.composables.forms.OttrojjaForm
 import com.ottrojja.composables.forms.OttrojjaFormField
 import com.ottrojja.constants.QuranConstants.TOTAL_QURAN_PAGES
 import com.ottrojja.screens.Khitmah.FormValidation.validateKhitmah
@@ -185,131 +182,123 @@ fun KhitmahForm(
         useDefaultWidth = false,
         title = if (formState.mode == KhitmahFormMode.CREATE) "إضافة ختمة" else "تعديل الختمة"
     ) {
-        Column(
-            modifier = Modifier.verticalScroll(
-                rememberScrollState()
-            )
-        ) {
-            OttrojjaFormField(
-                label = "عنوان الختمة",
-                error = formValidationResult.errors.get("khitmahTitle")
-            ) {
-                OttrojjaTextField(
-                    value = formState.khitmah.title,
-                    onChange = { value ->
-                        formState = formState.copy(
-                            khitmah = formState.khitmah.copy(
-                                title = value
+
+        OttrojjaForm(
+            body = {
+                OttrojjaFormField(
+                    label = "عنوان الختمة",
+                    error = formValidationResult.errors.get("khitmahTitle")
+                ) {
+                    OttrojjaTextField(
+                        value = formState.khitmah.title,
+                        onChange = { value ->
+                            formState = formState.copy(
+                                khitmah = formState.khitmah.copy(
+                                    title = value
+                                )
+                            );
+                            formValidationResult = validateKhitmah(formState.khitmah)
+                        },
+                    )
+                }
+
+
+                OttrojjaFormField(label = "موعد هدف الانهاء (اختياري)") {
+                    OttrojjaSelect(
+                        value = formState.khitmah.targetDate,
+                        onClick = {
+                            showDatePicker = true
+                        },
+                        clearable = true,
+                        onClear = {
+                            formState = formState.copy(
+                                khitmah = formState.khitmah.copy(targetDate = null)
                             )
-                        );
-                        formValidationResult = validateKhitmah(formState.khitmah)
-                    },
-                )
-            }
+                        },
+                        leadingIcon = Icons.Default.CalendarMonth
+                    )
+                }
 
+                AnimatedVisibility(
+                    visible = !formState.khitmah.targetDate.isNullOrBlank()
+                ) {
+                    formState.khitmah.targetDate?.let {
+                        val pagesPerDay = calculateSuggestedPagesPerDay()
 
-            OttrojjaFormField(label = "موعد هدف الانهاء (اختياري)") {
-                OttrojjaSelect(
-                    value = formState.khitmah.targetDate,
-                    onClick = {
-                        showDatePicker = true
-                    },
-                    clearable = true,
-                    onClear = {
-                        formState = formState.copy(
-                            khitmah = formState.khitmah.copy(targetDate = null)
-                        )
-                    },
-                    leadingIcon = Icons.Default.CalendarMonth
-                )
-            }
-
-            AnimatedVisibility(
-                visible = !formState.khitmah.targetDate.isNullOrBlank()
-            ) {
-                formState.khitmah.targetDate?.let {
-                    val pagesPerDay = calculateSuggestedPagesPerDay()
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(
-                                MaterialTheme.colorScheme.primaryContainer
-                            )
-                            .padding(
-                                horizontal = 16.dp,
-                                vertical = 14.dp
-                            ),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(
+                                    MaterialTheme.colorScheme.primaryContainer
+                                )
+                                .padding(
+                                    horizontal = 16.dp,
+                                    vertical = 14.dp
+                                ),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.MenuBook,
-                                tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = ""
-                            )
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.MenuBook,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    contentDescription = ""
+                                )
+
+                                OttrojjaText(
+                                    text = "معدل الصفحات اليومي",
+                                    style = OttrojjaTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
 
                             OttrojjaText(
-                                text = "معدل الصفحات اليومي",
-                                style = OttrojjaTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.primary
+                                text = " $pagesPerDay صفحة يومياً",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(top = 6.dp)
                             )
                         }
+                    }
+                }
 
-                        OttrojjaText(
-                            text = " $pagesPerDay صفحة يومياً",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(top = 6.dp)
+                SwitchRow(
+                    label = "إنشاء مذكر للختمة",
+                    checked = formState.reminderEnabled,
+                    onCheckedChange = { enabled ->
+                        formState = formState.copy(
+                            reminderEnabled = enabled
+                        )
+                    }
+                )
+
+                AnimatedVisibility(
+                    visible = formState.reminderEnabled
+                ) {
+                    OttrojjaFormField(label = "توقيت المذكر") {
+                        OttrojjaSelect(
+                            value = formState.reminderTime.split(":").let {
+                                Helpers.formatMilitaryTime(
+                                    it[0].toInt(),
+                                    it[1].toInt()
+                                )
+                            },
+                            onClick = {
+                                showTimePicker = true
+                            },
+                            leadingIcon = Icons.Default.AccessTime
                         )
                     }
                 }
-            }
-
-            SwitchRow(
-                label = "إنشاء مذكر للختمة",
-                checked = formState.reminderEnabled,
-                onCheckedChange = { enabled ->
-                    formState = formState.copy(
-                        reminderEnabled = enabled
-                    )
-                }
-            )
-
-            AnimatedVisibility(
-                visible = formState.reminderEnabled
-            ) {
-                OttrojjaFormField(label = "توقيت المذكر") {
-                    OttrojjaSelect(
-                        value = formState.reminderTime.split(":").let {
-                            Helpers.formatMilitaryTime(
-                                it[0].toInt(),
-                                it[1].toInt()
-                            )
-                        },
-                        onClick = {
-                            showTimePicker = true
-                        },
-                        leadingIcon = Icons.Default.AccessTime
-                    )
-                }
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
+            },
+            footer = {
                 OttrojjaButton(
                     onClick = {
                         formValidationResult = validateKhitmah(formState.khitmah)
@@ -319,8 +308,7 @@ fun KhitmahForm(
                         }
                     },
                     modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .padding(vertical = 2.dp),
+                        .fillMaxWidth(0.6f),
                     text = if (formState.mode == KhitmahFormMode.CREATE)
                         "إضافة"
                     else
@@ -331,11 +319,10 @@ fun KhitmahForm(
                 OttrojjaButton(
                     onClick = onDismiss,
                     modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .padding(vertical = 2.dp),
+                        .fillMaxWidth(0.6f),
                     text = "إلغاء"
                 )
             }
-        }
+        )
     }
 }

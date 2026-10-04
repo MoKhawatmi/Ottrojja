@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,8 +18,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.forms.OttrojjaFormField
 import com.ottrojja.composables.forms.OttrojjaTextField
@@ -96,7 +97,10 @@ fun ExportListDialog(
                         if (fileTitle.isNotBlank()) {
                             onConfirm()
                         } else {
-                            Toast.makeText(context, "يرجى التأكد من البيانات المدخلة", Toast.LENGTH_LONG).show()
+                            AppToastManager.show(
+                                message = "يرجى التأكد من البيانات المدخلة",
+                                type = AppToastType.ERROR
+                            )
                         }
                     },
                 )

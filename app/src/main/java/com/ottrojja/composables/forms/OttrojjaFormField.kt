@@ -1,7 +1,9 @@
 package com.ottrojja.composables.forms
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -20,7 +22,6 @@ fun OttrojjaFormField(
 ) {
     Column(
         modifier = modifier
-            .padding(vertical = 12.dp)
             .fillMaxWidth()
     ) {
         if(label.isNotBlank()){
@@ -33,6 +34,7 @@ fun OttrojjaFormField(
         }
 
         content()
+
 
         supportingText?.let {
             OttrojjaText(

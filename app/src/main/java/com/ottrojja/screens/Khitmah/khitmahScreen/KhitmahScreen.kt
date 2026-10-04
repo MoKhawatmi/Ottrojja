@@ -42,7 +42,7 @@ import com.binayshaw7777.kotstep.ui.vertical.VerticalStepper
 import com.ottrojja.R
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.room.repositories.QuranRepository
-import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.OttrojjaLoadingIndicator
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.OttrojjaText

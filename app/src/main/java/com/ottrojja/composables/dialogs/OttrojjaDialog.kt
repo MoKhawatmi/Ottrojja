@@ -7,11 +7,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -20,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,17 +43,26 @@ fun OttrojjaDialog(
     onDismissRequest: () -> Unit,
     useDefaultWidth: Boolean = true,
     title: String? = null,
+    allowVerticalScroll: Boolean = true,
     content: @Composable() () -> Unit,
 ) {
     Dialog(
         onDismissRequest = { onDismissRequest() },
-        properties = DialogProperties(usePlatformDefaultWidth = useDefaultWidth)
+        properties = DialogProperties(usePlatformDefaultWidth = useDefaultWidth,  decorFitsSystemWindows = false)
     ) {
+
+        val configuration = LocalConfiguration.current
+        val maxDialogHeight = (configuration.screenHeightDp * 0.9f).dp
+        val scrollState = rememberScrollState()
+
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.background,
             ),
+            modifier = Modifier
+                .heightIn(max = maxDialogHeight).imePadding()
+
         ) {
             Box(modifier = contentModifier) {
                 Image(
@@ -78,7 +91,19 @@ fun OttrojjaDialog(
                         )
                     }
 
-                    content()
+                    Column(
+                        modifier = Modifier
+                            .then(
+                                if (allowVerticalScroll) {
+                                    Modifier.verticalScroll(scrollState)
+                                } else {
+                                    Modifier
+                                }
+                            ).weight(1f, fill = false)
+                    ) {
+                        content()
+                    }
+
                 }
 
             }

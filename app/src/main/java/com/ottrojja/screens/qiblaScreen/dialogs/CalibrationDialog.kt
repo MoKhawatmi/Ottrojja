@@ -7,22 +7,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ottrojja.R
-import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.ui.theme.OttrojjaTheme
@@ -31,28 +30,41 @@ import com.ottrojja.ui.theme.OttrojjaTheme
 fun CalibrationDialog(onDismiss: () -> Unit) {
     OttrojjaDialog(
         contentModifier = Modifier
-        .padding(8.dp)
-        .wrapContentHeight()
-        .clip(shape = RoundedCornerShape(12.dp)),
+            .padding(8.dp)
+            .wrapContentHeight()
+            .clip(shape = RoundedCornerShape(12.dp)),
         onDismissRequest = { onDismiss() },
         title = "معايرة البوصلة"
     ) {
         Column(verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(modifier = Modifier
-                .verticalScroll(rememberScrollState())
-            ) {
+            Column() {
                 Image(
                     painter = painterResource(R.drawable.calibration),
                     contentDescription = "calibration",
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                OttrojjaText("لمعايرة بوصلة الجهاز لتحديد اتجاه القبلة بدقة يرجى:",
-                    style = OttrojjaTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.primary
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp, alignment = Alignment.Start),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    OttrojjaText(
+                        text = "لمعايرة بوصلة الجهاز لتحديد اتجاه القبلة بدقة يرجى:",
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Start,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
                 OttrojjaText("١. أمساك الجهاز بشكل مسطح", style = OttrojjaTheme.typography.bodyMedium,
                     textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.primary
                 )

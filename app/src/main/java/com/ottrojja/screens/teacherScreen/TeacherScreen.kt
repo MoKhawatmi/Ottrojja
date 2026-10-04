@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -20,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -44,6 +47,8 @@ import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.screens.listeningScreen.ListeningViewModel
 import com.ottrojja.screens.listeningScreen.dialogs.SurahSelectionDialog
 import com.ottrojja.screens.listeningScreen.dialogs.VerseSelectionDialog
+import com.ottrojja.screens.teacherScreen.classes.TeacherMode
+import com.ottrojja.screens.teacherScreen.dialogs.InstructionsDialog
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
@@ -57,14 +62,11 @@ fun TeacherScreen(
         factory = TeacherScreenViewModelFactory(repository, application)
     )
 
-    var filteredChapters by remember { mutableStateOf(emptyList<ChapterData>()) }
+    val quranRange by teacherScreenViewModel.quranRange.collectAsState()
 
     LaunchedEffect(Unit) {
         teacherScreenViewModel.initChaptersList()
-    }
-
-    LaunchedEffect(teacherScreenViewModel.searchFilter) {
-        filteredChapters = teacherScreenViewModel.getChaptersList()
+        teacherScreenViewModel.initQuranRange()
     }
 
     DisposableEffect(Unit) {
@@ -73,29 +75,6 @@ fun TeacherScreen(
         }
     }
 
-    if (teacherScreenViewModel.showSurahSelectionDialog) {
-        SurahSelectionDialog(
-            onDismiss = { teacherScreenViewModel.showSurahSelectionDialog = false },
-            chapters = filteredChapters,
-            searchFilter = teacherScreenViewModel.searchFilter,
-            searchFilterChanged = { value -> teacherScreenViewModel.searchFilter = value },
-            selectSurah = { value ->
-                teacherScreenViewModel.surahSelected(value);
-                teacherScreenViewModel.searchFilter = ""
-            },
-        )
-    }
-
-    if (teacherScreenViewModel.showVerseSelectionDialog) {
-        VerseSelectionDialog(
-            onDismiss = { teacherScreenViewModel.showVerseSelectionDialog = false },
-            versesNum = if (teacherScreenViewModel.selectionPhase == ListeningViewModel.SelectionPhase.START) {
-                teacherScreenViewModel.startingSurah!!.verseCount
-            } else {
-                teacherScreenViewModel.endSurah!!.verseCount
-            },
-            selectVerse = { value -> teacherScreenViewModel.verseSelected(value) })
-    }
 
     if (teacherScreenViewModel.showInstructionsDialog) {
         InstructionsDialog(onDismiss = { teacherScreenViewModel.showInstructionsDialog = false })
@@ -109,7 +88,7 @@ fun TeacherScreen(
                 icon = Icons.Default.Info,
                 action = { teacherScreenViewModel.showInstructionsDialog = true }
             ),
-            secondaryActions = if (teacherScreenViewModel.mode != TeacherScreenViewModel.TeacherMode.SELECTION) {
+            secondaryActions = if (teacherScreenViewModel.mode != TeacherMode.SELECTION) {
                 listOf(
                     ButtonAction(
                         icon = Icons.Filled.ArrowBack,
@@ -123,24 +102,18 @@ fun TeacherScreen(
         )
 
         when (teacherScreenViewModel.mode) {
-            TeacherScreenViewModel.TeacherMode.SELECTION -> TrainingSelection(
-                setShowSurahSelectionDialog = { value -> teacherScreenViewModel.showSurahSelectionDialog = value },
-                setSelectionPhase = { value -> teacherScreenViewModel.selectionPhase = value },
-                setShowVerseSelectionDialog = { value -> teacherScreenViewModel.showVerseSelectionDialog = value },
-                startingSurah = teacherScreenViewModel.startingSurah,
-                startingVerse = teacherScreenViewModel.startingVerse,
-                endSurah = teacherScreenViewModel.endSurah,
-                endVerse = teacherScreenViewModel.endVerse,
-                startTraining = { teacherScreenViewModel.startTraining() }
+            TeacherMode.SELECTION -> TrainingSelection(
+                quranRange = quranRange,
+                onQuranRangeChange = { teacherScreenViewModel.updateQuranRange(it) },
+                repository = repository,
+                startTraining = { teacherScreenViewModel.startTraining() },
             )
 
-            TeacherScreenViewModel.TeacherMode.TRAINING -> PageTraining(
+            TeacherMode.TRAINING -> PageTraining(
                 currentVerse = teacherScreenViewModel.currentVerse,
                 checkVerse = { teacherScreenViewModel.checkVerse() },
                 currentTry = teacherScreenViewModel.currentTry,
                 proceedVerse = { teacherScreenViewModel.proceedVerse() },
-                //startTeaching = { teacherScreenViewModel.startTeaching() },
-                //hasStarted = teacherScreenViewModel.hasStarted,
                 solutionMap = teacherScreenViewModel.solutionMap,
                 inputSolutions = teacherScreenViewModel.inputSolutions,
                 onInputSolutionChanged = { value, index ->
@@ -166,7 +139,7 @@ fun TeacherScreen(
                 getChapterName = { chapterId -> teacherScreenViewModel.getChapterName(chapterId) }
             )
 
-            TeacherScreenViewModel.TeacherMode.RESULTS -> FinalResults(
+            TeacherMode.RESULTS -> FinalResults(
                 selectedTrainingVerses = teacherScreenViewModel.selectedTrainingVerses,
                 backToSelection = { teacherScreenViewModel.backToSelection() }
             )
@@ -174,74 +147,5 @@ fun TeacherScreen(
     }
 }
 
-@Composable
-fun InstructionsDialog(onDismiss: () -> Unit) {
-    val instructionsText = mutableListOf<String>("المعلم")
-    instructionsText.add("إختبر حفظك للقرآن الكريم من خلال هذه الميزة")
-    instructionsText.add("الإرشادات:")
-    instructionsText.add("بعد اختيار ايات التدريب قم بالضغط على زر البدء")
-    instructionsText.add(
-        "سيتم عرض الايات بالترتيب وبها فراغات لاكمالها حيث يمثل كل فراغ كلمة واحدة فقط من الاية"
-    )
-    instructionsText.add("قم بملئ الفراغات بالكلمات بدون استخدام اي تشكيل او حركات للحروف")
-    instructionsText.add("ثم اضغط على زر التحقق للتحقق من اجاباتك")
-    instructionsText.add("سيتم اظهار الاجابات الصحيحة باللون الاخضر والخاطئة باللون الاحمر")
-    instructionsText.add(
-        "امامك ثلاث محاولات للوصول للاجابات الصحيحة وبعدها يتم إظهار النص الصحيح لمقارنته بالحل ويمكنك عندها الاستماع للاية صوتيا"
-    )
-    instructionsText.add(
-        "بعد الانتهاء من الاجابة على جميع الايات سيتم عرض قائمة بالايات وإن كانت الاجابة عليها صحيحة ام لا"
-    )
 
-
-    OttrojjaDialog(
-        contentModifier = Modifier
-            .padding(8.dp)
-            .wrapContentHeight()
-            .fillMaxWidth(0.9f)
-            .padding(8.dp)
-            .clip(shape = RoundedCornerShape(12.dp)),
-        onDismissRequest = { onDismiss() },
-        useDefaultWidth = false,
-    ) {
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start,
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.5f)
-        ) {
-            LazyColumn(
-                Modifier
-                    .fillMaxSize()
-            ) {
-                items(instructionsText) { item ->
-
-                    Row(
-                        verticalAlignment = Alignment.Top,
-                        horizontalArrangement = Arrangement.Start,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 0.dp, vertical = 2.dp)
-                    ) {
-                        Icon(
-                            painterResource(id = R.drawable.lightbulb),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .padding(0.dp, 2.dp, 4.dp, 2.dp)
-                                .fillMaxWidth(0.08f)
-                        )
-                        OttrojjaText(
-                            text = item,
-                            style = OttrojjaTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Start,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
 

@@ -20,6 +20,7 @@ object DataStoreRepository {
     private val USER_TASABEEH_COUNT = intPreferencesKey("tasbeeh_count")
     private val MAIN_SCREEN_ADVICE = stringPreferencesKey("main_screen_advice")
     private val DEFAULT_TASABEEH_SEEDED = booleanPreferencesKey("default_tasabeeh_seeded")
+    private val MAIN_CONTACT_US = booleanPreferencesKey("main_contact_us")
 
     /*******************FLOATING AZKAR*********************/
     val floatingAzkarFlow: Flow<Boolean> =
@@ -78,6 +79,14 @@ object DataStoreRepository {
 
     suspend fun setMainScreenAdvice(value: Advice) {
         datastore.edit { it[MAIN_SCREEN_ADVICE] = json.encodeToString(value) }
+    }
+
+    /*******************MAIN CONTACT US*********************/
+    val mainContactUsFlow: Flow<Boolean> =
+        datastore.data.map { it[MAIN_CONTACT_US] ?: true }
+
+    suspend fun setMainContactUsFlow(enabled: Boolean) {
+        datastore.edit { it[MAIN_CONTACT_US] = enabled }
     }
 
 

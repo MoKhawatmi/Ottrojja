@@ -23,6 +23,8 @@ import com.ottrojja.R
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.getMediaSrcFactory
 import com.ottrojja.classes.Helpers.reportException
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
@@ -110,8 +112,10 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
                     super.onPlayerError(error)
                     error.printStackTrace()
                     reportException(exception = error, file = "AzkarPlayerService")
-                    Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
-                        .show()
+                    AppToastManager.show(
+                        message = "حصل خطأ، يرجى المحاولة لاحقا",
+                        type = AppToastType.ERROR
+                    )
                 }
             }
         )
@@ -194,7 +198,10 @@ class AzkarPlayerService : Service(), AudioServiceInterface {
         val path = link.split("/").last()
         val localFile = File(this.getExternalFilesDir(null), path)
         if (!localFile.exists() && !Helpers.checkNetworkConnectivity(this)) {
-            Toast.makeText(this, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG).show()
+            AppToastManager.show(
+                message = "لا يوجد اتصال بالانترنت",
+                type = AppToastType.ERROR
+            )
             resetAll();
             return;
         }

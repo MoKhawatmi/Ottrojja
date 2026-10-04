@@ -16,6 +16,8 @@ import com.ottrojja.classes.FormValidationResult
 import com.ottrojja.classes.Helpers.formatDateTime
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.ModalFormMode
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
 import com.ottrojja.screens.reminderScreen.classes.ReminderScheduler
 import com.ottrojja.room.entities.Reminder
@@ -108,8 +110,12 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
                     }
                 }
             } catch (e: Exception) {
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
+
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_SHORT).show()
                     reportException(e, "ReminderViewModel", "error fetching reminders")
                 }
             }
@@ -139,12 +145,12 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
                     enabled = !reminder.isEnabled
                 )
             } catch (e: Exception) {
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
+
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        context,
-                        "حصل خطأ يرجى المحاولة لاحقا",
-                        Toast.LENGTH_LONG
-                    ).show()
 
                     reportException(
                         e,
@@ -183,11 +189,10 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
                         else
                             "تمت الاضافة بنجاح"
 
-                    Toast.makeText(
-                        context,
-                        toastMsg,
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    AppToastManager.show(
+                        message = toastMsg,
+                        type = AppToastType.SUCCESS
+                    )
 
                     dismissReminderForm()
                 }
@@ -200,13 +205,10 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
                     "error upserting reminder"
                 )
 
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        context,
-                        "حصل خطأ يرجى المحاولة لاحقا",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
             }
         }
     }
@@ -217,13 +219,11 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
             try {
                 reminderManager.deleteReminder(reminder)
 
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        context,
-                        "تم الحذف بنجاح",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                AppToastManager.show(
+                    message = "تم الحذف بنجاح",
+                    type = AppToastType.SUCCESS
+                )
+
             } catch (e: Exception) {
                 e.printStackTrace()
 
@@ -233,13 +233,11 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
                     "Error while deleting reminder"
                 )
 
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        context,
-                        "حصل خطأ يرجى المحاولة لاحقا",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
+
             }
         }
     }

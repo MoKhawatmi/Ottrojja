@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ImportExport
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
@@ -37,9 +38,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -54,7 +58,10 @@ import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.ModalFormMode
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.composables.EmptyListMessage
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.composables.TopBar
+import com.ottrojja.composables.dialogs.OttrojjaAlertDialog
 import com.ottrojja.screens.customTasabeehListScreen.composables.CustomTasbeehCounter
 import com.ottrojja.screens.customTasabeehListScreen.dialogs.AddCustomTasbeehDialog
 import com.ottrojja.screens.customTasabeehListScreen.dialogs.ExportListDialog
@@ -70,6 +77,8 @@ fun CustomTasabeehListScreen(
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
+
+    var resetAllAlert by remember { mutableStateOf(false) }
 
     val vibrator = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -131,7 +140,10 @@ fun CustomTasabeehListScreen(
         if (isGranted) {
             showExportListDialog()
         } else {
-            Toast.makeText(context, "يحتاج التطبيق لأذونات الوصول للتخزين ليتمكن من التصدير بنجاح", Toast.LENGTH_SHORT).show()
+            AppToastManager.show(
+                message = "يحتاج التطبيق لأذونات الوصول للتخزين ليتمكن من التصدير بنجاح",
+                type = AppToastType.INFO
+            )
         }
     }
 
@@ -143,6 +155,12 @@ fun CustomTasabeehListScreen(
 
     LaunchedEffect(Unit) {
         customTasabeehListScreenViewModel.fetchCustomTasabeehList(id)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            customTasabeehListScreenViewModel.flushPendingCounts()
+        }
     }
 
     fun confirmDeleteList() {
@@ -175,6 +193,15 @@ fun CustomTasabeehListScreen(
         } else {
             permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
+    }
+
+    if (resetAllAlert) {
+        OttrojjaAlertDialog(
+            onDismiss = { resetAllAlert = false },
+            onConfirm = { customTasabeehListScreenViewModel.resetAllCounters(); resetAllAlert = false },
+            title = "إعادة تعيين جميع العدادات",
+            text = "هل أنت متأكد من رغبتك في إعادة تعيين جميع العدادات؟"
+        )
     }
 
     if (customTasabeehListScreenViewModel.addTasbeehDialog) {
@@ -223,6 +250,10 @@ fun CustomTasabeehListScreen(
                     action = {
                         triggerAddTasbeehDialog()
                     }),
+                ButtonAction(icon = Icons.Default.Replay, title = "إعادة تعيين الكل",
+                    action = {
+                        resetAllAlert = true
+                    }),
                 ButtonAction(icon = ImageVector.vectorResource(R.drawable.export),
                     title = "تصدير الاذكار",
                     action = { checkWritePermission(); }
@@ -257,8 +288,6 @@ fun CustomTasabeehListScreen(
                 )
             }
         }
-
-
         LazyColumn(
             state = lazyListState,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -290,9 +319,9 @@ fun CustomTasabeehListScreen(
                                     customTasabeehListScreenViewModel.addTasbeehDialog = true;
                                 },
                                 tasbeehCount = customTasabeehListScreenViewModel.itemCounts.get(item.id)
-                                    ?: item.count,
+                                    ?: item.currentCount,
                                 onCountChanged = { value ->
-                                    customTasabeehListScreenViewModel.itemCounts.put(item.id, value)
+                                    customTasabeehListScreenViewModel.onTasbeehCountChanged(item, value)
                                 },
                                 onHapticFeedback = { hapticFeedback() }
                             )
@@ -308,7 +337,6 @@ fun CustomTasabeehListScreen(
                             ) {
                                 Icon(Icons.Rounded.DragHandle, contentDescription = "Reorder")
                             }
-
                         }
                     }
                 }

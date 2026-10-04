@@ -5,32 +5,39 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.ottrojja.composables.OttrojjaButton
-import com.ottrojja.composables.RangeSelector
-import com.ottrojja.composables.rangeSelectionItem.RangeSelectionSegment
-import com.ottrojja.room.entities.ChapterData
-import com.ottrojja.screens.listeningScreen.ListeningViewModel
+import com.ottrojja.composables.buttons.OttrojjaButton
+import com.ottrojja.composables.quranRangeSelector.QuranRangeSelector
+import com.ottrojja.composables.quranRangeSelector.QuranRangeState
+import com.ottrojja.room.repositories.QuranRepository
 
 @Composable
 fun TrainingSelection(
-    setShowSurahSelectionDialog: (Boolean) -> Unit,
-    setSelectionPhase: (ListeningViewModel.SelectionPhase) -> Unit,
-    setShowVerseSelectionDialog: (Boolean) -> Unit,
-    startingSurah: ChapterData?,
-    startingVerse: Int,
-    endSurah: ChapterData?,
-    endVerse: Int,
-    startTraining: () -> Unit
+    startTraining: () -> Unit,
+    quranRange: QuranRangeState? = null,
+    onQuranRangeChange: (QuranRangeState) -> Unit,
+    repository: QuranRepository
 ) {
 
-    Row(modifier = Modifier
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(16.dp)
+    ) {
+        if (quranRange != null) {
+            QuranRangeSelector(
+                range = quranRange,
+                onRangeChange = { onQuranRangeChange(it) },
+                repository = repository
+            )
+        }
+    }
+
+
+    /*Row(modifier = Modifier
         .fillMaxWidth()
         .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -69,7 +76,7 @@ fun TrainingSelection(
                 }
             ))
         )
-    }
+    }*/
 
     Row(modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,

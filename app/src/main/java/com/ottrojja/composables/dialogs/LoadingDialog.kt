@@ -26,16 +26,11 @@ import com.ottrojja.composables.OttrojjaLoadingIndicator
 fun LoadingDialog() {
     OttrojjaDialog(
         onDismissRequest = { },
-        contentModifier = Modifier
-            .padding(8.dp)
-            .fillMaxHeight(0.2f)
-            .padding(8.dp)
-            .clip(RoundedCornerShape(12.dp))
-    ) {
+        ) {
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().padding(32.dp)
         ) {
             OttrojjaLoadingIndicator(
                 size = 52.dp,

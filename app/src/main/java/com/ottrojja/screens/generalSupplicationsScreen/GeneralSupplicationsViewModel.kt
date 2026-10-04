@@ -10,6 +10,8 @@ import androidx.lifecycle.AndroidViewModel
 import com.ottrojja.classes.GeneralSupplications
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.JsonParser
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 
 class GeneralSupplicationsViewModel(application: Application) : AndroidViewModel(application) {
     val context = application.applicationContext;
@@ -53,7 +55,10 @@ class GeneralSupplicationsViewModel(application: Application) : AndroidViewModel
         } catch (e: Exception) {
             e.printStackTrace()
             reportException(exception = e, file = "GeneralSupplicationsViewModel")
-            Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
+            AppToastManager.show(
+                message = "حصل خطأ يرجى المحاولة لاحقا",
+                type = AppToastType.ERROR
+            )
         }
     }
 

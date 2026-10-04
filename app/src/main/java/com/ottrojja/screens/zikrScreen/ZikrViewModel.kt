@@ -27,6 +27,8 @@ import com.ottrojja.classes.Helpers.terminateAllServices
 import com.ottrojja.services.AzkarPlayerService
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.StorageBase
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.interfaces.TabItem
 import com.ottrojja.room.entities.Azkar
 import kotlinx.coroutines.Dispatchers
@@ -271,13 +273,10 @@ class ZikrViewModel(
 
     fun downloadZikr() {
         if (!Helpers.checkNetworkConnectivity(context)) {
-            Toast
-                .makeText(
-                    context,
-                    "لا يوجد اتصال بالانترنت",
-                    Toast.LENGTH_LONG
-                )
-                .show()
+            AppToastManager.show(
+                message = "لا يوجد اتصال بالانترنت",
+                type = AppToastType.ERROR
+            )
             return;
         }
 
@@ -301,7 +300,11 @@ class ZikrViewModel(
 
                 is DownloadState.Success -> {
                     _isDownloading.value = false
-                    Toast.makeText(context, "تم التحميل بنجاح!", Toast.LENGTH_LONG).show()
+                    AppToastManager.show(
+                        message = "تم التحميل بنجاح!",
+                        type = AppToastType.SUCCESS
+                    )
+
                 }
 
                 is DownloadState.Failure -> {
@@ -317,9 +320,15 @@ class ZikrViewModel(
                     println("failed download: ${state.error.message}")
 
                     if (state.error.message?.contains("ENOSPC") == true) {
-                        Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
+                        AppToastManager.show(
+                            message = context.resources.getString(R.string.enospc),
+                            type = AppToastType.ERROR
+                        )
                     } else {
-                        Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
+                        AppToastManager.show(
+                            message = "حدث خطأ اثناء التحميل",
+                            type = AppToastType.ERROR
+                        )
                     }
                 }
             }

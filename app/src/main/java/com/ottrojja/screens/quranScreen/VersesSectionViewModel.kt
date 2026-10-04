@@ -12,6 +12,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.room.entities.ChapterData
@@ -154,11 +156,10 @@ class VersesSectionViewModel(private val repository: QuranRepository, applicatio
         if (startVerseNum == null || endVerseNum == null) return
 
         if (startVerseNum > endVerseNum) {
-            Toast.makeText(
-                context,
-                "موضع اية النهاية لا يجب ان يكون قبل اية البداية",
-                Toast.LENGTH_SHORT
-            ).show()
+            AppToastManager.show(
+                message = "موضع اية النهاية لا يجب ان يكون قبل اية البداية",
+                type = AppToastType.ERROR
+            )
             return;
         }
         val startVerseIndex = _selectionVersesList.value.indexOf(_startingVerse.value)

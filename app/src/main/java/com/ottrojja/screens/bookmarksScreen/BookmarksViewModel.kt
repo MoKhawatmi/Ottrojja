@@ -9,6 +9,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.Bookmark
 import com.ottrojja.classes.Helpers.reportException
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.room.entities.BookmarkEntity
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +43,10 @@ class BookmarksViewModel(private val repository: QuranRepository, application: A
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "BookmarksViewModel")
-                Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
             }
         }
     }
@@ -54,14 +59,18 @@ class BookmarksViewModel(private val repository: QuranRepository, application: A
 
                 withContext(Dispatchers.Main) {
                     _bookmarks.remove(bookmark)
-                    Toast.makeText(context, " تم تحديث المرجعيات بنجاح", Toast.LENGTH_LONG).show()
+                    AppToastManager.show(
+                        message = "تم تحديث المرجعيات بنجاح",
+                        type = AppToastType.SUCCESS
+                    )
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "BookmarksViewModel")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
-                }
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
             }
         }
     }

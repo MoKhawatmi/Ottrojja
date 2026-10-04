@@ -23,6 +23,9 @@ import androidx.work.WorkManager
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.ottrojja.BuildConfig
+import com.ottrojja.R
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.screens.reminderScreen.classes.RescheduleRemindersWorker
 import com.ottrojja.services.AzkarPlayerService
 import com.ottrojja.services.PagePlayerService
@@ -88,11 +91,17 @@ object Helpers {
             val clipData = ClipData.newPlainText("text", text)
             clipboardManager.setPrimaryClip(clipData)
             if (successToast.isNotBlank()) {
-                Toast.makeText(context, successToast, Toast.LENGTH_LONG).show();
+                AppToastManager.show(
+                    message = successToast,
+                    type = AppToastType.SUCCESS
+                )
             }
         } catch (e: Exception) {
             println(e);
-            Toast.makeText(context, "تعذر النسخ", Toast.LENGTH_LONG).show();
+            AppToastManager.show(
+                message = "تعذر النسخ",
+                type = AppToastType.ERROR
+            )
         }
     }
 

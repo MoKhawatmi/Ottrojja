@@ -40,20 +40,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import com.ottrojja.classes.Screen
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -64,27 +62,35 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.ottrojja.R
-import com.ottrojja.classes.Helpers.convertToIndianNumbers
-import com.ottrojja.room.repositories.QuranRepository
+import com.ottrojja.classes.DataStore.DataStoreRepository
+import com.ottrojja.classes.Screen
 import com.ottrojja.classes.SearchResult
-import com.ottrojja.composables.TopBar
+import com.ottrojja.classes.Helpers.convertToIndianNumbers
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.OttrojjaText
-import com.ottrojja.composables.SecondaryTopBar
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
+import com.ottrojja.composables.SecondaryTopBar
+import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.ZikrDisplay
 import com.ottrojja.composables.adviceDisplay.AdviceDisplay
 import com.ottrojja.composables.exactAlarmsPermissionHandler.ExactAlarmsPermissionHandler
 import com.ottrojja.composables.overlayPermissionHandler.OverlayPermissionHandler
 import com.ottrojja.composables.radnomBenefitDisplay.RandomBenefitDisplay
+import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.screens.mainScreen.Composables.ChaptersMenu
 import com.ottrojja.screens.mainScreen.Composables.MainScreenTab
 import com.ottrojja.screens.mainScreen.Composables.PartsMenu
 import com.ottrojja.screens.mainScreen.classes.PermissionStep
+import com.ottrojja.screens.settingsScreen.dialogs.ContactDialog
 import com.ottrojja.ui.theme.OttrojjaTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -93,52 +99,104 @@ fun MainScreen(
     repository: QuranRepository,
     section: String
 ) {
-    val context = LocalContext.current;
+    val context = LocalContext.current
     val application = context.applicationContext as Application
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-
+    val scope = rememberCoroutineScope()
 
     val mainViewModel: MainViewModel = viewModel(
         factory = MainViewModelFactory(repository, application)
     )
 
-    val primaryColor = MaterialTheme.colorScheme.primary;
+    val primaryColor = MaterialTheme.colorScheme.primary
 
-    var currentPermissionStep by remember { mutableStateOf(PermissionStep.OVERLAY) }
+    /*
+     * Startup flow:
+     *
+     * OVERLAY
+     *     ↓
+     * EXACT_ALARM
+     *     ↓
+     * DONE
+     *     ↓
+     * Contact Us (if it has not been dismissed before)
+     */
+    var currentPermissionStep by remember {
+        mutableStateOf(PermissionStep.OVERLAY)
+    }
+
+    /*
+     * Whether the Contact Us dialog is allowed to be shown.
+     *
+     * DataStore defaults to true, so a fresh installation can show it.
+     * Once dismissed, it is persisted as false.
+     */
+    val mainContactUs by DataStoreRepository.mainContactUsFlow
+        .collectAsState(initial = true)
+
+    /*
+     * Local UI state.
+     *
+     * We don't directly use mainContactUs to render the dialog because
+     * DataStore state and the permission flow are independent concerns.
+     */
+    var showContactDialog by remember {
+        mutableStateOf(false)
+    }
 
 
+    /*
+     * Main screen initialization.
+     */
     LaunchedEffect(Unit) {
         mainViewModel.invokeMostRecentPage()
-        if (section.length > 0) {
+
+        if (section.isNotEmpty()) {
             println("section $section")
-            mainViewModel.showImageList = false;
-            mainViewModel.clickBrowsingOption(BrowsingOption.valueOf(section))
+
+            mainViewModel.showImageList = false
+            mainViewModel.clickBrowsingOption(
+                BrowsingOption.valueOf(section)
+            )
         }
     }
 
+
+    /*
+     * Clean up when leaving MainScreen.
+     */
     DisposableEffect(Unit) {
         onDispose {
-            mainViewModel.showImageList = true;
-            mainViewModel.searchFilter = "";
+            mainViewModel.showImageList = true
+            mainViewModel.searchFilter = ""
             mainViewModel.quranSearchResults.clear()
         }
     }
 
 
-    BackHandler() {
+    /*
+     * Back handling.
+     */
+    BackHandler {
         if (!mainViewModel.showImageList) {
-            mainViewModel.showImageList = true;
+            mainViewModel.showImageList = true
         } else {
             val homeIntent = Intent(Intent.ACTION_MAIN).apply {
                 addCategory(Intent.CATEGORY_HOME)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
+
             context.startActivity(homeIntent)
         }
     }
 
+
+    /*
+     * Scroll state.
+     */
     val imageListscrollState = rememberScrollState()
+
     val showBottomFade = remember {
         derivedStateOf {
             val maxScroll = imageListscrollState.maxValue
@@ -146,26 +204,101 @@ fun MainScreen(
         }
     }
 
+
+    /*
+     * ---------------------------------------------------------
+     * PERMISSION FLOW
+     * ---------------------------------------------------------
+     */
+
     if (currentPermissionStep == PermissionStep.OVERLAY) {
         OverlayPermissionHandler(
-            onPermissionGranted = { mainViewModel.enableFloatingAzkar() },
-            onPermissionDenied = { mainViewModel.disableFloatingAzkar() },
-            onFinished = { currentPermissionStep = PermissionStep.EXACT_ALARM }
+            onPermissionGranted = {
+                mainViewModel.enableFloatingAzkar()
+            },
+            onPermissionDenied = {
+                mainViewModel.disableFloatingAzkar()
+            },
+            onFinished = {
+                currentPermissionStep = PermissionStep.EXACT_ALARM
+            }
         )
     }
 
     if (currentPermissionStep == PermissionStep.EXACT_ALARM) {
         ExactAlarmsPermissionHandler(
-            onPermissionGranted = { },
-            onPermissionDenied = { },
-            onFinished = { currentPermissionStep = PermissionStep.DONE }
+            onPermissionGranted = {},
+            onPermissionDenied = {},
+            onFinished = {
+                currentPermissionStep = PermissionStep.DONE
+            }
         )
     }
 
+
+    /*
+     * ---------------------------------------------------------
+     * CONTACT US
+     * ---------------------------------------------------------
+     *
+     * Contact Us is intentionally NOT shown directly from
+     * mainContactUs.
+     *
+     * It waits until all startup permission handlers have finished.
+     *
+     * The small delay also prevents this sequence:
+     *
+     * permission screen closes
+     *       ↓
+     * main screen appears
+     *       ↓
+     * immediately another dialog appears
+     *
+     * Instead, the main screen gets a moment to settle first.
+     */
+    LaunchedEffect(currentPermissionStep, mainContactUs) {
+        if (
+            currentPermissionStep == PermissionStep.DONE &&
+            mainContactUs
+        ) {
+            delay(700)
+            showContactDialog = true
+        }
+    }
+
+
+    if (showContactDialog) {
+        ContactDialog(
+            onDismiss = {
+                showContactDialog = false
+
+                scope.launch {
+                    DataStoreRepository.setMainContactUsFlow(false)
+                }
+            },
+            context = context
+        )
+    }
+
+
+    /*
+     * ---------------------------------------------------------
+     * MAIN SCREEN
+     * ---------------------------------------------------------
+     */
+
     if (mainViewModel.showImageList) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
                 TopBar(customContent = true) {
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
@@ -173,6 +306,7 @@ fun MainScreen(
                             .fillMaxSize()
                             .padding(4.dp, 0.dp)
                     ) {
+
                         BasicText(
                             text = "مَثَلُ الْمُؤْمِنِ الَّذِي يَقْرَأُ الْقُرْآنَ كَمَثَلِ الْأُتْرُجَّةِ، رِيحُهَا طَيِّبٌ وَطَعْمُهَا طَيِّبٌ",
                             maxLines = 2,
@@ -192,108 +326,178 @@ fun MainScreen(
                     }
                 }
 
+
                 Column(
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .padding(top = 0.dp, start = 6.dp, end = 6.dp, bottom = 12.dp)
+                        .padding(
+                            top = 0.dp,
+                            start = 6.dp,
+                            end = 6.dp,
+                            bottom = 12.dp
+                        )
                         .background(MaterialTheme.colorScheme.background)
                         .verticalScroll(imageListscrollState)
                 ) {
-                    if (mainViewModel.mostRecentPage.length > 0) {
+
+                    if (mainViewModel.mostRecentPage.isNotEmpty()) {
+
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier
-                                .padding(12.dp, top = 22.dp, bottom = 8.dp, end = 12.dp)
+                                .padding(
+                                    12.dp,
+                                    top = 22.dp,
+                                    bottom = 8.dp,
+                                    end = 12.dp
+                                )
                                 .fillMaxWidth()
                                 .background(Color.Transparent)
                                 .border(
-                                    BorderStroke(1.dp, color = MaterialTheme.colorScheme.primary),
+                                    BorderStroke(
+                                        1.dp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    ),
                                     shape = RoundedCornerShape(12.dp)
                                 )
                                 .clip(RoundedCornerShape(12))
                                 .clickable {
                                     navController.navigate(
-                                        Screen.QuranScreen.invokeRoute(mainViewModel.mostRecentPage)
+                                        Screen.QuranScreen.invokeRoute(
+                                            mainViewModel.mostRecentPage
+                                        )
                                     )
                                 }
                                 .padding(12.dp, 8.dp)
                         ) {
+
                             OttrojjaText(
                                 text = "عودة الى اخر صفحة (${mainViewModel.mostRecentPage})",
                                 style = OttrojjaTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.primary
                             )
+
                             Icon(
                                 Icons.Outlined.ArrowCircleLeft,
                                 contentDescription = "Quick Transition",
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
 
-                    Row {
-                        MainScreenTab(title = "صفحات القرآن", imageId = R.drawable.q_image1,
-                            startColor = Color.Red, endColor = Color(0xDD660000),
-                            onClick = {
-                                mainViewModel.searchFilter = "";
-                                mainViewModel.selectedSection = BrowsingOption.الصفحات;
-                                mainViewModel.showImageList = false;
-                            })
-                        MainScreenTab(title = "سور القرآن", imageId = R.drawable.q_image2,
-                            startColor = Color.Green, endColor = Color(0xDD006600),
-                            onClick = {
-                                mainViewModel.searchFilter = "";
-                                mainViewModel.selectedSection = BrowsingOption.السور;
-                                mainViewModel.showImageList = false;
-                            })
 
-                    }
                     Row {
-                        MainScreenTab(title = "اجزاء القرآن", imageId = R.drawable.q_image3,
-                            startColor = Color.Blue, endColor = Color(0xDD000066),
-                            onClick = {
-                                mainViewModel.searchFilter = "";
-                                mainViewModel.selectedSection = BrowsingOption.الاجزاء;
-                                mainViewModel.showImageList = false;
-                            })
-                        MainScreenTab(title = "البحث", imageId = R.drawable.q_image4,
-                            startColor = Color(0xFFD0B968), endColor = Color(0xFFA86809),
-                            onClick = {
-                                mainViewModel.searchFilter = "";
-                                mainViewModel.selectedSection = BrowsingOption.البحث;
-                                mainViewModel.invokeLatestSearchOperation();
-                                mainViewModel.showImageList = false;
-                            })
 
+                        MainScreenTab(
+                            title = "صفحات القرآن",
+                            imageId = R.drawable.q_image1,
+                            startColor = Color.Red,
+                            endColor = Color(0xDD660000),
+                            onClick = {
+                                mainViewModel.searchFilter = ""
+                                mainViewModel.selectedSection =
+                                    BrowsingOption.الصفحات
+                                mainViewModel.showImageList = false
+                            }
+                        )
+
+                        MainScreenTab(
+                            title = "سور القرآن",
+                            imageId = R.drawable.q_image2,
+                            startColor = Color.Green,
+                            endColor = Color(0xDD006600),
+                            onClick = {
+                                mainViewModel.searchFilter = ""
+                                mainViewModel.selectedSection =
+                                    BrowsingOption.السور
+                                mainViewModel.showImageList = false
+                            }
+                        )
                     }
+
+
+                    Row {
+
+                        MainScreenTab(
+                            title = "اجزاء القرآن",
+                            imageId = R.drawable.q_image3,
+                            startColor = Color.Blue,
+                            endColor = Color(0xDD000066),
+                            onClick = {
+                                mainViewModel.searchFilter = ""
+                                mainViewModel.selectedSection =
+                                    BrowsingOption.الاجزاء
+                                mainViewModel.showImageList = false
+                            }
+                        )
+
+                        MainScreenTab(
+                            title = "البحث",
+                            imageId = R.drawable.q_image4,
+                            startColor = Color(0xFFD0B968),
+                            endColor = Color(0xFFA86809),
+                            onClick = {
+                                mainViewModel.searchFilter = ""
+                                mainViewModel.selectedSection =
+                                    BrowsingOption.البحث
+                                mainViewModel.invokeLatestSearchOperation()
+                                mainViewModel.showImageList = false
+                            }
+                        )
+                    }
+
 
                     AdviceDisplay()
+
                     ZikrDisplay()
-                    RandomBenefitDisplay(navController = navController, repository = repository)
 
-                    Spacer(modifier = Modifier.height(25.dp))
+                    RandomBenefitDisplay(
+                        navController = navController,
+                        repository = repository
+                    )
+
+                    Spacer(
+                        modifier = Modifier.height(25.dp)
+                    )
                 }
-
             }
 
+
+            /*
+             * Bottom scroll fade.
+             */
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(70.dp)
                     .align(Alignment.BottomCenter)
             ) {
-                AnimatedVisibility(visible = showBottomFade.value,
-                    enter = fadeIn(animationSpec = tween(durationMillis = 300)),
-                    exit = fadeOut(animationSpec = tween(durationMillis = 200))
+
+                AnimatedVisibility(
+                    visible = showBottomFade.value,
+                    enter = fadeIn(
+                        animationSpec = tween(
+                            durationMillis = 300
+                        )
+                    ),
+                    exit = fadeOut(
+                        animationSpec = tween(
+                            durationMillis = 200
+                        )
+                    )
                 ) {
+
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(
                                 brush = Brush.verticalGradient(
-                                    colors = listOf(Color.Transparent, Color.White)
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color.White
+                                    )
                                 )
                             )
                     )
@@ -301,18 +505,36 @@ fun MainScreen(
             }
         }
 
+
     } else {
+
+        /*
+         * ---------------------------------------------------------
+         * BROWSING SCREEN
+         * ---------------------------------------------------------
+         */
+
         Column {
+
             SecondaryTopBar {
-                Column(modifier = Modifier.fillMaxWidth()) {
+
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+
                     Row(
                         modifier = Modifier
-                            .padding(top = 0.dp, start = 10.dp, end = 10.dp, bottom = 10.dp)
+                            .padding(
+                                top = 0.dp,
+                                start = 10.dp,
+                                end = 10.dp,
+                                bottom = 10.dp
+                            )
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.Bottom
-                    )
-                    {
+                    ) {
+
                         Image(
                             painter = painterResource(R.drawable.logo),
                             contentDescription = null,
@@ -324,7 +546,11 @@ fun MainScreen(
                             value = mainViewModel.searchFilter,
                             onValueChange = { newText ->
                                 mainViewModel.searchFilter = newText
-                                if (mainViewModel.selectedSection == BrowsingOption.البحث) {
+
+                                if (
+                                    mainViewModel.selectedSection ==
+                                    BrowsingOption.البحث
+                                ) {
                                     mainViewModel.searchInQuran(newText)
                                 }
                             },
@@ -333,31 +559,47 @@ fun MainScreen(
                         )
                     }
 
+
                     OttrojjaTabs(
                         items = BrowsingOption.entries,
                         selectedItem = mainViewModel.selectedSection,
                         onClickTab = { option ->
-                            mainViewModel.clickBrowsingOption(option);
+
+                            mainViewModel.clickBrowsingOption(option)
+
                             focusManager.clearFocus()
+
                             keyboardController?.hide()
-                        })
+                        }
+                    )
                 }
             }
 
+
             when (mainViewModel.selectedSection) {
+
                 BrowsingOption.الصفحات -> {
-                    BrowseMenu(mainViewModel.getPagesList(), navController)
+                    BrowseMenu(
+                        mainViewModel.getPagesList(),
+                        navController
+                    )
                 }
 
                 BrowsingOption.السور -> {
-                    ChaptersMenu(mainViewModel.getChaptersList(), navController)
+                    ChaptersMenu(
+                        mainViewModel.getChaptersList(),
+                        navController
+                    )
                 }
 
                 BrowsingOption.الاجزاء -> {
                     PartsMenu(
                         items = mainViewModel.getPartsList(),
                         navController = navController,
-                        updateExpanded = { item -> mainViewModel.updateExpandedPartItem(item) }
+                        updateExpanded = {
+                                item ->
+                            mainViewModel.updateExpandedPartItem(item)
+                        }
                     )
                 }
 
@@ -365,40 +607,62 @@ fun MainScreen(
                     SearchMenu(
                         mainViewModel.quranSearchResults,
                         navController,
-                        { value -> mainViewModel.shareVerse(context, value) })
+                        { value ->
+                            mainViewModel.shareVerse(
+                                context,
+                                value
+                            )
+                        }
+                    )
                 }
             }
         }
     }
 }
 
+
 @Composable
 fun BrowseMenu(
-    items: List<String> = listOf<String>(),
+    items: List<String> = listOf(),
     navController: NavController
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current;
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     LazyColumn(
         Modifier
             .fillMaxHeight()
             .background(MaterialTheme.colorScheme.background)
     ) {
+
         items(items) { item ->
-            Column(modifier = Modifier
-                .padding(12.dp, 2.dp)
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
-                .clickable {
-                    keyboardController!!.hide();
-                    navController.navigate(Screen.QuranScreen.invokeRoute(item.split(" ")[1]))
-                }
+
+            Column(
+                modifier = Modifier
+                    .padding(12.dp, 2.dp)
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background)
+                    .clickable {
+                        keyboardController?.hide()
+
+                        navController.navigate(
+                            Screen.QuranScreen.invokeRoute(
+                                item.split(" ")[1]
+                            )
+                        )
+                    }
             ) {
+
                 Row(
                     modifier = Modifier.padding(12.dp)
                 ) {
-                    OttrojjaText(text = item, style = OttrojjaTheme.typography.bodyLarge, color = Color.Black)
+
+                    OttrojjaText(
+                        text = item,
+                        style = OttrojjaTheme.typography.bodyLarge,
+                        color = Color.Black
+                    )
                 }
+
                 ListHorizontalDivider()
             }
         }
@@ -412,19 +676,21 @@ fun SearchMenu(
     navController: NavController,
     shareVerse: (SearchResult) -> Unit
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current;
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     LazyColumn(
-        Modifier
-            .background(MaterialTheme.colorScheme.background)
+        Modifier.background(MaterialTheme.colorScheme.background)
     ) {
+
         item {
+
             Column(
                 modifier = Modifier
                     .padding(12.dp, 2.dp)
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.background)
             ) {
+
                 Row(
                     modifier = Modifier
                         .padding(12.dp)
@@ -432,16 +698,21 @@ fun SearchMenu(
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+
                     OttrojjaText(
                         text = "نتائج البحث: ${items.size}",
                         style = OttrojjaTheme.typography.bodySpecialMedium,
                         color = Color.Black
                     )
                 }
+
                 ListHorizontalDivider()
             }
         }
+
+
         items(items) { item ->
+
             Column(
                 modifier = Modifier
                     .padding(12.dp, 0.dp)
@@ -449,14 +720,20 @@ fun SearchMenu(
                     .background(MaterialTheme.colorScheme.background)
                     .combinedClickable(
                         onClick = {
-                            keyboardController!!.hide();
-                            navController.navigate(Screen.QuranScreen.invokeRoute(item.pageNum))
+                            keyboardController?.hide()
+
+                            navController.navigate(
+                                Screen.QuranScreen.invokeRoute(
+                                    item.pageNum
+                                )
+                            )
                         },
                         onLongClick = {
                             shareVerse(item)
-                        },
+                        }
                     )
             ) {
+
                 Row(
                     modifier = Modifier
                         .padding(12.dp)
@@ -464,22 +741,37 @@ fun SearchMenu(
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+
                     OttrojjaText(
                         text = buildAnnotatedString {
+
                             withStyle(
-                                style = OttrojjaTheme.typography.quranTextMedium.toSpanStyle().copy(color = Color.Black)
+                                style = OttrojjaTheme.typography
+                                    .quranTextMedium
+                                    .toSpanStyle()
+                                    .copy(color = Color.Black)
                             ) {
                                 append("\uFD3F${item.verseText}\uFD3E")
                             }
 
                             withStyle(
-                                style = OttrojjaTheme.typography.bodySpecialMedium.toSpanStyle().copy(color = Color.Black),
+                                style = OttrojjaTheme.typography
+                                    .bodySpecialMedium
+                                    .toSpanStyle()
+                                    .copy(color = Color.Black)
                             ) {
-                                append("[${item.surahName}: ${convertToIndianNumbers("${item.verseNum}")}]")
+                                append(
+                                    "[${item.surahName}: ${
+                                        convertToIndianNumbers(
+                                            "${item.verseNum}"
+                                        )
+                                    }]"
+                                )
                             }
                         }
                     )
                 }
+
                 ListHorizontalDivider()
             }
         }

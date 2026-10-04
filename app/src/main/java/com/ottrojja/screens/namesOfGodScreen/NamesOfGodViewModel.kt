@@ -8,6 +8,8 @@ import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.JsonParser
 import com.ottrojja.classes.NameOfGod
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 
 class NamesOfGodViewModel(application: Application) : AndroidViewModel(application) {
     val context = application.applicationContext;
@@ -27,7 +29,10 @@ class NamesOfGodViewModel(application: Application) : AndroidViewModel(applicati
         } catch (e: Exception) {
             e.printStackTrace()
             reportException(exception = e, file = "NamesOfGodViewModel")
-            Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
+            AppToastManager.show(
+                message = "حصل خطأ يرجى المحاولة مرة اخرى",
+                type = AppToastType.ERROR
+            )
         }
     }
 

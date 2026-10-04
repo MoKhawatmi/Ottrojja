@@ -60,7 +60,7 @@ fun OttrojjaTextField(
             )
             .padding(
                 horizontal = 12.dp,
-                vertical = 10.dp
+                vertical = 16.dp
             ),
         value = value,
         onValueChange = { newValue ->

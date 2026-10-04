@@ -18,6 +18,8 @@ import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.interfaces.TabItem
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.Tasabeeh
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.room.entities.TasabeehList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -61,7 +63,10 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
         } catch (e: Exception) {
             e.printStackTrace()
             reportException(exception = e, file = "TasbeehScreenViewModel")
-            Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
+            AppToastManager.show(
+                message = "حصل خطأ، يرجى المحاولة مرة اخرى",
+                type = AppToastType.ERROR
+            )
         }
     }
 
@@ -112,9 +117,10 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "TasbeehScreenViewModel")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
-                }
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
             }
         }
     }
@@ -123,15 +129,20 @@ class TasbeehScreenViewModel(private val repository: QuranRepository, applicatio
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 repository.insertTasabeehList(TasabeehList(title = title));
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "تمت الإضافة بنجاح", Toast.LENGTH_LONG).show()
-                }
+                AppToastManager.show(
+                    message = "تمت الإضافة بنجاح",
+                    type = AppToastType.SUCCESS
+                )
+
                 _showAddListDialog.value = false;
             }
         } catch (e: Exception) {
             e.printStackTrace()
             reportException(exception = e, file = "TasbeehScreenViewModel")
-            Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
+            AppToastManager.show(
+                message = "حصل خطأ يرجى المحاولة لاحقا",
+                type = AppToastType.ERROR
+            )
         }
     }
 

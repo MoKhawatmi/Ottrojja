@@ -8,6 +8,8 @@ import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Jam3Supplication
 import com.ottrojja.classes.JsonParser
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 
 class Jwam3ViewModel(application: Application) : AndroidViewModel(application) {
     val context = application.applicationContext;
@@ -27,7 +29,10 @@ class Jwam3ViewModel(application: Application) : AndroidViewModel(application) {
         } catch (e: Exception) {
             e.printStackTrace()
             reportException(exception = e, file = "Jwam3ViewModel")
-            Toast.makeText(context, "حصل خطأ، يرجى المحاولة مرة اخرى", Toast.LENGTH_LONG).show()
+            AppToastManager.show(
+                message = "حصل خطأ يرجى المحاولة لاحقا",
+                type = AppToastType.ERROR
+            )
         }
     }
 

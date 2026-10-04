@@ -9,6 +9,8 @@ import com.ottrojja.screens.blessingsScreen.classes.Blessing
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.SupabaseProvider
 import com.ottrojja.classes.TextParser.OttrojjaTextParser
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.screens.blessingsScreen.classes.BlessingCategory
 import io.github.jan.supabase.SupabaseClient
 import kotlinx.coroutines.Dispatchers
@@ -120,9 +122,10 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "BlessingsViewModel")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "حصل خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
-                }
+                AppToastManager.show(
+                    message = "حصل خطأ اثناء التحميل",
+                    type = AppToastType.ERROR
+                )
                 emptyList<Blessing>()
             }
 

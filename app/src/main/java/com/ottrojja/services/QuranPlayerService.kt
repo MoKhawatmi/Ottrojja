@@ -31,6 +31,8 @@ import com.ottrojja.classes.Helpers.getMediaSrcFactory
 import com.ottrojja.classes.Helpers.repetitionOptionsMap
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.QuranListeningMode
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.room.entities.ChapterData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -192,8 +194,10 @@ class QuranPlayerService : Service(), QuranServiceInterface {
                     super.onPlayerError(error)
                     error.printStackTrace()
                     reportException(exception = error, file = "QuranPlayerService")
-                    Toast.makeText(context, "حصل خطأ، يرجى المحاولة مجددا", Toast.LENGTH_LONG)
-                        .show()
+                    AppToastManager.show(
+                        message = "حصل خطأ يرجى المحاولة لاحقا",
+                        type = AppToastType.ERROR
+                    )
                 }
             }
         )
@@ -273,7 +277,10 @@ class QuranPlayerService : Service(), QuranServiceInterface {
             val path = url.split("/").last()
             val localFile = File(externalFilesDir, path)
             if (!localFile.exists() && !networkConnected) {
-                Toast.makeText(this, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG).show()
+                AppToastManager.show(
+                    message = "لا يوجد اتصال بالانترنت",
+                    type = AppToastType.ERROR
+                )
                 prepareForNewTrack();
                 return;
             }

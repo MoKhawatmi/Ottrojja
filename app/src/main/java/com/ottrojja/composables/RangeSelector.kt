@@ -17,9 +17,8 @@ import com.ottrojja.composables.rangeSelectionItem.RangeSelectionSegment
 fun RangeSelector(startSegments: List<RangeSelectionSegment>,
                   endSegments: List<RangeSelectionSegment>) {
     Row(modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp, alignment = Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {

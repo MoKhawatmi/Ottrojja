@@ -1,22 +1,19 @@
 package com.ottrojja.screens.Khitmah.khitmahScreen
 
 import android.app.Application
-import android.widget.Toast
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.ottrojja.classes.FormValidationResult
 import com.ottrojja.classes.Helpers.reportException
-import com.ottrojja.composables.quranRangeSelector.QuranRangeState
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.entities.KhitmahSession
 import com.ottrojja.room.entities.Reminder
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.room.repositories.ReminderRepository
 import com.ottrojja.screens.Khitmah.KhitmahForm.KhitmahFormState
-import com.ottrojja.screens.Khitmah.classes.DayReadingInfo
 import com.ottrojja.screens.Khitmah.classes.SurahProgress
 import com.ottrojja.screens.Khitmah.classes.SurahVerseRange
 import com.ottrojja.screens.mainScreen.PartData
@@ -30,7 +27,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -141,7 +137,12 @@ class KhitmahViewModel(
                     file = "KhitmahViewModel"
                 )
 
-                showErrorToast()
+
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
+
                 _khitmahLoading.value = false
             }
         }
@@ -297,7 +298,11 @@ class KhitmahViewModel(
                 withContext(Dispatchers.Main) {
                     onSuccess()
                 }
-                showToast("تم الحذف بنجاح")
+                AppToastManager.show(
+                    message = "تم التعديل بنجاح",
+                    type = AppToastType.SUCCESS
+                )
+
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -307,7 +312,11 @@ class KhitmahViewModel(
                     file = "KhitmahViewModel"
                 )
 
-                showErrorToast()
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
+
             }
         }
     }
@@ -378,7 +387,12 @@ class KhitmahViewModel(
                         reminderRepository.getById(reminderId)
                     }
 
-                showToast("تم التعديل بنجاح")
+
+                AppToastManager.show(
+                    message = "تم التعديل بنجاح",
+                    type = AppToastType.SUCCESS
+                )
+
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -388,7 +402,11 @@ class KhitmahViewModel(
                     file = "KhitmahViewModel"
                 )
 
-                showErrorToast()
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
+
             }
         }
     }
@@ -410,7 +428,11 @@ class KhitmahViewModel(
                     exception = e,
                     file = "KhitmahViewModel"
                 )
-                showErrorToast()
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
+
 
             }
         }
@@ -453,7 +475,11 @@ class KhitmahViewModel(
                     exception = e,
                     file = "KhitmahViewModel"
                 )
-                showErrorToast()
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
+
             }
         }
     }
@@ -462,28 +488,6 @@ class KhitmahViewModel(
         _selectedSession.value = null
     }
 
-    fun toggleKhitmahStatus() {
-        // Intentionally left unused for now.
-    }
-
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private suspend fun showToast(message: String) {
-        withContext(Dispatchers.Main) {
-            Toast.makeText(
-                context,
-                message,
-                Toast.LENGTH_LONG
-            ).show()
-        }
-    }
-
-    private suspend fun showErrorToast() {
-        showToast("حصل خطأ يرجى المحاولة لاحقا")
-    }
 }
 
 

@@ -4,17 +4,13 @@ import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -22,12 +18,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.ModalFormMode
-import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.composables.dialogs.OttrojjaDialog
+import com.ottrojja.composables.forms.OttrojjaForm
 import com.ottrojja.composables.forms.OttrojjaFormField
 import com.ottrojja.composables.forms.OttrojjaTextArea
 import com.ottrojja.composables.forms.OttrojjaTextField
@@ -58,72 +56,67 @@ fun AddCustomTasbeehDialog(
         title = if (mode == ModalFormMode.ADD) "إضافة ذكر" else "تعديل الذكر"
     ) {
 
-        Column(modifier = Modifier
-            .wrapContentHeight()
-            .verticalScroll(rememberScrollState())) {
-            Row(
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .fillMaxWidth()
-                    .border(2.dp,
-                        MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp)
+        OttrojjaForm(
+            body = {
+                Row(
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .fillMaxWidth()
+                        .border(2.dp,
+                            MaterialTheme.colorScheme.primary,
+                            RoundedCornerShape(16.dp)
+                        )
+                        .clickable { callImportTasbeehDialog() }
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OttrojjaText(
+                        text = "إستيراد من قائمة الاذكار",
+                        style = OttrojjaTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
                     )
-                    .clickable { callImportTasbeehDialog() }
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OttrojjaText(
-                    text = "إستيراد من قائمة الاذكار",
-                    style = OttrojjaTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Icon(Icons.Default.Link,
-                    contentDescription = "import tasbeeh",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OttrojjaFormField(label = "نص الذكر") {
-                    OttrojjaTextArea(
-                        value = tasbeehInWork.text,
-                        onChange = { value -> onTasbeehChange(tasbeehInWork.copy(text = value)) },
+                    Icon(Icons.Default.Link,
+                        contentDescription = "import tasbeeh",
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OttrojjaFormField(label = "مرات الذكر") {
-                    OttrojjaTextField(
-                        value = tasbeehInWork.count.toString(),
-                        onChange = { value ->
-                            onTasbeehChange(
-                                tasbeehInWork.copy(
-                                    count = value.toIntOrNull() ?: 0
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OttrojjaFormField(label = "نص الذكر") {
+                        OttrojjaTextArea(
+                            value = tasbeehInWork.text,
+                            onChange = { value -> onTasbeehChange(tasbeehInWork.copy(text = value)) },
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OttrojjaFormField(label = "مرات الذكر") {
+                        OttrojjaTextField(
+                            value = tasbeehInWork.count.toString(),
+                            onChange = { value ->
+                                onTasbeehChange(
+                                    tasbeehInWork.copy(
+                                        count = value.toIntOrNull() ?: 0,
+                                        currentCount = value.toIntOrNull() ?: 0
+                                    )
                                 )
-                            )
-                        },
-                        inputType = TextFieldInputType.NUMBER,
-                        maxValue = 1_000_000
-                    )
+                            },
+                            inputType = TextFieldInputType.NUMBER,
+                            maxValue = 1_000_000
+                        )
+                    }
                 }
-            }
 
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(2.dp, alignment = Alignment.CenterVertically)
-            ) {
+            },
+            footer = {
                 OttrojjaButton(
                     modifier = Modifier.fillMaxWidth(0.6f),
                     text = if (mode == ModalFormMode.ADD) "إضافة" else "تعديل",
@@ -131,7 +124,10 @@ fun AddCustomTasbeehDialog(
                         if (tasbeehInWork.text.isNotBlank() && tasbeehInWork.count.toString().isNotBlank()) {
                             onConfirm()
                         } else {
-                            Toast.makeText(context, "يرجى التأكد من البيانات المدخلة", Toast.LENGTH_LONG).show()
+                            AppToastManager.show(
+                                message = "يرجى التأكد من البيانات المدخلة",
+                                type = AppToastType.ERROR
+                            )
                         }
                     },
                 )
@@ -143,8 +139,9 @@ fun AddCustomTasbeehDialog(
                         onDismiss()
                     },
                 )
+
             }
-        }
+        )
     }
 
 }

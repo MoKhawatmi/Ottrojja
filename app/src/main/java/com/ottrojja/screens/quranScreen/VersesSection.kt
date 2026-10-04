@@ -34,7 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.room.repositories.QuranRepository
-import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.dialogs.OttrojjaItemSelectionDialog
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
 import com.ottrojja.composables.RangeSelector

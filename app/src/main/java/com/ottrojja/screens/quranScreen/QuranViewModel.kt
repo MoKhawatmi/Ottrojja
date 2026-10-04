@@ -10,7 +10,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.IBinder
-import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -32,18 +31,17 @@ import com.ottrojja.classes.Helpers.terminateAllServices
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.StorageBase
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.interfaces.TabItem
 import com.ottrojja.room.entities.BookmarkEntity
-import com.ottrojja.room.entities.Khitmah
 import com.ottrojja.room.relations.QuranPageWithContent
 import com.ottrojja.screens.quranScreen.classes.QuranReaderContext
 import com.ottrojja.screens.quranScreen.classes.TafseerContent
 import com.ottrojja.services.PagePlayerService
 import com.ottrojja.services.PageServiceInterface
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -54,7 +52,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-
 
 class QuranViewModel(
     private val repository: QuranRepository,
@@ -362,22 +359,28 @@ class QuranViewModel(
 
     fun prepareForPlaying() {
         if (_selectedEndVerse == null || _selectedVerse == null) {
-            Toast.makeText(context, "يرجى تحديد مواضع بداية ونهاية التلاوة", Toast.LENGTH_LONG
-            ).show()
+            AppToastManager.show(
+                message = "يرجى تحديد مواضع بداية ونهاية التلاوة",
+                type = AppToastType.ERROR
+            )
+
             return;
         }
 
         if ((_selectedVerse?.surahNum!! > _selectedEndVerse?.surahNum!!) || (_selectedVerse?.surahNum!! == _selectedEndVerse?.surahNum!! && _selectedVerse?.verseNum!! > _selectedEndVerse?.verseNum!!)) {
-            Toast.makeText(context, "موضع اية البداية يجب ان لا يأتي بعد موضع اية النهاية",
-                Toast.LENGTH_LONG
-            ).show()
+            AppToastManager.show(
+                message = "موضع اية البداية يجب ان لا يسبق موضع اية النهاية",
+                type = AppToastType.ERROR
+            )
             return;
         }
 
         if ((_selectedEndVerse?.surahNum!! < _selectedVerse?.surahNum!!) || (_selectedEndVerse?.surahNum!! == _selectedVerse?.surahNum!! && _selectedEndVerse?.verseNum!! < _selectedVerse?.verseNum!!)) {
-            Toast.makeText(context, "موضع اية النهاية يجب ان لا يأتي قبل موضع اية البداية",
-                Toast.LENGTH_LONG
-            ).show()
+            AppToastManager.show(
+                message = "موضع اية النهاية يجب ان لا يكون قبل موضع اية البداية",
+                type = AppToastType.ERROR
+            )
+
             return;
         }
 
@@ -412,8 +415,10 @@ class QuranViewModel(
                     if (networkConnected) {
                         initializeDownload()
                     } else {
-                        Toast.makeText(context, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG)
-                            .show()
+                        AppToastManager.show(
+                            message = "لا يوجد اتصال بالانترنت",
+                            type = AppToastType.ERROR
+                        )
                         return@withContext;
                     }
                 } else {
@@ -525,9 +530,15 @@ class QuranViewModel(
                     println("failed download: ${state.error.message}")
 
                     if (state.error.message?.contains("ENOSPC") == true) {
-                        Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
+                        AppToastManager.show(
+                            message = context.resources.getString(R.string.enospc),
+                            type = AppToastType.ERROR
+                        )
                     } else {
-                        Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
+                        AppToastManager.show(
+                            message = "حدث خطأ اثناء التحميل",
+                            type = AppToastType.ERROR
+                        )
                     }
                     localFile.delete()
                     allVersesExist = false;
@@ -566,17 +577,19 @@ class QuranViewModel(
                 } else {
                     repository.deleteBookmark(bookmark)
                 }
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, " تم تحديث المرجعيات بنجاح", Toast.LENGTH_LONG).show()
-                }
+                AppToastManager.show(
+                    message = "تم تحديث المرجعيات بنجاح",
+                    type = AppToastType.SUCCESS
+                )
                 //just to update ui
                 isPageBookmarked();
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "QuranViewModel")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "حصل خطأ يرجى المحاولة لاحقا", Toast.LENGTH_LONG).show()
-                }
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
             }
         }
     }
@@ -1026,11 +1039,11 @@ class QuranViewModel(
     /*****************************KHITMAH CONTROL***********************************/
     private val sessionPages = mutableSetOf<Int>()
 
-    fun getFirstSessionPage():Int{
+    fun getFirstSessionPage(): Int {
         return sessionPages.min()
     }
 
-    fun getLastSessionPage():Int{
+    fun getLastSessionPage(): Int {
         return sessionPages.max()
     }
 

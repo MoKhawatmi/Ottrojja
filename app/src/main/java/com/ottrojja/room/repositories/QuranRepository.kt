@@ -81,10 +81,11 @@ class QuranRepository(private val quranDao: QuranDao,
     }
 
 
-    suspend fun getPagesContentRange(startingSurah: Int,
-                                     startingVerse: Int,
-                                     endSurah: Int,
-                                     endVerse: Int): List<PageContent> {
+    suspend fun getPagesContentRange(
+        startingSurah: Int,
+        startingVerse: Int,
+        endSurah: Int,
+        endVerse: Int): List<PageContent> {
         return quranDao.getPagesContentRange(startingSurah, startingVerse, endSurah, endVerse);
     }
 
@@ -392,7 +393,7 @@ class QuranRepository(private val quranDao: QuranDao,
         return tasabeehDao.getTasabeehLists()
     }
 
-    suspend fun getTasabeehList(id: Int): Flow<ListWithTasabeeh?> {
+    suspend fun getTasabeehList(id: Int): ListWithTasabeeh? {
         return tasabeehDao.getTasabeehList(id)
     }
 
@@ -421,6 +422,11 @@ class QuranRepository(private val quranDao: QuranDao,
         tasabeeh: List<CustomTasbeeh>
     ) {
         tasabeehDao.insertListWithTasabeeh(title, tasabeeh)
+    }
+
+
+    suspend fun updateTasbeehCurrentCount(id: Int, currentCount: Int) {
+        return tasabeehDao.updateTasbeehCurrentCount(id, currentCount)
     }
 
 

@@ -28,6 +28,8 @@ import com.ottrojja.classes.QuranListeningMode
 import com.ottrojja.classes.QuranPlayingParameters
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.StorageBase
+import com.ottrojja.composables.ToastManager.classes.AppToastManager
+import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.services.QuranPlayerService
 import com.ottrojja.services.QuranServiceInterface
@@ -93,9 +95,10 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
 
             if (_startingSurah.value!!.surahId > _endSurah.value!!.surahId
                 || (_startingSurah.value!!.surahId == _endSurah.value!!.surahId && _startingVerse.value > _endVerse.value)) {
-                Toast.makeText(context, "موضع بداية التلاوة يجب ان لا يرد بعد موضع النهاية",
-                    Toast.LENGTH_LONG
-                ).show()
+                AppToastManager.show(
+                    message = "موضع بداية التلاوة يجب ان لا يرد بعد موضع النهاية",
+                    type = AppToastType.ERROR
+                )
                 return;
             }
         }
@@ -363,7 +366,10 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
 
     fun downloadChapter(surahId: Int) {
         if (!Helpers.checkNetworkConnectivity(context)) {
-            Toast.makeText(context, "لا يوجد اتصال بالانترنت", Toast.LENGTH_LONG).show()
+            AppToastManager.show(
+                message = "لا يوجد اتصال بالانترنت",
+                type = AppToastType.ERROR
+            )
             return;
         }
 
@@ -385,7 +391,10 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
 
                 is DownloadState.Success -> {
                     _isDownloading.value = false
-                    Toast.makeText(context, "تم التحميل بنجاح!", Toast.LENGTH_LONG).show()
+                    AppToastManager.show(
+                        message = "تم التحميل بنجاح!",
+                        type = AppToastType.SUCCESS
+                    )
                 }
 
                 is DownloadState.Failure -> {
@@ -401,9 +410,15 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
                     println("failed download: ${state.error.message}")
 
                     if (state.error.message?.contains("ENOSPC") == true) {
-                        Toast.makeText(context, context.resources.getString(R.string.enospc), Toast.LENGTH_LONG).show()
+                        AppToastManager.show(
+                            message = context.resources.getString(R.string.enospc),
+                            type = AppToastType.ERROR
+                        )
                     } else {
-                        Toast.makeText(context, "حدث خطأ اثناء التحميل", Toast.LENGTH_LONG).show()
+                        AppToastManager.show(
+                            message = "حدث خطأ اثناء التحميل",
+                            type = AppToastType.ERROR
+                        )
                     }
                 }
             }

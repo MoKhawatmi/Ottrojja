@@ -7,9 +7,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,7 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.R
-import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.ui.theme.OttrojjaTheme
@@ -44,8 +42,6 @@ fun AboutDialog(onDismiss: () -> Unit) {
                 style = OttrojjaTheme.typography.bodyMedium,
                 textAlign = TextAlign.Start,
                 modifier = Modifier
-                    .fillMaxHeight(0.9f)
-                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = 2.dp),
                 color = MaterialTheme.colorScheme.primary
             )

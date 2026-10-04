@@ -109,6 +109,7 @@ fun QuranScreen(
         factory = QuranScreenViewModelFactory(repository, readerContext, application)
     )
     var showFinishSessionAlert by remember { mutableStateOf(false) }
+    var showToggleBookmarkAlert by remember { mutableStateOf(false) }
     val showFinishSessionForm by quranViewModel.showFinishSessionForm.collectAsState()
 
     when (readerContext) {
@@ -143,6 +144,20 @@ fun QuranScreen(
             title = "إنهاء جلسة القراءة",
             text = "هل انت بصدد انهاء جلسة القراءة للختمة الحالية؟",
             confirmText = "نعم"
+        )
+    }
+
+    if (showToggleBookmarkAlert) {
+        OttrojjaAlertDialog(
+            onDismiss = { showToggleBookmarkAlert = false; },
+            onConfirm = {
+                quranViewModel.togglePageBookmark();
+                showToggleBookmarkAlert = false;
+            },
+            title = "إزالة اشارة مرجعية",
+            text = "هل انت متأكد من ازالة هذه الصفحة من المرجعيات؟",
+            confirmText = "نعم",
+            cancelText = "لا"
         )
     }
 
@@ -189,22 +204,6 @@ fun QuranScreen(
 
     val isPlaying = quranViewModel.isPlaying && quranViewModel.isCurrentPagePlaying;
 
-    fun confirmRemoveBookmark() {
-        val alertDialogBuilder = AlertDialog.Builder(context)
-        alertDialogBuilder.setTitle("ازالة اشارة مرجعية")
-        alertDialogBuilder.setMessage("هل انت متأكد من ازالة هذه الصفحة من المرجعيات")
-        alertDialogBuilder.setPositiveButton("نعم") { dialog, which ->
-            quranViewModel.togglePageBookmark()
-            dialog.dismiss()
-        }
-        alertDialogBuilder.setNegativeButton("لا") { dialog, which ->
-            dialog.dismiss()
-        }
-
-        val alertDialog = alertDialogBuilder.create()
-        alertDialog.show()
-    }
-
     var expanded by remember { mutableStateOf(false) }
 
     if (quranViewModel.currentPageObject?.page?.pageNum?.toInt() !in 1..604) {
@@ -235,7 +234,7 @@ fun QuranScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 OttrojjaElevatedButton(
-                                    onClick = { if (!quranViewModel.isBookmarked) quranViewModel.togglePageBookmark() else confirmRemoveBookmark() },
+                                    onClick = { if (!quranViewModel.isBookmarked) quranViewModel.togglePageBookmark() else showToggleBookmarkAlert = true },
                                     icon = if (quranViewModel.isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder
                                 )
                                 Column {

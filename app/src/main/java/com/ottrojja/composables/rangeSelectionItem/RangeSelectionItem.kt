@@ -23,7 +23,6 @@ import com.ottrojja.ui.theme.OttrojjaTheme
 @Composable
 fun RangeSelectionItem(segments: List<RangeSelectionSegment>) {
     Column(modifier = Modifier
-        .padding(12.dp)
         .shadow(
             elevation = 2.dp,
             shape = RoundedCornerShape(16.dp),

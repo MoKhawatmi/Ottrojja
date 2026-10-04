@@ -41,7 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.Helpers.arabicDateFormatter
-import com.ottrojja.composables.OttrojjaButton
+import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.constants.QuranConstants.TOTAL_QURAN_PAGES

@@ -121,6 +121,8 @@ val MIGRATION_11_12 = object : Migration(11, 12) {
         """.trimIndent()
         )
 
+        db.execSQL("ALTER TABLE CustomTasbeeh ADD COLUMN currentCount INTEGER NOT NULL DEFAULT 0")
+
     }
 }
 
