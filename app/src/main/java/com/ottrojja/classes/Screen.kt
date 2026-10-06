@@ -36,9 +36,12 @@ sealed class Screen(val route: String, val showsBottomBar: Boolean = false) {
         }
     }
 
-    object ZikrScreen : Screen(route = "zikr_screen/{zikerTitle}", showsBottomBar = false) {
-        fun invokeRoute(zikerTitle: String): String {
-            return this.route.replace("{zikerTitle}", zikerTitle)
+    object ZikrScreen : Screen(
+        route = "zikr_screen/{zikrId}",
+        showsBottomBar = false
+    ) {
+        fun invokeRoute(zikrId: Long): String {
+            return "zikr_screen/$zikrId"
         }
     }
 

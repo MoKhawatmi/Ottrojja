@@ -171,8 +171,8 @@ interface QuranDao {
     @Query("SELECT * FROM Azkar")
     suspend fun getAllAzkar(): List<Azkar>
 
-    @Query("SELECT * FROM Azkar WHERE azkarTitle=:title")
-    suspend fun getAzkarByTitle(title: String): Azkar
+    @Query("SELECT * FROM Azkar WHERE id = :id")
+    suspend fun getAzkarById(id: Long): Azkar?
 
     @Query("SELECT count(*) FROM Azkar")
     suspend fun getAzkarCount(): Int

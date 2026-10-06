@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Build
 import android.os.IBinder
-import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -33,6 +32,9 @@ import com.ottrojja.interfaces.TabItem
 import com.ottrojja.room.entities.Azkar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -41,24 +43,43 @@ import java.io.File
 class ZikrViewModel(
     private val repository: QuranRepository,
     application: Application,
-    zikrTitle: String
-) :
-    AndroidViewModel(application) {
-    val context = application.applicationContext;
+) : AndroidViewModel(application) {
 
+    val context: Context = application.applicationContext
 
-    var _zikr = MutableStateFlow<Azkar>(Azkar("", "", "", "", ""))
+    // ---------------------------------------------------------------------
+    // Zikr data
+    // ---------------------------------------------------------------------
 
-    init {
+    private val _zikr = MutableStateFlow<Azkar?>(null)
+    val zikr = _zikr.asStateFlow()
+
+    /** Null-safe accessors, use these instead of _zikr.value.xxx */
+    private val firebaseAddress: String? get() = _zikr.value?.firebaseAddress
+
+    private fun localFileFor(address: String): File =
+        File(context.getExternalFilesDir(null), address.substringAfterLast('/'))
+
+    fun fetchZikr(id: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                _zikr.value = repository.getAzkarByTitle(zikrTitle)
+                val result = repository.getAzkarById(id)
+                _zikr.value = result
+                _isDownloaded.value = result?.let { localFileFor(it.firebaseAddress).exists() } ?: false
             } catch (e: Exception) {
                 e.printStackTrace()
-                reportException(exception = e, file = "ZikrViewModel")
+                reportException(exception = e, file = "ZikrViewModel", details = "zikr id: $id")
+                AppToastManager.show(
+                    message = "حصل خطأ يرجى المحاولة لاحقا",
+                    type = AppToastType.ERROR
+                )
             }
         }
     }
+
+    // ---------------------------------------------------------------------
+    // UI state
+    // ---------------------------------------------------------------------
 
     private var _selectedTab = mutableStateOf(ZikrTab.الذكر)
     var selectedTab: ZikrTab
@@ -69,18 +90,17 @@ class ZikrViewModel(
 
     private var _showController = mutableStateOf(true)
     var showController: Boolean
-        get() = this._showController.value
+        get() = _showController.value
         set(value) {
-            this._showController.value = value
+            _showController.value = value
         }
 
     private var _isPlaying = mutableStateOf(false)
     var isPlaying: Boolean
-        get() = this._isPlaying.value
+        get() = _isPlaying.value
         set(value) {
-            this._isPlaying.value = value
+            _isPlaying.value = value
         }
-
 
     private var _isPaused = mutableStateOf(false)
     var isPaused: Boolean
@@ -89,21 +109,21 @@ class ZikrViewModel(
             _isPaused.value = value
         }
 
-
     private var _sliderPosition = mutableStateOf(0f)
     var sliderPosition: Float
-        get() = this._sliderPosition.value
+        get() = _sliderPosition.value
         set(value) {
-            this._sliderPosition.value = value
+            _sliderPosition.value = value
         }
 
     private var _maxDuration = mutableStateOf(0f)
     var maxDuration: Float
-        get() = this._maxDuration.value
+        get() = _maxDuration.value
         set(value) {
-            this._maxDuration.value = value
+            _maxDuration.value = value
         }
-    private var _maxDurationFormatted = "";
+
+    private var _maxDurationFormatted = ""
 
     private var _progressTimeCodeDisplay = mutableStateOf("")
     var progressTimeCodeDisplay: String
@@ -114,148 +134,14 @@ class ZikrViewModel(
 
     private var _playbackSpeed by mutableStateOf(1.0f)
     var playbackSpeed: Float
-        get() = this._playbackSpeed
+        get() = _playbackSpeed
         set(value) {
-            this._playbackSpeed = value
+            _playbackSpeed = value
         }
 
-
-    fun playClicked() {
-        // stop other services
-        terminateAllServices(context, AzkarPlayerService::class.java)
-
-
-        if (isServiceRunning(AzkarPlayerService::class.java, context)) {
-            playZikr()
-        } else {
-            clickedPlay = true;
-            startAndBind();
-        }
-    }
-
-    fun increasePlaybackSpeed() {
-        audioService?.increaseSpeed();
-    }
-
-    fun decreasePlaybackSpeed() {
-        audioService?.decreaseSpeed();
-    }
-
-    fun pauseZikr() {
-        audioService?.pause();
-    }
-
-    fun startAndBind() {
-        val serviceIntent = Intent(context, AzkarPlayerService::class.java)
-        serviceIntent.setAction("START")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(serviceIntent)
-        } else {
-            context.startService(serviceIntent)
-        }
-        bindToService()
-    }
-
-    var clickedPlay = false;
-
-    fun playZikr() {
-        audioService?.playZiker(_zikr.value.firebaseAddress);
-    }
-
-    private val serviceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            try {
-                val binder = service as AzkarPlayerService.YourBinder
-                audioService = binder.getService()
-                println("in binder get service")
-                println(audioService)
-
-                viewModelScope.launch {
-                    audioService?.getPlayingState(_zikr.value.firebaseAddress)?.collect { state ->
-                        println("is same zikr playing: $state")
-                        _isPlaying.value = state;
-                        if (state) {
-                            //TODO placed here this statement will also be called unnecessarily, find a better solution
-                            audioService?.setCurrentPlayingTitle(_zikr.value.azkarTitle);
-                        }
-                    }
-                }
-
-                viewModelScope.launch {
-                    audioService?.getPaused()!!.collect { state ->
-                        _isPaused.value = state;
-                    }
-                }
-
-                viewModelScope.launch {
-                    audioService?.getSliderMaxDuration()?.collect { state ->
-                        _maxDuration.value = state;
-                        _maxDurationFormatted = formatTime(state.toLong());
-                    }
-                }
-
-                viewModelScope.launch {
-                    audioService?.getSliderPosition()?.collect { state ->
-                        _sliderPosition.value = state;
-                        _progressTimeCodeDisplay.value = "${formatTime(state.toLong())}/${_maxDurationFormatted}"
-                    }
-                }
-
-                viewModelScope.launch {
-                    audioService?.getDestroyed()?.collect { state ->
-                        if (state) {
-                            unbindFromService()
-                        }
-                    }
-                }
-
-                viewModelScope.launch {
-                    audioService?.resumeClicked()?.collect { state ->
-                        audioService?.getPlayingState(_zikr.value.firebaseAddress)
-                    }
-                }
-
-                viewModelScope.launch {
-                    audioService?.getPlaybackSpeed()!!.collect { state ->
-                        _playbackSpeed = state;
-                    }
-                }
-
-                if (clickedPlay) {
-                    audioService?.playZiker(_zikr.value.firebaseAddress);
-                }
-
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                reportException(exception = e, file = "ZikrViewModel")
-            }
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            // Handle service disconnection
-            unbindFromService();
-        }
-    }
-
-    private var audioService: AudioServiceInterface? = null
-
-    fun bindToService() {
-        val intent = Intent(context, AzkarPlayerService::class.java)
-        context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
-    }
-
-    fun unbindFromService() {
-        if (audioService != null) {
-            context.unbindService(serviceConnection)
-        }
-    }
-
-    fun sliderChanged(value: Float) {
-        println("vm changing position to $value")
-        _sliderPosition.value = value;
-        audioService?.setSliderPosition(value)
-    }
+    // ---------------------------------------------------------------------
+    // Download state
+    // ---------------------------------------------------------------------
 
     private var _isDownloading = mutableStateOf(false)
     var isDownloading: Boolean
@@ -264,32 +150,29 @@ class ZikrViewModel(
             _isDownloading.value = value
         }
 
-    fun checkIfZikrDownloaded(): Boolean {
-        println("checking ${_zikr.value.firebaseAddress.split("/").last()}")
-        val localFile =
-            File(context.getExternalFilesDir(null), _zikr.value.firebaseAddress.split("/").last())
-        return localFile.exists()
-    }
+    /** Held as state so the UI doesn't hit the disk on every recomposition. */
+    private val _isDownloaded = mutableStateOf(false)
+    val isDownloaded: Boolean
+        get() = _isDownloaded.value
 
     fun downloadZikr() {
+        val address = firebaseAddress ?: return
+
         if (!Helpers.checkNetworkConnectivity(context)) {
             AppToastManager.show(
                 message = "لا يوجد اتصال بالانترنت",
                 type = AppToastType.ERROR
             )
-            return;
+            return
         }
 
-        _isDownloading.value = true;
+        _isDownloading.value = true
 
-        val localFile = File(
-            context.getExternalFilesDir(null),
-            _zikr.value.firebaseAddress.split("/").last()
-        )
+        val localFile = localFileFor(address)
 
         FileDownloader.download(
             context = context,
-            url = _zikr.value.firebaseAddress,
+            url = address,
             relativePath = localFile.name,
             storageBase = StorageBase.EXTERNAL_FILES_DIR
         ).onEach { state ->
@@ -300,11 +183,11 @@ class ZikrViewModel(
 
                 is DownloadState.Success -> {
                     _isDownloading.value = false
+                    _isDownloaded.value = true
                     AppToastManager.show(
                         message = "تم التحميل بنجاح!",
                         type = AppToastType.SUCCESS
                     )
-
                 }
 
                 is DownloadState.Failure -> {
@@ -314,7 +197,7 @@ class ZikrViewModel(
                     reportException(
                         exception = state.error,
                         file = "ZikrViewModel",
-                        details = "Cancellation or Failure to download ziker file; link: ${_zikr.value.firebaseAddress}"
+                        details = "Cancellation or Failure to download ziker file; link: $address"
                     )
 
                     println("failed download: ${state.error.message}")
@@ -335,15 +218,156 @@ class ZikrViewModel(
         }.launchIn(viewModelScope)
     }
 
+    // ---------------------------------------------------------------------
+    // Playback
+    // ---------------------------------------------------------------------
+
+    private var audioService: AudioServiceInterface? = null
+    private var clickedPlay = false
+
+    fun playClicked() {
+        // stop other services
+        terminateAllServices(context, AzkarPlayerService::class.java)
+
+        if (isServiceRunning(AzkarPlayerService::class.java, context)) {
+            playZikr()
+        } else {
+            clickedPlay = true
+            startAndBind()
+        }
+    }
+
+    fun playZikr() {
+        val address = firebaseAddress ?: return
+        audioService?.playZiker(address)
+    }
+
+    fun pauseZikr() {
+        audioService?.pause()
+    }
+
+    fun increasePlaybackSpeed() {
+        audioService?.increaseSpeed()
+    }
+
+    fun decreasePlaybackSpeed() {
+        audioService?.decreaseSpeed()
+    }
+
+    fun sliderChanged(value: Float) {
+        _sliderPosition.value = value
+        audioService?.setSliderPosition(value)
+    }
+
+    fun startAndBind() {
+        val serviceIntent = Intent(context, AzkarPlayerService::class.java)
+        serviceIntent.action = "START"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(serviceIntent)
+        } else {
+            context.startService(serviceIntent)
+        }
+        bindToService()
+    }
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            try {
+                val binder = service as? AzkarPlayerService.YourBinder ?: return
+                audioService = binder.getService()
+
+                // Waits until the zikr is loaded, so it never reads a null zikr
+                viewModelScope.launch {
+                    _zikr.filterNotNull().collectLatest { z ->
+                        audioService?.getPlayingState(z.firebaseAddress)?.collect { state ->
+                            _isPlaying.value = state
+                            if (state) {
+                                //TODO placed here this statement will also be called unnecessarily, find a better solution
+                                audioService?.setCurrentPlayingTitle(z.azkarTitle)
+                            }
+                        }
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getPaused()?.collect { state ->
+                        _isPaused.value = state
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getSliderMaxDuration()?.collect { state ->
+                        _maxDuration.value = state
+                        _maxDurationFormatted = formatTime(state.toLong())
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getSliderPosition()?.collect { state ->
+                        _sliderPosition.value = state
+                        _progressTimeCodeDisplay.value =
+                            "${formatTime(state.toLong())}/$_maxDurationFormatted"
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getDestroyed()?.collect { state ->
+                        if (state) {
+                            unbindFromService()
+                        }
+                    }
+                }
+
+                viewModelScope.launch {
+                    audioService?.getPlaybackSpeed()?.collect { state ->
+                        _playbackSpeed = state
+                    }
+                }
+
+                if (clickedPlay) {
+                    clickedPlay = false
+                    playZikr()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                reportException(exception = e, file = "ZikrViewModel")
+            }
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            // Only drop the reference; calling unbindService here can crash
+            audioService = null
+        }
+    }
+
+    fun bindToService() {
+        val intent = Intent(context, AzkarPlayerService::class.java)
+        context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+    }
+
+    fun unbindFromService() {
+        if (audioService != null) {
+            audioService = null
+            try {
+                context.unbindService(serviceConnection)
+            } catch (_: IllegalArgumentException) {
+                // already unbound
+            }
+        }
+    }
+
+    override fun onCleared() {
+        unbindFromService()
+        super.onCleared()
+    }
+
     init {
-        val sr = isServiceRunning(AzkarPlayerService::class.java, context);
-        println("service running $sr")
-        if (sr) {
+        if (isServiceRunning(AzkarPlayerService::class.java, context)) {
             bindToService()
         }
     }
 
-    enum class ZikrTab(override val displayName: String): TabItem {
+    enum class ZikrTab(override val displayName: String) : TabItem {
         الذكر(displayName = "الذكر"),
         الفيديو(displayName = "الفيديو")
     }
@@ -352,11 +376,11 @@ class ZikrViewModel(
 class ZikrViewModelFactory(
     private val repository: QuranRepository,
     private val application: Application,
-    private val zikrTitle: String,
 ) : ViewModelProvider.AndroidViewModelFactory(application) {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ZikrViewModel::class.java)) {
-            return ZikrViewModel(repository, application, zikrTitle) as T
+            return ZikrViewModel(repository, application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

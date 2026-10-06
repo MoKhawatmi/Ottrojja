@@ -275,8 +275,8 @@ class QuranRepository(private val quranDao: QuranDao,
         return quranDao.getAllAzkar()
     }
 
-    suspend fun getAzkarByTitle(title: String): Azkar {
-        return quranDao.getAzkarByTitle(title)
+    suspend fun getAzkarById(id: Long): Azkar? {
+        return quranDao.getAzkarById(id)
     }
 
     suspend fun getAzkarCount(): Int {

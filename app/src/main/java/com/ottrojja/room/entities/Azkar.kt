@@ -8,9 +8,22 @@ import kotlinx.serialization.Serializable
 @Entity
 @Serializable
 data class Azkar(
-    @PrimaryKey @ColumnInfo(name = "azkarTitle") val azkarTitle: String,
-    @ColumnInfo(name = "ytLink") val ytLink: String,
-    @ColumnInfo(name = "firebaseAddress") val firebaseAddress: String,
-    @ColumnInfo(name = "azkarText") val azkarText: String,
-    @ColumnInfo(name = "image") val image: String
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id")
+    val id: Long = 0L,
+
+    @ColumnInfo(name = "azkarTitle")
+    val azkarTitle: String,
+
+    @ColumnInfo(name = "ytLink")
+    val ytLink: String,
+
+    @ColumnInfo(name = "firebaseAddress")
+    val firebaseAddress: String,
+
+    @ColumnInfo(name = "azkarText")
+    val azkarText: String,
+
+    @ColumnInfo(name = "image")
+    val image: String
 )

@@ -68,7 +68,7 @@ fun AzkarScreen(
                         .clip(RoundedCornerShape(12))
                         .clickable {
                             navController.navigate(
-                                Screen.ZikrScreen.invokeRoute(item.azkarTitle)
+                                Screen.ZikrScreen.invokeRoute(item.id)
                             )
                         }
                         .padding(12.dp)

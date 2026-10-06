@@ -34,13 +34,32 @@ import com.ottrojja.room.entities.VerseMeanings
         CauseOfRevelation::class, BookmarkEntity::class, Khitmah::class,
         KhitmahSession::class, CustomTasbeeh::class, TasabeehList::class, VerseMeanings::class, Quarter::class,
         Reminder::class],
-    version = 12
+    version = 13
 )
 abstract class QuranDatabase : RoomDatabase() {
     abstract fun quranDao(): QuranDao
     abstract fun khitmahDao(): KhitmahDao
     abstract fun tasabeehDao(): TasabeehDao
     abstract fun reminderDao(): ReminderDao
+}
+
+val MIGRATION_12_13 = object : Migration(12, 13) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS Azkar")
+
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS Azkar (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                azkarTitle TEXT NOT NULL,
+                ytLink TEXT NOT NULL,
+                firebaseAddress TEXT NOT NULL,
+                azkarText TEXT NOT NULL,
+                image TEXT NOT NULL
+            )
+            """.trimIndent()
+        )
+    }
 }
 
 val MIGRATION_11_12 = object : Migration(11, 12) {

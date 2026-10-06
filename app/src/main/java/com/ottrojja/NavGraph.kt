@@ -150,11 +150,18 @@ fun NavGraph(navController: NavHostController,
             )
         }
 
-        composable(route = Screen.ZikrScreen.route, arguments = listOf(navArgument("zikerTitle") {
-            type = NavType.StringType
-        })) {
-            val zikrTitle = requireNotNull(it.arguments).getString("zikerTitle")
-            ZikrScreen(zikrTitle!!, navController, repository)
+        composable(
+            route = Screen.ZikrScreen.route
+        ) { backStackEntry ->
+            val zikrId =
+                backStackEntry.arguments?.getString("zikrId")?.toLongOrNull()
+                    ?: return@composable
+
+            ZikrScreen(
+                zikrId = zikrId,
+                navController = navController,
+                repository = repository
+            )
         }
 
         composable(route = Screen.KhitmahScreen.route, arguments = listOf(navArgument("id") {
