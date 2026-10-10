@@ -1,15 +1,13 @@
 package com.ottrojja.screens.blessingsScreen.classes
 
-import com.ottrojja.classes.TextParser.TextBlock
+import androidx.annotation.Keep
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
+@Keep
 @Serializable
 data class Blessing(
     val id: Int,
     val text: String,
     val category: BlessingCategory = BlessingCategory.GENERAL,
-
-    @Transient
-    val content: List<TextBlock> = emptyList()
 )

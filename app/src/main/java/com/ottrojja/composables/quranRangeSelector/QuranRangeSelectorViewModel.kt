@@ -100,7 +100,9 @@ class QuranRangeSelectorViewModel(
         }
     }
 
+
     fun openSurahSelection(target: SelectionTarget) {
+
         _uiState.update {
             it.copy(
                 selectionTarget = target,

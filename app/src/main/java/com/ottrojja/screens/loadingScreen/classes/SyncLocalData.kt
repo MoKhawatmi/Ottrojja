@@ -7,6 +7,7 @@ import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.room.entities.*
 import com.ottrojja.screens.mainScreen.PartData
+import kotlinx.coroutines.CancellationException
 
 class SyncLocalData(
     private val context: Context,
@@ -18,7 +19,13 @@ class SyncLocalData(
     // Read once up-front, not lazily scattered around
     private val versions: Map<String, Int> by lazy { jsonParser.getFilesVersions() }
 
+    private val _failures = mutableListOf<String>()
+
+    /** Asset files that failed to sync during the last [sync] call. */
+    val failures: List<String> get() = _failures
+
     suspend fun sync() {
+        _failures.clear()
         syncChapters()
         syncParts()
         syncE3rab()
@@ -48,11 +55,18 @@ class SyncLocalData(
     ) {
         if (!needsSync) return
         try {
-            val data = jsonParser.parseJsonArrayFile<T>(assetFile) ?: return
+            val data = jsonParser.parseJsonArrayFile<T>(assetFile)
+            if (data == null) {
+                _failures += assetFile
+                return
+            }
             insert(data)
             saveVersion(prefKey, remoteVersion(versionKey))
+        } catch (e: CancellationException) {
+            throw e // never swallow cancellation
         } catch (e: Exception) {
             e.printStackTrace()
+            _failures += assetFile
             reportException(exception = e, file = "LocalDataSyncUseCase")
         }
     }

@@ -18,6 +18,7 @@ fun AdviceDisplay(viewModel: AdviceDisplayViewModel = viewModel()) {
     OttrojjaPrimaryTextDisplay(
         text = advice.value?.text ?: "",
         details = advice.value?.details,
-        loading = loading.value
+        loading = loading.value,
+        onRefresh = {viewModel.fetchAdvice()}
     )
 }

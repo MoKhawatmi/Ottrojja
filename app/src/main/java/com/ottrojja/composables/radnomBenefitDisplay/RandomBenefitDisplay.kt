@@ -34,6 +34,7 @@ fun RandomBenefitDisplay(navController: NavController, repository: QuranReposito
                     Screen.QuranScreen.invokeRoute(pageNum.value!!)
                 )
             }
-        }
+        },
+        onRefresh = { viewModel.fetchBenefit() }
     )
 }

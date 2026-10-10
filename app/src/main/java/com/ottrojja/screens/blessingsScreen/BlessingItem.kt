@@ -26,24 +26,25 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.ottrojja.screens.blessingsScreen.classes.Blessing
-import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaDetailsContainer
+import com.ottrojja.composables.OttrojjaMarkdown
 import com.ottrojja.composables.OttrojjaText
-import com.ottrojja.composables.OttrojjaTextBlock
+import com.ottrojja.screens.blessingsScreen.classes.BlessingUiItem
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 
 @Composable
-fun BlessingItem(item: Blessing, onShareClick: () -> Unit) {
+fun BlessingItem(item: BlessingUiItem, onShareClick: () -> Unit) {
+    val blessing = item.blessing
 
     var expanded by rememberSaveable { mutableStateOf(false) }
-    val lineBreaks = item.text.count { it == '\n' }
-    val canExpand = lineBreaks > 7 || item.text.length > 400
+    val lineBreaks = blessing.text.count { it == '\n' }
+    val canExpand = lineBreaks > 7 || blessing.text.length > 400
 
     OttrojjaDetailsContainer() {
         Box(modifier = Modifier
@@ -57,6 +58,7 @@ fun BlessingItem(item: Blessing, onShareClick: () -> Unit) {
             .then(
                 if (expanded || !canExpand) Modifier.fillMaxHeight() else Modifier.height(250.dp)
             )
+            .clipToBounds()
             .clickable(enabled = canExpand) { expanded = !expanded }
         ) {
 
@@ -88,21 +90,21 @@ fun BlessingItem(item: Blessing, onShareClick: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = item.category.icon,
+                            imageVector = blessing.category.icon,
                             contentDescription = "category icon",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
                         )
-                        OttrojjaText(text = item.category.title, color = MaterialTheme.colorScheme.primary, style = OttrojjaTheme.typography.bodySmall)
+                        OttrojjaText(text = blessing.category.title, color = MaterialTheme.colorScheme.primary, style = OttrojjaTheme.typography.bodySmall)
                     }
                 }
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    item.content.forEach { OttrojjaTextBlock(it) }
-                }
+                // Markdown body, already parsed in the ViewModel
+                OttrojjaMarkdown(
+                    state = item.markdown,
+                    modifier = Modifier.padding(top = 8.dp, start = 4.dp, end = 4.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
 
             if (!expanded && canExpand) {

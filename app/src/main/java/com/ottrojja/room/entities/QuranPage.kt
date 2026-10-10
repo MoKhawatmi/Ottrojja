@@ -1,11 +1,13 @@
 package com.ottrojja.room.entities
 
+import androidx.annotation.Keep
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 
+@Keep
 @Entity
 @Serializable
 data class QuranPage(
@@ -25,6 +27,7 @@ data class QuranPage(
         )
     ]
 )
+@Keep
 @Serializable
 data class PageContent(
     @PrimaryKey val id: Int,
@@ -39,7 +42,7 @@ data class PageContent(
     @ColumnInfo(name = "verseTextPlain") val verseTextPlain: String?,
     @ColumnInfo(name = "mutashabihat") val mutashabihat: List<String> = emptyList(),
 )
-
+@Keep
 enum class PageContentItemType{
     verse, surah, EMPTY
 }

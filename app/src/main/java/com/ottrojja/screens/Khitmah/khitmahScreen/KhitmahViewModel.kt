@@ -130,6 +130,10 @@ class KhitmahViewModel(
                     .collect()
 
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) {
+                    return@launch
+                }
+
                 e.printStackTrace()
 
                 reportException(
@@ -175,6 +179,10 @@ class KhitmahViewModel(
                 _surahProgress.value = progress
 
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) {
+                    return@launch
+                }
+
                 e.printStackTrace()
 
                 reportException(

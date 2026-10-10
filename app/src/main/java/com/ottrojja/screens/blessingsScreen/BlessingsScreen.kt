@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers.copyToClipboard
+import com.ottrojja.classes.stripMarkdown
 import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaLoadingIndicator
 import com.ottrojja.composables.PillShapedTextFieldWithIcon
@@ -57,10 +58,8 @@ fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
 
     val listState = rememberLazyListState()
 
-    LaunchedEffect(Unit) {
-        blessingsViewModel.fetchBlessings()
-    }
-
+    // Pagination: load the next page when the last item becomes visible.
+    // (The initial load now happens in the ViewModel's init block.)
     LaunchedEffect(listState) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo }
             .collect { visibleItems ->
@@ -105,7 +104,11 @@ fun BlessingsScreen(blessingsViewModel: BlessingsViewModel = viewModel()) {
                         .fillMaxHeight()
                 ) {
                     items(blessings) { item ->
-                        BlessingItem(item = item, onShareClick = { copyToClipboard(context, item.text) })
+                        BlessingItem(
+                            item = item,
+                            // Copy clean plain text instead of raw markdown syntax
+                            onShareClick = { copyToClipboard(context, item.blessing.text.stripMarkdown()) }
+                        )
                     }
 
                     if (blessingsViewModel.loading) {

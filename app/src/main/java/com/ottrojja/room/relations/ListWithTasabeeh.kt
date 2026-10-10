@@ -1,10 +1,12 @@
 package com.ottrojja.room.relations
 
+import androidx.annotation.Keep
 import androidx.room.Embedded
 import androidx.room.Relation
 import com.ottrojja.room.entities.CustomTasbeeh
 import com.ottrojja.room.entities.TasabeehList
 
+@Keep
 data class ListWithTasabeeh(
     @Embedded val tasabeehList: TasabeehList,
     @Relation(

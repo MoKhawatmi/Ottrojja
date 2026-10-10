@@ -55,7 +55,7 @@ class ZikrViewModel(
     val zikr = _zikr.asStateFlow()
 
     /** Null-safe accessors, use these instead of _zikr.value.xxx */
-    private val firebaseAddress: String? get() = _zikr.value?.firebaseAddress
+    private val zikrAddress: String? get() = _zikr.value?.zikrAddress
 
     private fun localFileFor(address: String): File =
         File(context.getExternalFilesDir(null), address.substringAfterLast('/'))
@@ -65,7 +65,7 @@ class ZikrViewModel(
             try {
                 val result = repository.getAzkarById(id)
                 _zikr.value = result
-                _isDownloaded.value = result?.let { localFileFor(it.firebaseAddress).exists() } ?: false
+                _isDownloaded.value = result?.let { localFileFor(it.zikrAddress).exists() } ?: false
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "ZikrViewModel", details = "zikr id: $id")
@@ -156,7 +156,7 @@ class ZikrViewModel(
         get() = _isDownloaded.value
 
     fun downloadZikr() {
-        val address = firebaseAddress ?: return
+        val address = zikrAddress ?: return
 
         if (!Helpers.checkNetworkConnectivity(context)) {
             AppToastManager.show(
@@ -238,7 +238,7 @@ class ZikrViewModel(
     }
 
     fun playZikr() {
-        val address = firebaseAddress ?: return
+        val address = zikrAddress ?: return
         audioService?.playZiker(address)
     }
 
@@ -279,7 +279,7 @@ class ZikrViewModel(
                 // Waits until the zikr is loaded, so it never reads a null zikr
                 viewModelScope.launch {
                     _zikr.filterNotNull().collectLatest { z ->
-                        audioService?.getPlayingState(z.firebaseAddress)?.collect { state ->
+                        audioService?.getPlayingState(z.zikrAddress)?.collect { state ->
                             _isPlaying.value = state
                             if (state) {
                                 //TODO placed here this statement will also be called unnecessarily, find a better solution

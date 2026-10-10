@@ -53,7 +53,7 @@ val MIGRATION_12_13 = object : Migration(12, 13) {
                 id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 azkarTitle TEXT NOT NULL,
                 ytLink TEXT NOT NULL,
-                firebaseAddress TEXT NOT NULL,
+                zikrAddress TEXT NOT NULL,
                 azkarText TEXT NOT NULL,
                 image TEXT NOT NULL
             )

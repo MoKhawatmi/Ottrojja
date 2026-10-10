@@ -28,19 +28,28 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            //noinspection NotShrinkingResources
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+        create("releaseTest") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += "release"
+        }
     }
+
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    //noinspection WrongGradleMethod
     kotlin {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
@@ -123,6 +132,10 @@ dependencies {
 
 
     implementation("io.github.boguszpawlowski.composecalendar:composecalendar:1.4.0")
+
+    implementation("com.mikepenz:multiplatform-markdown-renderer:0.45.0")
+    implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.45.0")
+
 
 
 }

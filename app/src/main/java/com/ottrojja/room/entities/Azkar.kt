@@ -1,10 +1,12 @@
 package com.ottrojja.room.entities
 
+import androidx.annotation.Keep
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 
+@Keep
 @Entity
 @Serializable
 data class Azkar(
@@ -18,8 +20,8 @@ data class Azkar(
     @ColumnInfo(name = "ytLink")
     val ytLink: String,
 
-    @ColumnInfo(name = "firebaseAddress")
-    val firebaseAddress: String,
+    @ColumnInfo(name = "zikrAddress")
+    val zikrAddress: String,
 
     @ColumnInfo(name = "azkarText")
     val azkarText: String,

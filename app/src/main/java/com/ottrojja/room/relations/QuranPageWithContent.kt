@@ -1,10 +1,12 @@
 package com.ottrojja.room.relations
 
+import androidx.annotation.Keep
 import androidx.room.Embedded
 import androidx.room.Relation
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.QuranPage
 
+@Keep
 data class QuranPageWithContent(
     @Embedded val page: QuranPage,  // Embeds the page data in this class
     @Relation(

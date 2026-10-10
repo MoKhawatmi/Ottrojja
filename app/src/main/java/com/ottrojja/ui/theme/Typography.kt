@@ -1,8 +1,10 @@
 package com.ottrojja.ui.theme
 
+import androidx.annotation.Keep
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.TextStyle
 
+@Keep
 @Immutable
 data class OttrojjaTypography(
 

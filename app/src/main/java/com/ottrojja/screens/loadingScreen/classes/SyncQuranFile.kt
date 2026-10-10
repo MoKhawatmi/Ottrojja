@@ -13,6 +13,7 @@ import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.StorageBase
 import com.ottrojja.classes.downloadOnce
 import com.ottrojja.room.entities.QuranPage
+import kotlinx.coroutines.CancellationException
 import okhttp3.Request
 import java.io.File
 
@@ -59,13 +60,16 @@ class SyncQuranFile(
         Log.d("QuranSync", "Fetching quran file meta")
         val request = Request.Builder().url(QURAN_FILE_URL).head().build()
         return try {
-            val response = ottrojjaClient.newCall(request).execute()
-            if (response.isSuccessful) {
-                response.header("x-amz-meta-uploaded-at")?.toLongOrNull()
-            } else {
-                Log.w("QuranSync", "HEAD failed: ${response.code}")
-                null
+            ottrojjaClient.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    response.header("x-amz-meta-uploaded-at")?.toLongOrNull()
+                } else {
+                    Log.w("QuranSync", "HEAD failed: ${response.code}")
+                    null
+                }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             reportException(exception = e, file = "QuranFileSyncUseCase")
             null
@@ -112,6 +116,8 @@ class SyncQuranFile(
             val pages = jsonParser.parseJsonArrayFileFromFilesDir(file.name)
             if (pages.isNullOrEmpty()) throw Exception("Empty or null quran file: ${file.name}")
             insertPages(pages, isUpdate)
+        } catch (e: CancellationException) {
+            throw e // cancellation is not a corrupt file; don't delete it
         } catch (e: Exception) {
             Log.e("QuranSync", "Failed to load ${file.name}: ${e.message}")
             reportException(exception = e, file = "QuranFileSyncUseCase")
@@ -126,6 +132,8 @@ class SyncQuranFile(
             val pages = jsonParser.parseJsonArrayFile<QuranPage>("quran.json")
             if (pages.isNullOrEmpty()) throw Exception("Asset quran.json is empty")
             insertPages(pages, isUpdate = false)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e("QuranSync", "Asset fallback failed: ${e.message}")
             reportException(exception = e, file = "QuranFileSyncUseCase")

@@ -1,11 +1,13 @@
 package com.ottrojja.room.entities
 
+import androidx.annotation.Keep
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
+@Keep
 @Entity(
     foreignKeys = [
         ForeignKey(

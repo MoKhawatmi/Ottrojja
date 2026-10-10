@@ -1,10 +1,12 @@
 package com.ottrojja.room.entities
 
+import androidx.annotation.Keep
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
+
 
 @Entity(
     foreignKeys = [
@@ -16,7 +18,7 @@ import kotlinx.serialization.Serializable
         )
     ]
 )
-//@Serializable
+@Keep
 data class CustomTasbeeh(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int = 0,
     @ColumnInfo(name = "listId") val listId: Int,

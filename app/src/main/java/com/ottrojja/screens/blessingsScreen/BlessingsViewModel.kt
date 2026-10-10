@@ -1,40 +1,38 @@
 package com.ottrojja.screens.blessingsScreen
 
 import android.app.Application
-import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.ottrojja.screens.blessingsScreen.classes.Blessing
+import com.mikepenz.markdown.model.parseMarkdown
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.SupabaseProvider
-import com.ottrojja.classes.TextParser.OttrojjaTextParser
 import com.ottrojja.composables.ToastManager.classes.AppToastManager
 import com.ottrojja.composables.ToastManager.classes.AppToastType
+import com.ottrojja.screens.blessingsScreen.classes.Blessing
 import com.ottrojja.screens.blessingsScreen.classes.BlessingCategory
+import com.ottrojja.screens.blessingsScreen.classes.BlessingUiItem
 import io.github.jan.supabase.SupabaseClient
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.launch
 
 
 class BlessingsViewModel(application: Application) : AndroidViewModel(application) {
-    val context = application.applicationContext;
+    val context = application.applicationContext
 
-    lateinit var supabase: SupabaseClient;
+    private val supabase: SupabaseClient = SupabaseProvider.client
 
-    init {
-        supabase = SupabaseProvider.client
-    }
-
-    var blessingsList = MutableStateFlow(emptyList<Blessing>())
+    val blessingsList = MutableStateFlow(emptyList<BlessingUiItem>())
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery
@@ -42,33 +40,39 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
     private val _filterCategory = MutableStateFlow(BlessingCategory.ALL)
     val filterCategory = _filterCategory
 
-
     private var _loading = mutableStateOf(false)
     var loading: Boolean
         get() = _loading.value
-        set(value: Boolean) {
+        set(value) {
             _loading.value = value
         }
 
     private var _isRefreshing = mutableStateOf(false)
     var isRefreshing: Boolean
         get() = _isRefreshing.value
-        set(value: Boolean) {
+        set(value) {
             _isRefreshing.value = value
         }
 
+    private var page: Long = 1
+    private var hasMorePages: Boolean = true
+    private var fetchJob: Job? = null
+
+    @Volatile
+    private var requestId = 0
+
     init {
         observeSearch()
+        fetchBlessings() // initial load (the screen no longer triggers it)
     }
 
     private fun observeSearch() {
         viewModelScope.launch {
             _searchQuery
+                .drop(1) // skip the initial "" so we don't fetch twice on start
                 .debounce(500)
                 .distinctUntilChanged()
-                .collectLatest {
-                    refresh()
-                }
+                .collectLatest { refresh() }
         }
     }
 
@@ -81,44 +85,55 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
         refresh()
     }
 
-
-    var page: Long = 1;
-    var hasMorePages: Boolean = true;
-
     fun fetchBlessings(refresh: Boolean = false) {
-        if (_loading.value || !hasMorePages) {
-            return;
+        // A refresh always wins and cancels whatever is in flight;
+        // pagination is ignored while something is already loading.
+        if (!refresh && (_loading.value || _isRefreshing.value || !hasMorePages)) return
+
+        fetchJob?.cancel()
+        val myRequest = ++requestId
+        val requestedPage = if (refresh) 1L else page
+        val from = (requestedPage - 1) * PAGE_SIZE
+        val to = from + PAGE_SIZE - 1
+
+        if (refresh) {
+            _isRefreshing.value = true
+            _loading.value = false
+        } else {
+            _loading.value = true
         }
-        val from: Long = (page - 1) * 20
-        val to: Long = from + 20 - 1
-        println("fetching from $from to $to")
-        viewModelScope.launch(Dispatchers.IO) {
-            if (refresh) _isRefreshing.value = true else _loading.value = true
-            val blessings: List<Blessing> = try {
-                supabase.from("blessings").select(Columns.ALL) {
-                    range(from = from, to = to);
+
+        fetchJob = viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val query = _searchQuery.value
+                val category = _filterCategory.value
+
+                val items = supabase.from("blessings").select(Columns.ALL) {
+                    range(from = from, to = to)
                     order(column = "id", order = Order.DESCENDING)
-                    if (searchQuery.value.isNotBlank()) {
-                        filter {
-                            ilike(
-                                column = "text",
-                                pattern = "%${searchQuery.value}%"
-                            )
-                        }
+                    if (query.isNotBlank()) {
+                        filter { ilike(column = "text", pattern = "%$query%") }
                     }
-                    if (_filterCategory.value != BlessingCategory.ALL) {
-                        filter {
-                            eq(
-                                column = "category",
-                                value = _filterCategory.value
-                            )
-                        }
+                    if (category != BlessingCategory.ALL) {
+                        filter { eq(column = "category", value = category) }
                     }
                 }.decodeList<Blessing>().map { blessing ->
-                    blessing.copy(
-                        content = OttrojjaTextParser.parse(blessing.text)
-                    )
-                };
+                    // The full markdown string arrives at once: parse it once, off the main thread.
+                    BlessingUiItem(blessing, parseMarkdown(blessing.text))
+                }
+
+                if (myRequest != requestId) return@launch // superseded by a newer request
+
+                if (refresh) {
+                    blessingsList.value = items
+                    page = 2
+                } else {
+                    blessingsList.value += items
+                    page++
+                }
+                hasMorePages = items.size.toLong() == PAGE_SIZE
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "BlessingsViewModel")
@@ -126,25 +141,11 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
                     message = "حصل خطأ اثناء التحميل",
                     type = AppToastType.ERROR
                 )
-                emptyList<Blessing>()
-            }
-
-            if (refresh) {
-                blessingsList.value = blessings
-                page = 2
-                hasMorePages = blessings.isNotEmpty()
-            } else {
-                if (blessings.isNotEmpty()) {
-                    blessingsList.value += blessings
-                    page++
-                } else {
-                    hasMorePages = false
+            } finally {
+                if (myRequest == requestId) {
+                    _loading.value = false
+                    _isRefreshing.value = false
                 }
-            }
-
-            withContext(Dispatchers.Main) {
-                _loading.value = false;
-                _isRefreshing.value = false
             }
         }
     }
@@ -155,4 +156,7 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
         fetchBlessings(refresh = true)
     }
 
+    private companion object {
+        const val PAGE_SIZE = 20L
+    }
 }

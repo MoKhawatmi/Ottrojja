@@ -2,7 +2,6 @@ package com.ottrojja.screens.quranScreen
 
 import android.app.Application
 import android.content.Intent
-import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
@@ -11,19 +10,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
-import com.ottrojja.classes.Helpers.convertToArabicNumbers
+import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.composables.ToastManager.classes.AppToastManager
 import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.room.entities.ChapterData
-import com.ottrojja.screens.listeningScreen.ListeningViewModel.SelectionPhase
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 
 class VersesSectionViewModel(private val repository: QuranRepository, application: Application) :
     AndroidViewModel(application),
@@ -48,39 +46,12 @@ class VersesSectionViewModel(private val repository: QuranRepository, applicatio
         itemsList.value = tempList;
     }
 
-    private var _searchFilter = mutableStateOf("")
-    var searchFilter: String
-        get() = _searchFilter.value
-        set(value) {
-            _searchFilter.value = value
-        }
-
-    private var _showVerseSelectionDialog = mutableStateOf(false)
-    var showVerseSelectionDialog: Boolean
-        get() = _showVerseSelectionDialog.value
-        set(value) {
-            _showVerseSelectionDialog.value = value
-        }
 
     private var _showVerseShareDialog = mutableStateOf(false)
     var showVerseShareDialog: Boolean
         get() = _showVerseShareDialog.value
         set(value) {
             _showVerseShareDialog.value = value
-        }
-
-    private var _selectionPhase = mutableStateOf(SelectionPhase.START)
-    var selectionPhase: SelectionPhase
-        get() = _selectionPhase.value
-        set(value) {
-            _selectionPhase.value = value
-        }
-
-    private var _selectedSurah = mutableStateOf<ChapterData?>(null)
-    var selectedSurah: ChapterData?
-        get() = _selectedSurah.value
-        set(value) {
-            _selectedSurah.value = value
         }
 
     private var _startingVerse = mutableStateOf<PageContent?>(null)
@@ -97,13 +68,6 @@ class VersesSectionViewModel(private val repository: QuranRepository, applicatio
             _endVerse.value = value
         }
 
-    fun verseSelected(verse: PageContent) {
-        if (_selectionPhase.value == SelectionPhase.START) {
-            _startingVerse.value = verse;
-        } else {
-            _endVerse.value = verse;
-        }
-    }
 
     private var _selectionVersesList = mutableStateOf(emptyList<PageContent>())
     var selectionVersesList: List<PageContent>
@@ -112,21 +76,12 @@ class VersesSectionViewModel(private val repository: QuranRepository, applicatio
             _selectionVersesList.value = value
         }
 
-    val filteredVerses: List<PageContent>
-        get() = if (searchFilter.isBlank()) {
-            selectionVersesList
-        } else {
-            selectionVersesList.filter {
-                it.verseNum.toString().contains(searchFilter, ignoreCase = true)
-            }
-        }
 
-
-    private var _shareChapterName = mutableStateOf("")
-    var shareChapterName: String
-        get() = _shareChapterName.value
+    private var _shareChapter = mutableStateOf<ChapterData?>(null)
+    var shareChapter: ChapterData?
+        get() = _shareChapter.value
         set(value) {
-            _shareChapterName.value = value
+            _shareChapter.value = value
         }
 
     private var isFetching = false
@@ -134,44 +89,80 @@ class VersesSectionViewModel(private val repository: QuranRepository, applicatio
         if (isFetching) return
         isFetching = true
 
-        viewModelScope.launch(Dispatchers.IO) {
-            val verses = repository.getChapterVerses(verseItem.surahNum)
-            val chapterName = repository.getChapter(verseItem.surahNum).chapterName
-            withContext(Dispatchers.Main) {
-                _selectionVersesList.value = verses;
-                _startingVerse.value = verseItem;
-                _endVerse.value = verseItem;
-                _shareChapterName.value = chapterName;
-                // show share bottomsheet after all fetching and setting states is done
-                _showVerseShareDialog.value = true;
+        viewModelScope.launch {
+            try {
+                val verses = withContext(Dispatchers.IO) {
+                    repository.getChapterVerses(verseItem.surahNum)
+                }
+
+                val chapter = withContext(Dispatchers.IO) {
+                    repository.getChapter(verseItem.surahNum)
+                }
+
+                _selectionVersesList.value = verses
+                _startingVerse.value = verseItem
+                _endVerse.value = verseItem
+                _shareChapter.value = chapter
+                _showVerseShareDialog.value = true
+            } catch (e: CancellationException) {
+                return@launch
+            } catch (e: Exception) {
+                reportException(e, "VersesSectionViewModel", "Surah Id: ${verseItem.surahNum}")
+                AppToastManager.show(
+                    message = "تعذر تحميل الآيات",
+                    type = AppToastType.ERROR
+                )
+            } finally {
                 isFetching = false
             }
         }
     }
 
     fun shareVerses() {
-        val startVerseNum = _startingVerse.value?.verseNum
-        val endVerseNum = _endVerse.value?.verseNum
+        val verses = _selectionVersesList.value
+        val startVerse = _startingVerse.value ?: return
+        val endVerse = _endVerse.value ?: return
 
-        if (startVerseNum == null || endVerseNum == null) return
+        val startVerseIndex = verses.indexOfFirst {
+            it.surahNum == startVerse.surahNum &&
+                    it.verseNum == startVerse.verseNum
+        }
 
-        if (startVerseNum > endVerseNum) {
+        val endVerseIndex = verses.indexOfFirst {
+            it.surahNum == endVerse.surahNum &&
+                    it.verseNum == endVerse.verseNum
+        }
+
+        if (startVerseIndex == -1 || endVerseIndex == -1) {
             AppToastManager.show(
-                message = "موضع اية النهاية لا يجب ان يكون قبل اية البداية",
+                message = "تعذر تحديد الآيات المطلوبة",
                 type = AppToastType.ERROR
             )
-            return;
-        }
-        val startVerseIndex = _selectionVersesList.value.indexOf(_startingVerse.value)
-        val endVerseIndex = _selectionVersesList.value.indexOf(_endVerse.value) + 1
-        var versesRange = "$startVerseNum";
-        if (startVerseNum != endVerseNum) {
-            versesRange += " - $endVerseNum"
+            return
         }
 
-        val shareVersesText = selectionVersesList.subList(startVerseIndex, endVerseIndex).joinToString(separator = "") { "${it.verseText} {${it.verseNum}} " }
+        if (startVerseIndex > endVerseIndex) {
+            AppToastManager.show(
+                message = "موضع آية النهاية لا يجب أن يكون قبل آية البداية",
+                type = AppToastType.ERROR
+            )
+            return
+        }
+
+        val versesRange = if (startVerse.verseNum == endVerse.verseNum) {
+            "${startVerse.verseNum}"
+        } else {
+            "${startVerse.verseNum} - ${endVerse.verseNum}"
+        }
+
+        val shareVersesText = verses
+            .subList(startVerseIndex, endVerseIndex + 1)
+            .joinToString(separator = "") {
+                "${it.verseText} {${it.verseNum}} "
+            }
+
         viewModelScope.launch(Dispatchers.IO) {
-            val chapterName = _shareChapterName.value
+            val chapterName = _shareChapter.value?.chapterName
             val sendIntent: Intent = Intent().apply {
                 action = Intent.ACTION_SEND
                 putExtra(Intent.EXTRA_SUBJECT, "آيات قرآنية")

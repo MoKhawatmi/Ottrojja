@@ -16,13 +16,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,17 +31,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.composables.buttons.OttrojjaButton
-import com.ottrojja.composables.dialogs.OttrojjaItemSelectionDialog
-import com.ottrojja.composables.PillShapedTextFieldWithIcon
-import com.ottrojja.composables.RangeSelector
 import com.ottrojja.composables.VerseTextWithNumber
 import com.ottrojja.composables.ottrojjaFlexibleActions.FlexibleAction
 import com.ottrojja.composables.ottrojjaFlexibleActions.OttrojjaFlexibleActions
-import com.ottrojja.composables.rangeSelectionItem.RangeSelectionSegment
+import com.ottrojja.composables.quranRangeSelector.QuranRangeSelector
+import com.ottrojja.composables.quranRangeSelector.QuranRangeState
+import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.room.entities.PageContent
-import com.ottrojja.screens.listeningScreen.ListeningViewModel.SelectionPhase
+import com.ottrojja.ui.theme.OttrojjaTheme
+
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -67,36 +66,13 @@ fun VersesSection(
     if (versesSectionViewModel.showVerseShareDialog) {
         ShareVersesBottomSheet(
             onDismissRequest = { versesSectionViewModel.showVerseShareDialog = false },
-            title = "مشاركة ايات من سورة ${versesSectionViewModel.shareChapterName}",
-            startSegments = listOf(RangeSelectionSegment(
-                title = "من اية",
-                value = "${versesSectionViewModel.startingVerse?.verseNum}",
-                onClick = {
-                    versesSectionViewModel.selectionPhase = SelectionPhase.START
-                    versesSectionViewModel.showVerseSelectionDialog = true
-                }
-            )),
-            endSegments = listOf(RangeSelectionSegment(
-                title = "الى اية",
-                value = "${versesSectionViewModel.endVerse?.verseNum}",
-                onClick = {
-                    versesSectionViewModel.selectionPhase = SelectionPhase.END
-                    versesSectionViewModel.showVerseSelectionDialog = true
-                }
-            )),
+            title = "مشاركة ايات من سورة ${versesSectionViewModel.shareChapter?.chapterName}",
+            surah = versesSectionViewModel.shareChapter,
+            startVerse = versesSectionViewModel.startingVerse,
+            endVerse = versesSectionViewModel.endVerse,
+            onRangeChanged = { newRange -> versesSectionViewModel.startingVerse = newRange.startVerse; versesSectionViewModel.endVerse = newRange.endVerse },
+            repository = repository,
             onShareClick = { versesSectionViewModel.shareVerses() }
-        )
-    }
-
-    if (versesSectionViewModel.showVerseSelectionDialog) {
-        SelectVerseDialog(
-            onDismissRequest = { versesSectionViewModel.showVerseSelectionDialog = false },
-            searchFilter = versesSectionViewModel.searchFilter,
-            onSearchFilterChange = { value -> versesSectionViewModel.searchFilter = value },
-            versesList = versesSectionViewModel.filteredVerses,
-            onVerseSelected = { verse ->
-                versesSectionViewModel.verseSelected(verse)
-            }
         )
     }
 
@@ -189,11 +165,15 @@ fun VersesSection(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShareVersesBottomSheet(onDismissRequest: () -> Unit,
-                           title: String,
-                           startSegments: List<RangeSelectionSegment>,
-                           endSegments: List<RangeSelectionSegment>,
-                           onShareClick: () -> Unit
+fun ShareVersesBottomSheet(
+    onDismissRequest: () -> Unit,
+    title: String,
+    surah: ChapterData?,
+    startVerse: PageContent?,
+    endVerse: PageContent?,
+    onRangeChanged: (QuranRangeState) -> Unit,
+    repository: QuranRepository,
+    onShareClick: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
 
@@ -202,44 +182,38 @@ fun ShareVersesBottomSheet(onDismissRequest: () -> Unit,
         sheetState = sheetState,
     ) {
         Column {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                Text(title, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OttrojjaText(
+                    title,
+                    style = OttrojjaTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
-            RangeSelector(
-                startSegments = startSegments,
-                endSegments = endSegments
+            QuranRangeSelector(
+                modifier = Modifier.padding(16.dp),
+                range = QuranRangeState(
+                    startSurah = surah,
+                    startVerse = startVerse,
+                    endSurah = surah,
+                    endVerse = endVerse,
+                ),
+                onRangeChange = { onRangeChanged(it) },
+                repository = repository,
+                allowSurahSelection = false,
             )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 OttrojjaButton(text = "مشاركة", onClick = { onShareClick() })
             }
         }
     }
-}
-
-@Composable
-fun SelectVerseDialog(onDismissRequest: () -> Unit,
-                      searchFilter: String,
-                      onSearchFilterChange: (String) -> Unit,
-                      versesList: List<PageContent>,
-                      onVerseSelected: (PageContent) -> Unit
-) {
-    OttrojjaItemSelectionDialog(onDismiss = { onDismissRequest() },
-        searchBar = {
-            PillShapedTextFieldWithIcon(
-                value = searchFilter,
-                onValueChange = { newValue -> onSearchFilterChange(newValue) },
-                leadingIcon = Icons.Default.Search,
-                modifier = Modifier.fillMaxWidth(0.9f),
-                placeHolder = "الاية"
-            )
-        },
-        selectionItems = versesList,
-        onSelect = { verse -> onVerseSelected(verse) },
-        itemContent = { item ->
-            Row {
-                Text("الاية ${item.verseNum}")
-            }
-        }
-    )
 }
 
