@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Build
 import android.os.IBinder
-import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -20,10 +19,10 @@ import com.ottrojja.classes.DownloadState
 import com.ottrojja.classes.FileDownloader
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
-import com.ottrojja.classes.Helpers.formatTime
 import com.ottrojja.classes.Helpers.isServiceRunning
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
+import com.ottrojja.classes.OttrojjaDateTime
 import com.ottrojja.classes.QuranListeningMode
 import com.ottrojja.classes.QuranPlayingParameters
 import com.ottrojja.room.repositories.QuranRepository
@@ -248,7 +247,7 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
                 viewModelScope.launch {
                     audioService?.getSliderMaxDuration()?.collect { state ->
                         _maxDuration.value = state;
-                        _maxDurationFormatted = formatTime(state.toLong());
+                        _maxDurationFormatted = OttrojjaDateTime.formatDuration(state.toLong());
 
                     }
                 }
@@ -256,7 +255,7 @@ class ListeningViewModel(private val repository: QuranRepository, application: A
                 viewModelScope.launch {
                     audioService?.getSliderPosition()?.collect { state ->
                         _sliderPosition.value = state;
-                        _progressTimeCodeDisplay.value = "${formatTime(state.toLong())}/${_maxDurationFormatted}"
+                        _progressTimeCodeDisplay.value = "${OttrojjaDateTime.formatDuration(state.toLong())}/${_maxDurationFormatted}"
                     }
                 }
 

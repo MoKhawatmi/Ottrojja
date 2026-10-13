@@ -19,10 +19,10 @@ import com.ottrojja.classes.DownloadState
 import com.ottrojja.classes.FileDownloader
 import com.ottrojja.services.AudioServiceInterface
 import com.ottrojja.classes.Helpers
-import com.ottrojja.classes.Helpers.formatTime
 import com.ottrojja.classes.Helpers.isServiceRunning
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.Helpers.terminateAllServices
+import com.ottrojja.classes.OttrojjaDateTime
 import com.ottrojja.services.AzkarPlayerService
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.StorageBase
@@ -298,7 +298,7 @@ class ZikrViewModel(
                 viewModelScope.launch {
                     audioService?.getSliderMaxDuration()?.collect { state ->
                         _maxDuration.value = state
-                        _maxDurationFormatted = formatTime(state.toLong())
+                        _maxDurationFormatted = OttrojjaDateTime.formatDuration(state.toLong())
                     }
                 }
 
@@ -306,7 +306,7 @@ class ZikrViewModel(
                     audioService?.getSliderPosition()?.collect { state ->
                         _sliderPosition.value = state
                         _progressTimeCodeDisplay.value =
-                            "${formatTime(state.toLong())}/$_maxDurationFormatted"
+                            "${OttrojjaDateTime.formatDuration(state.toLong())}/$_maxDurationFormatted"
                     }
                 }
 

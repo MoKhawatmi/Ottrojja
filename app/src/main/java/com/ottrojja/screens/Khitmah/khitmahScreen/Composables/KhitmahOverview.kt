@@ -40,7 +40,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.ottrojja.classes.Helpers.arabicDateFormatter
+import com.ottrojja.classes.OttrojjaDateTime
 import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaText
@@ -149,11 +149,10 @@ fun KhitmahOverview(
     }
 
 
-    val firstReadingDateFormatted =
-        firstReadingDate?.format(arabicDateFormatter)
+    val firstReadingDateFormatted = firstReadingDate?.let { OttrojjaDateTime.formatLocalDate(it) } ?: "-"
 
-    val lastReadingDateFormatted =
-        lastReadingDate?.format(arabicDateFormatter)
+
+    val lastReadingDateFormatted = lastReadingDate?.let { OttrojjaDateTime.formatLocalDate(it) } ?: "-"
 
 
     OttrojjaDetailsContainer(modifier = modifier.padding(8.dp)) {
@@ -566,8 +565,7 @@ private fun KhitmahTargetCard(
         0
     }
 
-    val targetDateFormatted =
-        targetDate.format(arabicDateFormatter)
+    val targetDateFormatted = OttrojjaDateTime.formatLocalDate(targetDate)
 
     Column(
         modifier = modifier

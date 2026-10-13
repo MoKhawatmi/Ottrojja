@@ -44,6 +44,7 @@ import java.util.Calendar
 import java.util.Locale
 import androidx.compose.ui.text.font.FontWeight
 import com.ottrojja.classes.FormValidationResult
+import com.ottrojja.classes.OttrojjaDateTime
 import com.ottrojja.composables.forms.OttrojjaForm
 import com.ottrojja.composables.forms.OttrojjaFormField
 import com.ottrojja.constants.QuranConstants.TOTAL_QURAN_PAGES
@@ -285,7 +286,7 @@ fun KhitmahForm(
                     OttrojjaFormField(label = "توقيت المذكر") {
                         OttrojjaSelect(
                             value = formState.reminderTime.split(":").let {
-                                Helpers.formatMilitaryTime(
+                                OttrojjaDateTime.formatMilitaryTime(
                                     it[0].toInt(),
                                     it[1].toInt()
                                 )

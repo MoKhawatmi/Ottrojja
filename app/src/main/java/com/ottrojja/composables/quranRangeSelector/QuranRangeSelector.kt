@@ -73,6 +73,15 @@ fun QuranRangeSelector(
             selectSurah = { surah ->
                 viewModel.surahUpdated(surah)
             },
+            selectedSurah = when (
+                uiState.selectionTarget
+            ) {
+                QuranRangeSelectorViewModel.SelectionTarget.START ->
+                    currentRange.startSurah
+
+                QuranRangeSelectorViewModel.SelectionTarget.END ->
+                    currentRange.endSurah
+            }
         )
     }
 
@@ -94,6 +103,15 @@ fun QuranRangeSelector(
                 versesNum = surah.verseCount,
                 selectVerse = { verseNum ->
                     viewModel.verseUpdated(verseNum)
+                },
+                selectedVerse = when (
+                    uiState.selectionTarget
+                ) {
+                    QuranRangeSelectorViewModel.SelectionTarget.START ->
+                        currentRange.startVerse?.verseNum?:1
+
+                    QuranRangeSelectorViewModel.SelectionTarget.END ->
+                        currentRange.endVerse?.verseNum?:1
                 }
             )
         }

@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import com.ottrojja.room.entities.CauseOfRevelation
 import com.ottrojja.room.entities.QuranPage
 import com.ottrojja.room.entities.BookmarkEntity
@@ -28,6 +29,7 @@ interface QuranDao {
     @Query("SELECT * FROM QuranPage")
     suspend fun getAllPages(): List<QuranPage>
 
+    @Transaction
     @Query("SELECT * FROM QuranPage WHERE pageNum=:pageNum")
     suspend fun getPage(pageNum: String): QuranPageWithContent
 

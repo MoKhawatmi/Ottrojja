@@ -33,7 +33,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -51,9 +50,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.ExpandableItem
-import com.ottrojja.classes.Helpers.formatDateTime
-import com.ottrojja.classes.Helpers.formatMilitaryTime
 import com.ottrojja.classes.Helpers.truncate
+import com.ottrojja.classes.OttrojjaDateTime
 import com.ottrojja.composables.CircleStatusIndicator
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaText
@@ -249,7 +247,7 @@ fun ReminderScreen(repository: ReminderRepository) {
                     toggleEnabled = { id -> reminderVM.toggleReminderEnabled(id) },
                     invokeEditDialog = { reminder -> reminderVM.invokeEditDialog(reminder) },
                     deleteReminder = { reminder -> confirmDeleteReminder(reminder) },
-                    getNextTriggerTime = { reminder -> formatDateTime(reminder.nextTrigger) }
+                    getNextTriggerTime = { reminder -> OttrojjaDateTime.formatDateTime(reminder.nextTrigger) }
                 )
                 ListHorizontalDivider()
             }
@@ -343,7 +341,7 @@ fun ReminderItem(reminder: ExpandableItem<Reminder>,
             ) {
                 ReminderInfoRow(
                     label = "التوقيت",
-                    value = formatMilitaryTime(reminder.data.hour, reminder.data.minute),
+                    value = OttrojjaDateTime.formatMilitaryTime(reminder.data.hour, reminder.data.minute),
                     valueColor = MaterialTheme.colorScheme.primary
                 )
 

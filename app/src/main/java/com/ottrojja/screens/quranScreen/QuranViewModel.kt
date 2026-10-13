@@ -358,42 +358,45 @@ class QuranViewModel(
     }
 
     fun prepareForPlaying() {
-        if (_selectedEndVerse == null || _selectedVerse == null) {
+        val startVerse = _selectedVerse
+        val endVerse = _selectedEndVerse
+
+        if (startVerse == null || endVerse == null) {
             AppToastManager.show(
                 message = "يرجى تحديد مواضع بداية ونهاية التلاوة",
                 type = AppToastType.ERROR
             )
-
-            return;
+            return
         }
 
-        if ((_selectedVerse?.surahNum!! > _selectedEndVerse?.surahNum!!) || (_selectedVerse?.surahNum!! == _selectedEndVerse?.surahNum!! && _selectedVerse?.verseNum!! > _selectedEndVerse?.verseNum!!)) {
+        val startVerseNum = startVerse.verseNum
+        val endVerseNum = endVerse.verseNum
+
+        if (startVerseNum == null || endVerseNum == null) {
+            AppToastManager.show(
+                message = "يرجى تحديد مواضع بداية ونهاية التلاوة",
+                type = AppToastType.ERROR
+            )
+            return
+        }
+
+        if (startVerse.id > endVerse.id) {
             AppToastManager.show(
                 message = "موضع اية البداية يجب ان لا يسبق موضع اية النهاية",
                 type = AppToastType.ERROR
             )
-            return;
+            return
         }
-
-        if ((_selectedEndVerse?.surahNum!! < _selectedVerse?.surahNum!!) || (_selectedEndVerse?.surahNum!! == _selectedVerse?.surahNum!! && _selectedEndVerse?.verseNum!! < _selectedVerse?.verseNum!!)) {
-            AppToastManager.show(
-                message = "موضع اية النهاية يجب ان لا يكون قبل موضع اية البداية",
-                type = AppToastType.ERROR
-            )
-
-            return;
-        }
-
 
         terminateAllServices(context, PagePlayerService::class.java)
-        _shouldAutoPlay.value = false;
-        _autoSwipePagesWithAudio.value = true;
+        _shouldAutoPlay.value = false
+        _autoSwipePagesWithAudio.value = true
         viewModelScope.launch(Dispatchers.IO) {
             val versesList = repository.getPagesContentRange(
-                _selectedVerse?.surahNum!!,
-                _selectedVerse?.verseNum!!,
-                _selectedEndVerse?.surahNum!!,
-                _selectedEndVerse?.verseNum!!
+                startVerse.surahNum,
+                startVerseNum,
+                endVerse.surahNum,
+                endVerseNum
             )
 
             withContext(Dispatchers.Main) {
@@ -402,13 +405,24 @@ class QuranViewModel(
 
                 for (item in versesList) {
                     if (item.verseNum == 1) {
-                        val newItem = PageContent(type = PageContentItemType.surah, surahNum = item.surahNum, pageNum = item.pageNum, id = 0, surahName = null, surahTotal = null, surahType = null, verseNum = null, verseText = null, verseTextPlain = null)
+                        val newItem = PageContent(
+                            type = PageContentItemType.surah,
+                            surahNum = item.surahNum,
+                            pageNum = item.pageNum,
+                            id = 0,
+                            surahName = null,
+                            surahTotal = null,
+                            surahType = null,
+                            verseNum = null,
+                            verseText = null,
+                            verseTextPlain = null
+                        )
                         modifiedVersesList.add(newItem)
                     }
                     modifiedVersesList.add(item)
                 }
 
-                _versesPlayList = modifiedVersesList;
+                _versesPlayList = modifiedVersesList
                 checkVerseFilesExistance()
 
                 if (!allVersesExist) {
@@ -419,7 +433,7 @@ class QuranViewModel(
                             message = "لا يوجد اتصال بالانترنت",
                             type = AppToastType.ERROR
                         )
-                        return@withContext;
+                        return@withContext
                     }
                 } else {
                     startPlaying()

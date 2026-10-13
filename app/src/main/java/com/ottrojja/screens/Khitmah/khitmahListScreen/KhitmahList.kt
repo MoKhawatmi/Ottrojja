@@ -34,6 +34,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.Helpers
+import com.ottrojja.classes.OttrojjaDateTime
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.Screen
 import com.ottrojja.composables.CircleStatusIndicator
@@ -224,7 +225,7 @@ fun KhitmahList(
                                 tint = MaterialTheme.colorScheme.primary
                             )
                             OttrojjaText(
-                                text = "تاريخ الإنشاء: ${Helpers.formatDate(item.khitmah.createdAt)}",
+                                text = "تاريخ الإنشاء: ${OttrojjaDateTime.formatDate(item.khitmah.createdAt)}",
                                 color = MaterialTheme.colorScheme.primary,
                                 style = OttrojjaTheme.typography.bodyMedium,
                                 textAlign = TextAlign.Right,
@@ -244,7 +245,7 @@ fun KhitmahList(
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                                 OttrojjaText(
-                                    text = "آخر قراءة: ${Helpers.formatDateTime(it)}",
+                                    text = "آخر قراءة: ${OttrojjaDateTime.formatDateTime(it)}",
                                     color = MaterialTheme.colorScheme.primary,
                                     style = OttrojjaTheme.typography.bodyMedium,
                                     textAlign = TextAlign.Right,

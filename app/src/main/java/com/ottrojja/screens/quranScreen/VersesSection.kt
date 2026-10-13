@@ -41,6 +41,7 @@ import com.ottrojja.composables.quranRangeSelector.QuranRangeSelector
 import com.ottrojja.composables.quranRangeSelector.QuranRangeState
 import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.room.entities.PageContent
+import com.ottrojja.screens.quranScreen.dialogs.ShareVersesBottomSheet
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 
@@ -63,18 +64,8 @@ fun VersesSection(
     }
     val versesList = versesSectionViewModel.items.collectAsState();
 
-    if (versesSectionViewModel.showVerseShareDialog) {
-        ShareVersesBottomSheet(
-            onDismissRequest = { versesSectionViewModel.showVerseShareDialog = false },
-            title = "مشاركة ايات من سورة ${versesSectionViewModel.shareChapter?.chapterName}",
-            surah = versesSectionViewModel.shareChapter,
-            startVerse = versesSectionViewModel.startingVerse,
-            endVerse = versesSectionViewModel.endVerse,
-            onRangeChanged = { newRange -> versesSectionViewModel.startingVerse = newRange.startVerse; versesSectionViewModel.endVerse = newRange.endVerse },
-            repository = repository,
-            onShareClick = { versesSectionViewModel.shareVerses() }
-        )
-    }
+    // The share sheet itself is hosted once in QuranScreen (ShareVersesHost), so it also works
+    // when sharing is started from a long-press on the page.
 
     LazyColumn(
         modifier = Modifier
@@ -163,57 +154,29 @@ fun VersesSection(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+/** Shows the verses share sheet when [VersesSectionViewModel.showVerseShareDialog] is true. */
 @Composable
-fun ShareVersesBottomSheet(
-    onDismissRequest: () -> Unit,
-    title: String,
-    surah: ChapterData?,
-    startVerse: PageContent?,
-    endVerse: PageContent?,
-    onRangeChanged: (QuranRangeState) -> Unit,
-    repository: QuranRepository,
-    onShareClick: () -> Unit
+fun ShareVersesHost(
+    versesSectionViewModel: VersesSectionViewModel,
+    repository: QuranRepository
 ) {
-    val sheetState = rememberModalBottomSheetState()
-
-    ModalBottomSheet(
-        onDismissRequest = { onDismissRequest() },
-        sheetState = sheetState,
-    ) {
-        Column {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OttrojjaText(
-                    title,
-                    style = OttrojjaTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            QuranRangeSelector(
-                modifier = Modifier.padding(16.dp),
-                range = QuranRangeState(
-                    startSurah = surah,
-                    startVerse = startVerse,
-                    endSurah = surah,
-                    endVerse = endVerse,
-                ),
-                onRangeChange = { onRangeChanged(it) },
-                repository = repository,
-                allowSurahSelection = false,
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OttrojjaButton(text = "مشاركة", onClick = { onShareClick() })
-            }
-        }
+    if (versesSectionViewModel.showVerseShareDialog) {
+        ShareVersesBottomSheet(
+            onDismissRequest = { versesSectionViewModel.showVerseShareDialog = false },
+            title = "مشاركة ايات من سورة ${versesSectionViewModel.shareChapter?.chapterName}",
+            surah = versesSectionViewModel.shareChapter,
+            startVerse = versesSectionViewModel.startingVerse,
+            endVerse = versesSectionViewModel.endVerse,
+            onRangeChanged = { newRange -> versesSectionViewModel.startingVerse = newRange.startVerse; versesSectionViewModel.endVerse = newRange.endVerse },
+            repository = repository,
+            shareAsImage = versesSectionViewModel.shareAsImage,
+            onShareAsImageChange = { versesSectionViewModel.shareAsImage = it },
+            selectedVerses = versesSectionViewModel.selectedVerses(),
+            maxImageChars = VersesSectionViewModel.MAX_IMAGE_CHARS,
+            onShareTextClick = { versesSectionViewModel.shareVerses() },
+            onShareImageClick = { versesSectionViewModel.shareVerseImage(it) },
+            onValidate = { versesSectionViewModel.validateSelection() },
+        )
     }
 }
-

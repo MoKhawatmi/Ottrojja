@@ -51,5 +51,18 @@ class Converters {
         return Json.decodeFromString(value)
     }
 
+    /** PageContent.polygons ⇄ "[[x1,y1,x2,y2,…],[…]]" */
+    @TypeConverter
+    fun fromPolygons(polygons: List<List<Int>>?): String {
+        if (polygons.isNullOrEmpty()) return "[]"
+        return Json.encodeToString(polygons)
+    }
+
+    @TypeConverter
+    fun toPolygons(value: String?): List<List<Int>> {
+        if (value.isNullOrBlank()) return emptyList()
+        return Json.decodeFromString(value)
+    }
+
 
 }

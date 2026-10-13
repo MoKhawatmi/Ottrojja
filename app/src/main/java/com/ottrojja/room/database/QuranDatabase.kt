@@ -34,13 +34,20 @@ import com.ottrojja.room.entities.VerseMeanings
         CauseOfRevelation::class, BookmarkEntity::class, Khitmah::class,
         KhitmahSession::class, CustomTasbeeh::class, TasabeehList::class, VerseMeanings::class, Quarter::class,
         Reminder::class],
-    version = 13
+    version = 14
 )
 abstract class QuranDatabase : RoomDatabase() {
     abstract fun quranDao(): QuranDao
     abstract fun khitmahDao(): KhitmahDao
     abstract fun tasabeehDao(): TasabeehDao
     abstract fun reminderDao(): ReminderDao
+}
+
+val MIGRATION_13_14 = object : Migration(13, 14) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // Verse tap regions. Rows are filled by SyncLocalData.syncPagesContent()
+        db.execSQL("ALTER TABLE PageContent ADD COLUMN polygons TEXT NOT NULL DEFAULT '[]'")
+    }
 }
 
 val MIGRATION_12_13 = object : Migration(12, 13) {

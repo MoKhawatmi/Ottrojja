@@ -4,8 +4,10 @@ import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,45 +28,64 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.Helpers
 import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.room.entities.PageContent
 import com.ottrojja.ui.theme.OttrojjaTheme
 
+private val NightModeFilter = ColorFilter.colorMatrix(
+    ColorMatrix(
+        floatArrayOf(
+            -1f, 0f, 0f, 0f, 255f,
+            0f, -1f, 0f, 0f, 255f,
+            0f, 0f, -1f, 0f, 255f,
+            0f, 0f, 0f, 1f, 0f
+        )
+    )
+)
+
+/**
+ * @param pageContent this page's rows (with polygons). Pass it only for the page the user is
+ * on; null renders a plain, non-interactive image (e.g. the neighbours the pager pre-renders).
+ */
 @Composable
-fun SinglePage(pageNum: String, nightReadingMode: Boolean) {
-    val pagePath = "p_$pageNum"
+fun SinglePage(
+    pageNum: String,
+    nightReadingMode: Boolean,
+    pageContent: List<PageContent>? = null,
+    highlightedVerseId: Int? = null,
+    onVerseLongPress: (VerseAnchor) -> Unit = {},
+) {
     val configuration = LocalConfiguration.current
-    val context = LocalContext.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) Modifier.verticalScroll(
-            rememberScrollState()
-        ) else Modifier,
-
-        ) {
-        Image(
-            painter = painterResource(
-                LocalContext.current.getResources()
-                    .getIdentifier(pagePath, "drawable", context.packageName)
-            ),
-            contentDescription = "page",
-            modifier = Modifier
-                .fillMaxWidth(
-                    if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 0.75f else 1.0f
-                )
-                .fillMaxHeight(0.92f),
-            contentScale = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) ContentScale.Crop else ContentScale.Fit,
-            colorFilter = if (!nightReadingMode) null else ColorFilter.colorMatrix(
-                ColorMatrix(
-                    floatArrayOf(
-                        -1f, 0f, 0f, 0f, 255f,
-                        0f, -1f, 0f, 0f, 255f,
-                        0f, 0f, -1f, 0f, 255f,
-                        0f, 0f, 0f, 1f, 0f
-                    )
-                )
+        modifier = if (isLandscape) Modifier.verticalScroll(rememberScrollState()) else Modifier,
+    ) {
+        if (isLandscape) {
+            // Same as before: 75% of the width, full page height, scrollable.
+            PageImage(
+                pageNum, nightReadingMode, pageContent, highlightedVerseId, onVerseLongPress,
+                modifier = Modifier
+                    .fillMaxWidth(0.75f)
+                    .aspectRatio(PAGE_ASPECT_RATIO)
             )
-        )
+        } else {
+            // Same as before: the whole page fitted (and centred) in the available area,
+            // but the overlay box now matches the drawn picture exactly.
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.92f)
+            ) {
+                PageImage(
+                    pageNum, nightReadingMode, pageContent, highlightedVerseId, onVerseLongPress,
+                    modifier = Modifier.aspectRatio(PAGE_ASPECT_RATIO)
+                )
+            }
+        }
+
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -90,6 +111,39 @@ fun SinglePage(pageNum: String, nightReadingMode: Boolean) {
                     .weight(0.5f)
                     .background(MaterialTheme.colorScheme.secondary)
             ) {}
+        }
+    }
+}
+
+/** The page picture and its verse overlay, in one box with the image's exact aspect ratio. */
+@Composable
+private fun PageImage(
+    pageNum: String,
+    nightReadingMode: Boolean,
+    pageContent: List<PageContent>?,
+    highlightedVerseId: Int?,
+    onVerseLongPress: (VerseAnchor) -> Unit,
+    modifier: Modifier,
+) {
+    val context = LocalContext.current
+    Box(modifier = modifier) {
+        Image(
+            painter = painterResource(
+                context.resources.getIdentifier("p_$pageNum", "drawable", context.packageName)
+            ),
+            contentDescription = "page",
+            contentScale = ContentScale.FillBounds, // box already has the image's ratio
+            colorFilter = if (nightReadingMode) NightModeFilter else null,
+            modifier = Modifier.matchParentSize()
+        )
+        if (pageContent != null) {
+            VerseInteractionLayer(
+                pageContent = pageContent,
+                nightReadingMode = nightReadingMode,
+                highlightedVerseId = highlightedVerseId,
+                onVerseLongPress = onVerseLongPress,
+                modifier = Modifier.matchParentSize()
+            )
         }
     }
 }

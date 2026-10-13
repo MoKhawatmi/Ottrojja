@@ -10,7 +10,6 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -241,46 +240,6 @@ object Helpers {
             }
         }
     }
-
-    fun formatTime(millis: Long): String {
-        val totalSeconds = millis / 1000
-        val seconds = (totalSeconds % 60).toInt()
-        val minutes = ((totalSeconds / 60) % 60).toInt()
-        val hours = (totalSeconds / 3600).toInt()
-
-        return if (hours > 0) {
-            String.format(Locale.ENGLISH, "%d:%02d:%02d", hours, minutes, seconds)
-        } else {
-            String.format(Locale.ENGLISH, "%02d:%02d", minutes, seconds)
-        }
-    }
-
-    fun formatDateTime(millis: Long): String {
-        val sdf = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
-        sdf.timeZone = TimeZone.getDefault()
-        return sdf.format(Date(millis))
-    }
-
-    fun formatDate(millis: Long): String {
-        val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-        sdf.timeZone = TimeZone.getDefault()
-        return sdf.format(Date(millis))
-    }
-
-    val arabicDateFormatter = DateTimeFormatter
-        .ofPattern("dd-MM-yyyy", Locale("ar"))
-        .withDecimalStyle(
-            DecimalStyle.of(Locale("ar"))
-        )
-
-    fun formatMilitaryTime(hour: Int, minute: Int): String {
-        val cal = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-        }
-        return android.text.format.DateFormat.format("HH:mm", cal).toString()
-    }
-
 
     @SuppressLint("UnsafeOptInUsageError") fun getMediaSrcFactory(context: Context): DefaultMediaSourceFactory {
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()

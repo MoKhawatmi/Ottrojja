@@ -39,7 +39,8 @@ import com.ottrojja.ui.theme.OttrojjaTheme
 fun VerseSelectionDialog(
     onDismiss: () -> Unit,
     versesNum: Int,
-    selectVerse: (Int) -> Unit
+    selectVerse: (Int) -> Unit,
+    selectedVerse: Int=1
 ) {
     val verses = List(versesNum) { it + 1 }
 
@@ -66,6 +67,7 @@ fun VerseSelectionDialog(
             )
         },
         selectionItems = filteredVerses,
+        selectedItem= selectedVerse,
         onSelect = { verse ->
             selectVerse(verse)
             onDismiss()

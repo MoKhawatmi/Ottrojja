@@ -23,6 +23,10 @@ import com.ottrojja.composables.OttrojjaText
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
@@ -36,20 +40,25 @@ fun <T> OttrojjaItemSelectionDialog(
     emptyText: String = "لا يوجد خيارات حاليا",
     showDivider: Boolean = true,
     listState: LazyListState = rememberLazyListState(),
-    initialScrollIndex: Int? = null
-) {
+    selectedItem: T? = null,
+    itemKey: ((T) -> Any)? = null,
+    ) {
 
-    LaunchedEffect(initialScrollIndex, selectionItems) {
-        if (
-            initialScrollIndex != null &&
-            selectionItems.isNotEmpty()
-        ) {
-            listState.scrollToItem(
-                initialScrollIndex.coerceIn(0, selectionItems.lastIndex)
-            )
+    var hasScrolledToSelected by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(selectedItem, selectionItems) {
+        if (hasScrolledToSelected || selectedItem == null || selectionItems.isEmpty()) {
+            return@LaunchedEffect
+        }
+        val selectedKey = itemKey?.invoke(selectedItem) ?: selectedItem
+        val index = selectionItems.indexOfFirst {
+            (itemKey?.invoke(it) ?: it) == selectedKey
+        }
+        if (index >= 0) {
+            listState.scrollToItem(index)
+            hasScrolledToSelected = true
         }
     }
-
 
     OttrojjaDialog(onDismissRequest = { onDismiss() },
         contentModifier = Modifier

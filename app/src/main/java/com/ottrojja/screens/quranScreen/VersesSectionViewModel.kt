@@ -1,9 +1,12 @@
 package com.ottrojja.screens.quranScreen
 
 import android.app.Application
+import android.content.ClipData
 import android.content.Intent
+import android.graphics.Bitmap
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ViewModel
@@ -21,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
 
 class VersesSectionViewModel(private val repository: QuranRepository, application: Application) :
@@ -118,48 +122,39 @@ class VersesSectionViewModel(private val repository: QuranRepository, applicatio
         }
     }
 
-    fun shareVerses() {
+    /** Returns the selected verses, or null if the selection is invalid. */
+    fun selectedVerses(showErrors: Boolean = false): List<PageContent>? {
         val verses = _selectionVersesList.value
-        val startVerse = _startingVerse.value ?: return
-        val endVerse = _endVerse.value ?: return
+        val startVerse = _startingVerse.value ?: return null
+        val endVerse = _endVerse.value ?: return null
 
-        val startVerseIndex = verses.indexOfFirst {
-            it.surahNum == startVerse.surahNum &&
-                    it.verseNum == startVerse.verseNum
+        val startIdx = verses.indexOfFirst { it.surahNum == startVerse.surahNum && it.verseNum == startVerse.verseNum }
+        val endIdx = verses.indexOfFirst { it.surahNum == endVerse.surahNum && it.verseNum == endVerse.verseNum }
+
+        if (startIdx == -1 || endIdx == -1) {
+            if (showErrors) AppToastManager.show(message = "تعذر تحديد الآيات المطلوبة", type = AppToastType.ERROR)
+            return null
         }
-
-        val endVerseIndex = verses.indexOfFirst {
-            it.surahNum == endVerse.surahNum &&
-                    it.verseNum == endVerse.verseNum
-        }
-
-        if (startVerseIndex == -1 || endVerseIndex == -1) {
-            AppToastManager.show(
-                message = "تعذر تحديد الآيات المطلوبة",
-                type = AppToastType.ERROR
-            )
-            return
-        }
-
-        if (startVerseIndex > endVerseIndex) {
-            AppToastManager.show(
+        if (startIdx > endIdx) {
+            if (showErrors) AppToastManager.show(
                 message = "موضع آية النهاية لا يجب أن يكون قبل آية البداية",
                 type = AppToastType.ERROR
             )
-            return
+            return null
         }
+        return verses.subList(startIdx, endIdx + 1)
+    }
 
-        val versesRange = if (startVerse.verseNum == endVerse.verseNum) {
-            "${startVerse.verseNum}"
-        } else {
-            "${startVerse.verseNum} - ${endVerse.verseNum}"
-        }
+    fun validateSelection(): Boolean = selectedVerses(showErrors = true) != null
 
-        val shareVersesText = verses
-            .subList(startVerseIndex, endVerseIndex + 1)
-            .joinToString(separator = "") {
-                "${it.verseText} {${it.verseNum}} "
-            }
+    fun shareVerses() {
+        val selected = selectedVerses(showErrors = true) ?: return
+        val first = selected.first()
+        val last = selected.last()
+
+        val versesRange =
+            if (first.verseNum == last.verseNum) "${first.verseNum}" else "${first.verseNum} - ${last.verseNum}"
+        val shareVersesText = selected.joinToString(separator = "") { "${it.verseText} {${it.verseNum}} " }
 
         viewModelScope.launch(Dispatchers.IO) {
             val chapterName = _shareChapter.value?.chapterName
@@ -180,6 +175,45 @@ class VersesSectionViewModel(private val repository: QuranRepository, applicatio
             ContextCompat.startActivity(context, shareIntent, null)
         }
     }
+
+    fun shareVerseImage(bitmap: Bitmap) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val dir = File(context.cacheDir, "shared_images").apply { mkdirs() }
+                dir.listFiles()?.forEach { it.delete() } // don't pile up old images
+                val file = File(dir, "verses_${System.currentTimeMillis()}.png")
+                file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+
+                val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+                val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "image/png"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    putExtra(Intent.EXTRA_TEXT, context.resources.getString(R.string.share_app))
+                    clipData = ClipData.newRawUri("", uri)   // <-- the important line
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                val chooser = Intent.createChooser(sendIntent, "مشاركة").apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                ContextCompat.startActivity(context, chooser, null)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                reportException(e, "VersesSectionViewModel", "shareVerseImage")
+                AppToastManager.show(message = "تعذر مشاركة الصورة", type = AppToastType.ERROR)
+            }
+        }
+    }
+
+    companion object {
+        const val MAX_IMAGE_CHARS = 1174
+    }
+
+    private var _shareAsImage = mutableStateOf(false)
+    var shareAsImage: Boolean
+        get() = _shareAsImage.value
+        set(value) { _shareAsImage.value = value }
+
+
 }
 
 class VersesSectionViewModelFactory(

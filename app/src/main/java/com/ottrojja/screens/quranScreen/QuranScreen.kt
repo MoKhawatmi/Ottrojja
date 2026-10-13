@@ -67,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ottrojja.classes.Helpers.reportException
+import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.PageContentItemType
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.Screen
@@ -85,6 +86,8 @@ import com.ottrojja.screens.quranScreen.classes.QuranReaderContext
 import com.ottrojja.screens.quranScreen.composables.Benefits
 import com.ottrojja.screens.quranScreen.composables.SinglePage
 import com.ottrojja.screens.quranScreen.composables.TafseerBottomSheet
+import com.ottrojja.screens.quranScreen.composables.VerseAnchor
+import com.ottrojja.screens.quranScreen.composables.VerseMenuHost
 import com.ottrojja.screens.quranScreen.composables.YouTube
 import com.ottrojja.screens.quranScreen.dialogs.ListeningOptionsDialog
 import com.ottrojja.screens.quranScreen.dialogs.PageSelectionDialog
@@ -108,6 +111,18 @@ fun QuranScreen(
     val quranViewModel: QuranViewModel = viewModel(
         factory = QuranScreenViewModelFactory(repository, readerContext, application)
     )
+    // Same instance VersesSection uses (same ViewModelStoreOwner), so the share sheet can be
+    // opened both from the verses tab and from a long-press on the page.
+    val versesSectionViewModel: VersesSectionViewModel = viewModel(
+        factory = VersesSectionViewModelFactory(repository, application)
+    )
+
+    fun openVerseSheet(verse: PageContent, mode: TafseerSheetMode) {
+        quranViewModel.tafseerTargetVerse = verse
+        quranViewModel.tafseerSheetMode = mode
+        quranViewModel.showTafseerSheet = true
+    }
+
     var showFinishSessionAlert by remember { mutableStateOf(false) }
     var showToggleBookmarkAlert by remember { mutableStateOf(false) }
     val showFinishSessionForm by quranViewModel.showFinishSessionForm.collectAsState()
@@ -333,17 +348,16 @@ fun QuranScreen(
                         terminatePagePlayerService = { quranViewModel.terminatePagePlayerService() },
                         disableAutoPageSwiping = { quranViewModel.autoSwipePagesWithAudio = false; },
                         readerContext = readerContext,
-                        khitmahPillClick = { showFinishSessionAlert = true; }
+                        khitmahPillClick = { showFinishSessionAlert = true; },
+                        currentPageContent = quranViewModel.currentPageObject?.pageContent,
+                        onShareVerse = { verse -> versesSectionViewModel.fetchChapterVerses(verse) },
+                        onTafseerVerse = { verse -> openVerseSheet(verse, TafseerSheetMode.التفسير) }
                     )
                 }
 
                 QuranViewModel.PageTab.التفسير -> VersesSection(
                     quranViewModel.currentPageObject?.pageContent!!.filter { item -> item.type == PageContentItemType.verse },
-                    onSheetRequest = { targetVerse, mode ->
-                        quranViewModel.tafseerTargetVerse = targetVerse;
-                        quranViewModel.tafseerSheetMode = mode
-                        quranViewModel.showTafseerSheet = true
-                    },
+                    onSheetRequest = { targetVerse, mode -> openVerseSheet(targetVerse, mode) },
                     repository
                 )
 
@@ -371,11 +385,6 @@ fun QuranScreen(
                     TafseerSheetMode.معاني_المفردات -> quranViewModel.verseMeanings
                     TafseerSheetMode.المشابهات -> quranViewModel.verseMutashabihat
                 },
-                /*tafseer = quranViewModel.verseTafseer,
-                e3rab =  quranViewModel.verseE3rab,
-                causeOfRevelation =  quranViewModel.verseCauseOfRevelation,
-                verseMeanings = quranViewModel.verseMeanings,
-                mutashabihat = quranViewModel.verseMutashabihat,*/
                 selectedTafseer = quranViewModel.selectedTafseer,
                 onClickTafseerOptions = { quranViewModel.showTafseerOptions = true },
                 mode = quranViewModel.tafseerSheetMode,
@@ -386,6 +395,8 @@ fun QuranScreen(
                 tafseerChapterVerse = quranViewModel.tafseerChapterVerse,
                 changeTafseerSheetMode = { mode -> quranViewModel.tafseerSheetMode = mode }
             )
+
+            ShareVersesHost(versesSectionViewModel, repository)
         }
     }
 
@@ -438,7 +449,7 @@ fun QuranScreen(
         PageSelectionDialog(
             onDismissRequest = { quranViewModel.showPageSelectionDialog = false },
             pages = quranViewModel.getPagesList(),
-            scrollPageNumber = if (quranViewModel.versesSelectionMode == VersesSelectionMode.END) quranViewModel.endPlayingPage else quranViewModel.startPlayingPage,
+            selectedPage = if (quranViewModel.versesSelectionMode == VersesSelectionMode.END) "${quranViewModel.endPlayingPage}" else "${quranViewModel.startPlayingPage}",
             onSelect = { value ->
                 if (quranViewModel.versesSelectionMode == VersesSelectionMode.END) {
                     quranViewModel.endPlayingPage = value.toInt();
@@ -503,7 +514,10 @@ fun PagesContainer(
     terminatePagePlayerService: () -> Unit,
     disableAutoPageSwiping: () -> Unit,
     readerContext: QuranReaderContext,
-    khitmahPillClick: () -> Unit
+    khitmahPillClick: () -> Unit,
+    currentPageContent: List<PageContent>?,
+    onShareVerse: (PageContent) -> Unit,
+    onTafseerVerse: (PageContent) -> Unit,
 ) {
 
     val pagerState = rememberPagerState(
@@ -513,6 +527,12 @@ fun PagesContainer(
         quranPagesNumbers.size //number of the pages of quran
     }
     var showController by remember { mutableStateOf(true) }
+
+    // Long-pressed verse + its on-screen anchor. Cleared whenever the layout can change under it
+    // (rotation, page change, page data reload) so the card never points at stale coordinates.
+    val orientation = LocalConfiguration.current.orientation
+    var verseMenu by remember { mutableStateOf<VerseAnchor?>(null) }
+    LaunchedEffect(orientation, pagerState.currentPage, currentPageContent) { verseMenu = null }
     val hasPageChanged = remember { mutableStateOf(false) } // To track if the page has changed at least once
 
 
@@ -561,7 +581,16 @@ fun PagesContainer(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                 ) { showController = !showController }) { index ->
-            SinglePage(quranPagesNumbers[index], nightReadingMode)
+            val thisPage = quranPagesNumbers[index]
+            // Only the page the user is on is interactive; its rows are what the VM has loaded.
+            val content = currentPageContent?.takeIf { rows -> rows.firstOrNull()?.pageNum == thisPage }
+            SinglePage(
+                pageNum = thisPage,
+                nightReadingMode = nightReadingMode,
+                pageContent = content,
+                highlightedVerseId = verseMenu?.verse?.id,
+                onVerseLongPress = { anchor -> verseMenu = anchor }
+            )
         }
 
         AnimatedVisibility(
@@ -683,6 +712,15 @@ fun PagesContainer(
                 }
             }
         }
+
+        // Last child: drawn above the pager and the controller.
+        VerseMenuHost(
+            anchor = verseMenu,
+            onDismiss = { verseMenu = null },
+            onShare = onShareVerse,
+            onTafseer = onTafseerVerse,
+            modifier = Modifier.matchParentSize()
+        )
     }
 }
 

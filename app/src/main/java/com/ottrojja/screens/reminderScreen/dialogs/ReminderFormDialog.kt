@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.FormValidationResult
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.ModalFormMode
+import com.ottrojja.classes.OttrojjaDateTime
 import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.forms.OttrojjaForm
@@ -94,7 +95,7 @@ fun ReminderFormDialog(
                     error = formValidationResult.errors["time"]
                 ) {
                     OttrojjaSelect(
-                        value = "${Helpers.formatMilitaryTime(reminderInWork.hour, reminderInWork.minute)}",
+                        value = "${OttrojjaDateTime.formatMilitaryTime(reminderInWork.hour, reminderInWork.minute)}",
                         onClick = { invokeTimePicker() },
                         leadingIcon = Icons.Default.AccessTime
                     )

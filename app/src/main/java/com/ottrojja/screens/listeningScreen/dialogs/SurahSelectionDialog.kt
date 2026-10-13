@@ -39,10 +39,11 @@ fun SurahSelectionDialog(
     searchFilter: String,
     searchFilterChanged: (String) -> Unit,
     selectSurah: (ChapterData) -> Unit,
+    selectedSurah: ChapterData? = null,
     checkIfChapterDownloaded: (Int) -> Boolean = { false },
     downloadChapter: (Int) -> Unit = {},
     downloadState: Boolean = false,
-    allowDownload: Boolean = false
+    allowDownload: Boolean = false,
 ) {
     LaunchedEffect(downloadState) { }
 
@@ -59,6 +60,8 @@ fun SurahSelectionDialog(
             )
         },
         selectionItems = chapters,
+        selectedItem = selectedSurah,
+        itemKey = {it.surahId},
         onSelect = { item ->
             selectSurah(item);
             onDismiss();

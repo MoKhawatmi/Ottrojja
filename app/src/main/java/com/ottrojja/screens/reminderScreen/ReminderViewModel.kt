@@ -13,13 +13,11 @@ import androidx.lifecycle.viewModelScope
 import com.ottrojja.classes.DataStore.DataStoreRepository
 import com.ottrojja.classes.ExpandableItem
 import com.ottrojja.classes.FormValidationResult
-import com.ottrojja.classes.Helpers.formatDateTime
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.ModalFormMode
 import com.ottrojja.composables.ToastManager.classes.AppToastManager
 import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
-import com.ottrojja.screens.reminderScreen.classes.ReminderScheduler
 import com.ottrojja.room.entities.Reminder
 import com.ottrojja.room.repositories.ReminderRepository
 import com.ottrojja.screens.reminderScreen.classes.ReminderManager
