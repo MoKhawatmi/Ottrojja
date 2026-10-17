@@ -19,14 +19,19 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.classes.Helpers.truncate
@@ -36,6 +41,21 @@ import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.screens.quranScreen.TafseerSheetMode
 import com.ottrojja.screens.quranScreen.classes.TafseerContent
 import com.ottrojja.ui.theme.OttrojjaTheme
+
+
+/**
+ * Keeps scroll that the tafseer text didn't use (e.g. dragging down while already at the top)
+ * from reaching the ModalBottomSheet, so reading never drags or dismisses the sheet.
+ * The sheet can still be dragged from the handle / header, or closed by tapping outside or Back.
+ */
+private object ConsumeRemainingScroll : NestedScrollConnection { // NEW
+    override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset =
+        available.copy(x = 0f)
+
+    override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity =
+        available.copy(x = 0f)
+}
+
 
 @Composable
 fun SelectedVerseContentSection(
@@ -50,12 +70,19 @@ fun SelectedVerseContentSection(
     tafseerChapterVerse: String,
     tafseerSheetMode: TafseerSheetMode,
     changeTafseerSheetMode: (TafseerSheetMode) -> Unit,
-    content: @Composable() () -> Unit = {}
+    content: @Composable () -> Unit = {}
 ) {
 
     var verseTextExpanded by remember { mutableStateOf(false) }
 
-    val enclosedVerseText = "\uFD3F$verseText\uFD3E";
+    val enclosedVerseText = "﴿$verseText﴾"
+
+    // NEW: one scroll state we can control, reset to the top when the verse or tab changes
+    val scrollState = rememberScrollState()
+    LaunchedEffect(tafseerChapterVerse, tafseerSheetMode) {
+        scrollState.scrollTo(0)
+        verseTextExpanded = false
+    }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -124,7 +151,15 @@ fun SelectedVerseContentSection(
 
         content()
 
-        SelectionContainer(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        // CHANGED: the body takes the remaining height (weight), and leftover scroll is consumed
+        // before it reaches the sheet. Order matters: nestedScroll must come BEFORE verticalScroll.
+        SelectionContainer(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .nestedScroll(ConsumeRemainingScroll)
+                .verticalScroll(scrollState)
+        ) {
             Column {
                 if (verseText.isNotBlank()) {
                     OttrojjaText(
@@ -142,7 +177,7 @@ fun SelectedVerseContentSection(
                 text.forEach {
                     OttrojjaText(
                         text = it.text,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
                             .padding(10.dp)
                             .fillMaxWidth()

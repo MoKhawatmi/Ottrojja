@@ -56,6 +56,11 @@
         <service android:name=".services.PagePlayerService" android:foregroundServiceType="mediaPlayback" android:exported="false"/>
         <service android:name=".services.QuranPlayerService" android:foregroundServiceType="mediaPlayback" android:exported="false"/>
         <service android:name=".services.OverlayService" android:foregroundServiceType="specialUse" android:exported="false" />
+        <service
+            android:name=".screens.prayerTimesScreen.notifications.PrayerAdhanService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="false" />
+
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -78,6 +83,22 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".screens.prayerTimesScreen.notifications.PrayerAlarmReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".screens.prayerTimesScreen.notifications.PrayerRescheduleReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
 

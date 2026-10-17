@@ -13,15 +13,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ottrojja.R
+import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.composables.ToastManager.classes.AppToastManager
 import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.room.entities.ChapterData
+import com.ottrojja.room.entities.Khitmah
+import com.ottrojja.screens.quranScreen.classes.ShareMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -154,7 +158,7 @@ class VersesSectionViewModel(private val repository: QuranRepository, applicatio
 
         val versesRange =
             if (first.verseNum == last.verseNum) "${first.verseNum}" else "${first.verseNum} - ${last.verseNum}"
-        val shareVersesText = selected.joinToString(separator = "") { "${it.verseText} {${it.verseNum}} " }
+        val shareVersesText = selected.joinToString(separator = "") { "${it.verseText} {${Helpers.convertToIndianNumbers("${it.verseNum}")}} " }
 
         viewModelScope.launch(Dispatchers.IO) {
             val chapterName = _shareChapter.value?.chapterName
@@ -208,10 +212,12 @@ class VersesSectionViewModel(private val repository: QuranRepository, applicatio
         const val MAX_IMAGE_CHARS = 1174
     }
 
-    private var _shareAsImage = mutableStateOf(false)
-    var shareAsImage: Boolean
-        get() = _shareAsImage.value
-        set(value) { _shareAsImage.value = value }
+    private var _shareMode = MutableStateFlow<ShareMode>(ShareMode.TEXT)
+    val shareMode: StateFlow<ShareMode> = _shareMode.asStateFlow()
+
+    fun updateShareMode(value: ShareMode) {
+        _shareMode.value = value;
+    }
 
 
 }

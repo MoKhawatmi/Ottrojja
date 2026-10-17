@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -21,10 +20,6 @@ import androidx.compose.runtime.rememberCompositionContext
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.layer.drawLayer
-import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,9 +27,11 @@ import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.quranRangeSelector.QuranRangeSelector
 import com.ottrojja.composables.quranRangeSelector.QuranRangeState
+import com.ottrojja.composables.selectableChips.ChipSelector
 import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.repositories.QuranRepository
+import com.ottrojja.screens.quranScreen.classes.ShareMode
 import com.ottrojja.screens.quranScreen.composables.VerseImageCard
 import com.ottrojja.screens.quranScreen.helpers.findActivity
 import com.ottrojja.screens.quranScreen.helpers.renderCardBitmap
@@ -52,8 +49,8 @@ fun ShareVersesBottomSheet(
     endVerse: PageContent?,
     onRangeChanged: (QuranRangeState) -> Unit,
     repository: QuranRepository,
-    shareAsImage: Boolean,
-    onShareAsImageChange: (Boolean) -> Unit,
+    shareMode: ShareMode,
+    onShareModeChange: (ShareMode) -> Unit,
     selectedVerses: List<PageContent>?,
     maxImageChars: Int,
     onShareTextClick: () -> Unit,
@@ -65,10 +62,10 @@ fun ShareVersesBottomSheet(
     val activity = LocalContext.current.findActivity()
     val parent = rememberCompositionContext()
     val charCount = selectedVerses?.sumOf { it.verseText?.length ?: 0 } ?: 0
-    val tooLong = shareAsImage && charCount > maxImageChars
+    val tooLong = (shareMode== ShareMode.IMAGE) && charCount > maxImageChars
 
     ModalBottomSheet(onDismissRequest = onDismissRequest, sheetState = sheetState) {
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -86,14 +83,13 @@ fun ShareVersesBottomSheet(
             )
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(0.5f),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
             ) {
-                FilterChip(selected = !shareAsImage, onClick = { onShareAsImageChange(false) }, label = { OttrojjaText("نص", color = MaterialTheme.colorScheme.primary) })
-                FilterChip(selected = shareAsImage, onClick = { onShareAsImageChange(true) }, label = { OttrojjaText("صورة", color = MaterialTheme.colorScheme.primary) })
+                ChipSelector(ShareMode.entries, selected = shareMode, onSelected = {onShareModeChange(it)} )
             }
 
-            if (shareAsImage && selectedVerses != null && surah != null) {
+            if ((shareMode== ShareMode.IMAGE) && selectedVerses != null && surah != null) {
                 Spacer(Modifier.height(12.dp))
                 if (tooLong) {
                     OttrojjaText(
@@ -105,7 +101,7 @@ fun ShareVersesBottomSheet(
                             .padding(horizontal = 16.dp)
                     )
                 } else {
-                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Box(Modifier.padding(horizontal = 2.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
                         VerseImageCard(
                             chapterName = surah.chapterName ?: "",
                             verses = selectedVerses,
@@ -119,7 +115,7 @@ fun ShareVersesBottomSheet(
                 OttrojjaButton(
                     text = "مشاركة",
                     onClick = {
-                        if (!shareAsImage) {
+                        if (shareMode== ShareMode.TEXT) {
                             onShareTextClick()
                         } else if (onValidate() && !tooLong && selectedVerses != null && surah != null && activity != null) {
                             scope.launch {

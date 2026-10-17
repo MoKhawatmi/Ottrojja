@@ -130,11 +130,12 @@ dependencies {
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
+    implementation("com.batoulapps.adhan:adhan2:0.0.7")
 
     implementation("io.github.boguszpawlowski.composecalendar:composecalendar:1.4.0")
 
-    implementation("com.mikepenz:multiplatform-markdown-renderer:0.45.0")
-    implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.45.0")
+    implementation("com.mikepenz:multiplatform-markdown-renderer:0.46.0")
+    implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.46.0")
 
 
 

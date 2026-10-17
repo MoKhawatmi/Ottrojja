@@ -56,12 +56,12 @@ fun VerseImageCard(
     }
 
     val totalChars = verses.sumOf { it.verseText?.length ?: 0 }
-    val textStyle = if (totalChars <= 200) OttrojjaTheme.typography.quranTextLarge
-    else OttrojjaTheme.typography.quranTextMedium
+    val textStyle = if (totalChars <= 200) OttrojjaTheme.typography.bodySpecialLarge
+    else OttrojjaTheme.typography.bodySpecialMedium
 
     val body = verses
         .joinToString(" ")
-        { "${it.verseText} ﴿${Helpers.convertToArabicNumbers("${it.verseNum ?: 0}")}﴾" }
+        { "${it.verseText} ﴿${Helpers.convertToIndianNumbers("${it.verseNum ?: 0}")}﴾" }
 
     val density = LocalDensity.current
     CompositionLocalProvider(
@@ -72,7 +72,7 @@ fun VerseImageCard(
             modifier = modifier
                 .width(400.dp)
                 .background(MaterialTheme.colorScheme.background)
-                .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                .border(2.dp, MaterialTheme.colorScheme.primary)
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -152,7 +152,7 @@ private fun SurahHeader(chapterName: String, modifier: Modifier = Modifier) {
     ) {
         OttrojjaText(
             text = "سورة $chapterName",
-            style = OttrojjaTheme.typography.bodyLarge,
+            style = OttrojjaTheme.typography.bodySpecialLarge,
             color = primary,
             modifier = Modifier.padding(horizontal = 52.dp)
         )

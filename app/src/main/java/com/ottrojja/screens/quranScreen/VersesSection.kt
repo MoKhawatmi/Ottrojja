@@ -16,12 +16,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -31,18 +28,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.room.repositories.QuranRepository
-import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.VerseTextWithNumber
 import com.ottrojja.composables.ottrojjaFlexibleActions.FlexibleAction
 import com.ottrojja.composables.ottrojjaFlexibleActions.OttrojjaFlexibleActions
-import com.ottrojja.composables.quranRangeSelector.QuranRangeSelector
-import com.ottrojja.composables.quranRangeSelector.QuranRangeState
-import com.ottrojja.room.entities.ChapterData
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.screens.quranScreen.dialogs.ShareVersesBottomSheet
-import com.ottrojja.ui.theme.OttrojjaTheme
 
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -161,6 +152,9 @@ fun ShareVersesHost(
     versesSectionViewModel: VersesSectionViewModel,
     repository: QuranRepository
 ) {
+
+    val shareMode = versesSectionViewModel.shareMode.collectAsState();
+
     if (versesSectionViewModel.showVerseShareDialog) {
         ShareVersesBottomSheet(
             onDismissRequest = { versesSectionViewModel.showVerseShareDialog = false },
@@ -170,8 +164,8 @@ fun ShareVersesHost(
             endVerse = versesSectionViewModel.endVerse,
             onRangeChanged = { newRange -> versesSectionViewModel.startingVerse = newRange.startVerse; versesSectionViewModel.endVerse = newRange.endVerse },
             repository = repository,
-            shareAsImage = versesSectionViewModel.shareAsImage,
-            onShareAsImageChange = { versesSectionViewModel.shareAsImage = it },
+            shareMode = shareMode.value,
+            onShareModeChange = { versesSectionViewModel.updateShareMode(it) },
             selectedVerses = versesSectionViewModel.selectedVerses(),
             maxImageChars = VersesSectionViewModel.MAX_IMAGE_CHARS,
             onShareTextClick = { versesSectionViewModel.shareVerses() },

@@ -3,13 +3,14 @@ package com.ottrojja.screens.qiblaScreen
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.hardware.GeomagneticField
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.location.Address
 import android.location.Geocoder
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -30,7 +31,6 @@ import android.location.Location
 import android.location.LocationManager
 import android.os.Handler
 import android.os.Looper
-import android.widget.Toast
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -47,17 +47,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RadialGradientShader
 import androidx.compose.ui.graphics.ShaderBrush
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import java.io.IOException
 import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
@@ -72,13 +74,14 @@ import com.ottrojja.ui.theme.complete_green
 import com.ottrojja.ui.theme.md_theme_light_primary
 import com.ottrojja.ui.theme.md_theme_light_secondary
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.coroutines.resume
 import kotlin.math.abs
 import kotlin.math.sqrt
 import com.ottrojja.screens.qiblaScreen.dialogs.CalibrationDialog
@@ -87,6 +90,7 @@ import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.md_theme_light_error
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.time.Duration.Companion.seconds
 
 
 @Composable
@@ -152,16 +156,23 @@ private fun CompassContent(
     var bearing by remember { mutableStateOf(0f) }
     var heading by remember { mutableStateOf(0f) }
 
+    // FIX: magnetic declination — difference between magnetic north (what the
+    // magnetometer measures) and true north (what bearingTo() returns).
+    // Updated from GeomagneticField whenever a new location arrives.
+    var declination by remember { mutableStateOf(0f) }
+
     // Spring animation — natural overshooting feel for needle and ring.
-    // Targets are wrapped into (-180, 180] so the spring always takes the shortest
-    // path regardless of how many full rotations have accumulated in angle/heading.
+    // FIX: animate the raw accumulated values. `angle` and `heading` are already
+    // continuous (shortest-path deltas are accumulated in the sensor listener), so the
+    // spring always takes the short way. Wrapping the target into (-180, 180] caused a
+    // 358° spin whenever the target crossed ±180 (facing south / facing away from Qibla).
     val springSpec = spring<Float>(dampingRatio = 0.6f, stiffness = 120f)
     val animatedAngle by animateFloatAsState(
-        targetValue = ((angle % 360f) + 540f) % 360f - 180f,
+        targetValue = angle,
         animationSpec = springSpec
     )
     val animatedHeading by animateFloatAsState(
-        targetValue = ((heading % 360f) + 540f) % 360f - 180f,
+        targetValue = heading,
         animationSpec = springSpec
     )
 
@@ -195,6 +206,8 @@ private fun CompassContent(
     var calibrationCoolDown by remember { mutableStateOf(false) }
     var positionCoolDown by remember { mutableStateOf(false) }
     var locationCity by remember { mutableStateOf("") }
+    // FIX: last location that was successfully reverse-geocoded, used to throttle lookups
+    var lastGeocodedLocation by remember { mutableStateOf<Location?>(null) }
 
     var magneticFieldValue by remember { mutableStateOf(0f) }
     var expectedField_uT by remember { mutableStateOf(50f) }
@@ -281,18 +294,19 @@ private fun CompassContent(
 
                 if (SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading)) {
                     SensorManager.getOrientation(rotationMatrix, orientationAngles)
-                    val azimuthDegrees = Math.toDegrees(orientationAngles[0].toDouble()).toFloat()
+                    // FIX: convert magnetic azimuth to true-north azimuth so it matches
+                    // the true-north bearing returned by Location.bearingTo()
+                    val azimuthDegrees =
+                        Math.toDegrees(orientationAngles[0].toDouble()).toFloat() + declination
 
                     // Shortest-path delta — prevents 359°→1° wrap-around snap
                     var headingDelta = azimuthDegrees - heading
-                    if (headingDelta > 180f) headingDelta -= 360f
-                    if (headingDelta < -180f) headingDelta += 360f
+                    headingDelta = ((headingDelta % 360f) + 540f) % 360f - 180f
                     heading += headingDelta
 
                     val rawAngle = bearing - heading
                     var angleDelta = rawAngle - angle
-                    if (angleDelta > 180f) angleDelta -= 360f
-                    if (angleDelta < -180f) angleDelta += 360f
+                    angleDelta = ((angleDelta % 360f) + 540f) % 360f - 180f
                     angle += angleDelta
                 }
             }
@@ -337,9 +351,11 @@ private fun CompassContent(
                         location.altitude.toFloat(), System.currentTimeMillis()
                     )
                     expectedField_uT = geomagnetic.fieldStrength / 1000f
+                    // FIX: store declination so the heading can be corrected to true north
+                    declination = geomagnetic.declination
                 }
         } catch (e: CancellationException) {
-            // nothing
+            throw e
         } catch (e: Exception) {
             e.printStackTrace()
             reportException(exception = e, file = "QiblaScreen")
@@ -350,11 +366,19 @@ private fun CompassContent(
         }
     }
 
+    // FIX: only reverse-geocode when the user has moved meaningfully (or we have no city yet).
+    // Previously every location update fired a network call, multiplying timeouts on bad connections.
     LaunchedEffect(locationState.value) {
-        if (locationState.value != null) {
-            getCityFromLocationAsync(context, locationState.value!!).collect {
-                locationCity = it ?: ""
-            }
+        val loc = locationState.value ?: return@LaunchedEffect
+        val previous = lastGeocodedLocation
+        if (previous != null && locationCity.isNotEmpty() &&
+            previous.distanceTo(loc) < GEOCODE_MIN_DISTANCE_METERS
+        ) return@LaunchedEffect
+
+        val city = resolveCity(context, loc.latitude, loc.longitude)
+        if (!city.isNullOrEmpty()) {
+            locationCity = city
+            lastGeocodedLocation = loc
         }
     }
 
@@ -366,8 +390,8 @@ private fun CompassContent(
         onDispose { sensorManager.unregisterListener(sensorEventListener) }
     }
 
-    val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.kaaba)
-    val imageBitmap = bitmap.asImageBitmap()
+    // FIX: decoded once and cached across recompositions (previously decoded on every sensor update)
+    val imageBitmap = ImageBitmap.imageResource(R.drawable.kaaba)
 
     if (calibrationRequired) CalibrationDialog(onDismiss = { calibrationRequired = false })
     if (showPositionDialog) DevicePositionDialog(onDismiss = { triggerPositionDialog(false) })
@@ -434,7 +458,7 @@ private fun CompassContent(
             // ── Rotating compass ring (ticks + labels + glow) ─────────────────────
             rotate(-animatedHeading, Offset(centerX, centerY)) {
 
-                // FIX 1: Glow halo — two faint rings behind the main ring when aligned
+                // Glow halo — two faint rings behind the main ring when aligned
                 if (isAligned) {
                     drawCircle(
                         color = complete_green.copy(alpha = 0.20f),
@@ -458,7 +482,7 @@ private fun CompassContent(
                     style = Stroke(width = if (isAligned) 10.dp.toPx() else 8.dp.toPx())
                 )
 
-                // hree-tier tick system
+                // Three-tier tick system
                 //   Every 5°  → tiny hairline (very dim)
                 //   Every 10° → minor tick    (dimmer)
                 //   Every 45° → intercardinal (medium height, medium opacity)
@@ -599,11 +623,10 @@ private fun CompassContent(
             )
             )
 
-            // Proportional image sizing + offset — no more hardcoded -200px
+            // Proportional image sizing + offset
             val imgSize = (radius * 0.30f).toInt()
             val imgLeft = (centerX - imgSize / 2f).toInt()
-            // sits just outside the ring: ring top is at (centerY - radius),
-            // then we add a small gap (0.12 * radius) so it doesn't touch the stroke
+            // sits just outside the ring with a small gap so it doesn't touch the stroke
             val imgTop = (centerY - radius - imgSize - radius * 0.35f).toInt()
             drawImage(
                 imageBitmap,
@@ -632,18 +655,20 @@ private fun CompassContent(
                                 textAlign = TextAlign.Center
                             )
                         }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            OttrojjaText(
-                                locationCity,
-                                color = MaterialTheme.colorScheme.primary,
-                                style = OttrojjaTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Center
-                            )
+                        if (locationCity.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 6.dp),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                OttrojjaText(
+                                    locationCity,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = OttrojjaTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     } else {
                         Row(
@@ -691,23 +716,58 @@ private fun CompassContent(
     }
 }
 
+private const val GEOCODE_MIN_DISTANCE_METERS = 2_000f
+private val GEOCODE_TIMEOUT = 6.seconds
+
 private fun normalizeAngle(angle: Float): Float = when {
     angle < 0 -> angle + 360
     angle >= 360 -> angle - 360
     else -> angle
 }
 
-fun getCityFromLocationAsync(context: Context, location: Location): Flow<String?> = flow {
+private fun Address.bestName(): String? =
+    locality ?: subAdminArea ?: adminArea ?: countryName
+
+/**
+ * Reverse-geocodes a coordinate to a human-readable place name.
+ *
+ * Returns null (never throws) when:
+ *  - no geocoder backend exists on the device
+ *  - the network/backend is unavailable (DEADLINE_EXCEEDED, UNAVAILABLE, …)
+ *  - the lookup takes longer than [GEOCODE_TIMEOUT_MS]
+ *
+ * Network failures are expected and are NOT reported as exceptions.
+ */
+
+suspend fun resolveCity(context: Context, latitude: Double, longitude: Double): String? {
+    if (!Geocoder.isPresent()) return null
     val geocoder = Geocoder(context, Locale.getDefault())
-    try {
-        val addresses = withContext(Dispatchers.IO) {
-            geocoder.getFromLocation(location.latitude, location.longitude, 1)
+    return withTimeoutOrNull(GEOCODE_TIMEOUT) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            suspendCancellableCoroutine { cont ->
+                geocoder.getFromLocation(latitude, longitude, 1, object : Geocoder.GeocodeListener {
+                    override fun onGeocode(addresses: MutableList<Address>) {
+                        if (cont.isActive) cont.resume(addresses.firstOrNull()?.bestName())
+                    }
+
+                    override fun onError(errorMessage: String?) {
+                        if (cont.isActive) cont.resume(null)
+                    }
+                })
+            }
+        } else {
+            withContext(Dispatchers.IO) {
+                try {
+                    @Suppress("DEPRECATION")
+                    geocoder.getFromLocation(latitude, longitude, 1)?.firstOrNull()?.bestName()
+                } catch (e: IOException) {
+                    null // network / backend unavailable — expected, don't report
+                } catch (e: IllegalArgumentException) {
+                    reportException(exception = e, file = "QiblaScreen")
+                    null
+                }
+            }
         }
-        emit(addresses?.firstOrNull()?.locality ?: "")
-    } catch (e: Exception) {
-        e.printStackTrace()
-        reportException(exception = e, file = "QiblaScreen")
-        emit("")
     }
 }
 

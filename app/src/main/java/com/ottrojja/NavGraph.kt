@@ -25,6 +25,7 @@ import com.ottrojja.screens.Khitmah.khitmahScreen.KhitmahScreen
 import com.ottrojja.screens.loadingScreen.LoadingScreen
 import com.ottrojja.screens.mainScreen.MainScreen
 import com.ottrojja.screens.namesOfGodScreen.NamesOfGod
+import com.ottrojja.screens.prayerTimesScreen.PrayerTimesScreen
 import com.ottrojja.screens.qiblaScreen.QiblaScreen
 import com.ottrojja.screens.quranScreen.QuranScreen
 import com.ottrojja.screens.quranScreen.classes.QuranReaderContext
@@ -35,10 +36,11 @@ import com.ottrojja.screens.zikrScreen.ZikrScreen
 
 
 @Composable
-fun NavGraph(navController: NavHostController,
-             repository: QuranRepository,
-             reminderRepository: ReminderRepository,
-             modifier: Modifier = Modifier) {
+fun NavGraph(
+    navController: NavHostController,
+    repository: QuranRepository,
+    reminderRepository: ReminderRepository,
+    modifier: Modifier = Modifier) {
     NavHost(
         navController = navController,
         startDestination = Screen.LoadingScreen.route,
@@ -98,7 +100,7 @@ fun NavGraph(navController: NavHostController,
             KhitmahList(
                 navController = navController,
                 quranRepository = repository,
-                reminderRepository= reminderRepository
+                reminderRepository = reminderRepository
             )
         }
 
@@ -118,9 +120,12 @@ fun NavGraph(navController: NavHostController,
             QiblaScreen()
         }
 
-
         composable(route = Screen.LoadingScreen.route) {
             LoadingScreen(navController, repository)
+        }
+
+        composable(route = Screen.PrayerTimesScreen.route) {
+            PrayerTimesScreen()
         }
 
         composable(
@@ -196,13 +201,4 @@ fun NavController.navigateToQuran(
 }
 
 
-/*composable(route = Screen.PrayerScreen.route) {
-    Box() {
-        PrayerScreen(modifier = Modifier.align(Alignment.TopCenter))
-        BottomNavigation(
-            navController,
-            Screen.PrayerScreen.route,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
-    }
-}*/
+

@@ -8,6 +8,7 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import com.ottrojja.classes.DataStore.DataStoreHolder
+import com.ottrojja.screens.prayerTimesScreen.data.PrayerTimesModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -19,6 +20,8 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -32,6 +35,7 @@ class App : Application() {
             notificationManager.createNotificationChannel(channel)
         }
         DataStoreHolder.init(this)
+        PrayerTimesModule.init(this)
         OverlayBootstrap.init(this, appScope)
 
     }

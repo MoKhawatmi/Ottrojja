@@ -29,6 +29,7 @@ import com.ottrojja.screens.quranScreen.TafseerSheetMode
 import com.ottrojja.screens.quranScreen.classes.TafseerContent
 import com.ottrojja.ui.theme.OttrojjaTheme
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TafseerBottomSheet(
@@ -47,7 +48,8 @@ fun TafseerBottomSheet(
     tafseerChapterVerse: String,
     changeTafseerSheetMode: (TafseerSheetMode) -> Unit
 ) {
-    val modalBottomSheetState = rememberModalBottomSheetState()
+    // CHANGED: open fully expanded so an upward swipe scrolls the text instead of growing the sheet
+    val modalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     if (showTafseerSheet) {
         ModalBottomSheet(
@@ -63,10 +65,10 @@ fun TafseerBottomSheet(
                 verseText = verseText,
                 text = contentText,
                 copiedMessage = when (mode) {
-                    TafseerSheetMode.التفسير -> "تم تسخ التفسير بنجاح"
-                    TafseerSheetMode.الإعراب -> "تم تسخ الإعراب بنجاح"
-                    TafseerSheetMode.أسباب_النزول -> "تم تسخ سبب النزول بنجاح"
-                    TafseerSheetMode.معاني_المفردات -> "تم تسخ معاني المفردات بنجاح"
+                    TafseerSheetMode.التفسير -> "تم نسخ التفسير بنجاح"            // CHANGED: تسخ -> نسخ
+                    TafseerSheetMode.الإعراب -> "تم نسخ الإعراب بنجاح"            // CHANGED
+                    TafseerSheetMode.أسباب_النزول -> "تم نسخ سبب النزول بنجاح"     // CHANGED
+                    TafseerSheetMode.معاني_المفردات -> "تم نسخ معاني المفردات بنجاح" // CHANGED
                     TafseerSheetMode.المشابهات -> "تم نسخ الآيات المشابهات بنجاح"
                 },
                 atFirstVerse = atFirstVerse,
@@ -98,7 +100,7 @@ fun TafseerBottomSheet(
                         )
                         Icon(
                             Icons.Default.KeyboardArrowDown,
-                            contentDescription = "",
+                            contentDescription = null, // CHANGED: decorative icon, TalkBack skips it
                             tint = MaterialTheme.colorScheme.onSecondary,
                             modifier = Modifier.size(32.dp)
                         )
@@ -108,3 +110,5 @@ fun TafseerBottomSheet(
         }
     }
 }
+
+

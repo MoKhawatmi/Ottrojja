@@ -27,11 +27,9 @@ import com.ottrojja.classes.Screen
 
 @Composable
 fun ExpandedDockContent(
-    navController: NavController,
     currentRoute: String?,
     onItemClick: (String) -> Unit
 ) {
-    val color = MaterialTheme.colorScheme.primary;
 
     Column(
         modifier = Modifier
@@ -51,8 +49,6 @@ fun ExpandedDockContent(
                     onItemClick(Screen.BlessingsScreen.route)
                 },
                 iconId = R.drawable.twilight,
-                alternateIcon = null,
-                modifier = Modifier.weight(1f)
             )
 
             DockVerticalDivider()
@@ -64,8 +60,6 @@ fun ExpandedDockContent(
                     onItemClick(Screen.QiblaScreen.route)
                 },
                 iconId = R.drawable.qibla,
-                alternateIcon = null,
-                modifier = Modifier.weight(1f)
             )
 
             DockVerticalDivider()
@@ -77,8 +71,6 @@ fun ExpandedDockContent(
                     onItemClick(Screen.TeacherScreen.route)
                 },
                 iconId = R.drawable.teacher,
-                alternateIcon = null,
-                modifier = Modifier.weight(1f)
             )
         }
 
@@ -95,8 +87,6 @@ fun ExpandedDockContent(
                     onItemClick(Screen.KhitmahListScreen.route)
                 },
                 iconId = R.drawable.khitmah,
-                alternateIcon = null,
-                modifier = Modifier.weight(1f)
             )
 
             DockVerticalDivider()
@@ -108,21 +98,17 @@ fun ExpandedDockContent(
                     onItemClick(Screen.ReminderScreen.route)
                 },
                 iconId = R.drawable.reminder,
-                alternateIcon = null,
-                modifier = Modifier.weight(1f)
             )
 
             DockVerticalDivider()
 
             DockItem(
-                optionText = "المرجعيات",
-                isCurrent = Screen.BookmarksScreen.route == currentRoute,
+                optionText = "الصلاة",
+                isCurrent = Screen.PrayerTimesScreen.route == currentRoute,
                 onClick = {
-                    onItemClick(Screen.BookmarksScreen.route)
+                    onItemClick(Screen.PrayerTimesScreen.route)
                 },
-                iconId = R.drawable.bookmarks,
-                alternateIcon = null,
-                modifier = Modifier.weight(1f)
+                iconId = R.drawable.prayer_times,
             )
         }
 
@@ -132,6 +118,18 @@ fun ExpandedDockContent(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
+
+            DockItem(
+                optionText = "المرجعيات",
+                isCurrent = Screen.BookmarksScreen.route == currentRoute,
+                onClick = {
+                    onItemClick(Screen.BookmarksScreen.route)
+                },
+                iconId = R.drawable.bookmarks,
+            )
+
+            DockVerticalDivider()
+
             DockItem(
                 optionText = "الاعدادات",
                 isCurrent = Screen.SettingsScreen.route == currentRoute,
@@ -139,8 +137,6 @@ fun ExpandedDockContent(
                     onItemClick(Screen.SettingsScreen.route)
                 },
                 iconId = R.drawable.settings,
-                alternateIcon = null,
-                modifier = Modifier.weight(1f)
             )
         }
     }

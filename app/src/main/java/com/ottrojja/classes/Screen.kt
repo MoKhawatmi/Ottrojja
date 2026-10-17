@@ -20,6 +20,7 @@ sealed class Screen(val route: String, val showsBottomBar: Boolean = false) {
     object QiblaScreen : Screen(route = "qibla_screen", showsBottomBar = true)
     object KhitmahListScreen : Screen(route = "khitmah_list_screen", showsBottomBar = true)
     object ReminderScreen : Screen(route = "reminder_screen", showsBottomBar = true)
+    object PrayerTimesScreen : Screen(route = "prayer_times_screen", showsBottomBar = true)
     object MainScreen : Screen(route = "main_screen?section={section}", showsBottomBar = true) {
         fun invokeRoute(section: BrowsingOption?): String {
             return if (section != null) {
@@ -79,10 +80,9 @@ sealed class Screen(val route: String, val showsBottomBar: Boolean = false) {
             QuranScreen,
             ZikrScreen,
             KhitmahScreen,
-            CustomTasabeehListScreen
+            CustomTasabeehListScreen,
+            PrayerTimesScreen
         )
     }
 
 }
-
-//object PrayerScreen : Screen(route = "prayer_screen")

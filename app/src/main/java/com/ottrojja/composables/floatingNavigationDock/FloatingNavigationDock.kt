@@ -26,9 +26,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
-fun FloatingNavigationDock(navController: NavController,
-                           expanded: Boolean,
-                           onToggle: () -> Unit
+fun FloatingNavigationDock(
+    navController: NavController,
+    expanded: Boolean,
+    onToggle: () -> Unit
 ) {
 
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -84,7 +85,7 @@ fun FloatingNavigationDock(navController: NavController,
                 // COLLAPSED BAR (ALWAYS VISIBLE)
                 CollapsedDock(
                     currentRoute = currentRoute,
-                    onClick = { route -> navController.navigate(route); if(expanded)onToggle() },
+                    onClick = { route -> navController.navigate(route); if (expanded) onToggle() },
                     expanded = expanded,
                     toggleExpanded = { onToggle() }
                 )
@@ -92,7 +93,6 @@ fun FloatingNavigationDock(navController: NavController,
                 // EXPANDED AREA
                 AnimatedVisibility(visible = expanded) {
                     ExpandedDockContent(
-                        navController = navController,
                         currentRoute = currentRoute,
                         onItemClick = {
                             navController.navigate(it)

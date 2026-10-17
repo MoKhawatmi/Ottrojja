@@ -13,8 +13,8 @@ object OttrojjaDateTime {
 
     private val arabicLocale = Locale("ar")
 
-    private const val DATE_PATTERN = "yyyy-MM-dd"
-    private const val DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm"
+    private const val DATE_PATTERN = "dd-MM-yyyy"
+    private const val DATE_TIME_PATTERN = "dd-MM-yyyy HH:mm"
     private const val TIME_PATTERN = "HH:mm"
 
     private val decimalStyle =

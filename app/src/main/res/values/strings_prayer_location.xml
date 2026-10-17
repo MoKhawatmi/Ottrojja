@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- City picker -->
+    <string name="prayer_location_picker_title">اختيار الموقع</string>
+    <string name="prayer_location_locating">جاري تحديد موقعك…</string>
+
+    <!-- Permission -->
+    <string name="prayer_location_permission_title">الوصول إلى الموقع</string>
+    <string name="prayer_location_permission_rationale">يحتاج التطبيق إلى موقعك التقريبي لحساب مواقيت الصلاة بدقة، ويمكنك بدلًا من ذلك اختيار مدينتك يدويًا.</string>
+    <string name="prayer_location_permission_settings">تم رفض إذن الموقع. لتفعيله افتح إعدادات التطبيق ثم الأذونات، أو اختر مدينتك يدويًا من القائمة.</string>
+
+    <!-- Location services -->
+    <string name="prayer_location_disabled_title">خدمة الموقع متوقفة</string>
+    <string name="prayer_location_disabled_text">فعّل خدمة الموقع في جهازك لتحديد مدينتك تلقائيًا، أو اختر مدينتك يدويًا.</string>
+    <string name="prayer_location_unavailable">تعذّر تحديد موقعك، حاول مجددًا أو اختر مدينتك يدويًا</string>
+    <string name="prayer_location_error">حصل خطأ يرجى المحاولة لاحقا</string>
+
+    <!-- Data attribution (GeoNames is CC BY 4.0): show this e.g. on the about screen -->
+    <string name="prayer_location_cities_attribution">بيانات المدن من GeoNames.org (CC BY 4.0)</string>
+</resources>

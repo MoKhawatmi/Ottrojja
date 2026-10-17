@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Screen -->
+    <string name="prayer_times_title">مواقيت الصلاة</string>
+    <string name="prayer_times_remaining">متبقٍ %1$s</string>
+    <string name="prayer_times_tomorrow">غدًا</string>
+    <string name="prayer_times_unavailable">تعذّر حساب مواقيت الصلاة لهذا اليوم في موقعك</string>
+    <string name="prayer_times_no_location">حدّد موقعك لعرض مواقيت الصلاة</string>
+    <string name="prayer_times_jumuah_hint">يبدأ وقت الجمعة مع دخول وقت الظهر، ويختلف موعد الخطبة من مسجد لآخر</string>
+
+    <!-- Prayer names -->
+    <string name="prayer_fajr">الفجر</string>
+    <string name="prayer_sunrise">الشروق</string>
+    <string name="prayer_duha">الضحى</string>
+    <string name="prayer_dhuhr">الظهر</string>
+    <string name="prayer_asr">العصر</string>
+    <string name="prayer_maghrib">المغرب</string>
+    <string name="prayer_isha">العشاء</string>
+    <string name="prayer_jumuah">الجمعة</string>
+
+    <string name="prayer_times_next_prayer_label">الصلاة القادمة</string>
+    <string name="prayer_times_set_location">تحديد الموقع</string>
+    <string name="prayer_times_settings">إعدادات مواقيت الصلاة</string>
+    <string name="prayer_times_previous_day">اليوم السابق</string>
+    <string name="prayer_times_next_day">اليوم التالي</string>
+    <string name="prayer_times_back_to_today">العودة إلى اليوم</string>
+
+    <!-- Notification modes, used as content descriptions of the bell button -->
+    <string name="prayer_mode_off">التنبيه متوقف</string>
+    <string name="prayer_mode_notification">إشعار عند دخول الوقت</string>
+    <string name="prayer_mode_adhan">رفع الأذان عند دخول الوقت</string>
+
+    <!-- Notifications -->
+    <string name="prayer_notification_title">حان الآن وقت صلاة %1$s</string>
+    <string name="prayer_notification_text">%1$s • %2$s</string>
+    <string name="prayer_adhan_stop">إيقاف الأذان</string>
+    <string name="prayer_channel_name">مواقيت الصلاة</string>
+    <string name="prayer_channel_description">إشعار عند دخول وقت الصلاة</string>
+    <string name="prayer_adhan_channel_name">الأذان</string>
+    <string name="prayer_adhan_channel_description">إشعار أثناء رفع الأذان</string>
+
+    <!-- Notification permissions -->
+    <string name="prayer_notification_permission_title">السماح بالإشعارات</string>
+    <string name="prayer_notification_permission_rationale">لتنبيهك عند دخول وقت الصلاة يحتاج التطبيق إلى إذن الإشعارات.</string>
+    <string name="prayer_notification_permission_settings">الإشعارات متوقفة لهذا التطبيق. فعّلها من إعدادات التطبيق لتصلك تنبيهات الصلاة.</string>
+    <string name="prayer_exact_alarm_title">التنبيه في الوقت المحدد</string>
+    <string name="prayer_exact_alarm_text">لتصلك التنبيهات في وقتها تمامًا، اسمح للتطبيق بجدولة المنبهات الدقيقة. بدون ذلك قد يتأخر التنبيه بضع دقائق.</string>
+
+    <!-- Location -->
+    <string name="prayer_location_title">الموقع</string>
+    <string name="prayer_location_use_current">استخدام موقعي الحالي</string>
+
+    <!-- Calculation settings -->
+    <string name="prayer_settings_method_title">طريقة الحساب</string>
+    <string name="prayer_settings_method_automatic">تلقائي (%1$s)</string>
+    <string name="prayer_settings_madhab_title">طريقة حساب العصر</string>
+
+    <string name="method_muslim_world_league">رابطة العالم الإسلامي</string>
+    <string name="method_egyptian">الهيئة المصرية العامة للمساحة</string>
+    <string name="method_karachi">جامعة العلوم الإسلامية، كراتشي</string>
+    <string name="method_umm_al_qura">تقويم أم القرى، مكة المكرمة</string>
+    <string name="method_dubai">الإمارات العربية المتحدة</string>
+    <string name="method_qatar">قطر</string>
+    <string name="method_kuwait">الكويت</string>
+    <string name="method_moonsighting_committee">لجنة رؤية الهلال</string>
+    <string name="method_north_america">الجمعية الإسلامية لأمريكا الشمالية</string>
+    <string name="method_singapore">سنغافورة</string>
+    <string name="method_turkey">رئاسة الشؤون الدينية التركية</string>
+    <string name="method_gulf">منطقة الخليج</string>
+    <string name="method_jordan">وزارة الأوقاف والشؤون والمقدسات الإسلامية، الأردن</string>
+    <string name="method_morocco">المغرب</string>
+    <string name="method_algeria">الجزائر</string>
+    <string name="method_tunisia">تونس</string>
+    <string name="method_jakim">إدارة التنمية الإسلامية الماليزية (جاكيم)</string>
+    <string name="method_kemenag">وزارة الشؤون الدينية الإندونيسية</string>
+    <string name="method_russia">الإدارة الدينية لمسلمي روسيا</string>
+    <string name="method_france">اتحاد المنظمات الإسلامية في فرنسا</string>
+    <string name="method_portugal">الجالية الإسلامية في لشبونة</string>
+
+    <string name="madhab_jumhur">الجمهور (الشافعي والمالكي والحنبلي)</string>
+    <string name="madhab_hanafi">الحنفي</string>
+
+    <!-- Settings modal -->
+    <string name="prayer_settings_title">إعدادات مواقيت الصلاة</string>
+    <string name="prayer_settings_location_not_set">لم يتم تحديد الموقع</string>
+    <string name="prayer_settings_location_gps_hint">يتم تحديث الموقع تلقائيًا</string>
+    <string name="prayer_settings_hanafi_switch">حساب العصر وفق المذهب الحنفي</string>
+    <string name="prayer_settings_hanafi_hint">يتأخر وقت العصر عند التفعيل، اتركه مغلقًا لمذهب الجمهور</string>
+    <string name="prayer_settings_save">حفظ</string>
+    <string name="prayer_settings_cancel">إلغاء</string>
+
+    <!-- Hijri months, index 0 = Muharram -->
+    <string-array name="hijri_months">
+        <item>محرم</item>
+        <item>صفر</item>
+        <item>ربيع الأول</item>
+        <item>ربيع الآخر</item>
+        <item>جمادى الأولى</item>
+        <item>جمادى الآخرة</item>
+        <item>رجب</item>
+        <item>شعبان</item>
+        <item>رمضان</item>
+        <item>شوال</item>
+        <item>ذو القعدة</item>
+        <item>ذو الحجة</item>
+    </string-array>
+    <string name="hijri_date_format">%1$d %2$s %3$d هـ</string>
+</resources>

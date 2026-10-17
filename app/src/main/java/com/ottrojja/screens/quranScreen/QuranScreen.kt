@@ -87,7 +87,6 @@ import com.ottrojja.screens.quranScreen.composables.Benefits
 import com.ottrojja.screens.quranScreen.composables.SinglePage
 import com.ottrojja.screens.quranScreen.composables.TafseerBottomSheet
 import com.ottrojja.screens.quranScreen.composables.VerseAnchor
-import com.ottrojja.screens.quranScreen.composables.VerseMenuHost
 import com.ottrojja.screens.quranScreen.composables.YouTube
 import com.ottrojja.screens.quranScreen.dialogs.ListeningOptionsDialog
 import com.ottrojja.screens.quranScreen.dialogs.PageSelectionDialog
@@ -528,8 +527,8 @@ fun PagesContainer(
     }
     var showController by remember { mutableStateOf(true) }
 
-    // Long-pressed verse + its on-screen anchor. Cleared whenever the layout can change under it
-    // (rotation, page change, page data reload) so the card never points at stale coordinates.
+    // Long-pressed verse + where to anchor its card (page-box coordinates). Cleared on rotation,
+    // page change or page data reload, since the page box size changes with those.
     val orientation = LocalConfiguration.current.orientation
     var verseMenu by remember { mutableStateOf<VerseAnchor?>(null) }
     LaunchedEffect(orientation, pagerState.currentPage, currentPageContent) { verseMenu = null }
@@ -580,7 +579,10 @@ fun PagesContainer(
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                ) { showController = !showController }) { index ->
+                ) {
+                    // A tap outside the page box while the verse card is open just closes it.
+                    if (verseMenu != null) verseMenu = null else showController = !showController
+                }) { index ->
             val thisPage = quranPagesNumbers[index]
             // Only the page the user is on is interactive; its rows are what the VM has loaded.
             val content = currentPageContent?.takeIf { rows -> rows.firstOrNull()?.pageNum == thisPage }
@@ -588,8 +590,11 @@ fun PagesContainer(
                 pageNum = thisPage,
                 nightReadingMode = nightReadingMode,
                 pageContent = content,
-                highlightedVerseId = verseMenu?.verse?.id,
-                onVerseLongPress = { anchor -> verseMenu = anchor }
+                menuAnchor = verseMenu,
+                onVerseLongPress = { anchor -> verseMenu = anchor },
+                onDismissMenu = { verseMenu = null },
+                onShareVerse = onShareVerse,
+                onTafseerVerse = onTafseerVerse
             )
         }
 
@@ -712,15 +717,6 @@ fun PagesContainer(
                 }
             }
         }
-
-        // Last child: drawn above the pager and the controller.
-        VerseMenuHost(
-            anchor = verseMenu,
-            onDismiss = { verseMenu = null },
-            onShare = onShareVerse,
-            onTafseer = onTafseerVerse,
-            modifier = Modifier.matchParentSize()
-        )
     }
 }
 

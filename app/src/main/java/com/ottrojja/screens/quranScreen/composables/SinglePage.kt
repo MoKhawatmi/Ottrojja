@@ -51,8 +51,11 @@ fun SinglePage(
     pageNum: String,
     nightReadingMode: Boolean,
     pageContent: List<PageContent>? = null,
-    highlightedVerseId: Int? = null,
+    menuAnchor: VerseAnchor? = null,
     onVerseLongPress: (VerseAnchor) -> Unit = {},
+    onDismissMenu: () -> Unit = {},
+    onShareVerse: (PageContent) -> Unit = {},
+    onTafseerVerse: (PageContent) -> Unit = {},
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -65,7 +68,8 @@ fun SinglePage(
         if (isLandscape) {
             // Same as before: 75% of the width, full page height, scrollable.
             PageImage(
-                pageNum, nightReadingMode, pageContent, highlightedVerseId, onVerseLongPress,
+                pageNum, nightReadingMode, pageContent,
+                menuAnchor, onVerseLongPress, onDismissMenu, onShareVerse, onTafseerVerse,
                 modifier = Modifier
                     .fillMaxWidth(0.75f)
                     .aspectRatio(PAGE_ASPECT_RATIO)
@@ -80,7 +84,8 @@ fun SinglePage(
                     .fillMaxHeight(0.92f)
             ) {
                 PageImage(
-                    pageNum, nightReadingMode, pageContent, highlightedVerseId, onVerseLongPress,
+                    pageNum, nightReadingMode, pageContent,
+                    menuAnchor, onVerseLongPress, onDismissMenu, onShareVerse, onTafseerVerse,
                     modifier = Modifier.aspectRatio(PAGE_ASPECT_RATIO)
                 )
             }
@@ -121,8 +126,11 @@ private fun PageImage(
     pageNum: String,
     nightReadingMode: Boolean,
     pageContent: List<PageContent>?,
-    highlightedVerseId: Int?,
+    menuAnchor: VerseAnchor?,
     onVerseLongPress: (VerseAnchor) -> Unit,
+    onDismissMenu: () -> Unit,
+    onShareVerse: (PageContent) -> Unit,
+    onTafseerVerse: (PageContent) -> Unit,
     modifier: Modifier,
 ) {
     val context = LocalContext.current
@@ -140,8 +148,11 @@ private fun PageImage(
             VerseInteractionLayer(
                 pageContent = pageContent,
                 nightReadingMode = nightReadingMode,
-                highlightedVerseId = highlightedVerseId,
+                menuAnchor = menuAnchor,
                 onVerseLongPress = onVerseLongPress,
+                onDismissMenu = onDismissMenu,
+                onShareVerse = onShareVerse,
+                onTafseerVerse = onTafseerVerse,
                 modifier = Modifier.matchParentSize()
             )
         }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
@@ -26,12 +27,12 @@ import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.ui.theme.OttrojjaTheme
 
 @Composable
-fun DockItem(
+fun RowScope.DockItem(
     optionText: String,
     isCurrent: Boolean,
     onClick: () -> Unit,
     iconId: Int,
-    alternateIcon: Int?, // used when route is not current
+    alternateIcon: Int?=null, // used when route is not current
     modifier: Modifier = Modifier,
     overrideColor: Color? = null
 ) {
@@ -43,6 +44,7 @@ fun DockItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = modifier
+            .weight(1f)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,

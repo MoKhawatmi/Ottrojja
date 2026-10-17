@@ -15,6 +15,7 @@ import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,10 +36,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,9 +49,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -136,8 +132,9 @@ private fun IntArray.containsPoint(x: Float, y: Float): Boolean {
 /* ───────────────────────────── Interaction layer ───────────────────────────── */
 
 /**
- * What a long press produced: the verse plus where it sits on screen, in ROOT coordinates
- * (same space as every other composable in the activity window — no separate popup window).
+ * What a long press produced: the verse plus where to anchor the card, in the PAGE BOX's own
+ * pixel coordinates (the same space the highlight is drawn in). No window/root conversion is
+ * involved, so nothing can go stale after a rotation.
  */
 @Immutable
 class VerseAnchor(
@@ -151,42 +148,59 @@ class VerseAnchor(
 
 /**
  * Place this over the page image, inside a box that has exactly the image's aspect ratio
- * (see SinglePage). Long-pressing a verse reports a [VerseAnchor]; the card itself is drawn by
- * [VerseMenuHost] higher up. Plain taps are NOT consumed, so the pager's own tap handling
- * (toggling the controller) keeps working.
+ * (see SinglePage). Long-pressing a verse reports a [VerseAnchor]; while [menuAnchor] is set,
+ * that verse is highlighted and its action card is shown inside this same box.
+ * Plain taps are NOT consumed, so the pager's own tap handling keeps working.
  */
 @Composable
 fun VerseInteractionLayer(
     pageContent: List<PageContent>,
     nightReadingMode: Boolean,
-    highlightedVerseId: Int?,
+    menuAnchor: VerseAnchor?,
     onVerseLongPress: (VerseAnchor) -> Unit,
+    onDismissMenu: () -> Unit,
+    onShareVerse: (PageContent) -> Unit,
+    onTafseerVerse: (PageContent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val regions = remember(pageContent) { buildVerseRegions(pageContent) }
-    var coordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
-
     val highlight = if (nightReadingMode) Color(0xFFFFD54F).copy(alpha = 0.30f)
     else MaterialTheme.colorScheme.primary.copy(alpha = 0.20f)
 
-    QuranPageOverlay(
-        regions = regions,
-        highlighted = regions.firstOrNull { it.verse.id == highlightedVerseId },
-        highlightColor = highlight,
-        onVerseLongPress = { region, position ->
-            val coords = coordinates?.takeIf { it.isAttached } ?: return@QuranPageOverlay
-            val sy = coords.size.height / PAGE_SRC_HEIGHT.toFloat()
-            val linePx = SRC_LINE_PITCH * sy
-            // Anchor to the verse edge, but never more than ~2 lines away from the finger
-            // (long verses can cover most of the page).
-            val topLocal = max(region.top * sy, position.y - 2 * linePx)
-            val bottomLocal = min(region.bottom * sy, position.y + 2 * linePx)
-            val top = coords.localToRoot(Offset(position.x, topLocal))
-            val bottom = coords.localToRoot(Offset(position.x, bottomLocal))
-            onVerseLongPress(VerseAnchor(region.verse, top.y, bottom.y, top.x))
-        },
-        modifier = modifier.onGloballyPositioned { coordinates = it }
-    )
+    BoxWithConstraints(modifier) {
+        val boxHeight = constraints.maxHeight.toFloat()
+
+        QuranPageOverlay(
+            regions = regions,
+            highlighted = regions.firstOrNull { it.verse.id == menuAnchor?.verse?.id },
+            highlightColor = highlight,
+            onVerseLongPress = { region, position ->
+                val sy = boxHeight / PAGE_SRC_HEIGHT
+                val linePx = SRC_LINE_PITCH * sy
+                // Anchor to the verse edge, but never more than ~2 lines away from the finger
+                // (long verses can cover most of the page).
+                onVerseLongPress(
+                    VerseAnchor(
+                        verse = region.verse,
+                        top = max(region.top * sy, position.y - 2 * linePx),
+                        bottom = min(region.bottom * sy, position.y + 2 * linePx),
+                        pressX = position.x,
+                    )
+                )
+            },
+            modifier = Modifier.matchParentSize()
+        )
+
+        if (menuAnchor != null && regions.any { it.verse.id == menuAnchor.verse.id }) {
+            VerseMenuHost(
+                anchor = menuAnchor,
+                onDismiss = onDismissMenu,
+                onShare = onShareVerse,
+                onTafseer = onTafseerVerse,
+                modifier = Modifier.matchParentSize()
+            )
+        }
+    }
 }
 
 /**
@@ -254,30 +268,24 @@ fun QuranPageOverlay(
 /* ───────────────────────────── Floating card ───────────────────────────── */
 
 /**
- * Draws the action card for [anchor] on top of everything in its parent (put it last in a
- * full-size Box, with Modifier.matchParentSize()). Tapping anywhere outside the card or
- * pressing back dismisses it.
- *
- * The card is laid out in the same window as the page (not an Android popup window), so its
- * position can't drift when system bars / insets change, e.g. after a rotation.
+ * Lays the action card out over the page box (same coordinate space as the anchor):
+ * centered on the finger, above the verse when there is room, otherwise below it, otherwise
+ * wherever it fits. Taps outside the card and the back button dismiss it.
  */
 @Composable
-fun VerseMenuHost(
-    anchor: VerseAnchor?,
+private fun VerseMenuHost(
+    anchor: VerseAnchor,
     onDismiss: () -> Unit,
     onShare: (PageContent) -> Unit,
     onTafseer: (PageContent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (anchor == null) return
     val currentOnDismiss by rememberUpdatedState(onDismiss)
-    var hostOrigin by remember { mutableStateOf<Offset?>(null) }
-
     BackHandler { currentOnDismiss() }
 
     val density = LocalDensity.current
     val gap = with(density) { 8.dp.roundToPx() }
-    val margin = with(density) { 8.dp.roundToPx() }
+    val margin = with(density) { 4.dp.roundToPx() }
 
     Layout(
         content = {
@@ -289,25 +297,22 @@ fun VerseMenuHost(
                 )
             }
         },
-        modifier = modifier
-            .onGloballyPositioned { hostOrigin = it.positionInRoot() }
-            // Outside taps: consume (so the pager doesn't toggle the controller) and dismiss.
-            .pointerInput(Unit) { detectTapGestures { currentOnDismiss() } }
+        // Outside taps: consume (so the pager doesn't toggle the controller) and dismiss.
+        modifier = modifier.pointerInput(Unit) { detectTapGestures { currentOnDismiss() } }
     ) { measurables, constraints ->
         val width = constraints.maxWidth
         val height = constraints.maxHeight
         val card = measurables.first().measure(constraints.copy(minWidth = 0, minHeight = 0))
         layout(width, height) {
-            val origin = hostOrigin ?: return@layout // first frame: wait for our position
             val w = card.width
             val h = card.height
 
             val maxX = max(margin, width - w - margin)
-            val x = (anchor.pressX - origin.x - w / 2f).roundToInt().coerceIn(margin, maxX)
+            val x = (anchor.pressX - w / 2f).roundToInt().coerceIn(margin, maxX)
 
             val maxY = max(margin, height - h - margin)
-            val above = (anchor.top - origin.y).roundToInt() - gap - h
-            val below = (anchor.bottom - origin.y).roundToInt() + gap
+            val above = anchor.top.roundToInt() - gap - h
+            val below = anchor.bottom.roundToInt() + gap
             val y = when {
                 above >= margin -> above
                 below <= maxY -> below
