@@ -1,6 +1,24 @@
 package com.ottrojja.screens.prayerTimesScreen
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
+import androidx.compose.material.icons.filled.HourglassTop
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathOperation
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.unit.Dp
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -208,26 +226,39 @@ private fun LocationBar(name: String, onClick: () -> Unit) {
 @Composable
 private fun NextPrayerCard(state: NextPrayerState, zone: ZoneId, isTomorrow: Boolean) {
     val context = LocalContext.current
+    val primary = MaterialTheme.colorScheme.primary
     val onCard = MaterialTheme.colorScheme.onPrimary
     val name = stringResource(state.next.type.displayNameRes(state.next.isJumuah))
     val time = PrayerFormat.time(context, state.next.epochMillis, zone)
     val timeLabel = if (isTomorrow) "$time • ${stringResource(R.string.prayer_times_tomorrow)}" else time
+    val gradient = remember(primary) {
+        Brush.linearGradient(listOf(lerp(primary, Color.White, 0.08f), primary, lerp(primary, Color.Black, 0.35f)))
+    }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.primary)
-            .padding(vertical = 18.dp, horizontal = 16.dp),
+            .background(gradient)
+            .nextPrayerOrnaments(onCard)
+            // Inner frame, like the border around a page of the mushaf.
+            .padding(6.dp)
+            .border(1.dp, onCard.copy(alpha = 0.2f), RoundedCornerShape(15.dp))
+            .padding(vertical = 14.dp, horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        OttrojjaText(
-            text = stringResource(R.string.prayer_times_next_prayer_label),
-            style = OttrojjaTheme.typography.bodySmall,
-            color = onCard.copy(alpha = 0.8f),
-            textAlign = TextAlign.Center,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            OrnamentDiamond(color = onCard.copy(alpha = 0.6f))
+            OttrojjaText(
+                text = stringResource(R.string.prayer_times_next_prayer_label),
+                style = OttrojjaTheme.typography.bodySmall,
+                color = onCard.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 8.dp),
+            )
+            OrnamentDiamond(color = onCard.copy(alpha = 0.6f))
+        }
         Spacer(modifier = Modifier.height(4.dp))
         OttrojjaText(
             text = name,
@@ -241,13 +272,155 @@ private fun NextPrayerCard(state: NextPrayerState, zone: ZoneId, isTomorrow: Boo
             color = onCard.copy(alpha = 0.9f),
             textAlign = TextAlign.Center,
         )
-        Spacer(modifier = Modifier.height(10.dp))
-        OttrojjaText(
-            text = stringResource(R.string.prayer_times_remaining, PrayerFormat.countdown(state.remainingMillis)),
-            style = OttrojjaTheme.typography.bodyLarge.copy(fontSize = 22.sp, fontWeight = FontWeight.SemiBold),
-            color = onCard,
-            textAlign = TextAlign.Center,
+        OrnamentDivider(
+            color = onCard.copy(alpha = 0.55f),
+            modifier = Modifier.padding(vertical = 10.dp),
         )
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(50))
+                .background(onCard.copy(alpha = 0.12f))
+                .border(1.dp, onCard.copy(alpha = 0.18f), RoundedCornerShape(50))
+                .padding(horizontal = 14.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Default.HourglassTop,
+                contentDescription = null,
+                tint = onCard.copy(alpha = 0.85f),
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            OttrojjaText(
+                text = stringResource(R.string.prayer_times_remaining, PrayerFormat.countdown(state.remainingMillis)),
+                // Tabular digits: the countdown no longer shifts sideways as the seconds change.
+                style = OttrojjaTheme.typography.bodyLarge.copy(
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFeatureSettings = "tnum",
+                ),
+                color = onCard,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+/**
+ * Faint geometric decoration behind the next prayer card: a large eight-pointed star
+ * (Rub el Hizb) peeking from the trailing top corner, a smaller one at the leading bottom,
+ * and a crescent with a star in the leading top corner. Mirrors itself in RTL.
+ */
+private fun Modifier.nextPrayerOrnaments(color: Color): Modifier = drawWithCache {
+    val rtl = layoutDirection == LayoutDirection.Rtl
+    val leadingX = if (rtl) size.width else 0f
+    val trailingX = if (rtl) 0f else size.width
+    val inward = if (rtl) -1f else 1f // x direction from the leading edge towards the center
+
+    val bigRadius = size.height * 0.55f
+    val bigStar = eightPointStar(bigRadius)
+    val bigInnerStar = eightPointStar(bigRadius * 0.62f)
+    val smallStar = eightPointStar(size.height * 0.26f)
+    val crescentRadius = 12.dp.toPx()
+    val crescent = crescentPath(crescentRadius, opening = inward)
+    val tinyStar = eightPointStar(4.dp.toPx())
+    val stroke = Stroke(width = 1.dp.toPx())
+
+    onDrawBehind {
+        translate(trailingX - inward * size.width * 0.08f, size.height * 0.12f) {
+            rotate(degrees = 22.5f, pivot = Offset.Zero) {
+                drawPath(bigStar, color.copy(alpha = 0.10f), style = stroke)
+                drawPath(bigInnerStar, color.copy(alpha = 0.07f), style = stroke)
+                drawCircle(color.copy(alpha = 0.06f), radius = bigRadius * 0.3f, center = Offset.Zero, style = stroke)
+            }
+        }
+        translate(leadingX + inward * size.width * 0.1f, size.height * 0.98f) {
+            drawPath(smallStar, color.copy(alpha = 0.08f), style = stroke)
+        }
+        val crescentCenter = Offset(leadingX + inward * 30.dp.toPx(), 30.dp.toPx())
+        translate(crescentCenter.x, crescentCenter.y) {
+            drawPath(crescent, color.copy(alpha = 0.28f))
+        }
+        translate(crescentCenter.x + inward * crescentRadius * 0.9f, crescentCenter.y - crescentRadius * 0.25f) {
+            drawPath(tinyStar, color.copy(alpha = 0.32f))
+        }
+    }
+}
+
+/** Two overlapping squares (Rub el Hizb), centered on the origin, a point facing up. */
+private fun eightPointStar(radius: Float): Path {
+    // The inner corners sit where the edges of the two squares cross.
+    val innerRadius = radius * (cos(PI / 4) / cos(PI / 8)).toFloat()
+    return Path().apply {
+        for (i in 0 until 16) {
+            val r = if (i % 2 == 0) radius else innerRadius
+            val angle = -PI / 2 + i * PI / 8
+            val x = (r * cos(angle)).toFloat()
+            val y = (r * sin(angle)).toFloat()
+            if (i == 0) moveTo(x, y) else lineTo(x, y)
+        }
+        close()
+    }
+}
+
+/** A crescent centered on the origin; [opening] = 1f opens to the right, -1f to the left. */
+private fun crescentPath(radius: Float, opening: Float): Path {
+    val moon = Path().apply { addOval(Rect(Offset.Zero, radius)) }
+    val bite = Path().apply {
+        addOval(Rect(Offset(opening * radius * 0.42f, -radius * 0.12f), radius * 0.86f))
+    }
+    return Path().apply { op(moon, bite, PathOperation.Difference) }
+}
+
+@Composable
+private fun OrnamentDiamond(color: Color, diamondSize: Dp = 6.dp) {
+    Canvas(modifier = Modifier.size(diamondSize)) {
+        val path = Path().apply {
+            moveTo(size.width / 2, 0f)
+            lineTo(size.width, size.height / 2)
+            lineTo(size.width / 2, size.height)
+            lineTo(0f, size.height / 2)
+            close()
+        }
+        drawPath(path, color)
+    }
+}
+
+/** ─── ◇ ◆ ◇ ─── with the lines fading out towards the ends. */
+@Composable
+private fun OrnamentDivider(color: Color, modifier: Modifier = Modifier) {
+    Canvas(
+        modifier = modifier
+            .width(170.dp)
+            .height(10.dp),
+    ) {
+        val cy = size.height / 2
+        val cx = size.width / 2
+        val big = size.height / 2
+        val small = big * 0.55f
+        val gap = big * 2.6f // center to the small diamonds
+        val lineStart = gap + small + 4.dp.toPx()
+        val strokeWidth = 1.dp.toPx()
+
+        fun diamond(x: Float, half: Float) = Path().apply {
+            moveTo(x, cy - half)
+            lineTo(x + half, cy)
+            lineTo(x, cy + half)
+            lineTo(x - half, cy)
+            close()
+        }
+
+        drawLine(
+            brush = Brush.horizontalGradient(listOf(Color.Transparent, color), startX = 0f, endX = cx - lineStart),
+            start = Offset(0f, cy), end = Offset(cx - lineStart, cy), strokeWidth = strokeWidth,
+        )
+        drawLine(
+            brush = Brush.horizontalGradient(listOf(color, Color.Transparent), startX = cx + lineStart, endX = size.width),
+            start = Offset(cx + lineStart, cy), end = Offset(size.width, cy), strokeWidth = strokeWidth,
+        )
+        drawPath(diamond(cx, big), color)
+        drawPath(diamond(cx - gap, small), color, style = Stroke(strokeWidth))
+        drawPath(diamond(cx + gap, small), color, style = Stroke(strokeWidth))
     }
 }
 

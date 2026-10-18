@@ -108,7 +108,7 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
                 val query = _searchQuery.value
                 val category = _filterCategory.value
 
-                val items = supabase.from("blessings").select(Columns.ALL) {
+                val items = supabase.from("blessings_md").select(Columns.ALL) {
                     range(from = from, to = to)
                     order(column = "id", order = Order.DESCENDING)
                     if (query.isNotBlank()) {

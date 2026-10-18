@@ -183,11 +183,6 @@ fun ListeningOptionsDialog(
                         style = OttrojjaTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    OttrojjaText(
-                        "(غير متوفر في الخلفية حاليا)",
-                        style = OttrojjaTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
                 }
                 Checkbox(
                     checked = continuousPlay,

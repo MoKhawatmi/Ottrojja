@@ -15,6 +15,20 @@ import android.view.WindowManager
  * It is an activity (not a service or receiver) because Android 12+ blocks activity starts from
  * notification trampolines, so only an activity can still open the app. It shows over the lock
  * screen, so on a locked phone the tap stops the adhan without asking to unlock first.
+ *
+ * IMPORTANT: the manifest entry must declare android:showWhenLocked="true". SystemUI reads that
+ * attribute (not the setShowWhenLocked call below, which runs too late) to decide whether a
+ * notification tap may launch the activity directly or has to ask for the PIN first:
+ *
+ *     <activity
+ *         android:name=".screens.prayerTimesScreen.notifications.PrayerAdhanStopActivity"
+ *         android:exported="false"
+ *         android:showWhenLocked="true"
+ *         android:excludeFromRecents="true"
+ *         android:noHistory="true"
+ *         android:taskAffinity=""
+ *         android:theme="@android:style/Theme.NoDisplay"
+ *         tools:targetApi="o_mr1" />
  */
 class PrayerAdhanStopActivity : Activity() {
 

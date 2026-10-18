@@ -59,7 +59,10 @@ object PrayerNotifications {
     /**
      * Channels can't change their sound after creation, hence two: one with the default
      * notification sound, one silent for the adhan (the service plays the audio itself).
-     * Both show their full content on the lock screen.
+     *
+     * Note: Android ignores lockscreenVisibility when the app itself creates a channel (only the
+     * user can change it in settings); it is kept for clarity. What actually makes the content
+     * show on the lock screen is setVisibility(VISIBILITY_PUBLIC) on each notification.
      */
     fun ensureChannels(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
@@ -85,6 +88,7 @@ object PrayerNotifications {
             ).apply {
                 description = context.getString(R.string.prayer_adhan_channel_description)
                 setSound(null, null)
+                enableVibration(false)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
         )
@@ -109,6 +113,16 @@ object PrayerNotifications {
      * Shown while the adhan plays. Stop action, body tap ([tapIntent]) and swipe all stop it,
      * none of them needs the phone unlocked.
      *
+     * Lock screen notes:
+     * - Not [NotificationCompat.Builder.setSilent]: that turns it into a muted child of a "silent"
+     *   group, and lock screens set to hide silent notifications (the default on Pixel and several
+     *   other devices) then drop it. The adhan channel already has no sound and no vibration,
+     *   so it stays quiet while still counting as an alerting notification (heads-up, lock screen).
+     * - The stop action is a service intent with authentication explicitly not required, so the
+     *   system runs it from the lock screen without asking for the PIN first.
+     * - The body tap starts [PrayerAdhanStopActivity], which declares android:showWhenLocked in
+     *   the manifest; SystemUI checks that attribute to launch it without unlocking.
+     *
      * Deliberately not ongoing: on Android 14+ an ongoing notification can't be swiped away while
      * the phone is locked. Below 14 the system keeps foreground service notifications on screen
      * whatever this flag says, so there the stop action and the tap are the ways out.
@@ -118,22 +132,36 @@ object PrayerNotifications {
         alert: PrayerAlert,
         stopIntent: PendingIntent,
         tapIntent: PendingIntent,
-    ) = baseBuilder(context, alert, CHANNEL_ADHAN)
-        .setOngoing(false)
-        .setSilent(true)
-        .setCategory(NotificationCompat.CATEGORY_ALARM)
-        .setContentIntent(tapIntent)
-        .setDeleteIntent(stopIntent)
-        .addAction(0, context.getString(R.string.prayer_adhan_stop), stopIntent)
-        .build()
+    ): Notification {
+        val stopAction = NotificationCompat.Action.Builder(
+            0, context.getString(R.string.prayer_adhan_stop), stopIntent,
+        )
+            .setAuthenticationRequired(false)
+            .build()
+        return baseBuilder(context, alert, CHANNEL_ADHAN)
+            .setOngoing(false)
+            .setOnlyAlertOnce(true)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setContentIntent(tapIntent)
+            .setDeleteIntent(stopIntent)
+            .addAction(stopAction)
+            // Shown at once, not after the up to 10 s delay Android 12+ may apply to service notifications.
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+            .build()
+    }
 
     private fun baseBuilder(context: Context, alert: PrayerAlert, channel: String): NotificationCompat.Builder {
         val prayerName = context.getString(alert.type.displayNameRes(alert.isJumuah))
         val time = PrayerFormat.time(context, alert.epochMillis, zoneOf(alert.timeZoneId))
+        val title = context.getString(R.string.prayer_notification_title, prayerName)
+        val text = context.getString(R.string.prayer_notification_text, alert.locationName, time)
         return NotificationCompat.Builder(context, channel)
             .setSmallIcon(SMALL_ICON)
-            .setContentTitle(context.getString(R.string.prayer_notification_title, prayerName))
-            .setContentText(context.getString(R.string.prayer_notification_text, alert.locationName, time))
+            .setContentTitle(title)
+            .setContentText(text)
+            // Full body when expanded (the lock screen expands the top notification), never cut off.
+            .setStyle(NotificationCompat.BigTextStyle().setBigContentTitle(title).bigText(text))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // full content on the lock screen (API < 26)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
