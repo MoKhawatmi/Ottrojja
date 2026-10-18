@@ -59,8 +59,6 @@ fun PageTraining(
     checkVerse: () -> Unit,
     currentTry: Int,
     proceedVerse: () -> Unit,
-    //startTeaching: () -> Unit,
-    //hasStarted: Boolean,
     solutionMap: HashMap<Int, List<String>>,
     inputSolutions: MutableMap<Int, TeacherAnswer>,
     onInputSolutionChanged: (String, Int) -> Unit,

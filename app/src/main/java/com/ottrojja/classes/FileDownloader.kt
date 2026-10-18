@@ -45,6 +45,9 @@ object FileDownloader {
 
                 val state: DownloadState = when (info?.state) {
 
+                    // null: the work is not in WorkManager's database yet right after enqueue()
+                    null,
+                    WorkInfo.State.BLOCKED,
                     WorkInfo.State.ENQUEUED,
                     WorkInfo.State.RUNNING -> {
                         DownloadState.Running
@@ -67,9 +70,6 @@ object FileDownloader {
                     WorkInfo.State.CANCELLED -> {
                         Failure(Exception("Cancelled"))
                     }
-
-                    WorkInfo.State.BLOCKED -> TODO()
-                    null -> TODO()
                 }
 
                 state

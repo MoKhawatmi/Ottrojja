@@ -21,7 +21,7 @@ import com.ottrojja.screens.reminderScreen.classes.ReminderRepeatType
 import com.ottrojja.room.entities.Reminder
 import com.ottrojja.room.repositories.ReminderRepository
 import com.ottrojja.screens.reminderScreen.classes.ReminderManager
-import com.ottrojja.services.OverlayService
+import com.ottrojja.services.overlay.OverlayService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

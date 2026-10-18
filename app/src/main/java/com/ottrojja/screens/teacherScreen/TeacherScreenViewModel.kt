@@ -2,7 +2,6 @@ package com.ottrojja.screens.teacherScreen
 
 import android.app.Application
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -22,7 +21,6 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.ottrojja.R
 import com.ottrojja.classes.AnswerStatus
 import com.ottrojja.classes.Helpers
-import com.ottrojja.classes.Helpers.convertToArabicNumbers
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.classes.NetworkClient.ottrojjaClient
 import com.ottrojja.room.entities.PageContent
@@ -33,18 +31,13 @@ import com.ottrojja.composables.ToastManager.classes.AppToastManager
 import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.composables.quranRangeSelector.QuranRangeState
 import com.ottrojja.room.entities.ChapterData
-import com.ottrojja.screens.Khitmah.SessionForm.SessionFormState
-import com.ottrojja.screens.listeningScreen.ListeningViewModel
-import com.ottrojja.screens.listeningScreen.ListeningViewModel.SelectionPhase
 import com.ottrojja.screens.teacherScreen.classes.TeacherMode
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream

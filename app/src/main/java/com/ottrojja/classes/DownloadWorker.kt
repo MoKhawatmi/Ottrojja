@@ -66,6 +66,7 @@ class DownloadWorker(
             ?: StorageBase.FILES_DIR
 
         val destinationFile = resolveFile(relativePath, storageBase)
+        val partFile = File(destinationFile.parentFile, "${destinationFile.name}.part")
 
         val tempFile = File.createTempFile(
             "temp_",
@@ -99,7 +100,10 @@ class DownloadWorker(
             // ensure parent dirs exist
             destinationFile.parentFile?.mkdirs()
 
-            tempFile.copyTo(destinationFile, overwrite = true)
+            // copy next to the destination, then rename (atomic in the same directory), so a process
+            // killed mid-copy never leaves a half-written file that looks downloaded
+            tempFile.copyTo(partFile, overwrite = true)
+            if (!partFile.renameTo(destinationFile)) return retryOrFail()
 
             Result.success(
                 workDataOf(
@@ -112,6 +116,7 @@ class DownloadWorker(
             retryOrFail()
         } finally {
             tempFile.delete()
+            partFile.delete()
         }
     }
 

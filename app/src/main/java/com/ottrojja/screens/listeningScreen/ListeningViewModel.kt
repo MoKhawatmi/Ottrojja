@@ -1,15 +1,6 @@
 package com.ottrojja.screens.listeningScreen
 
 import android.app.Application
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
-import android.os.Build
-import android.os.IBinder
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -19,630 +10,349 @@ import com.ottrojja.classes.DownloadState
 import com.ottrojja.classes.FileDownloader
 import com.ottrojja.classes.Helpers
 import com.ottrojja.classes.Helpers.convertToArabicNumbers
-import com.ottrojja.classes.Helpers.isServiceRunning
 import com.ottrojja.classes.Helpers.reportException
-import com.ottrojja.classes.Helpers.terminateAllServices
-import com.ottrojja.classes.OttrojjaDateTime
 import com.ottrojja.classes.QuranListeningMode
-import com.ottrojja.classes.QuranPlayingParameters
-import com.ottrojja.room.repositories.QuranRepository
 import com.ottrojja.classes.StorageBase
 import com.ottrojja.composables.ToastManager.classes.AppToastManager
 import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.room.entities.ChapterData
-import com.ottrojja.services.QuranPlayerService
-import com.ottrojja.services.QuranServiceInterface
-import kotlinx.coroutines.CompletableDeferred
+import com.ottrojja.room.repositories.QuranRepository
+import com.ottrojja.services.quran.ListeningOptions
+import com.ottrojja.services.quran.QuranAudio
+import com.ottrojja.services.quran.QuranPlaybackManager
+import com.ottrojja.services.quran.QuranPlaybackRequest
+import com.ottrojja.services.quran.QuranPlayerState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import kotlinx.coroutines.flow.launchIn
 
+enum class SurahTarget { RANGE_START, RANGE_END, FULL_SURAH }
+enum class RangeEnd { START, END }
+enum class RepetitionKind { SURAH, VERSE, RANGE }
 
-class ListeningViewModel(private val repository: QuranRepository, application: Application) :
-    AndroidViewModel(application) {
-    val context = application.applicationContext;
+sealed interface ListeningDialog {
+    data class SurahPicker(val target: SurahTarget) : ListeningDialog
+    data class VersePicker(val end: RangeEnd) : ListeningDialog
+    data class Repetition(val kind: RepetitionKind) : ListeningDialog
+}
 
-    private val chaptersList = CompletableDeferred<List<ChapterData>>()
+data class ListeningUiState(
+    val mode: QuranListeningMode = QuranListeningMode.مقطع_ايات,
+    val chapters: List<ChapterData> = emptyList(),
+    val searchFilter: String = "",
+    val selectedSurah: ChapterData? = null,
+    val startSurah: ChapterData? = null,
+    val startVerse: Int = 1,
+    val endSurah: ChapterData? = null,
+    val endVerse: Int = 1,
+    val options: ListeningOptions = ListeningOptions(),
+    val dialog: ListeningDialog? = null,
+    val downloadedChapters: Set<Int> = emptySet(),
+    val isDownloading: Boolean = false,
+)
 
-    private var _selectedSurah = mutableStateOf<ChapterData?>(null)
-    var selectedSurah: ChapterData?
-        get() = _selectedSurah.value
-        set(value) {
-            _selectedSurah.value = value
+class ListeningViewModel(
+    private val repository: QuranRepository,
+    private val playbackManager: QuranPlaybackManager,
+    application: Application
+) : AndroidViewModel(application) {
+
+    private val context = application.applicationContext
+
+    private val _ui = MutableStateFlow(ListeningUiState())
+    val ui: StateFlow<ListeningUiState> = _ui.asStateFlow()
+
+    val player: StateFlow<QuranPlayerState> = playbackManager.state
+
+    private val _sliderPosition = MutableStateFlow(0L)
+    val sliderPosition: StateFlow<Long> = _sliderPosition.asStateFlow()
+
+    val filteredChapters: StateFlow<List<ChapterData>> = _ui
+        .map { it.chapters to it.searchFilter.trim() }
+        .distinctUntilChanged()
+        .map { (chapters, query) ->
+            if (query.isBlank()) chapters
+            else chapters.filter { chapter ->
+                chapter.chapterName.contains(query)
+                        || chapter.surahId.toString() == query
+                        || chapter.surahId.toString() == convertToArabicNumbers(query)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    init {
+        playbackManager.connect()
+
+        viewModelScope.launch {
+            playbackManager.positionMs.collect { _sliderPosition.value = it }
         }
 
-    private var _isPlaying = mutableStateOf(false)
-    var isPlaying: Boolean
-        get() = _isPlaying.value
-        set(value) {
-            _isPlaying.value = value
-        }
+        viewModelScope.launch {
+            val chapters = withContext(Dispatchers.IO) { repository.getAllChapters() }
+            val downloaded = withContext(Dispatchers.IO) { scanDownloadedChapters() }
+            val first = chapters.firstOrNull()
+            _ui.update {
+                it.copy(
+                    chapters = chapters,
+                    downloadedChapters = downloaded,
+                    selectedSurah = first,
+                    startSurah = first,
+                    endSurah = first,
+                )
+            }
+            restoreFromPlayback()
 
-    private var _currentPlayingTitle = mutableStateOf("")
-    var currentPlayingTitle: String
-        get() = _currentPlayingTitle.value
-        set(value) {
-            _currentPlayingTitle.value = value
+            // continuous playback moves to the next surah on its own; follow it in the UI
+            playbackManager.state
+                .map { it.currentSurahId }
+                .distinctUntilChanged()
+                .filterNotNull()
+                .collect { surahId ->
+                    if (playbackManager.state.value.request is QuranPlaybackRequest.FullSurah) {
+                        _ui.update { s ->
+                            s.copy(selectedSurah = s.chapters.find { it.surahId == surahId } ?: s.selectedSurah)
+                        }
+                    }
+                }
         }
-
-    private var _isPaused = mutableStateOf(false)
-    var isPaused: Boolean
-        get() = _isPaused.value
-        set(value) {
-            _isPaused.value = value
-        }
-
-    fun increasePlaybackSpeed() {
-        audioService?.increaseSpeed();
     }
 
-    fun decreasePlaybackSpeed() {
-        audioService?.decreaseSpeed();
+    /** Re-opening the screen while something is loaded shows what is playing. */
+    private fun restoreFromPlayback() {
+        val state = playbackManager.state.value
+        val request = state.request ?: return
+        _ui.update { s ->
+            when (request) {
+                is QuranPlaybackRequest.FullSurah -> s.copy(
+                    mode = request.mode,
+                    selectedSurah = s.chapters.find { it.surahId == (state.currentSurahId ?: request.surah.surahId) }
+                        ?: request.surah,
+                    options = state.options,
+                )
+
+                is QuranPlaybackRequest.VerseRange -> s.copy(
+                    mode = request.mode,
+                    startSurah = request.startSurah,
+                    startVerse = request.startVerse,
+                    endSurah = request.endSurah,
+                    endVerse = request.endVerse,
+                    options = state.options,
+                )
+            }
+        }
+    }
+
+    override fun onCleared() {
+        playbackManager.releaseIfIdle()
+        super.onCleared()
+    }
+
+
+    fun switchMode(mode: QuranListeningMode) = _ui.update { it.copy(mode = mode) }
+
+    fun openSurahPicker(target: SurahTarget) =
+        _ui.update { it.copy(dialog = ListeningDialog.SurahPicker(target), searchFilter = "") }
+
+    fun openVersePicker(end: RangeEnd) =
+        _ui.update { it.copy(dialog = ListeningDialog.VersePicker(end)) }
+
+    fun openRepetitionPicker(kind: RepetitionKind) =
+        _ui.update { it.copy(dialog = ListeningDialog.Repetition(kind)) }
+
+    fun dismissDialog() = _ui.update { it.copy(dialog = null) }
+
+    fun onSearchFilterChanged(value: String) = _ui.update { it.copy(searchFilter = value) }
+
+    fun onSurahSelected(surah: ChapterData) {
+        val target = (_ui.value.dialog as? ListeningDialog.SurahPicker)?.target ?: return
+        _ui.update {
+            when (target) {
+                SurahTarget.RANGE_START -> it.copy(startSurah = surah, startVerse = 1)
+                SurahTarget.RANGE_END -> it.copy(endSurah = surah, endVerse = 1)
+                SurahTarget.FULL_SURAH -> it.copy(selectedSurah = surah)
+            }.copy(dialog = null, searchFilter = "")
+        }
+        if (target == SurahTarget.FULL_SURAH) play()
+    }
+
+    fun onVerseSelected(verse: Int) {
+        val end = (_ui.value.dialog as? ListeningDialog.VersePicker)?.end ?: return
+        _ui.update {
+            when (end) {
+                RangeEnd.START -> it.copy(startVerse = verse)
+                RangeEnd.END -> it.copy(endVerse = verse)
+            }.copy(dialog = null)
+        }
+    }
+
+
+    fun onRepetitionSelected(value: String) {
+        val kind = (_ui.value.dialog as? ListeningDialog.Repetition)?.kind ?: return
+        val options = _ui.value.options
+        setOptions(
+            when (kind) {
+                RepetitionKind.SURAH -> options.copy(surahRepetitions = value)
+                RepetitionKind.VERSE -> options.copy(verseRepetitions = value)
+                RepetitionKind.RANGE -> options.copy(rangeRepetitions = value)
+            }
+        )
+        dismissDialog()
+    }
+
+    fun toggleContinuous() {
+        val options = _ui.value.options
+        setOptions(options.copy(continuousChapterPlaying = !options.continuousChapterPlaying))
+    }
+
+    /** Applies immediately to what is playing, like before. */
+    private fun setOptions(options: ListeningOptions) {
+        _ui.update { it.copy(options = options) }
+        playbackManager.updateOptions(options)
+    }
+
+
+    fun play() {
+        val s = _ui.value
+        when (s.mode) {
+            QuranListeningMode.سورة_كاملة -> {
+                val surah = s.selectedSurah ?: return
+                playbackManager.play(
+                    QuranPlaybackRequest.FullSurah(
+                        surah = surah,
+                        chapterNames = s.chapters.sortedBy { it.surahId }.map { it.chapterName }
+                    ),
+                    s.options
+                )
+            }
+
+            else -> playRange(s)
+        }
+    }
+
+    private fun playRange(s: ListeningUiState) {
+        val start = s.startSurah ?: return
+        val end = s.endSurah ?: return
+
+        if (start.surahId > end.surahId || (start.surahId == end.surahId && s.startVerse > s.endVerse)) {
+            AppToastManager.show(
+                message = "موضع بداية التلاوة يجب ان لا يرد بعد موضع النهاية",
+                type = AppToastType.ERROR
+            )
+            return
+        }
+
+        viewModelScope.launch {
+            val verses = withContext(Dispatchers.IO) {
+                repository.getPagesContentRange(
+                    startingSurah = start.surahId,
+                    startingVerse = s.startVerse,
+                    endSurah = end.surahId,
+                    endVerse = s.endVerse,
+                )
+            }
+            if (verses.isEmpty()) return@launch
+
+            val files = buildList {
+                verses.forEach { verse ->
+                    // basmalah at the start of each surah except Al-Fatiha and At-Tawbah
+                    if (verse.verseNum == 1 && verse.surahNum != 1 && verse.surahNum != 9) {
+                        add(QuranAudio.BASMALAH_FILE)
+                    }
+                    add(QuranAudio.verseFile(verse))
+                }
+            }
+
+            playbackManager.play(
+                QuranPlaybackRequest.VerseRange(start, s.startVerse, end, s.endVerse, files),
+                s.options
+            )
+        }
     }
 
     fun pause() {
-        audioService?.pause();
-        println("is paused " + _isPaused.value)
+        playbackManager.pause()
     }
 
-    var clickedPlay = false;
-    fun play() {
-        if (_startingSurah.value != null && _endSurah.value != null) {
-
-            if (_startingSurah.value!!.surahId > _endSurah.value!!.surahId
-                || (_startingSurah.value!!.surahId == _endSurah.value!!.surahId && _startingVerse.value > _endVerse.value)) {
-                AppToastManager.show(
-                    message = "موضع بداية التلاوة يجب ان لا يرد بعد موضع النهاية",
-                    type = AppToastType.ERROR
-                )
-                return;
-            }
-        }
-        // stop other services
-        terminateAllServices(context, QuranPlayerService::class.java)
-
-        if (isServiceRunning(QuranPlayerService::class.java, context)) {
-            startPlaying()
-        } else {
-            clickedPlay = true;
-            startAndBind();
-        }
+    fun increasePlaybackSpeed() {
+        playbackManager.increaseSpeed()
     }
 
-    fun startPlaying() {
-        if (_listeningMode.value == QuranListeningMode.سورة_كاملة) {
-            val playListItems = mutableListOf(
-                "https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/${_selectedSurah.value!!.surahId}.mp3"
-            );
-
-            audioService?.playTrack(
-                QuranPlayingParameters(
-                    startingSurah = null,
-                    startingVerse = null,
-                    endSurah = null,
-                    endVerse = null,
-                    playListItems = playListItems,
-                    listeningMode = QuranListeningMode.سورة_كاملة,
-                    selectedSurah = _selectedSurah.value,
-                    surahRepetitions = _surahRepetitions.value,
-                    continuousChapterPlaying = _continuousChapterPlaying.value
-                )
-            )
-        } else {
-            if (_startingSurah.value != null && _endSurah.value != null) {
-                viewModelScope.launch(Dispatchers.IO) {
-                    val versesRange = repository.getPagesContentRange(
-                        startingSurah = _startingSurah.value!!.surahId,
-                        startingVerse = _startingVerse.value,
-                        endSurah = _endSurah.value!!.surahId,
-                        endVerse = _endVerse.value,
-                    )
-                    val playListItems = mutableListOf<String>();
-                    versesRange.forEach { verse ->
-                        if (verse.verseNum == 1 && (verse.surahNum != 1 && verse.surahNum != 9)) {
-                            // making sure to add basmalah at the start of each surah
-                            playListItems.add(
-                                "https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/basmalah.mp3"
-                            );
-                        }
-                        playListItems.add(
-                            "https://ottrojja.fra1.cdn.digitaloceanspaces.com/verses/${verse.pageNum}-${verse.surahNum}-${verse.verseNum}.mp3"
-                        );
-                    }
-
-                    withContext(Dispatchers.Main) {
-                        audioService?.playTrack(
-                            QuranPlayingParameters(
-                                startingSurah = _startingSurah.value!!,
-                                startingVerse = _startingVerse.value,
-                                endSurah = _endSurah.value!!,
-                                endVerse = _endVerse.value,
-                                playListItems = playListItems,
-                                listeningMode = QuranListeningMode.مقطع_ايات,
-                                selectedSurah = null,
-                                verseRepetitions = _verseRepetitions.value,
-                                verseRangeRepetitions = _verseRangeRepetitions.value
-                            )
-                        )
-                    }
-                }
-            }
-        }
+    fun decreasePlaybackSpeed() {
+        playbackManager.decreaseSpeed()
     }
 
-    private var _sliderPosition = mutableStateOf(0f)
-    var sliderPosition: Float
-        get() = _sliderPosition.value
-        set(value) {
-            _sliderPosition.value = value
-        }
-
-    private var _playbackSpeed by mutableStateOf(1.0f)
-    var playbackSpeed: Float
-        get() = _playbackSpeed
-        set(value) {
-            _playbackSpeed = value
-        }
-
-    private var _maxDuration = mutableStateOf(0f)
-    var maxDuration: Float
-        get() = _maxDuration.value
-        set(value) {
-            _maxDuration.value = value
-        }
-    private var _maxDurationFormatted = "";
-
-    private var _progressTimeCodeDisplay = mutableStateOf("")
-    var progressTimeCodeDisplay: String
-        get() = _progressTimeCodeDisplay.value
-        set(value) {
-            _progressTimeCodeDisplay.value = value
-        }
-
-    fun sliderChanged(value: Float) {
-        //  println("vm changing position to $value")
-        _sliderPosition.value = value;
-        audioService?.setSliderPosition(value)
+    fun onSliderChanged(value: Float) {
+        _sliderPosition.value = value.toLong()
+        playbackManager.seekTo(value.toLong())
     }
 
-    private var _isDownloading = mutableStateOf(false)
-    var isDownloading: Boolean
-        get() = _isDownloading.value
-        set(value) {
-            _isDownloading.value = value
-        }
 
-    fun startAndBind() {
-        val serviceIntent = Intent(context, QuranPlayerService::class.java)
-        serviceIntent.setAction("START")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(serviceIntent)
-        } else {
-            context.startService(serviceIntent)
-        }
-        bindToService()
-    }
-
-    private val serviceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            try {
-                val binder = service as QuranPlayerService.YourBinder
-                audioService = binder.getService()
-                viewModelScope.launch {
-                    audioService?.getPlayingState()?.collect { state ->
-                        println("playing status $state")
-                        _isPlaying.value = state;
-                    }
-                }
-
-                viewModelScope.launch {
-                    audioService?.getPaused()!!.collect { state ->
-                        _isPaused.value = state;
-                    }
-                }
-
-                viewModelScope.launch {
-                    audioService?.getSliderMaxDuration()?.collect { state ->
-                        _maxDuration.value = state;
-                        _maxDurationFormatted = OttrojjaDateTime.formatDuration(state.toLong());
-
-                    }
-                }
-
-                viewModelScope.launch {
-                    audioService?.getSliderPosition()?.collect { state ->
-                        _sliderPosition.value = state;
-                        _progressTimeCodeDisplay.value = "${OttrojjaDateTime.formatDuration(state.toLong())}/${_maxDurationFormatted}"
-                    }
-                }
-
-                viewModelScope.launch {
-                    audioService?.getDestroyed()?.collect { state ->
-                        if (state) {
-                            unbindFromService()
-                        }
-                    }
-                }
-
-                viewModelScope.launch {
-                    audioService?.resumeClicked()?.collect { state ->
-                        audioService?.getPlayingState()
-                    }
-                }
-
-                viewModelScope.launch {
-                    audioService?.getPlaybackSpeed()!!.collect { state ->
-                        _playbackSpeed = state;
-                    }
-                }
-
-                viewModelScope.launch {
-                    audioService?.getCurrentPlayingTitle()!!.collect { state ->
-                        _currentPlayingTitle.value = state;
-                    }
-                }
-
-
-                viewModelScope.launch {
-                    audioService?.getCurrentPlayingParameters()?.collect { state ->
-                        println("current playing parameters")
-                        println(state)
-                        if (state != null) {
-                            _currentPlayingParameters.value = state;
-                            if (state.listeningMode == QuranListeningMode.سورة_كاملة) {
-                                // when the service moves to next/previous chapter it doesn't send the full chapter data back, only the id, so we use the id to get the full chapter data at all times
-                                _selectedSurah.value = chaptersList.await().find { it.surahId == state.selectedSurah?.surahId };
-                                _surahRepetitions.value = state.surahRepetitions;
-                                _continuousChapterPlaying.value = state.continuousChapterPlaying
-
-                                audioService?.setCurrentPlayingTitle(
-                                    "سورة ${_selectedSurah.value?.chapterName}"
-                                )
-                            } else {
-                                _startingSurah.value = state.startingSurah;
-                                _startingVerse.value = state.startingVerse ?: 1;
-                                _endSurah.value = state.endSurah;
-                                _endVerse.value = state.endVerse ?: 1;
-                                _verseRepetitions.value = state.verseRepetitions;
-                                _verseRangeRepetitions.value = state.verseRangeRepetitions;
-
-                                audioService?.setCurrentPlayingTitle(
-                                    "${state.startingSurah?.chapterName}: ${state.startingVerse} - ${state.endSurah?.chapterName}: ${state.endVerse}"
-                                )
-
-                            }
-                        }
-                    }
-                }
-
-                // fetch the current listening mode from the service just once on connection, while let other parameters be collected in realtime
-                if (audioService?.getCurrentPlayingParameters()?.value?.listeningMode != null) {
-                    _listeningMode.value = audioService?.getCurrentPlayingParameters()?.value?.listeningMode!!
-                }
-
-                println("should play $clickedPlay")
-                if (clickedPlay) {
-                    startPlaying();
-                    clickedPlay = false;
-                }
-
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                reportException(exception = e, file = "ListeningViewModel")
-            }
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            unbindFromService();
-        }
-    }
-
-    private var audioService: QuranServiceInterface? = null
-
-    fun bindToService() {
-        val intent = Intent(context, QuranPlayerService::class.java)
-        context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
-    }
-
-    fun unbindFromService() {
-        if (audioService != null && serviceConnection != null) {
-            try { //this just keeps causing crashes
-                context.unbindService(serviceConnection)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun checkIfChapterDownloaded(surahId: Int): Boolean {
-        val localFile = File(context.getExternalFilesDir(null), "$surahId.mp3")
-        return localFile.exists()
-    }
+    private fun scanDownloadedChapters(): Set<Int> =
+        (1..114).filter { QuranAudio.localFile(context, QuranAudio.chapterFile(it)).exists() }.toSet()
 
     fun downloadChapter(surahId: Int) {
         if (!Helpers.checkNetworkConnectivity(context)) {
-            AppToastManager.show(
-                message = "لا يوجد اتصال بالانترنت",
-                type = AppToastType.ERROR
-            )
-            return;
+            AppToastManager.show(message = "لا يوجد اتصال بالانترنت", type = AppToastType.ERROR)
+            return
         }
-
-        val localFile = File(
-            context.getExternalFilesDir(null),
-            "$surahId.mp3"
-        )
 
         FileDownloader.download(
             context = context,
-            url = "https://ottrojja.fra1.cdn.digitaloceanspaces.com/chapters/$surahId.mp3",
-            relativePath = localFile.name,
+            url = QuranAudio.chapterUrl(surahId),
+            relativePath = QuranAudio.chapterFile(surahId),
             storageBase = StorageBase.EXTERNAL_FILES_DIR
         ).onEach { state ->
             when (state) {
-                is DownloadState.Running -> {
-                    _isDownloading.value = true
-                }
+                is DownloadState.Running -> _ui.update { it.copy(isDownloading = true) }
 
                 is DownloadState.Success -> {
-                    _isDownloading.value = false
-                    AppToastManager.show(
-                        message = "تم التحميل بنجاح!",
-                        type = AppToastType.SUCCESS
-                    )
+                    _ui.update {
+                        it.copy(isDownloading = false, downloadedChapters = it.downloadedChapters + surahId)
+                    }
+                    AppToastManager.show(message = "تم التحميل بنجاح!", type = AppToastType.SUCCESS)
                 }
 
                 is DownloadState.Failure -> {
-                    _isDownloading.value = false
+                    _ui.update { it.copy(isDownloading = false) }
                     state.error.printStackTrace()
-
                     reportException(
                         exception = state.error,
                         file = "ListeningViewModel",
                         details = "Cancellation or Failure to download surah file; link: /chapters/$surahId.mp3"
                     )
-
-                    println("failed download: ${state.error.message}")
-
-                    if (state.error.message?.contains("ENOSPC") == true) {
-                        AppToastManager.show(
-                            message = context.resources.getString(R.string.enospc),
-                            type = AppToastType.ERROR
-                        )
+                    val message = if (state.error.message?.contains("ENOSPC") == true) {
+                        context.resources.getString(R.string.enospc)
                     } else {
-                        AppToastManager.show(
-                            message = "حدث خطأ اثناء التحميل",
-                            type = AppToastType.ERROR
-                        )
+                        "حدث خطأ اثناء التحميل"
                     }
+                    AppToastManager.show(message = message, type = AppToastType.ERROR)
                 }
             }
         }.launchIn(viewModelScope)
-    }
-
-    suspend fun initChaptersList() {
-        println("Fetching chapters list")
-        viewModelScope.launch(Dispatchers.IO) {
-            val chapters = repository.getAllChapters()
-            chaptersList.complete(chapters)
-            if (_startingSurah.value == null) {
-                _startingSurah.value = chaptersList.await().get(0);
-            }
-            if (_endSurah.value == null) {
-                _endSurah.value = chaptersList.await().get(0);
-            }
-            if (_selectedSurah.value == null) {
-                _selectedSurah.value = chaptersList.await().get(0);
-            }
-        }
-    }
-
-    private var _currentPlayingParameters = mutableStateOf<QuranPlayingParameters?>(null)
-    var currentPlayingParameters: QuranPlayingParameters?
-        get() = _currentPlayingParameters.value
-        set(value) {
-            _currentPlayingParameters.value = value
-        }
-
-    private var _searchFilter = mutableStateOf("")
-    var searchFilter: String
-        get() = _searchFilter.value
-        set(value) {
-            _searchFilter.value = value
-        }
-
-    suspend fun getChaptersList(): List<ChapterData> {
-        return chaptersList.await().filter { chapter ->
-            chapter.chapterName.contains(_searchFilter.value)
-                    || chapter.surahId.toString() == convertToArabicNumbers(_searchFilter.value)
-                    || chapter.surahId.toString() == _searchFilter.value
-        };
-    }
-
-    private var _showSurahSelectionDialog = mutableStateOf(false)
-    var showSurahSelectionDialog: Boolean
-        get() = _showSurahSelectionDialog.value
-        set(value) {
-            _showSurahSelectionDialog.value = value
-        }
-
-    private var _showVerseSelectionDialog = mutableStateOf(false)
-    var showVerseSelectionDialog: Boolean
-        get() = _showVerseSelectionDialog.value
-        set(value) {
-            _showVerseSelectionDialog.value = value
-        }
-
-    private var _selectionPhase = mutableStateOf(SelectionPhase.START)
-    var selectionPhase: SelectionPhase
-        get() = _selectionPhase.value
-        set(value) {
-            _selectionPhase.value = value
-        }
-
-    private var _startingSurah = mutableStateOf<ChapterData?>(null)
-    var startingSurah: ChapterData?
-        get() = _startingSurah.value
-        set(value) {
-            _startingSurah.value = value
-        }
-
-    private var _startingVerse = mutableStateOf(1)
-    var startingVerse: Int
-        get() = _startingVerse.value
-        set(value) {
-            _startingVerse.value = value
-        }
-
-    private var _endSurah = mutableStateOf<ChapterData?>(null)
-    var endSurah: ChapterData?
-        get() = _endSurah.value
-        set(value) {
-            _endSurah.value = value
-        }
-
-    private var _endVerse = mutableStateOf(1)
-    var endVerse: Int
-        get() = _endVerse.value
-        set(value) {
-            _endVerse.value = value
-        }
-
-    private var _continuousChapterPlaying = mutableStateOf(true)
-    var continuousChapterPlaying: Boolean
-        get() = _continuousChapterPlaying.value
-        set(value) {
-            _continuousChapterPlaying.value = value
-        }
-
-    fun toggleContChapterPlaying() {
-        _continuousChapterPlaying.value = !_continuousChapterPlaying.value;
-        if (_currentPlayingParameters.value != null) {
-            audioService?.setCurrentPlayingParameters(_currentPlayingParameters.value!!.copy(
-                continuousChapterPlaying = _continuousChapterPlaying.value
-            )
-            )
-        }
-    }
-
-    fun surahSelected(surah: ChapterData) {
-        when (_selectionPhase.value) {
-            SelectionPhase.START -> {
-                _startingSurah.value = surah;
-                _startingVerse.value = 1;
-            }
-
-            SelectionPhase.END -> {
-                _endSurah.value = surah;
-                _endVerse.value = 1;
-            }
-
-            SelectionPhase.PLAY -> {
-                _selectedSurah.value = surah;
-                play()
-            }
-
-        }
-    }
-
-    fun verseSelected(verse: Int) {
-        if (_selectionPhase.value == SelectionPhase.START) {
-            _startingVerse.value = verse;
-        } else {
-            _endVerse.value = verse;
-        }
-    }
-
-    private val _listeningMode = mutableStateOf(QuranListeningMode.مقطع_ايات)
-    var listeningMode: QuranListeningMode
-        get() = _listeningMode.value
-        set(value) {
-            _listeningMode.value = value
-        }
-
-    private val _showRepetitionOptionsDialog = mutableStateOf(false)
-    var showRepetitionOptionsDialog: Boolean
-        get() = _showRepetitionOptionsDialog.value
-        set(value) {
-            _showRepetitionOptionsDialog.value = value
-        }
-
-    private val _surahRepetitions = mutableStateOf("0")
-    var surahRepetitions: String
-        get() = _surahRepetitions.value
-        set(value) {
-            _surahRepetitions.value = value
-            if (_currentPlayingParameters.value != null) {
-                audioService?.setCurrentPlayingParameters(
-                    _currentPlayingParameters.value!!.copy(surahRepetitions = value)
-                )
-            }
-        }
-
-    private val _verseRepetitions = mutableStateOf("0")
-    var verseRepetitions: String
-        get() = _verseRepetitions.value
-        set(value) {
-            _verseRepetitions.value = value
-            if (_currentPlayingParameters.value != null) {
-                audioService?.setCurrentPlayingParameters(
-                    _currentPlayingParameters.value!!.copy(verseRepetitions = value)
-                )
-            }
-        }
-
-    private val _verseRangeRepetitions = mutableStateOf("0")
-    var verseRangeRepetitions: String
-        get() = _verseRangeRepetitions.value
-        set(value) {
-            _verseRangeRepetitions.value = value
-            if (_currentPlayingParameters.value != null) {
-                audioService?.setCurrentPlayingParameters(
-                    _currentPlayingParameters.value!!.copy(verseRangeRepetitions = value)
-                )
-            }
-        }
-
-    private val _repetitionSelectionMode = mutableStateOf(RepetitionSelectionMode.SURAH)
-    var repetitionSelectionMode: RepetitionSelectionMode
-        get() = _repetitionSelectionMode.value
-        set(value) {
-            _repetitionSelectionMode.value = value
-        }
-
-    fun switchListeningMode(value: QuranListeningMode) {
-        _listeningMode.value = value;
-    }
-
-    enum class RepetitionSelectionMode {
-        SURAH, VERSE, RANGE
-    }
-
-    enum class SelectionPhase {
-        START, END, PLAY
-    }
-
-    init {
-        val sr = isServiceRunning(QuranPlayerService::class.java, context);
-        println("service running $sr")
-        if (sr) {
-            bindToService()
-        }
     }
 
 }
 
 class ListeningViewModelFactory(
     private val repository: QuranRepository,
+    private val playbackManager: QuranPlaybackManager,
     private val application: Application
 ) : ViewModelProvider.AndroidViewModelFactory(application) {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ListeningViewModel::class.java)) {
-            return ListeningViewModel(repository, application) as T
+            @Suppress("UNCHECKED_CAST")
+            return ListeningViewModel(repository, playbackManager, application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

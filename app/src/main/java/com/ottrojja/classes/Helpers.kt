@@ -5,7 +5,6 @@ import android.app.ActivityManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -22,26 +21,23 @@ import androidx.work.WorkManager
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.ottrojja.BuildConfig
-import com.ottrojja.R
 import com.ottrojja.composables.ToastManager.classes.AppToastManager
 import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.screens.reminderScreen.classes.RescheduleRemindersWorker
-import com.ottrojja.services.AzkarPlayerService
-import com.ottrojja.services.PagePlayerService
-import com.ottrojja.services.QuranPlayerService
+import com.ottrojja.services.azkar.AzkarPlaybackManager
+import com.ottrojja.services.azkar.AzkarPlaybackService
+import com.ottrojja.services.page.PagePlaybackManager
+import com.ottrojja.services.page.PagePlaybackService
+import com.ottrojja.services.quran.QuranPlaybackManager
+import com.ottrojja.services.quran.QuranPlaybackService
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.time.format.DateTimeFormatter
-import java.time.format.DecimalStyle
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
 import kotlin.coroutines.cancellation.CancellationException
 
 object Helpers {
@@ -60,7 +56,6 @@ object Helpers {
                 result += char
             }
         }
-        //println("$arabicNumber resulting number $result")
 
         return result
     }
@@ -96,7 +91,7 @@ object Helpers {
                 )
             }
         } catch (e: Exception) {
-            println(e);
+            e.printStackTrace()
             AppToastManager.show(
                 message = "تعذر النسخ",
                 type = AppToastType.ERROR
@@ -137,16 +132,15 @@ object Helpers {
     }
 
     fun terminateAllServices(context: Context, except: Class<*>? = null) {
-        val servicesList = listOf(AzkarPlayerService::class.java, PagePlayerService::class.java,
-            QuranPlayerService::class.java
-        )
-        servicesList.forEach {
-            if (it != except) {
-                // val sr = isMyServiceRunning(it, context);
-                val stopServiceIntent = Intent(context, it)
-                stopServiceIntent.setAction("TERMINATE")
-                context.startService(stopServiceIntent)
-            }
+        // the Media3 players are stopped through their controllers instead of startService
+        if (except != QuranPlaybackService::class.java) {
+            QuranPlaybackManager.getInstance(context).stop()
+        }
+        if (except != AzkarPlaybackService::class.java) {
+            AzkarPlaybackManager.getInstance(context).stop()
+        }
+        if (except != PagePlaybackService::class.java) {
+            PagePlaybackManager.getInstance(context).stop()
         }
     }
 

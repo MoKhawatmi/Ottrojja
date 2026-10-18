@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -52,10 +53,31 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".services.AzkarPlayerService" android:foregroundServiceType="mediaPlayback" android:exported="false"/>
-        <service android:name=".services.PagePlayerService" android:foregroundServiceType="mediaPlayback" android:exported="false"/>
-        <service android:name=".services.QuranPlayerService" android:foregroundServiceType="mediaPlayback" android:exported="false"/>
-        <service android:name=".services.OverlayService" android:foregroundServiceType="specialUse" android:exported="false" />
+        <service
+            android:name=".services.azkar.AzkarPlaybackService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
+        <service
+            android:name=".services.page.PagePlaybackService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
+        <service
+            android:name=".services.quran.QuranPlaybackService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
+        <service android:name=".services.overlay.OverlayService" android:foregroundServiceType="specialUse" android:exported="false" />
         <service
             android:name=".screens.prayerTimesScreen.notifications.PrayerAdhanService"
             android:foregroundServiceType="mediaPlayback"

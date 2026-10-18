@@ -1,6 +1,5 @@
 package com.ottrojja.screens.quranScreen
 
-import android.app.AlertDialog
 import android.app.Application
 import android.content.res.Configuration
 import android.util.Log
@@ -33,8 +32,6 @@ import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Cancel
@@ -64,8 +61,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.ottrojja.classes.Helpers.convertToIndianNumbers
 import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.room.entities.PageContent
 import com.ottrojja.room.entities.PageContentItemType
@@ -92,7 +91,15 @@ import com.ottrojja.screens.quranScreen.dialogs.ListeningOptionsDialog
 import com.ottrojja.screens.quranScreen.dialogs.PageSelectionDialog
 import com.ottrojja.screens.quranScreen.dialogs.SelectTafseerDialog
 import com.ottrojja.screens.quranScreen.dialogs.SelectVerseDialog
+import com.ottrojja.services.page.PagePlaybackManager
+import com.ottrojja.services.page.PagePlayerState
 import com.ottrojja.ui.theme.OttrojjaTheme
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.drop
+import kotlin.math.abs
 
 
 @Composable
@@ -108,7 +115,12 @@ fun QuranScreen(
 
 
     val quranViewModel: QuranViewModel = viewModel(
-        factory = QuranScreenViewModelFactory(repository, readerContext, application)
+        factory = QuranScreenViewModelFactory(
+            repository,
+            readerContext,
+            PagePlaybackManager.getInstance(application),
+            application
+        )
     )
     // Same instance VersesSection uses (same ViewModelStoreOwner), so the share sheet can be
     // opened both from the verses tab and from a long-press on the page.
@@ -121,6 +133,8 @@ fun QuranScreen(
         quranViewModel.tafseerSheetMode = mode
         quranViewModel.showTafseerSheet = true
     }
+
+    val player by quranViewModel.player.collectAsStateWithLifecycle()
 
     var showFinishSessionAlert by remember { mutableStateOf(false) }
     var showToggleBookmarkAlert by remember { mutableStateOf(false) }
@@ -197,7 +211,8 @@ fun QuranScreen(
 
     LaunchedEffect(Unit) {
         try {
-            quranViewModel.setCurrentPage(pageNum)
+            // opens at the playing page instead when a recitation is playing and being followed
+            quranViewModel.openAt(pageNum)
             quranViewModel.getNightReadingMode()
         } catch (e: Exception) {
             Log.e("error", "Error getting current page in quran screen: $e")
@@ -215,8 +230,6 @@ fun QuranScreen(
     BackHandler {
         handleBackBehaviour()
     }
-
-    val isPlaying = quranViewModel.isPlaying && quranViewModel.isCurrentPagePlaying;
 
     var expanded by remember { mutableStateOf(false) }
 
@@ -326,26 +339,25 @@ fun QuranScreen(
                 QuranViewModel.PageTab.الصفحة -> Column(
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
+                    val displayedPage = quranViewModel.currentPageObject?.page?.pageNum
                     PagesContainer(
-                        pageNum = quranViewModel.currentPageObject?.page?.pageNum,
-                        onPageChanged = { newPage -> quranViewModel.setCurrentPage(newPage) },
+                        initialPage = displayedPage!!.toInt(),
+                        pageScrollRequests = quranViewModel.pageScrollRequests,
+                        onPageSettled = { page, byUser -> quranViewModel.onPageSettled(page, byUser) },
+                        player = player,
+                        showReturnToPlayingPage = player.hasMedia && !player.following
+                                && player.playingPage != null && player.playingPage.toString() != displayedPage,
+                        onReturnToPlayingPage = { quranViewModel.returnToPlayingPage() },
                         onPlayClicked = { quranViewModel.prepareForPlaying() },
                         onPauseClicked = { quranViewModel.pausePlaying() },
-                        isPlaying = isPlaying,
                         onSlowerClicked = { quranViewModel.decreasePlaybackSpeed() },
                         onFasterClicked = { quranViewModel.increasePlaybackSpeed() },
-                        isDownloading = quranViewModel.isDownloading,
                         onNextClicked = { quranViewModel.goNextVerse() },
                         onPreviousClicked = { quranViewModel.goPreviousVerse() },
-                        shouldAutoPlay = quranViewModel.shouldAutoPlay,
-                        playbackSpeed = quranViewModel.playbackSpeed,
+                        onStopClicked = { quranViewModel.stopPlayback() },
                         nightReadingMode = quranViewModel.nightReadingMode,
                         listeningOptionsClicked = { quranViewModel.showListeningOptionsDialog = true },
-                        vmChangedPage = quranViewModel.vmChangedPage,
-                        setVmChangedPage = { value -> quranViewModel.vmChangedPage = value },
                         quranPagesNumbers = quranViewModel.quranPagesNumbers,
-                        terminatePagePlayerService = { quranViewModel.terminatePagePlayerService() },
-                        disableAutoPageSwiping = { quranViewModel.autoSwipePagesWithAudio = false; },
                         readerContext = readerContext,
                         khitmahPillClick = { showFinishSessionAlert = true; },
                         currentPageContent = quranViewModel.currentPageObject?.pageContent,
@@ -493,25 +505,22 @@ fun QuranScreen(
 
 @Composable
 fun PagesContainer(
-    pageNum: String?,
-    onPageChanged: (String) -> Unit,
+    initialPage: Int,
+    pageScrollRequests: Flow<Int>,
+    onPageSettled: (page: Int, byUser: Boolean) -> Unit,
+    player: PagePlayerState,
+    showReturnToPlayingPage: Boolean,
+    onReturnToPlayingPage: () -> Unit,
     onPlayClicked: () -> Unit,
     onPauseClicked: () -> Unit,
-    isPlaying: Boolean,
     onSlowerClicked: () -> Unit,
     onFasterClicked: () -> Unit,
-    isDownloading: Boolean,
     onNextClicked: () -> Unit,
     onPreviousClicked: () -> Unit,
-    shouldAutoPlay: Boolean,
-    playbackSpeed: Float,
+    onStopClicked: () -> Unit,
     nightReadingMode: Boolean,
     listeningOptionsClicked: () -> Unit,
-    vmChangedPage: Boolean,
-    setVmChangedPage: (Boolean) -> Unit,
     quranPagesNumbers: List<String>,
-    terminatePagePlayerService: () -> Unit,
-    disableAutoPageSwiping: () -> Unit,
     readerContext: QuranReaderContext,
     khitmahPillClick: () -> Unit,
     currentPageContent: List<PageContent>?,
@@ -520,7 +529,7 @@ fun PagesContainer(
 ) {
 
     val pagerState = rememberPagerState(
-        initialPage = Integer.parseInt(pageNum) - 1,
+        initialPage = initialPage - 1,
         initialPageOffsetFraction = 0f
     ) {
         quranPagesNumbers.size //number of the pages of quran
@@ -532,38 +541,44 @@ fun PagesContainer(
     val orientation = LocalConfiguration.current.orientation
     var verseMenu by remember { mutableStateOf<VerseAnchor?>(null) }
     LaunchedEffect(orientation, pagerState.currentPage, currentPageContent) { verseMenu = null }
-    val hasPageChanged = remember { mutableStateOf(false) } // To track if the page has changed at least once
 
+    /*
+     * Pagination has two sources:
+     * - AUTO: the ViewModel asks for a page (the recitation moved on, "back to recited page").
+     *   We remember that target; when the pager settles on it, the change is reported as byUser=false.
+     * - MANUAL: any other settled page is a user swipe (also a swipe that interrupted an auto scroll).
+     * Only settled pages are reported, so a long swipe does not load every page in between.
+     */
+    var autoScrollTarget by remember { mutableStateOf<Int?>(null) }
+    val currentOnPageSettled by rememberUpdatedState(onPageSettled)
 
-    LaunchedEffect(pageNum) {
-        println("swipe to $pageNum")
-        if (shouldAutoPlay) {
-            println("should auto play ${pageNum!!.toInt()}")
-            pagerState.animateScrollToPage(pageNum!!.toInt() - 1)
-            onPlayClicked()
-        } else {
-            pagerState.animateScrollToPage(pageNum!!.toInt() - 1)
+    LaunchedEffect(pagerState) {
+        pageScrollRequests.collect { page ->
+            val index = page - 1
+            if (index == pagerState.settledPage && !pagerState.isScrollInProgress) return@collect
+            autoScrollTarget = index
+            try {
+                // far jumps (e.g. returning to the recited page) are instant, near ones animate
+                if (abs(index - pagerState.currentPage) > 2) {
+                    pagerState.scrollToPage(index)
+                } else {
+                    pagerState.animateScrollToPage(index)
+                }
+            } catch (e: CancellationException) {
+                // the user grabbed the pager mid-animation: keep collecting unless we are leaving
+                currentCoroutineContext().ensureActive()
+            }
         }
     }
 
-    // check whether page swipe is done by viewmodel or user swipe and react accordingly
-    // this code might not look optimal but is thus far the best solution we could come up with
-    val vmForceChangePage by rememberUpdatedState(vmChangedPage)
     LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
-            println("vmChangedPage $vmForceChangePage")
-            if (!vmForceChangePage) {
-                if (hasPageChanged.value) {
-                    Log.d("Page change", "Page changed to $page")
-                    onPageChanged("${page + 1}")
-                } else {
-                    hasPageChanged.value = true // Skip the first value
-                }
-                // when user manually swipes pages while audio is playing, disable the auto swiping
-                // disableAutoPageSwiping()
+        snapshotFlow { pagerState.settledPage }
+            .drop(1) // the initial page is already the ViewModel's page
+            .collect { index ->
+                val byUser = index != autoScrollTarget
+                autoScrollTarget = null
+                currentOnPageSettled(index + 1, byUser)
             }
-            setVmChangedPage(false)
-        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -678,9 +693,9 @@ fun PagesContainer(
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
             MediaController(
-                isPlaying = isPlaying,
-                playbackSpeed = playbackSpeed,
-                isDownloading = isDownloading,
+                isPlaying = player.isPlaying,
+                playbackSpeed = player.speed,
+                isDownloading = player.isDownloading,
                 onFasterClicked = onFasterClicked,
                 onNextClicked = onNextClicked,
                 onPauseClicked = onPauseClicked,
@@ -689,19 +704,37 @@ fun PagesContainer(
                 onSlowerClicked = onSlowerClicked,
                 hasNextPreviousControl = true,
             ) {
+                if (player.isDownloading && player.downloadTotal > 0) {
+                    OttrojjaText(
+                        text = "جاري تحميل الآيات ${convertToIndianNumbers("${player.downloadDone}")} / ${convertToIndianNumbers("${player.downloadTotal}")}",
+                        style = OttrojjaTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        if (isPlaying) {
+                        if (player.hasMedia || player.isDownloading) {
                             Icon(Icons.Filled.Cancel,
                                 tint = MaterialTheme.colorScheme.primary,
                                 contentDescription = "cancel playing",
-                                modifier = Modifier.clickable { terminatePagePlayerService() }
+                                modifier = Modifier.clickable { onStopClicked() }
                             )
                         }
+                    }
+
+                    if (showReturnToPlayingPage) {
+                        OttrojjaText(text = "العودة لصفحة التلاوة ${convertToIndianNumbers("${player.playingPage}")}",
+                            style = OttrojjaTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { onReturnToPlayingPage() }
+                                .padding(6.dp)
+                        )
                     }
 
                     OttrojjaText(text = "خيارات الإستماع",

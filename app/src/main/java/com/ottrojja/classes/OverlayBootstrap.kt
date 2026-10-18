@@ -5,7 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import com.ottrojja.classes.DataStore.DataStoreRepository
-import com.ottrojja.services.OverlayService
+import com.ottrojja.services.overlay.OverlayService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
