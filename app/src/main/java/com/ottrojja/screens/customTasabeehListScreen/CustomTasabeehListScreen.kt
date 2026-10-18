@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ImportExport
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.rounded.DragHandle
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
@@ -46,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -277,13 +280,30 @@ fun CustomTasabeehListScreen(
             ElevatedButton(
                 onClick = { triggerAddTasbeehDialog() },
                 elevation = ButtonDefaults.elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
-                shape = RoundedCornerShape(4.dp),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.weight(2f),
+                shape = RectangleShape
             ) {
                 Icon(
                     Icons.Default.Add,
                     contentDescription = "Add Tasbeeh",
                     tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+
+            ElevatedButton(
+                onClick = { resetAllAlert = true },
+                colors = ButtonDefaults.elevatedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                ),
+                elevation = ButtonDefaults.elevatedButtonElevation(2.dp, 2.dp, 2.dp, 2.dp, 2.dp),
+                modifier = Modifier.weight(1f),
+                shape = RectangleShape
+            ) {
+                Icon(
+                    Icons.Default.Replay,
+                    contentDescription = "Reset All",
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier.size(40.dp)
                 )
             }

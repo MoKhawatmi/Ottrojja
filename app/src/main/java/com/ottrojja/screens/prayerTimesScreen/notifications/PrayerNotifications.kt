@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.media.AudioManager
 import android.os.Build
 import androidx.annotation.RawRes
 import androidx.core.app.NotificationCompat
@@ -30,7 +29,7 @@ object PrayerNotifications {
     const val CHANNEL_ADHAN = "prayer_times_adhan"
 
     /** Replace with your reminder notification icon: small icons must be a white silhouette. */
-    private val SMALL_ICON = R.mipmap.ic_launcher
+    private val SMALL_ICON = R.drawable.logo
 
     private const val NOTIFICATION_ID_BASE = 47_000
 
@@ -40,12 +39,14 @@ object PrayerNotifications {
     fun canPostNotifications(context: Context): Boolean =
         NotificationManagerCompat.from(context).areNotificationsEnabled()
 
-    /** True when the phone is on silent/vibrate or in Do Not Disturb: the adhan is then not played. */
-    fun isPhoneSilenced(context: Context): Boolean {
-        val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    /**
+     * True while Do Not Disturb is on: the adhan is then replaced by a notification.
+     * Silent and vibrate modes don't count: the adhan plays on the alarm volume, which
+     * Android lets through in both, like an alarm clock.
+     */
+    fun isDoNotDisturbOn(context: Context): Boolean {
         val notifications = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        return audio.ringerMode != AudioManager.RINGER_MODE_NORMAL ||
-            notifications.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_ALL
+        return notifications.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_ALL
     }
 
     @RawRes

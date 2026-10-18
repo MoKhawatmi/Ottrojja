@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.ui.theme.OttrojjaTheme
 
@@ -24,7 +25,7 @@ fun OttrojjaFormField(
         modifier = modifier
             .fillMaxWidth()
     ) {
-        if(label.isNotBlank()){
+        if (label.isNotBlank()) {
             OttrojjaText(
                 text = label,
                 style = OttrojjaTheme.typography.bodySmall,
@@ -39,8 +40,8 @@ fun OttrojjaFormField(
         supportingText?.let {
             OttrojjaText(
                 text = it,
-                style = OttrojjaTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary
+                style = OttrojjaTheme.typography.bodySmall.copy(lineHeight = 18.sp),
+                color = MaterialTheme.colorScheme.secondary,
             )
         }
 

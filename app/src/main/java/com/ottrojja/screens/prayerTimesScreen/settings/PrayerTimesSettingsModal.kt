@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.R
 import com.ottrojja.composables.OttrojjaText
+import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.buttons.OttrojjaTextButton
 import com.ottrojja.composables.dialogs.OttrojjaDialog
 import com.ottrojja.composables.dialogs.OttrojjaItemSelectionDialog
@@ -126,12 +127,12 @@ fun PrayerTimesSettingsModal(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    OttrojjaTextButton(
+                    OttrojjaButton(
                         text = stringResource(R.string.prayer_settings_cancel),
                         onClick = onDismiss,
                     )
                     Spacer(modifier = Modifier.width(10.dp))
-                    OttrojjaTextButton(
+                    OttrojjaButton(
                         text = stringResource(R.string.prayer_settings_save),
                         onClick = {
                             onSave(draftMethod, draftMadhab)

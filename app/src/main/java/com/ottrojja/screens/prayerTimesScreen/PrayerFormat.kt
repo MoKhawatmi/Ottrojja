@@ -9,7 +9,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 /**
  * Date and time formatting shared by the screen and the notifications.
@@ -37,9 +36,15 @@ object PrayerFormat {
         return context.getString(R.string.hijri_date_format, hijri.day, months[hijri.month - 1], hijri.year)
     }
 
-    /** "02:14:33" */
+    /**
+     * "02:14:33"
+     *
+     * Rounds to the nearest second instead of truncating: the clock ticks land a few ms
+     * before or after each full second, and truncating turned that jitter into skipped
+     * or repeated seconds.
+     */
     fun countdown(remainingMillis: Long): String {
-        val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(remainingMillis.coerceAtLeast(0))
+        val totalSeconds = (remainingMillis.coerceAtLeast(0) + 500) / 1000
         return String.format(
             Locale.US, "%02d:%02d:%02d",
             totalSeconds / 3600, (totalSeconds % 3600) / 60, totalSeconds % 60,

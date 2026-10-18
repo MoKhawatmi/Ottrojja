@@ -16,12 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
@@ -46,10 +42,8 @@ import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.dialogs.LoadingDialog
 import com.ottrojja.composables.MediaController
 import com.ottrojja.composables.MediaSlider
-import com.ottrojja.composables.dialogs.OttrojjaItemSelectionDialog
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.OttrojjaText
-import com.ottrojja.composables.PillShapedTextFieldWithIcon
 import com.ottrojja.composables.RangeSelector
 import com.ottrojja.composables.rangeSelectionItem.RangeSelectionItem
 import com.ottrojja.screens.quranScreen.dialogs.RepetitionOptionsDialog

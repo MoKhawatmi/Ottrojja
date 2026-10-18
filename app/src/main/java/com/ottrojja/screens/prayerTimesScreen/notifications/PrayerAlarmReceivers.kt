@@ -61,10 +61,17 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
         val mode = PrayerTimesModule.repository.notificationModesFlow.first()[alert.type]
         when (mode) {
             PrayerNotificationMode.ADHAN ->
-                if (PrayerNotifications.isPhoneSilenced(context)) {
+                if (PrayerNotifications.isDoNotDisturbOn(context)) {
                     PrayerNotifications.showPrayerNotification(context, alert)
                 } else {
-                    ContextCompat.startForegroundService(context, PrayerAdhanService.playIntent(context, alert))
+                    try {
+                        ContextCompat.startForegroundService(context, PrayerAdhanService.playIntent(context, alert))
+                    } catch (e: IllegalStateException) {
+                        // Android 12+ refuses background service starts unless the alarm was exact
+                        // (needs the exact alarm permission). Better a notification than silence.
+                        reportException(exception = e, file = "PrayerAlarmReceiver")
+                        PrayerNotifications.showPrayerNotification(context, alert)
+                    }
                 }
 
             PrayerNotificationMode.NOTIFICATION -> PrayerNotifications.showPrayerNotification(context, alert)

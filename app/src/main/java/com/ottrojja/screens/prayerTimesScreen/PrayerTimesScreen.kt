@@ -60,6 +60,7 @@ import com.ottrojja.screens.prayerTimesScreen.model.PrayerNotificationMode
 import com.ottrojja.screens.prayerTimesScreen.model.PrayerSettings
 import com.ottrojja.screens.prayerTimesScreen.model.PrayerTime
 import com.ottrojja.screens.prayerTimesScreen.model.PrayerType
+import com.ottrojja.screens.prayerTimesScreen.notifications.PrayerAdhanDebugPanel
 import com.ottrojja.screens.prayerTimesScreen.settings.PrayerTimesSettingsModal
 import com.ottrojja.ui.theme.OttrojjaTheme
 import kotlinx.coroutines.launch
@@ -128,6 +129,8 @@ private fun PrayerTimesContent(
     val shownDay = remember(shownDate, settings) { viewModel.dayTimes(shownDate, settings) }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        PrayerAdhanDebugPanel()
+
         LocationBar(
             name = if (viewModel.isLocating) stringResource(R.string.prayer_location_locating) else location.displayName,
             onClick = { viewModel.showSettingsModal = true },
