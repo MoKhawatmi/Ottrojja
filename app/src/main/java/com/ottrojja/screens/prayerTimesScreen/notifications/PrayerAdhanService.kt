@@ -17,9 +17,10 @@ import com.ottrojja.screens.prayerTimesScreen.notifications.PrayerAlarmReceiver.
 import com.ottrojja.screens.prayerTimesScreen.notifications.PrayerAlarmReceiver.Companion.toAlert
 
 /**
- * Plays the adhan as a short-lived foreground service (type mediaPlayback), with a
- * notification whose "stop" action or swipe ends it. When the adhan ends, the ongoing
- * notification is replaced by a regular, silent one.
+ * Plays the adhan as a short-lived foreground service (type mediaPlayback), with a lock
+ * screen visible notification whose "stop" action, body tap or swipe ends it (swipe: Android
+ * 14+ only, older versions don't let foreground service notifications be dismissed). When the
+ * adhan ends, the notification is replaced by a regular, silent one.
  *
  * Started from [PrayerAlarmReceiver]; an exact alarm makes the background start allowed.
  */
@@ -48,7 +49,9 @@ class PrayerAdhanService : Service() {
         alert = newAlert
 
         PrayerNotifications.ensureChannels(this)
-        val notification = PrayerNotifications.buildAdhanNotification(this, newAlert, stopPendingIntent())
+        val notification = PrayerNotifications.buildAdhanNotification(
+            this, newAlert, stopPendingIntent(), tapPendingIntent()
+        )
         try {
             ServiceCompat.startForeground(
                 this,
@@ -133,9 +136,17 @@ class PrayerAdhanService : Service() {
         focusRequest = null
     }
 
+    /** Stop action and swipe: a service intent, so it works on the lock screen without unlocking. */
     private fun stopPendingIntent(): PendingIntent = PendingIntent.getService(
         this, 0,
-        Intent(this, PrayerAdhanService::class.java).setAction(ACTION_STOP),
+        stopIntent(this),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
+
+    /** Body tap: stops too, see PrayerAdhanStopActivity. */
+    private fun tapPendingIntent(): PendingIntent = PendingIntent.getActivity(
+        this, 0,
+        Intent(this, PrayerAdhanStopActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
 
@@ -151,5 +162,8 @@ class PrayerAdhanService : Service() {
 
         fun playIntent(context: Context, alert: PrayerAlert): Intent =
             Intent(context, PrayerAdhanService::class.java).setAction(ACTION_PLAY).putAlert(alert)
+
+        fun stopIntent(context: Context): Intent =
+            Intent(context, PrayerAdhanService::class.java).setAction(ACTION_STOP)
     }
 }

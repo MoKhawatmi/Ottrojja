@@ -1,5 +1,6 @@
 package com.ottrojja.screens.prayerTimesScreen.notifications
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -25,8 +26,10 @@ data class PrayerAlert(
 
 object PrayerNotifications {
 
-    const val CHANNEL_PRAYER = "prayer_times"
-    const val CHANNEL_ADHAN = "prayer_times_adhan"
+    // v2: lock screen visibility can't be changed on an existing channel, so new ids
+    const val CHANNEL_PRAYER = "prayer_times_v2"
+    const val CHANNEL_ADHAN = "prayer_times_adhan_v2"
+    private val OLD_CHANNELS = listOf("prayer_times", "prayer_times_adhan")
 
     /** Replace with your reminder notification icon: small icons must be a white silhouette. */
     private val SMALL_ICON = R.drawable.logo
@@ -56,16 +59,23 @@ object PrayerNotifications {
     /**
      * Channels can't change their sound after creation, hence two: one with the default
      * notification sound, one silent for the adhan (the service plays the audio itself).
+     * Both show their full content on the lock screen.
      */
     fun ensureChannels(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        OLD_CHANNELS.forEach { id ->
+            if (manager.getNotificationChannel(id) != null) manager.deleteNotificationChannel(id)
+        }
         manager.createNotificationChannel(
             NotificationChannel(
                 CHANNEL_PRAYER,
                 context.getString(R.string.prayer_channel_name),
                 NotificationManager.IMPORTANCE_HIGH,
-            ).apply { description = context.getString(R.string.prayer_channel_description) }
+            ).apply {
+                description = context.getString(R.string.prayer_channel_description)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            }
         )
         manager.createNotificationChannel(
             NotificationChannel(
@@ -75,6 +85,7 @@ object PrayerNotifications {
             ).apply {
                 description = context.getString(R.string.prayer_adhan_channel_description)
                 setSound(null, null)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
         )
     }
@@ -94,15 +105,27 @@ object PrayerNotifications {
         }
     }
 
-    /** Ongoing notification shown while the adhan plays, with a stop action. */
-    fun buildAdhanNotification(context: Context, alert: PrayerAlert, stopIntent: PendingIntent) =
-        baseBuilder(context, alert, CHANNEL_ADHAN)
-            .setOngoing(true)
-            .setSilent(true)
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setDeleteIntent(stopIntent)
-            .addAction(0, context.getString(R.string.prayer_adhan_stop), stopIntent)
-            .build()
+    /**
+     * Shown while the adhan plays. Stop action, body tap ([tapIntent]) and swipe all stop it,
+     * none of them needs the phone unlocked.
+     *
+     * Deliberately not ongoing: on Android 14+ an ongoing notification can't be swiped away while
+     * the phone is locked. Below 14 the system keeps foreground service notifications on screen
+     * whatever this flag says, so there the stop action and the tap are the ways out.
+     */
+    fun buildAdhanNotification(
+        context: Context,
+        alert: PrayerAlert,
+        stopIntent: PendingIntent,
+        tapIntent: PendingIntent,
+    ) = baseBuilder(context, alert, CHANNEL_ADHAN)
+        .setOngoing(false)
+        .setSilent(true)
+        .setCategory(NotificationCompat.CATEGORY_ALARM)
+        .setContentIntent(tapIntent)
+        .setDeleteIntent(stopIntent)
+        .addAction(0, context.getString(R.string.prayer_adhan_stop), stopIntent)
+        .build()
 
     private fun baseBuilder(context: Context, alert: PrayerAlert, channel: String): NotificationCompat.Builder {
         val prayerName = context.getString(alert.type.displayNameRes(alert.isJumuah))
@@ -112,6 +135,7 @@ object PrayerNotifications {
             .setContentTitle(context.getString(R.string.prayer_notification_title, prayerName))
             .setContentText(context.getString(R.string.prayer_notification_text, alert.locationName, time))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // full content on the lock screen (API < 26)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setWhen(alert.epochMillis)
             .setShowWhen(true)

@@ -75,7 +75,13 @@ fun PrayerAdhanDebugPanel() {
                 report = "Test alarm set for ${alert.type} in 10 s via the real receiver.\n" +
                     "It uses the saved mode of ${alert.type}: " +
                     "${PrayerTimesModule.repository.notificationModesFlow.first()[alert.type]}.\n" +
-                    "Lock the screen now."
+                    "Lock the screen now.\n\n" +
+                    "Then check on the lock screen, without unlocking, that each of these stops the audio " +
+                    "(re-run the test for each):\n" +
+                    "- the Stop button\n" +
+                    "- a tap on the notification body\n" +
+                    "- swiping the notification away (Android 14+ only; older versions keep it)\n" +
+                    "After a stop the notification should turn into a silent one you can swipe away."
             }
         }
     }

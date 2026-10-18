@@ -82,6 +82,16 @@
             android:name=".screens.prayerTimesScreen.notifications.PrayerAdhanService"
             android:foregroundServiceType="mediaPlayback"
             android:exported="false" />
+        <!-- Tap on the adhan notification: stops it over the lock screen, own task so the app stays behind the keyguard -->
+        <activity
+            android:name=".screens.prayerTimesScreen.notifications.PrayerAdhanStopActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:showWhenLocked="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoDisplay"
+            tools:targetApi="o_mr1" />
 
 
         <provider
