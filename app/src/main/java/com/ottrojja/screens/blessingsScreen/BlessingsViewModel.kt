@@ -110,7 +110,7 @@ class BlessingsViewModel(application: Application) : AndroidViewModel(applicatio
 
                 val items = supabase.from("blessings_md").select(Columns.ALL) {
                     range(from = from, to = to)
-                    order(column = "id", order = Order.DESCENDING)
+                    order(column = "created_at", order = Order.DESCENDING)
                     if (query.isNotBlank()) {
                         filter { ilike(column = "text", pattern = "%$query%") }
                     }

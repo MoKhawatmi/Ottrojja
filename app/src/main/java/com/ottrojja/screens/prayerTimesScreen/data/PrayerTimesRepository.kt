@@ -12,11 +12,11 @@ import com.ottrojja.screens.prayerTimesScreen.model.PrayerNotificationMode
 import com.ottrojja.screens.prayerTimesScreen.model.PrayerSettings
 import com.ottrojja.screens.prayerTimesScreen.model.PrayerTime
 import com.ottrojja.screens.prayerTimesScreen.model.PrayerType
+import com.ottrojja.screens.prayerTimesScreen.model.PrayerZones
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import kotlin.math.asin
 import kotlin.math.cos
 import kotlin.math.pow
@@ -52,7 +52,7 @@ class PrayerTimesRepository(
      * in the next few days (polar regions).
      */
     fun nextOccurrence(type: PrayerType, nowMillis: Long, settings: PrayerSettings): Pair<DayPrayerTimes, PrayerTime>? {
-        val zone = settings.location?.timeZoneId?.let { ZoneId.of(it) } ?: return null
+        val zone = settings.location?.timeZoneId?.let { PrayerZones.of(it) } ?: return null
         val today = Instant.ofEpochMilli(nowMillis).atZone(zone).toLocalDate()
         for (offset in -1L..3L) {
             val day = calculator.calculate(today.plusDays(offset), settings) ?: continue

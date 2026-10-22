@@ -12,9 +12,9 @@ import com.ottrojja.screens.prayerTimesScreen.model.NextPrayer
 import com.ottrojja.screens.prayerTimesScreen.model.PrayerSettings
 import com.ottrojja.screens.prayerTimesScreen.model.PrayerTime
 import com.ottrojja.screens.prayerTimesScreen.model.PrayerType
+import com.ottrojja.screens.prayerTimesScreen.model.PrayerZones
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 
 /**
@@ -72,7 +72,7 @@ class AdhanPrayerTimesCalculator(
     override fun nextPrayer(nowMillis: Long, settings: PrayerSettings): NextPrayer? {
         val location = settings.location ?: return null
         val today = Instant.ofEpochMilli(nowMillis)
-            .atZone(ZoneId.of(location.timeZoneId))
+            .atZone(PrayerZones.of(location.timeZoneId))
             .toLocalDate()
 
         // Starts at yesterday: at high latitudes Isha can fall after local midnight.

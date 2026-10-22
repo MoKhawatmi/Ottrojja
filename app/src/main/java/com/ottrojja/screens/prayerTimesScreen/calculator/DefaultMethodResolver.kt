@@ -13,6 +13,7 @@ import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.KUWA
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.MOON_SIGHTING_COMMITTEE
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.MOROCCO
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.MUSLIM_WORLD_LEAGUE
+import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.NORTH_AMERICA
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.PORTUGAL
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.QATAR
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.RUSSIA
@@ -20,6 +21,7 @@ import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.SING
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.TUNISIA
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.TURKEY
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.UMM_AL_QURA
+import com.ottrojja.screens.prayerTimesScreen.model.MadhabOption
 import com.ottrojja.screens.prayerTimesScreen.model.PrayerSettings
 
 /**
@@ -52,13 +54,27 @@ object DefaultMethodResolver {
         listOf("SG", "BN").forEach { put(it, SINGAPORE) }
         put("RU", RUSSIA)
         put("PT", PORTUGAL)
-        listOf("US", "CA", "GB").forEach { put(it, MOON_SIGHTING_COMMITTEE) }
+        // FCNA (2017) suggests 15° for Fajr and Isha in the USA, i.e. the ISNA setting.
+        put("US", NORTH_AMERICA)
+        // Canada (FCNA suggests 13°, no option for it yet) and the UK (no national
+        // authority, mosques differ) stay on the Moonsighting Committee method.
+        listOf("CA", "GB").forEach { put(it, MOON_SIGHTING_COMMITTEE) }
     }
+
+    /**
+     * Countries whose official timetables use the Hanafi (later) Asr: Banuri Town (PK),
+     * Islamic Foundation Bangladesh, Afghanistan's ministry. India is predominantly Hanafi too.
+     */
+    private val hanafiCountries = setOf("PK", "IN", "BD", "AF")
 
     val fallback: CalculationMethodOption = MUSLIM_WORLD_LEAGUE
 
     fun defaultFor(countryCode: String?): CalculationMethodOption =
         countryCode?.uppercase()?.let(byCountry::get) ?: fallback
+
+    /** Madhab used until the user saves one explicitly. */
+    fun defaultMadhabFor(countryCode: String?): MadhabOption =
+        if (countryCode?.uppercase() in hanafiCountries) MadhabOption.HANAFI else MadhabOption.JUMHUR
 
     /** The method actually used for a calculation: explicit choice, else country default. */
     fun effectiveMethod(settings: PrayerSettings): CalculationMethodOption =

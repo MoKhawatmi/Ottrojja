@@ -138,6 +138,9 @@ class QuranViewModel(
         showPage(page.toString(), scrollPager = false)
     }
 
+    /** The pager is mostly on [page], possibly still mid-swipe. Only drives the bookmark icon. */
+    fun onPageVisible(page: Int) = checkBookmark(page.toString())
+
     /** "Back to the recited page" chip. */
     fun returnToPlayingPage() {
         val page = playbackManager.state.value.playingPage ?: return
@@ -146,6 +149,9 @@ class QuranViewModel(
     }
 
     private fun showPage(value: String, scrollPager: Boolean) {
+        // the bookmark check only needs the page number, so it does not wait for the page load
+        checkBookmark(value)
+
         pageLoadJob?.cancel() // a fast swipe must not be overwritten by an older, slower load
         pageLoadJob = viewModelScope.launch {
             try {
@@ -157,7 +163,6 @@ class QuranViewModel(
                 val s = playbackManager.state.value
                 if (!s.hasMedia && !s.isDownloading) takeOnCurrentPageVerses()
 
-                isPageBookmarked()
                 sharedPreferences.edit().putString("mostRecentPage", value).apply()
 
                 if (readerContext is QuranReaderContext.Khitmah) {
@@ -406,12 +411,32 @@ class QuranViewModel(
             _isBookmarked.value = value
         }
 
-    fun isPageBookmarked() {
-        val pageNum = currentPageObject?.page?.pageNum ?: return
-        viewModelScope.launch(Dispatchers.IO) {
+    /** Page the bookmark check should report for (the last requested page). */
+    private var bookmarkTargetPage: String? = null
+
+    /** Page that [isBookmarked] currently describes; null until the first check finishes. */
+    private var bookmarkStatePage: String? = null
+
+    /** Points the bookmark icon at [pageNum]; a no-op when it already is (swipe, then settle). */
+    private fun checkBookmark(pageNum: String) {
+        if (pageNum == bookmarkTargetPage) return
+        bookmarkTargetPage = pageNum
+        refreshBookmark(pageNum)
+    }
+
+    /**
+     * Results are applied on the main thread and only for [bookmarkTargetPage], so a slow check of a
+     * page the user already swiped away from cannot overwrite the state of the page now shown.
+     */
+    private fun refreshBookmark(pageNum: String) {
+        viewModelScope.launch {
             try {
-                println("checking bookmarks for $pageNum")
-                _isBookmarked.value = repository.isBookmarked(pageNum)
+                val bookmarked = withContext(Dispatchers.IO) { repository.isBookmarked(pageNum) }
+                if (pageNum != bookmarkTargetPage) return@launch
+                bookmarkStatePage = pageNum
+                _isBookmarked.value = bookmarked
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "QuranViewModel")
@@ -420,10 +445,14 @@ class QuranViewModel(
     }
 
     fun togglePageBookmark() {
-        val bookmark = BookmarkEntity(pageNum = currentPageObject?.page?.pageNum!!);
+        // toggle the page the icon describes, which can differ from currentPageObject during a page change
+        val pageNum = bookmarkStatePage ?: return
+        if (pageNum != bookmarkTargetPage) return // the state is about to change to another page
+        val wasBookmarked = _isBookmarked.value
+        val bookmark = BookmarkEntity(pageNum = pageNum)
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                if (!_isBookmarked.value) {
+                if (!wasBookmarked) {
                     repository.insertBookmark(bookmark)
                 } else {
                     repository.deleteBookmark(bookmark)
@@ -433,7 +462,7 @@ class QuranViewModel(
                     type = AppToastType.SUCCESS
                 )
                 //just to update ui
-                isPageBookmarked();
+                refreshBookmark(pageNum)
             } catch (e: Exception) {
                 e.printStackTrace()
                 reportException(exception = e, file = "QuranViewModel")

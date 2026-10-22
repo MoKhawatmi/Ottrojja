@@ -99,7 +99,7 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
 
-    implementation("androidx.datastore:datastore-preferences:1.2.1")
+    implementation("androidx.datastore:datastore-preferences:1.3.0")
     implementation("androidx.core:core-splashscreen:1.2.0")
     implementation("com.google.accompanist:accompanist-drawablepainter:0.37.3")
 
@@ -109,7 +109,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.8.5")
     ksp("androidx.room:room-compiler:2.8.5")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0")
 
     implementation("androidx.media3:media3-exoplayer:1.11.1")
     implementation("androidx.media3:media3-session:1.11.1")
@@ -137,7 +137,5 @@ dependencies {
 
     implementation("com.mikepenz:multiplatform-markdown-renderer:0.46.0")
     implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.46.0")
-
-
 
 }

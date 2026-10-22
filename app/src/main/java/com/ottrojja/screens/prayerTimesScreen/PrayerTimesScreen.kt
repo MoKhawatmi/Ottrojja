@@ -78,6 +78,7 @@ import com.ottrojja.screens.prayerTimesScreen.model.PrayerNotificationMode
 import com.ottrojja.screens.prayerTimesScreen.model.PrayerSettings
 import com.ottrojja.screens.prayerTimesScreen.model.PrayerTime
 import com.ottrojja.screens.prayerTimesScreen.model.PrayerType
+import com.ottrojja.screens.prayerTimesScreen.model.PrayerZones
 import com.ottrojja.screens.prayerTimesScreen.notifications.PrayerAdhanDebugPanel
 import com.ottrojja.screens.prayerTimesScreen.settings.PrayerTimesSettingsModal
 import com.ottrojja.ui.theme.OttrojjaTheme
@@ -134,7 +135,7 @@ private fun PrayerTimesContent(
     location: PrayerLocation,
     alertPermissions: PrayerAlertPermissions,
 ) {
-    val zone = remember(location.timeZoneId) { ZoneId.of(location.timeZoneId) }
+    val zone = remember(location.timeZoneId) { PrayerZones.of(location.timeZoneId) }
     val today = remember(zone) { LocalDate.now(zone) }
     val pagerState = rememberPagerState(initialPage = TODAY_PAGE) { PAGE_COUNT }
     val scope = rememberCoroutineScope()

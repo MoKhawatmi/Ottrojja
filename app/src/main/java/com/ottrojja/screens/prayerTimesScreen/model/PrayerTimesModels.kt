@@ -49,7 +49,7 @@ data class DayPrayerTimes(
     val hijriDate: HijriDate,
     val times: List<PrayerTime>,
 ) {
-    val zoneId: ZoneId get() = ZoneId.of(timeZoneId)
+    val zoneId: ZoneId get() = PrayerZones.of(timeZoneId)
 
     val isFriday: Boolean get() = date.dayOfWeek == DayOfWeek.FRIDAY
 

@@ -344,6 +344,7 @@ fun QuranScreen(
                         initialPage = displayedPage!!.toInt(),
                         pageScrollRequests = quranViewModel.pageScrollRequests,
                         onPageSettled = { page, byUser -> quranViewModel.onPageSettled(page, byUser) },
+                        onPageVisible = { page -> quranViewModel.onPageVisible(page) },
                         player = player,
                         showReturnToPlayingPage = player.hasMedia && !player.following
                                 && player.playingPage != null && player.playingPage.toString() != displayedPage,
@@ -508,6 +509,7 @@ fun PagesContainer(
     initialPage: Int,
     pageScrollRequests: Flow<Int>,
     onPageSettled: (page: Int, byUser: Boolean) -> Unit,
+    onPageVisible: (page: Int) -> Unit,
     player: PagePlayerState,
     showReturnToPlayingPage: Boolean,
     onReturnToPlayingPage: () -> Unit,
@@ -569,6 +571,15 @@ fun PagesContainer(
                 currentCoroutineContext().ensureActive()
             }
         }
+    }
+
+    // currentPage changes once a swipe passes halfway, well before settledPage, so cheap
+    // per-page UI (the bookmark icon) uses it instead of waiting for the snap animation
+    val currentOnPageVisible by rememberUpdatedState(onPageVisible)
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }
+            .drop(1) // the initial page is already the ViewModel's page
+            .collect { index -> currentOnPageVisible(index + 1) }
     }
 
     LaunchedEffect(pagerState) {

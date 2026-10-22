@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.ottrojja.screens.prayerTimesScreen.calculator.DefaultMethodResolver
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption
 import com.ottrojja.screens.prayerTimesScreen.model.LocationSource
 import com.ottrojja.screens.prayerTimesScreen.model.MadhabOption
@@ -37,10 +38,13 @@ class PrayerTimesDataStore(private val dataStore: DataStore<Preferences>) {
     /*******************CALCULATION SETTINGS*********************/
     val settingsFlow: Flow<PrayerSettings> = safeData
         .map { prefs ->
+            val location = prefs.readLocation()
             PrayerSettings(
-                location = prefs.readLocation(),
+                location = location,
                 method = CalculationMethodOption.fromStorageKey(prefs[METHOD]),
-                madhab = MadhabOption.fromStorageKey(prefs[MADHAB]),
+                // Until the user saves a madhab, follow the country (Hanafi in South Asia).
+                madhab = prefs[MADHAB]?.let(MadhabOption::fromStorageKey)
+                    ?: DefaultMethodResolver.defaultMadhabFor(location?.countryCode),
             )
         }
         .distinctUntilChanged()

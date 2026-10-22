@@ -209,7 +209,7 @@ class VersesSectionViewModel(private val repository: QuranRepository, applicatio
     }
 
     companion object {
-        const val MAX_IMAGE_CHARS = 1174
+        const val MAX_IMAGE_CHARS = 1200
     }
 
     private var _shareMode = MutableStateFlow<ShareMode>(ShareMode.TEXT)

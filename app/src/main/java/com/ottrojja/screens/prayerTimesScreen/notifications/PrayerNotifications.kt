@@ -13,6 +13,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.ottrojja.R
 import com.ottrojja.screens.prayerTimesScreen.PrayerFormat
 import com.ottrojja.screens.prayerTimesScreen.model.PrayerType
+import com.ottrojja.screens.prayerTimesScreen.model.PrayerZones
 import java.time.ZoneId
 
 /** Data an alarm carries into the notification or the adhan. Primitive-friendly on purpose. */
@@ -179,5 +180,5 @@ object PrayerNotifications {
         )
     }
 
-    private fun zoneOf(id: String): ZoneId = runCatching { ZoneId.of(id) }.getOrDefault(ZoneId.systemDefault())
+    private fun zoneOf(id: String): ZoneId = PrayerZones.of(id)
 }
