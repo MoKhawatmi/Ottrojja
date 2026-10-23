@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
-import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
@@ -23,11 +22,13 @@ import com.ottrojja.room.repositories.ReminderRepository
 import com.ottrojja.screens.reminderScreen.classes.ReminderManager
 import com.ottrojja.services.overlay.OverlayService
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 
 
 class ReminderViewModel(private val repository: ReminderRepository, application: Application) :
@@ -80,13 +81,21 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
             _reminderInWorks.value = value
         }
 
+    // Runs once per ViewModel instance (survives rotation / back stack),
+    // so collectors are never duplicated.
+    // Must stay below the properties it uses (_reminders, reminderManager).
+    init {
+        insertMainReminder()
+        observeReminders()
+    }
+
     fun updateReminder(value: Reminder) {
         _reminderInWorks.value = value
         validateReminder()
     }
 
 
-    fun getReminders() {
+    private fun observeReminders() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 repository.getAllReminders().collect { newReminders ->
@@ -107,15 +116,15 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
                         }
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                e.printStackTrace()
                 AppToastManager.show(
                     message = "حصل خطأ يرجى المحاولة لاحقا",
                     type = AppToastType.ERROR
                 )
-
-                withContext(Dispatchers.Main) {
-                    reportException(e, "ReminderViewModel", "error fetching reminders")
-                }
+                reportException(e, "ReminderViewModel", "error fetching reminders")
             }
         }
     }
@@ -136,26 +145,24 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
             ?.data
             ?: return
 
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
-                reminderManager.setReminderEnabled(
-                    reminder = reminder,
-                    enabled = !reminder.isEnabled
-                )
+                // NonCancellable: DB + AlarmManager must both complete, even if the screen is left
+                withContext(NonCancellable + Dispatchers.IO) {
+                    reminderManager.setReminderEnabled(
+                        reminder = reminder,
+                        enabled = !reminder.isEnabled
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                e.printStackTrace()
+                reportException(e, "ReminderViewModel", "error toggling reminder")
                 AppToastManager.show(
                     message = "حصل خطأ يرجى المحاولة لاحقا",
                     type = AppToastType.ERROR
                 )
-
-                withContext(Dispatchers.Main) {
-
-                    reportException(
-                        e,
-                        "ReminderViewModel",
-                        "error toggling reminder"
-                    )
-                }
             }
         }
     }
@@ -173,36 +180,25 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
     }
 
     fun upsertReminder() {
-        viewModelScope.launch(Dispatchers.IO) {
+        val reminder = _reminderInWorks.value
+        val mode = _dialogMode.value
+
+        viewModelScope.launch {
             try {
-                val reminder = _reminderInWorks.value
-                val mode = _dialogMode.value
-
-                reminderManager.upsertReminder(reminder)
-
-                withContext(Dispatchers.Main) {
-                    val toastMsg =
-                        if (mode == ModalFormMode.EDIT)
-                            "تم التعديل بنجاح"
-                        else
-                            "تمت الاضافة بنجاح"
-
-                    AppToastManager.show(
-                        message = toastMsg,
-                        type = AppToastType.SUCCESS
-                    )
-
-                    dismissReminderForm()
+                withContext(NonCancellable + Dispatchers.IO) {
+                    reminderManager.upsertReminder(reminder)
                 }
+
+                AppToastManager.show(
+                    message = if (mode == ModalFormMode.EDIT) "تم التعديل بنجاح" else "تمت الاضافة بنجاح",
+                    type = AppToastType.SUCCESS
+                )
+                dismissReminderForm()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 e.printStackTrace()
-
-                reportException(
-                    e,
-                    "ReminderViewModel",
-                    "error upserting reminder"
-                )
-
+                reportException(e, "ReminderViewModel", "error upserting reminder")
                 AppToastManager.show(
                     message = "حصل خطأ يرجى المحاولة لاحقا",
                     type = AppToastType.ERROR
@@ -213,37 +209,37 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
 
 
     fun deleteReminder(reminder: Reminder) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
-                reminderManager.deleteReminder(reminder)
+                withContext(NonCancellable + Dispatchers.IO) {
+                    reminderManager.deleteReminder(reminder)
+                }
 
                 AppToastManager.show(
                     message = "تم الحذف بنجاح",
                     type = AppToastType.SUCCESS
                 )
-
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 e.printStackTrace()
-
-                reportException(
-                    e,
-                    "ReminderViewModel",
-                    "Error while deleting reminder"
-                )
-
+                reportException(e, "ReminderViewModel", "Error while deleting reminder")
                 AppToastManager.show(
                     message = "حصل خطأ يرجى المحاولة لاحقا",
                     type = AppToastType.ERROR
                 )
-
             }
         }
     }
 
-    fun insertMainReminder() {
-        viewModelScope.launch(Dispatchers.IO) {
+    private fun insertMainReminder() {
+        viewModelScope.launch {
             try {
-                reminderManager.insertMainReminderIfNotExists()
+                withContext(NonCancellable + Dispatchers.IO) {
+                    reminderManager.insertMainReminderIfNotExists()
+                }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 reportException(
                     e,
@@ -305,7 +301,7 @@ class ReminderViewModel(private val repository: ReminderRepository, application:
     }
 
     private val _overlayPermissionHandler = MutableStateFlow<Boolean>(false)
-    var overlayPermissionHandler: StateFlow<Boolean> = _overlayPermissionHandler
+    val overlayPermissionHandler: StateFlow<Boolean> = _overlayPermissionHandler
 
 
     fun toggleOverlayPermissionHandler(state: Boolean) {

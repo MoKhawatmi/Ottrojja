@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.AlarmManager
 import android.app.AlertDialog
 import android.app.Application
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -34,6 +35,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,6 +49,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.classes.ButtonAction
 import com.ottrojja.classes.ExpandableItem
@@ -70,52 +75,62 @@ import com.ottrojja.screens.reminderScreen.dialogs.SelectReminderTypeDialog
 import com.ottrojja.ui.theme.OttrojjaTheme
 import com.ottrojja.ui.theme.complete_green
 
+private fun hasNotificationPermission(context: Context): Boolean {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+    return ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.POST_NOTIFICATIONS
+    ) == PackageManager.PERMISSION_GRANTED
+}
+
+private fun canScheduleExactAlarms(context: Context): Boolean {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true
+    return context.getSystemService(AlarmManager::class.java).canScheduleExactAlarms()
+}
+
 @Composable
 fun ReminderScreen(repository: ReminderRepository) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val reminderVM: ReminderViewModel = viewModel(
         factory = ReminderViewModelFactory(repository, application)
     )
 
+    var notificationPermissionState by remember { mutableStateOf(true) }
+    var exactAlarmPermissionState by remember { mutableStateOf(true) }
+    var floatingAzkarDialog by remember { mutableStateOf(false) }
+    val reminders by reminderVM.reminders.collectAsState()
+    val overlayPermissionHandler by reminderVM.overlayPermissionHandler.collectAsState()
+    val floatingAzkarEnabled by reminderVM.enabledFloatingAzakar.collectAsState(false)
 
     val postNotificationPermissionLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestPermission()
         ) { isGranted ->
-            if (isGranted) {
-                // nothing
-            } else {
-                // nothing
-            }
+            notificationPermissionState = isGranted
         }
 
-    var notificationPermissionState by remember { mutableStateOf(true) }
-    var exactAlarmPermissionState by remember { mutableStateOf(true) }
-    var floatingAzkarDialog by remember { mutableStateOf(false) }
-    val reminders by reminderVM.reminders.collectAsState(initial = emptyList())
-    val overlayPermissionHandler by reminderVM.overlayPermissionHandler.collectAsState(false)
-    val floatingAzkarEnabled by reminderVM.enabledFloatingAzakar.collectAsState(false)
+    // Re-check permissions every time the screen resumes
+    // (e.g. returning from the system settings after granting them).
+    // ON_RESUME is also delivered immediately when the observer is added.
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                notificationPermissionState = hasNotificationPermission(context)
+                exactAlarmPermissionState = canScheduleExactAlarms(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
+    // Ask for notification permission once when the screen is first shown.
+    // Data loading now happens in the ViewModel's init, not here.
     LaunchedEffect(Unit) {
-        reminderVM.insertMainReminder()
-        reminderVM.getReminders()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            notificationPermissionState = ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-
-            if (!notificationPermissionState) {
-                postNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val alarmManager = context.getSystemService(AlarmManager::class.java)
-            if (!alarmManager.canScheduleExactAlarms()) {
-                exactAlarmPermissionState = false;
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasNotificationPermission(context)) {
+            postNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 
@@ -197,7 +212,7 @@ fun ReminderScreen(repository: ReminderRepository) {
         }
 
         LazyColumn {
-            item {
+            item(key = "floating_azkar_header") {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -240,7 +255,7 @@ fun ReminderScreen(repository: ReminderRepository) {
                 }
                 ListHorizontalDivider()
             }
-            items(reminders) { item ->
+            items(reminders, key = { it.data.id }) { item ->
                 ReminderItem(
                     reminder = item,
                     toggleExpand = { id -> reminderVM.toggleItemExpanded(id) },
@@ -403,4 +418,3 @@ fun ReminderItem(reminder: ExpandableItem<Reminder>,
         }
     }
 }
-

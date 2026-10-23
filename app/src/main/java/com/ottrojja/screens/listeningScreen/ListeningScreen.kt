@@ -92,6 +92,7 @@ fun ListeningScreen(
         Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
+                    .padding(12.dp)
                     .fillMaxWidth()
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
@@ -206,7 +207,7 @@ private fun VerseRangePane(
     )
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.padding(top=8.dp).fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
