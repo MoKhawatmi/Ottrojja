@@ -93,8 +93,19 @@ class PrayerTimesRepository(
     suspend fun setNotificationMode(type: PrayerType, mode: PrayerNotificationMode) =
         dataStore.setNotificationMode(type, mode)
 
+    /*******************TESTING NOTICE*********************/
+    /** True when the testing notice was never dismissed, or last dismissed a week or more ago. */
+    suspend fun shouldShowTestingNotice(nowMillis: Long): Boolean {
+        val lastShown = dataStore.testingNoticeShownAt() ?: return true
+        // nowMillis < lastShown: the device clock was set back; show it rather than wait.
+        return nowMillis - lastShown >= TESTING_NOTICE_INTERVAL_MILLIS || nowMillis < lastShown
+    }
+
+    suspend fun markTestingNoticeShown(nowMillis: Long) = dataStore.setTestingNoticeShownAt(nowMillis)
+
     companion object {
         const val GPS_UPDATE_THRESHOLD_KM = 5.0
+        const val TESTING_NOTICE_INTERVAL_MILLIS = 7L * 24 * 60 * 60 * 1000
         private const val EARTH_RADIUS_KM = 6371.0
 
         /** Haversine distance. */

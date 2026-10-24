@@ -67,7 +67,7 @@ import com.ottrojja.classes.Helpers.reportException
 import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.composables.OttrojjaDetailsContainer
 import com.ottrojja.composables.OttrojjaText
-import com.ottrojja.composables.OttrojjaWarningBar
+import com.ottrojja.composables.OttrojjaBanner
 import com.ottrojja.composables.ToastManager.classes.AppToastManager
 import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.ui.theme.complete_green
@@ -415,7 +415,7 @@ private fun CompassContent(
         // ── Top header ────────────────────────────────────────────────────────────
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                OttrojjaWarningBar(text = "الرجاء تفعيل نظام تحديد المواقع GPS ليتمكن التطبيق من تحديد إتجاه القبلة")
+                OttrojjaBanner(text = "الرجاء تفعيل نظام تحديد المواقع GPS ليتمكن التطبيق من تحديد إتجاه القبلة")
             }
             if (locationState.value != null) {
                 Row(

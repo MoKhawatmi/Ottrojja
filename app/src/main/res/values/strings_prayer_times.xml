@@ -66,6 +66,9 @@
     <string name="method_north_america">الجمعية الإسلامية لأمريكا الشمالية</string>
     <string name="method_singapore">سنغافورة</string>
     <string name="method_turkey">رئاسة الشؤون الدينية التركية</string>
+    <string name="method_diyanet_abroad">رئاسة الشؤون الدينية التركية – أوروبا والأمريكتان</string>
+    <string name="method_bosnia">المشيخة الإسلامية في البوسنة والهرسك</string>
+    <string name="method_kazakhstan">الإدارة الدينية لمسلمي كازاخستان</string>
     <string name="method_gulf">منطقة الخليج</string>
     <string name="method_jordan">وزارة الأوقاف والشؤون والمقدسات الإسلامية، الأردن</string>
     <string name="method_morocco">المغرب</string>
@@ -105,4 +108,13 @@
         <item>ذو الحجة</item>
     </string-array>
     <string name="hijri_date_format">%1$d %2$s %3$d هـ</string>
+
+    <!-- Weekly "feature in testing" dialog -->
+    <string name="prayer_testing_notice_title">ميزة قيد التجربة</string>
+    <string name="prayer_testing_notice_body">ميزة مواقيت الصلاة ما زالت في مرحلة التجربة، وقد تختلف بعض المواقيت عن المواقيت الرسمية في منطقتك بفارق يصل إلى عدة دقائق. يُرجى استخدامها بحذر، والرجوع إلى المواقيت المعتمدة في بلدك عند الشك.</string>
+    <string name="prayer_testing_notice_report">إن لاحظت أي خطأ، يُرجى مراسلتنا على البريد الإلكتروني التالي مع ذكر التفاصيل كاملة: الدولة والمدينة، وطريقة الحساب والإعدادات المستخدمة، والصلوات التي يظهر وقتها بشكل غير صحيح.</string>
+    <string name="prayer_testing_notice_send">مراسلتنا</string>
+    <string name="prayer_testing_notice_ok">حسنًا</string>
+    <string name="prayer_testing_notice_email_subject">ملاحظة حول مواقيت الصلاة</string>
+    <string name="prayer_testing_notice_email_body">المدينة: %1$s\nالدولة: %2$s\nالإحداثيات: %3$s\nطريقة الحساب: %4$s\nالمذهب في وقت العصر: %5$s\n\nالصلوات غير الصحيحة (التاريخ، الوقت في التطبيق، الوقت الصحيح ومصدره):\n- </string>
 </resources>

@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.ottrojja.screens.prayerTimesScreen.calculator.DefaultMethodResolver
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption
@@ -17,6 +18,7 @@ import com.ottrojja.screens.prayerTimesScreen.model.PrayerType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 
@@ -95,6 +97,17 @@ class PrayerTimesDataStore(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[notificationKey(type)] = mode.storageKey }
     }
 
+    /*******************TESTING NOTICE*********************/
+    /**
+     * When the "feature in testing" notice was last dismissed. Read on demand, not part of
+     * [settingsFlow], so writing it never triggers a recalculation or alarm rescheduling.
+     */
+    suspend fun testingNoticeShownAt(): Long? = safeData.first()[TESTING_NOTICE_SHOWN_AT]
+
+    suspend fun setTestingNoticeShownAt(epochMillis: Long) {
+        dataStore.edit { it[TESTING_NOTICE_SHOWN_AT] = epochMillis }
+    }
+
     private fun Preferences.readLocation(): PrayerLocation? {
         val latitude = this[LATITUDE] ?: return null
         val longitude = this[LONGITUDE] ?: return null
@@ -118,6 +131,7 @@ class PrayerTimesDataStore(private val dataStore: DataStore<Preferences>) {
         val LOCATION_SOURCE = stringPreferencesKey("location_source")
         val METHOD = stringPreferencesKey("calculation_method")
         val MADHAB = stringPreferencesKey("madhab")
+        val TESTING_NOTICE_SHOWN_AT = longPreferencesKey("testing_notice_shown_at")
 
         val notifiablePrayers = PrayerType.entries.filter { it.isNotifiable }
 

@@ -69,6 +69,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ottrojja.R
+import com.ottrojja.composables.OttrojjaBanner
+import com.ottrojja.composables.OttrojjaBannerVariant
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.composables.buttons.OttrojjaButton
 import com.ottrojja.screens.prayerTimesScreen.location.PrayerLocationPickerHost
@@ -111,6 +113,14 @@ fun PrayerTimesScreen(viewModel: PrayerTimesViewModel = viewModel()) {
         )
     }
 
+    if (viewModel.showTestingNotice) {
+        PrayerTestingNoticeDialog(
+            settings = current,
+            effectiveMethod = current?.let(viewModel::effectiveMethod),
+            onDismiss = viewModel::dismissTestingNotice,
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -123,6 +133,7 @@ fun PrayerTimesScreen(viewModel: PrayerTimesViewModel = viewModel()) {
                 isLocating = viewModel.isLocating,
                 onSetLocation = viewModel::openLocationPicker,
             )
+
             else -> PrayerTimesContent(viewModel, current, location, alertPermissions)
         }
     }
@@ -148,6 +159,7 @@ private fun PrayerTimesContent(
     val shownDay = remember(shownDate, settings) { viewModel.dayTimes(shownDate, settings) }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        OttrojjaBanner("تجريبي", OttrojjaBannerVariant.WARNING)
         PrayerAdhanDebugPanel()
 
         LocationBar(
@@ -498,7 +510,9 @@ private fun DayPage(
     alertPermissions: PrayerAlertPermissions,
 ) {
     if (day == null) {
-        Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp), contentAlignment = Alignment.Center) {
             OttrojjaText(
                 text = stringResource(R.string.prayer_times_unavailable),
                 style = OttrojjaTheme.typography.bodyMedium,

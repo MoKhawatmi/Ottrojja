@@ -111,6 +111,28 @@ class PrayerTimesViewModel(application: Application) : AndroidViewModel(applicat
     /*******************SETTINGS MODAL*********************/
     var showSettingsModal by mutableStateOf(false)
 
+    /*******************TESTING NOTICE*********************/
+    /** The weekly "feature in testing" dialog. Only this screen's ViewModel decides it. */
+    var showTestingNotice by mutableStateOf(false)
+        private set
+
+    init {
+        viewModelScope.launch {
+            try {
+                showTestingNotice = repository.shouldShowTestingNotice(System.currentTimeMillis())
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                reportException(exception = e, file = "PrayerTimesViewModel")
+            }
+        }
+    }
+
+    fun dismissTestingNotice() {
+        showTestingNotice = false
+        viewModelScope.launch { repository.markTestingNoticeShown(System.currentTimeMillis()) }
+    }
+
     fun saveCalculationSettings(method: CalculationMethodOption?, madhab: MadhabOption) {
         viewModelScope.launch { repository.saveCalculationSettings(method, madhab) }
     }

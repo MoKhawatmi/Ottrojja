@@ -2,11 +2,13 @@ package com.ottrojja.screens.prayerTimesScreen.calculator
 
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.ALGERIA
+import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.BOSNIA
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.DUBAI
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.EGYPTIAN
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.GULF
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.JAKIM
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.JORDAN
+import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.KAZAKHSTAN
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.KARACHI
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.KEMENAG
 import com.ottrojja.screens.prayerTimesScreen.model.CalculationMethodOption.KUWAIT
@@ -48,6 +50,10 @@ object DefaultMethodResolver {
         put("DZ", ALGERIA)
         put("TN", TUNISIA)
         put("TR", TURKEY)
+        // Islamic Community in Bosnia and Herzegovina (vaktija.ba), verified against Sarajevo 2026.
+        put("BA", BOSNIA)
+        // Spiritual Administration of Muslims of Kazakhstan (muftyat.kz), verified against Almaty 2026.
+        put("KZ", KAZAKHSTAN)
         listOf("PK", "IN", "BD", "AF").forEach { put(it, KARACHI) }
         put("MY", JAKIM)
         put("ID", KEMENAG)
@@ -63,9 +69,10 @@ object DefaultMethodResolver {
 
     /**
      * Countries whose official timetables use the Hanafi (later) Asr: Banuri Town (PK),
-     * Islamic Foundation Bangladesh, Afghanistan's ministry. India is predominantly Hanafi too.
+     * Islamic Foundation Bangladesh, Afghanistan's ministry, Kazakhstan's muftiate (muftyat.kz).
+     * India is predominantly Hanafi too.
      */
-    private val hanafiCountries = setOf("PK", "IN", "BD", "AF")
+    private val hanafiCountries = setOf("PK", "IN", "BD", "AF", "KZ")
 
     val fallback: CalculationMethodOption = MUSLIM_WORLD_LEAGUE
 

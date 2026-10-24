@@ -60,7 +60,7 @@ import com.ottrojja.classes.OttrojjaDateTime
 import com.ottrojja.composables.CircleStatusIndicator
 import com.ottrojja.composables.ListHorizontalDivider
 import com.ottrojja.composables.OttrojjaText
-import com.ottrojja.composables.OttrojjaWarningBar
+import com.ottrojja.composables.OttrojjaBanner
 import com.ottrojja.composables.forms.SwitchWithIcon
 import com.ottrojja.composables.TopBar
 import com.ottrojja.composables.forms.OttrojjaTimePickerDialog
@@ -205,10 +205,10 @@ fun ReminderScreen(repository: ReminderRepository) {
             mainAction = ButtonAction(icon = Icons.Default.Add, action = { reminderVM.invokeAddDialog() })
         )
         if (!notificationPermissionState) {
-            OttrojjaWarningBar(text = "الرجاء السماح للتطبيق بصلاحيات الإشعارات ليتمكن المذكر من العمل بشكل صحيح")
+            OttrojjaBanner(text = "الرجاء السماح للتطبيق بصلاحيات الإشعارات ليتمكن المذكر من العمل بشكل صحيح")
         }
         if (!exactAlarmPermissionState) {
-            OttrojjaWarningBar(text = "الرجاء السماح بالاشعارات الدقيقة في اعدادات التطبيق لعرض اشعارات المذكر بشكل دقيق")
+            OttrojjaBanner(text = "الرجاء السماح بالاشعارات الدقيقة في اعدادات التطبيق لعرض اشعارات المذكر بشكل دقيق")
         }
 
         LazyColumn {
