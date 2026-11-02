@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Resources loaded by name via getIdentifier() — must survive resource shrinking -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/p_*,@drawable/arafa,@drawable/masa,@drawable/names_of_god,@drawable/sabah,@drawable/salah,@drawable/takbeer,@drawable/talbia" />
