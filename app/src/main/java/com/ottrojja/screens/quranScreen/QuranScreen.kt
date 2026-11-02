@@ -83,6 +83,7 @@ import com.ottrojja.screens.Khitmah.SessionForm.SessionForm
 import com.ottrojja.screens.mainScreen.BrowsingOption
 import com.ottrojja.screens.quranScreen.classes.QuranReaderContext
 import com.ottrojja.screens.quranScreen.composables.Benefits
+import com.ottrojja.screens.quranScreen.composables.PlayingVerse
 import com.ottrojja.screens.quranScreen.composables.SinglePage
 import com.ottrojja.screens.quranScreen.composables.TafseerBottomSheet
 import com.ottrojja.screens.quranScreen.composables.VerseAnchor
@@ -363,6 +364,7 @@ fun QuranScreen(
                         khitmahPillClick = { showFinishSessionAlert = true; },
                         currentPageContent = quranViewModel.currentPageObject?.pageContent,
                         onShareVerse = { verse -> versesSectionViewModel.fetchChapterVerses(verse) },
+                        onPlayVerse = { verse -> quranViewModel.playSingleVerse(verse) },
                         onTafseerVerse = { verse -> openVerseSheet(verse, TafseerSheetMode.التفسير) }
                     )
                 }
@@ -527,6 +529,7 @@ fun PagesContainer(
     khitmahPillClick: () -> Unit,
     currentPageContent: List<PageContent>?,
     onShareVerse: (PageContent) -> Unit,
+    onPlayVerse: (PageContent) -> Unit,
     onTafseerVerse: (PageContent) -> Unit,
 ) {
 
@@ -552,6 +555,16 @@ fun PagesContainer(
      * Only settled pages are reported, so a long swipe does not load every page in between.
      */
     var autoScrollTarget by remember { mutableStateOf<Int?>(null) }
+
+    // Verse being recited (kept while paused, null during the basmalah and when stopped).
+    // Per-verse repetition keeps the same media item, so the highlight stays put; range repetition
+    // seeks back to the first item, so the highlight jumps back with it.
+    val playingVerse = remember(player.hasMedia, player.playingPage, player.currentSurah, player.currentVerse) {
+        val page = player.playingPage
+        val surah = player.currentSurah
+        val verse = player.currentVerse
+        if (player.hasMedia && page != null && surah != null && verse != null) PlayingVerse(page, surah, verse) else null
+    }
     val currentOnPageSettled by rememberUpdatedState(onPageSettled)
 
     LaunchedEffect(pagerState) {
@@ -616,10 +629,12 @@ fun PagesContainer(
                 pageNum = thisPage,
                 nightReadingMode = nightReadingMode,
                 pageContent = content,
+                playingVerse = playingVerse,
                 menuAnchor = verseMenu,
                 onVerseLongPress = { anchor -> verseMenu = anchor },
                 onDismissMenu = { verseMenu = null },
                 onShareVerse = onShareVerse,
+                onPlayVerse = onPlayVerse,
                 onTafseerVerse = onTafseerVerse
             )
         }
@@ -763,5 +778,3 @@ fun PagesContainer(
         }
     }
 }
-
-

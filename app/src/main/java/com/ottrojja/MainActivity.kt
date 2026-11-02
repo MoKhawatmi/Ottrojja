@@ -57,6 +57,7 @@ import com.ottrojja.classes.Toast.AppToastHost
 import com.ottrojja.composables.floatingNavigationDock.FloatingNavigationDock
 import com.ottrojja.room.database.DatabaseProvider
 import com.ottrojja.room.repositories.ReminderRepository
+import com.ottrojja.services.page.PagePlaybackManager
 
 
 class MainActivity : ComponentActivity() {
@@ -69,6 +70,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         actionBar?.hide()
+
+        // fresh open (not a rotation/restore): listening defaults like continuous page play come back
+        if (savedInstanceState == null) PagePlaybackManager.getInstance(this).onAppLaunched()
 
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark("#FF08428E".toColorInt()),

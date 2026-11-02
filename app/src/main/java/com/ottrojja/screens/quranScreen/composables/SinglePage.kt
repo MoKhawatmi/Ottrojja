@@ -45,16 +45,19 @@ private val NightModeFilter = ColorFilter.colorMatrix(
 /**
  * @param pageContent this page's rows (with polygons). Pass it only for the page the user is
  * on; null renders a plain, non-interactive image (e.g. the neighbours the pager pre-renders).
+ * @param playingVerse verse the page player is reciting; highlighted when it is on this page.
  */
 @Composable
 fun SinglePage(
     pageNum: String,
     nightReadingMode: Boolean,
     pageContent: List<PageContent>? = null,
+    playingVerse: PlayingVerse? = null,
     menuAnchor: VerseAnchor? = null,
     onVerseLongPress: (VerseAnchor) -> Unit = {},
     onDismissMenu: () -> Unit = {},
     onShareVerse: (PageContent) -> Unit = {},
+    onPlayVerse: (PageContent) -> Unit = {},
     onTafseerVerse: (PageContent) -> Unit = {},
 ) {
     val configuration = LocalConfiguration.current
@@ -68,8 +71,8 @@ fun SinglePage(
         if (isLandscape) {
             // Same as before: 75% of the width, full page height, scrollable.
             PageImage(
-                pageNum, nightReadingMode, pageContent,
-                menuAnchor, onVerseLongPress, onDismissMenu, onShareVerse, onTafseerVerse,
+                pageNum, nightReadingMode, pageContent, playingVerse,
+                menuAnchor, onVerseLongPress, onDismissMenu, onShareVerse, onPlayVerse, onTafseerVerse,
                 modifier = Modifier
                     .fillMaxWidth(0.75f)
                     .aspectRatio(PAGE_ASPECT_RATIO)
@@ -84,8 +87,8 @@ fun SinglePage(
                     .fillMaxHeight(0.92f)
             ) {
                 PageImage(
-                    pageNum, nightReadingMode, pageContent,
-                    menuAnchor, onVerseLongPress, onDismissMenu, onShareVerse, onTafseerVerse,
+                    pageNum, nightReadingMode, pageContent, playingVerse,
+                    menuAnchor, onVerseLongPress, onDismissMenu, onShareVerse, onPlayVerse, onTafseerVerse,
                     modifier = Modifier.aspectRatio(PAGE_ASPECT_RATIO)
                 )
             }
@@ -126,10 +129,12 @@ private fun PageImage(
     pageNum: String,
     nightReadingMode: Boolean,
     pageContent: List<PageContent>?,
+    playingVerse: PlayingVerse?,
     menuAnchor: VerseAnchor?,
     onVerseLongPress: (VerseAnchor) -> Unit,
     onDismissMenu: () -> Unit,
     onShareVerse: (PageContent) -> Unit,
+    onPlayVerse: (PageContent) -> Unit,
     onTafseerVerse: (PageContent) -> Unit,
     modifier: Modifier,
 ) {
@@ -148,10 +153,12 @@ private fun PageImage(
             VerseInteractionLayer(
                 pageContent = pageContent,
                 nightReadingMode = nightReadingMode,
+                playingVerse = playingVerse,
                 menuAnchor = menuAnchor,
                 onVerseLongPress = onVerseLongPress,
                 onDismissMenu = onDismissMenu,
                 onShareVerse = onShareVerse,
+                onPlayVerse = onPlayVerse,
                 onTafseerVerse = onTafseerVerse,
                 modifier = Modifier.matchParentSize()
             )

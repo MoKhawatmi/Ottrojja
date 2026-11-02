@@ -38,6 +38,18 @@ class PagePlaybackManager private constructor(context: Context) {
     )
     private val controller get() = connection.controller
 
+    /**
+     * Called when the app is opened fresh (new MainActivity, not a rotation). The process often
+     * outlives "closing" the app (reminder overlay / media services keep it alive), so continuous
+     * playback is turned back ON here instead of relying on process death. Left alone while a
+     * session is loaded, so reopening during playback/pause does not change what is playing.
+     */
+    fun onAppLaunched() {
+        val s = _state.value
+        if (s.hasMedia || s.isDownloading) return
+        _state.update { it.copy(options = it.options.copy(continuous = PageListeningOptions().continuous)) }
+    }
+
     /** Called when the Quran screen goes away; keeps the connection while playing or downloading. */
     fun releaseIfIdle() = connection.releaseIfIdle()
 

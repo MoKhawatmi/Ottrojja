@@ -179,7 +179,8 @@ class QuranViewModel(
 
     /*****************************LISTENING OPTIONS***********************************/
 
-    private var _continuousPlay = mutableStateOf(false)
+    // ON by default (PageListeningOptions.continuous); init {} copies the app-scoped value over it
+    private var _continuousPlay = mutableStateOf(true)
     var continuousPlay: Boolean
         get() = _continuousPlay.value
         set(value) {
@@ -387,6 +388,31 @@ class QuranViewModel(
             ),
             currentOptions()
         )
+    }
+
+    /**
+     * Play button on the long-press verse card: sets the listening range to just [verse],
+     * 0 repetitions, then plays. The listening dialog shows the same selection afterwards.
+     */
+    fun playSingleVerse(verse: PageContent) {
+        val page = verse.pageNum.toIntOrNull() ?: return
+
+        // the card only opens on the displayed page, so its rows are already loaded
+        _currentPageObject?.takeIf { it.page.pageNum == verse.pageNum }?.let {
+            _selectionVersesList.value = it.pageContent
+            _selectionEndVersesList.value = it.pageContent
+        }
+        _startPlayingPage.value = page
+        _endPlayingPage.value = page
+        _selectedVerse = verse
+        _selectedEndVerse = verse
+
+        // backing fields, not the setters: play() below sends the options anyway,
+        // so there's no need for extra updateOptions() calls to the service first
+        _selectedRepetition = "0"
+        _continuousPlay.value = false
+
+        prepareForPlaying()
     }
 
     fun pausePlaying() = playbackManager.pause()

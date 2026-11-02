@@ -81,7 +81,8 @@ data class PagePlaybackRequest(
 data class PageListeningOptions(
     val repetition: String = "0",
     val repeatRange: Boolean = false,
-    val continuous: Boolean = false,
+    /** ON by default: pages play one after another unless the user turns it off (kept for the app process). */
+    val continuous: Boolean = true,
 ) {
     fun toBundle() = Bundle().apply {
         putInt(PagePlaybackProtocol.KEY_REPETITIONS, repetitionOptionsMap[repetition] ?: 0)

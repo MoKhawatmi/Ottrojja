@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -131,6 +132,10 @@ private fun IntArray.containsPoint(x: Float, y: Float): Boolean {
 
 /* ───────────────────────────── Interaction layer ───────────────────────────── */
 
+/** The verse the page player is reciting right now (from PagePlayerState). */
+@Immutable
+data class PlayingVerse(val page: Int, val surah: Int, val verse: Int)
+
 /**
  * What a long press produced: the verse plus where to anchor the card, in the PAGE BOX's own
  * pixel coordinates (the same space the highlight is drawn in). No window/root conversion is
@@ -156,16 +161,29 @@ class VerseAnchor(
 fun VerseInteractionLayer(
     pageContent: List<PageContent>,
     nightReadingMode: Boolean,
+    playingVerse: PlayingVerse?,
     menuAnchor: VerseAnchor?,
     onVerseLongPress: (VerseAnchor) -> Unit,
     onDismissMenu: () -> Unit,
     onShareVerse: (PageContent) -> Unit,
+    onPlayVerse: (PageContent) -> Unit,
     onTafseerVerse: (PageContent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val regions = remember(pageContent) { buildVerseRegions(pageContent) }
     val highlight = if (nightReadingMode) Color(0xFFFFD54F).copy(alpha = 0.30f)
     else MaterialTheme.colorScheme.primary.copy(alpha = 0.20f)
+    // lighter than the long-press highlight, so an open card's verse still stands out
+    val playingHighlight = if (nightReadingMode) Color(0xFFFFD54F).copy(alpha = 0.18f)
+    else MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+
+    val playingRegion = remember(regions, playingVerse) {
+        playingVerse?.let { pv ->
+            regions.firstOrNull {
+                it.verse.pageNum == pv.page.toString() && it.verse.surahNum == pv.surah && it.verse.verseNum == pv.verse
+            }
+        }
+    }
 
     BoxWithConstraints(modifier) {
         val boxHeight = constraints.maxHeight.toFloat()
@@ -174,6 +192,8 @@ fun VerseInteractionLayer(
             regions = regions,
             highlighted = regions.firstOrNull { it.verse.id == menuAnchor?.verse?.id },
             highlightColor = highlight,
+            playing = playingRegion,
+            playingColor = playingHighlight,
             onVerseLongPress = { region, position ->
                 val sy = boxHeight / PAGE_SRC_HEIGHT
                 val linePx = SRC_LINE_PITCH * sy
@@ -195,6 +215,7 @@ fun VerseInteractionLayer(
             VerseMenuHost(
                 anchor = menuAnchor,
                 onDismiss = onDismissMenu,
+                onPlay = onPlayVerse,
                 onShare = onShareVerse,
                 onTafseer = onTafseerVerse,
                 modifier = Modifier.matchParentSize()
@@ -214,6 +235,9 @@ fun QuranPageOverlay(
     highlightColor: Color,
     onVerseLongPress: (VerseRegion, Offset) -> Unit,
     modifier: Modifier = Modifier,
+    /** Verse being recited; drawn under [highlighted] (skipped when it is the same verse). */
+    playing: VerseRegion? = null,
+    playingColor: Color = highlightColor,
 ) {
     val haptics = LocalHapticFeedback.current
     val currentOnLongPress by rememberUpdatedState(onVerseLongPress)
@@ -246,23 +270,32 @@ fun QuranPageOverlay(
             }
             .drawWithCache {
                 val region = highlighted
+                val playingRegion = playing?.takeIf { it !== region }
                 val sx = size.width / PAGE_SRC_WIDTH
                 val sy = size.height / PAGE_SRC_HEIGHT
-                val path = Path()
-                region?.polygons?.forEach { p ->
-                    path.moveTo(p[0] * sx, p[1] * sy)
-                    var i = 2
-                    while (i < p.size) {
-                        path.lineTo(p[i] * sx, p[i + 1] * sy)
-                        i += 2
-                    }
-                    path.close()
-                }
+                val path = region?.toPath(sx, sy)
+                val playingPath = playingRegion?.toPath(sx, sy)
                 onDrawBehind {
-                    if (region != null) drawPath(path, highlightColor)
+                    if (playingPath != null) drawPath(playingPath, playingColor)
+                    if (path != null) drawPath(path, highlightColor)
                 }
             }
     )
+}
+
+/** All polygons of a verse as one path, scaled from the 740×1150 source grid. */
+private fun VerseRegion.toPath(sx: Float, sy: Float): Path {
+    val path = Path()
+    polygons.forEach { p ->
+        path.moveTo(p[0] * sx, p[1] * sy)
+        var i = 2
+        while (i < p.size) {
+            path.lineTo(p[i] * sx, p[i + 1] * sy)
+            i += 2
+        }
+        path.close()
+    }
+    return path
 }
 
 /* ───────────────────────────── Floating card ───────────────────────────── */
@@ -276,6 +309,7 @@ fun QuranPageOverlay(
 private fun VerseMenuHost(
     anchor: VerseAnchor,
     onDismiss: () -> Unit,
+    onPlay: (PageContent) -> Unit,
     onShare: (PageContent) -> Unit,
     onTafseer: (PageContent) -> Unit,
     modifier: Modifier = Modifier,
@@ -292,6 +326,7 @@ private fun VerseMenuHost(
             key(anchor) {
                 VerseActionsCard(
                     verse = anchor.verse,
+                    onPlay = { currentOnDismiss(); onPlay(anchor.verse) },
                     onShare = { currentOnDismiss(); onShare(anchor.verse) },
                     onTafseer = { currentOnDismiss(); onTafseer(anchor.verse) },
                 )
@@ -326,6 +361,7 @@ private fun VerseMenuHost(
 @Composable
 private fun VerseActionsCard(
     verse: PageContent,
+    onPlay: () -> Unit,
     onShare: () -> Unit,
     onTafseer: () -> Unit,
 ) {
@@ -374,7 +410,16 @@ private fun VerseActionsCard(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // RTL: the first item sits at the right edge (start), before share.
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        VerseMenuAction(
+                            text = null,
+                            contentDescription = "تشغيل الآية",
+                            icon = Icons.Default.PlayArrow,
+                            background = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                            content = MaterialTheme.colorScheme.primary,
+                            onClick = onPlay,
+                        )
                         VerseMenuAction(
                             text = "مشاركة",
                             icon = Icons.Default.Share,
@@ -398,14 +443,16 @@ private fun VerseActionsCard(
     }
 }
 
+/** A card action. With [text] null it is icon-only and takes only the room it needs. */
 @Composable
 private fun VerseMenuAction(
-    text: String,
+    text: String?,
     icon: ImageVector,
     background: Color,
     content: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    contentDescription: String? = null,
 ) {
     Row(
         horizontalArrangement = Arrangement.Center,
@@ -414,10 +461,12 @@ private fun VerseMenuAction(
             .clip(RoundedCornerShape(12.dp))
             .background(background)
             .clickable(onClick = onClick)
-            .padding(vertical = 10.dp, horizontal = 12.dp)
+            .padding(vertical = 10.dp, horizontal = if (text == null) 10.dp else 12.dp)
     ) {
-        Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(18.dp))
-        Spacer(modifier = Modifier.width(6.dp))
-        OttrojjaText(text = text, style = OttrojjaTheme.typography.bodyMedium, color = content)
+        Icon(icon, contentDescription = contentDescription, tint = content, modifier = Modifier.size(18.dp))
+        /*if (text != null) {
+            Spacer(modifier = Modifier.width(6.dp))
+            OttrojjaText(text = text, style = OttrojjaTheme.typography.bodyMedium, color = content)
+        }*/
     }
 }
