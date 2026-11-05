@@ -437,30 +437,33 @@ class PagePlaybackService : MediaSessionService() {
 
         val files = mutableListOf<String>()
         val items = mutableListOf<MediaItem>()
-        verses.forEach { verse ->
-            val page = verse.pageNum.toInt()
-            val verseNum = verse.verseNum!!
-            val surahName = chapterNames[verse.surahNum].orEmpty()
+        // builds the file uris (disk access through PageAudio), so never on the main thread
+        withContext(Dispatchers.IO) {
+            verses.forEach { verse ->
+                val page = verse.pageNum.toInt()
+                val verseNum = verse.verseNum!!
+                val surahName = chapterNames[verse.surahNum].orEmpty()
 
-            // basmalah at the start of each surah except Al-Fatiha (its verse 1 is the basmalah) and At-Tawbah
-            if (verseNum == 1 && verse.surahNum != 1 && verse.surahNum != 9) {
-                files += PageAudio.BASMALAH_FILE
+                // basmalah at the start of each surah except Al-Fatiha (its verse 1 is the basmalah) and At-Tawbah
+                if (verseNum == 1 && verse.surahNum != 1 && verse.surahNum != 9) {
+                    files += PageAudio.BASMALAH_FILE
+                    items += buildItem(
+                        mediaId = PageAudio.basmalahMediaId(page, verse.surahNum),
+                        fileName = PageAudio.BASMALAH_FILE,
+                        title = "البسملة - سورة $surahName",
+                        subtitle = "الصفحة $page",
+                    )
+                }
+
+                val file = PageAudio.verseFile(verse)
+                files += file
                 items += buildItem(
-                    mediaId = PageAudio.basmalahMediaId(page, verse.surahNum),
-                    fileName = PageAudio.BASMALAH_FILE,
-                    title = "البسملة - سورة $surahName",
+                    mediaId = PageAudio.verseMediaId(page, verse.surahNum, verseNum),
+                    fileName = file,
+                    title = "سورة $surahName - الآية $verseNum",
                     subtitle = "الصفحة $page",
                 )
             }
-
-            val file = PageAudio.verseFile(verse)
-            files += file
-            items += buildItem(
-                mediaId = PageAudio.verseMediaId(page, verse.surahNum, verseNum),
-                fileName = file,
-                title = "سورة $surahName - الآية $verseNum",
-                subtitle = "الصفحة $page",
-            )
         }
 
         if (!ensureDownloaded(files.distinct(), allowNotification)) return null

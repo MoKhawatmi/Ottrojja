@@ -18,7 +18,22 @@ object PageAudio {
     fun verseFile(verse: PageContent) = "${verse.pageNum}-${verse.surahNum}-${verse.verseNum}.mp3"
     fun url(fileName: String) = "$CDN/$fileName"
 
-    fun localFile(context: Context, fileName: String) = File(context.getExternalFilesDir(null), fileName)
+    @Volatile
+    private var audioDir: File? = null
+
+    /**
+     * getExternalFilesDir() does stat()/mkdir() disk work on every call, which caused an ANR when
+     * it ran on the main thread for each verse of a page. Resolved once and cached; the first
+     * call should happen off the main thread (PagePlaybackService builds its items on IO).
+     * getExternalFilesDir() returns null while external storage is unavailable; that is not
+     * cached (so the next call retries) and internal storage is used for that call instead.
+     */
+    fun audioDir(context: Context): File =
+        audioDir ?: synchronized(this) {
+            audioDir ?: context.getExternalFilesDir(null)?.also { audioDir = it } ?: context.filesDir
+        }
+
+    fun localFile(context: Context, fileName: String) = File(audioDir(context), fileName)
     fun localUri(context: Context, fileName: String): Uri = Uri.fromFile(localFile(context, fileName))
 
     /** Where an item sits in the mushaf. [verse] is null for a basmalah item. */
