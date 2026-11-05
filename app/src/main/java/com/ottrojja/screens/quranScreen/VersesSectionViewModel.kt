@@ -151,31 +151,42 @@ class VersesSectionViewModel(private val repository: QuranRepository, applicatio
 
     fun validateSelection(): Boolean = selectedVerses(showErrors = true) != null
 
+    private val RLM = "\u200F"          // Right-to-Left Mark
+    private val QURAN_OPEN = "\uFD3F"   // ﴿
+    private val QURAN_CLOSE = "\uFD3E"  // ﴾
+
     fun shareVerses() {
         val selected = selectedVerses(showErrors = true) ?: return
         val first = selected.first()
         val last = selected.last()
 
-        val versesRange =
-            if (first.verseNum == last.verseNum) "${first.verseNum}" else "${first.verseNum} - ${last.verseNum}"
-        val shareVersesText = selected.joinToString(separator = "") { "${it.verseText} {${Helpers.convertToIndianNumbers("${it.verseNum}")}} " }
+        val firstNum = Helpers.convertToIndianNumbers("${first.verseNum}")
+        val lastNum = Helpers.convertToIndianNumbers("${last.verseNum}")
+        val versesRange = if (first.verseNum == last.verseNum) firstNum else "$firstNum - $lastNum"
+
+        val shareVersesText = selected.joinToString(separator = " ") {
+            "${it.verseText} (${Helpers.convertToIndianNumbers("${it.verseNum}")})$RLM"
+        }
 
         viewModelScope.launch(Dispatchers.IO) {
             val chapterName = _shareChapter.value?.chapterName
-            val sendIntent: Intent = Intent().apply {
+            val text = buildString {
+                append(RLM).append(QURAN_OPEN).append(' ')
+                append(shareVersesText)
+                append(' ').append(QURAN_CLOSE).append(RLM)
+                append("\n").append(RLM).append("سورة ").append(chapterName).append(": ").append(versesRange).append(RLM)
+                append("\n").append(context.resources.getString(R.string.share_app))
+            }
+
+            val sendIntent = Intent().apply {
                 action = Intent.ACTION_SEND
                 putExtra(Intent.EXTRA_SUBJECT, "آيات قرآنية")
                 putExtra(Intent.EXTRA_TITLE, "تطبيق اترجة")
-                putExtra(
-                    Intent.EXTRA_TEXT,
-                    "{${shareVersesText}} \n سورة ${chapterName}: $versesRange\n${context.resources.getString(R.string.share_app)}"
-                )
+                putExtra(Intent.EXTRA_TEXT, text)
                 type = "text/plain"
             }
-
-            val shareIntent =
-                Intent.createChooser(sendIntent, "مشاركة")
-            shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            val shareIntent = Intent.createChooser(sendIntent, "مشاركة")
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             ContextCompat.startActivity(context, shareIntent, null)
         }
     }
