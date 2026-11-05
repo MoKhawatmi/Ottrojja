@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -796,6 +797,16 @@ class QuranViewModel(
                 .distinctUntilChanged()
                 .filterNotNull()
                 .collect { segment -> applySegmentToSelection(segment) }
+        }
+
+        // continuous ON disables the selectors, so when playback ends the selection goes back to the
+        // displayed page (the user may have swiped away from the page that was playing)
+        viewModelScope.launch {
+            playbackManager.state
+                .map { it.hasMedia || it.isDownloading }
+                .distinctUntilChanged()
+                .filter { active -> !active }
+                .collect { if (_continuousPlay.value) takeOnCurrentPageVerses() }
         }
     }
 

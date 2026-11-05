@@ -16,8 +16,8 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * Downloads missing verse files for the page player, a few at a time.
  * Stops everything on the first failure; cancelling the calling coroutine cancels the downloads.
- * A file that did not finish downloading is deleted, so a half-written file is never treated as
- * downloaded later.
+ * DownloadWorker moves a file into place only once it is complete (atomic rename), so a half-written
+ * file is never treated as downloaded later and there is nothing to clean up here.
  */
 class VerseAudioDownloader(private val context: Context) {
 
@@ -48,28 +48,21 @@ class VerseAudioDownloader(private val context: Context) {
     }
 
     private suspend fun downloadOne(fileName: String) {
-        val localFile = PageAudio.localFile(context, fileName)
-        var completed = false
-        try {
-            val state = FileDownloader.download(
-                context = context,
-                url = PageAudio.url(fileName),
-                relativePath = fileName,
-                storageBase = StorageBase.EXTERNAL_FILES_DIR
-            ).first { it !is DownloadState.Running }
+        val state = FileDownloader.download(
+            context = context,
+            url = PageAudio.url(fileName),
+            relativePath = fileName,
+            storageBase = StorageBase.EXTERNAL_FILES_DIR
+        ).first { it !is DownloadState.Running }
 
-            if (state is DownloadState.Failure) {
-                state.error.printStackTrace()
-                reportException(
-                    exception = state.error,
-                    file = "VerseAudioDownloader",
-                    details = "Cancellation or Failure to download verse file; link: /verses/$fileName"
-                )
-                throw DownloadFailed(state.error)
-            }
-            completed = true
-        } finally {
-            if (!completed) localFile.delete()
+        if (state is DownloadState.Failure) {
+            state.error.printStackTrace()
+            reportException(
+                exception = state.error,
+                file = "VerseAudioDownloader",
+                details = "Cancellation or Failure to download verse file; link: /verses/$fileName"
+            )
+            throw DownloadFailed(state.error)
         }
     }
 

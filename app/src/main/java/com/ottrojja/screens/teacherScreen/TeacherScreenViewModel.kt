@@ -1,7 +1,6 @@
 package com.ottrojja.screens.teacherScreen
 
 import android.app.Application
-import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +30,7 @@ import com.ottrojja.composables.ToastManager.classes.AppToastManager
 import com.ottrojja.composables.ToastManager.classes.AppToastType
 import com.ottrojja.composables.quranRangeSelector.QuranRangeState
 import com.ottrojja.room.entities.ChapterData
+import com.ottrojja.services.page.PageAudio
 import com.ottrojja.screens.teacherScreen.classes.TeacherMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -352,7 +352,7 @@ class TeacherScreenViewModel(
             )
             return;
         }
-        val tempFile = File.createTempFile("temp_", ".mp3", context.getExternalFilesDir(null))
+        val tempFile = File.createTempFile("temp_", ".mp3", PageAudio.audioDir(context))
 
         _isDownloading.value = true;
 
@@ -417,10 +417,7 @@ class TeacherScreenViewModel(
             return;
         }
         val path = "${_currentVerse.value?.pageNum}-${_currentVerse.value?.surahNum}-${_currentVerse.value?.verseNum}.mp3"
-        val localFile = File(
-            context.getExternalFilesDir(null),
-            path
-        )
+        val localFile = PageAudio.localFile(context, path)
         if (!localFile.exists()) {
             println("need to download verse first")
             downloadVerse(localFile)
@@ -431,8 +428,7 @@ class TeacherScreenViewModel(
 
         try {
             exoPlayer.apply {
-                val mediaItem =
-                    MediaItem.fromUri(Uri.fromFile(File(context.getExternalFilesDir(null), path)))
+                val mediaItem = MediaItem.fromUri(PageAudio.localUri(context, path))
                 setMediaItem(mediaItem)
                 prepare()
                 play()
