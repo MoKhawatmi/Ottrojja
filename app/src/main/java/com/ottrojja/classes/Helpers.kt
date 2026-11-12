@@ -121,7 +121,8 @@ object Helpers {
             return when {
                 activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
                 activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-                // Other transports like Bluetooth, Ethernet, etc.
+                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true // docked tablets, TV boxes
+                // Other transports like Bluetooth etc.
                 else -> false
             }
         } else {

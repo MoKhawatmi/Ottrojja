@@ -2,6 +2,7 @@ package com.ottrojja.room.repositories
 
 import androidx.room.Transaction
 import com.ottrojja.classes.QuranRangeException
+import com.ottrojja.classes.SupabaseProvider
 import com.ottrojja.composables.quranRangeSelector.QuranRangeState
 import com.ottrojja.room.dao.KhitmahDao
 import com.ottrojja.room.dao.QuranDao
@@ -28,6 +29,7 @@ import com.ottrojja.room.relations.QuranPageWithContent
 import com.ottrojja.screens.Khitmah.classes.KhitmahListItem
 import com.ottrojja.screens.Khitmah.classes.SurahVerseRange
 import com.ottrojja.screens.mainScreen.PartData
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.Flow
 
 class QuranRepository(private val quranDao: QuranDao,
@@ -261,6 +263,16 @@ class QuranRepository(private val quranDao: QuranDao,
         tafseer: String
     ): TafseerData {
         return quranDao.getVerseTafseerData(surahNum, verseNum, tafseer)
+    }
+
+    /** Online-only tafaseer (Supabase table tafseer_data). Returns "" if the verse has no row. Never cached. */
+    suspend fun getOnlineVerseTafseerText(surahNum: String, verseNum: String, tafseer: String): String {
+        return SupabaseProvider.client.postgrest["tafseer_data"]
+            .select {
+                filter { eq("id", "${tafseer}_${surahNum}_${verseNum}") }
+            }
+            .decodeSingleOrNull<TafseerData>()
+            ?.text ?: ""
     }
 
     suspend fun getTafseersCount(): Int {

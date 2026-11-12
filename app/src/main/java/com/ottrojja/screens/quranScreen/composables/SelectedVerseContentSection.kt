@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.Helpers.copyToClipboard
 import com.ottrojja.classes.Helpers.truncate
 import com.ottrojja.composables.OttrojjaElevatedButton
+import com.ottrojja.composables.OttrojjaLoadingIndicator
 import com.ottrojja.composables.OttrojjaTabs
 import com.ottrojja.composables.OttrojjaText
 import com.ottrojja.screens.quranScreen.TafseerSheetMode
@@ -70,6 +72,7 @@ fun SelectedVerseContentSection(
     tafseerChapterVerse: String,
     tafseerSheetMode: TafseerSheetMode,
     changeTafseerSheetMode: (TafseerSheetMode) -> Unit,
+    isLoading: Boolean = false, // online tafseer being fetched
     content: @Composable () -> Unit = {}
 ) {
 
@@ -173,7 +176,17 @@ fun SelectedVerseContentSection(
                         textAlign = TextAlign.Right,
                     )
                 }
-
+                if (isLoading) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp)
+                    ) {
+                        OttrojjaLoadingIndicator()
+                    }
+                }
+//لم يرد
                 text.forEach {
                     OttrojjaText(
                         text = it.text,

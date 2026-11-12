@@ -33,6 +33,7 @@ import com.ottrojja.services.page.PagePlaybackManager
 import com.ottrojja.services.page.PagePlaybackRequest
 import com.ottrojja.services.page.PagePlayerState
 import com.ottrojja.services.page.PageSegment
+import io.github.jan.supabase.exceptions.HttpRequestException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -571,20 +572,12 @@ class QuranViewModel(
 
     fun updateSelectedTafseer(value: String) {
         _selectedTafseer = value;
-        viewModelScope.launch(Dispatchers.IO) {
-            val surah = _tafseerTargetVerse?.surahNum.toString()
-            val verse = _tafseerTargetVerse?.verseNum.toString()
-            _verseTafseer = listOf(TafseerContent(repository.getVerseTafseerData(
-                surah,
-                verse,
-                tafseerNamesMap.get(value)!!
-            ).text
-            )
-            )
-        }
+        loadTafseer(_tafseerTargetVerse)
     }
 
-    val tafseerNamesMap = hashMapOf<String, String>(
+    // linkedMapOf keeps this order in the selection list (online tafaseer last).
+    // LinkedHashMap is a HashMap, so SelectTafseerDialog's parameter type is unchanged.
+    val tafseerNamesMap = linkedMapOf<String, String>(
         "تفسير البغوي" to "baghawy",
         "تفسير الجلالين" to "jalalayn",
         "تفسير ابن كثير" to "katheer",
@@ -592,7 +585,85 @@ class QuranViewModel(
         "تفسير القرطبي" to "qortoby",
         "تفسير السعدي" to "saadi",
         "تفسير الوسيط" to "waseet",
+        "تفسير ابن ابي زمنين" to "abi_zamanin",
+        "تفسير الطبري" to "tabari",
+        "التحرير والتنوير" to "tanwir",
     )
+
+    /** Tafaseer that only exist in Supabase (table tafseer_data), never stored on the device. */
+    private val onlineTafseerKeys = setOf("tabari", "tanwir")
+
+    /** Display names of the online tafaseer, for the (اونلاين) hint in the selection list. */
+    val onlineTafaseer: Set<String> =
+        tafseerNamesMap.filterValues { it in onlineTafseerKeys }.keys
+
+    private var tafseerJob: Job? = null
+
+    private var _tafseerLoading by mutableStateOf(false)
+    val tafseerLoading: Boolean
+        get() = _tafseerLoading
+
+    /** Connection problems (offline, timeout, DNS) are expected for online tafaseer and not reported. */
+    private fun isNetworkError(e: Throwable): Boolean =
+        e is IOException || e is HttpRequestException || e.cause?.let { isNetworkError(it) } == true
+
+    /**
+     * Loads the selected tafseer for [verse]. Offline tafaseer come from Room, online ones from
+     * Supabase. Each call cancels the previous one, so tapping next/previous quickly can't let a
+     * slower, older response overwrite the newer verse.
+     */
+    private fun loadTafseer(verse: PageContent?) {
+        tafseerJob?.cancel()
+        _tafseerLoading = false
+        val target = verse ?: return
+        val surah = target.surahNum.toString()
+        val aya = target.verseNum?.toString() ?: return
+        val source = tafseerNamesMap[_selectedTafseer] ?: return
+        val online = source in onlineTafseerKeys
+
+        if (online) {
+            _verseTafseer = emptyList() // the sheet shows OttrojjaLoadingIndicator instead
+            _tafseerLoading = true
+        }
+
+        tafseerJob = viewModelScope.launch {
+            val text: String? = try {
+                withContext(Dispatchers.IO) {
+                    when {
+                        !online -> repository.getVerseTafseerData(surah, aya, source).text
+                        !Helpers.checkNetworkConnectivity(context) -> null
+                        else -> repository.getOnlineVerseTafseerText(surah, aya, source)
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // a dropped connection is expected here; anything else (server error...) gets reported
+                if (!online || !isNetworkError(e)) {
+                    e.printStackTrace()
+                    reportException(exception = e, file = "QuranViewModel")
+                }
+                if (online) null else ""
+            }
+
+            _tafseerLoading = false
+            if (text == null) {
+                AppToastManager.show(
+                    message = "يتطلب هذا التفسير اتصالا بالإنترنت",
+                    type = AppToastType.ERROR
+                )
+            }
+            _verseTafseer = listOf(
+                TafseerContent(
+                    text = when {
+                        text == null -> "هذا التفسير متاح عبر الإنترنت فقط، يرجى الاتصال بالإنترنت لعرضه"
+                        text.isBlank() -> "لم يرد في المرجع تفسير للآية"
+                        else -> text
+                    }
+                )
+            )
+        }
+    }
 
     private var _tafseerChapterVerse by mutableStateOf("")
     val tafseerChapterVerse: String
@@ -602,6 +673,7 @@ class QuranViewModel(
     var tafseerTargetVerse: PageContent?
         get() = _tafseerTargetVerse
         set(value) {
+            loadTafseer(value) // offline from Room, online from Supabase (own cancellable job)
             viewModelScope.launch(Dispatchers.IO) {
                 _tafseerTargetVerse = value
                 val surah = value?.surahNum.toString()
@@ -613,7 +685,6 @@ class QuranViewModel(
                     _tafseerChapterVerse = ""
                 }
 
-                _verseTafseer = listOf(TafseerContent(text = repository.getVerseTafseerData(surah, verse, tafseerNamesMap.get(_selectedTafseer)!!).text))
                 _verseE3rab = listOf(TafseerContent(text = repository.getVerseE3rabData(surah, verse).text))
                 val causesOfRevelation = repository.getCauseOfRevelation(surah, verse)
                 if (causesOfRevelation.size == 0) {

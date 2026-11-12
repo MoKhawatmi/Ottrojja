@@ -26,7 +26,8 @@ import com.ottrojja.ui.theme.OttrojjaTheme
 fun SelectTafseerDialog(
     onDismissRequest: () -> Unit,
     onOptionClick: (String) -> Unit,
-    tafseerMap: HashMap<String, String>
+    tafseerMap: HashMap<String, String>,
+    onlineTafaseer: Set<String> = emptySet()  // display names that need internet
 ) {
 
     OttrojjaItemSelectionDialog(
@@ -42,7 +43,8 @@ fun SelectTafseerDialog(
                 .padding(6.dp)
             ) {
                 OttrojjaText(
-                    text = item,
+                    // hint only in the list; the selected value stays the plain name
+                    text = if (item in onlineTafaseer) "$item (اونلاين)" else item,
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Right,
                     color = MaterialTheme.colorScheme.primary,

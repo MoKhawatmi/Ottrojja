@@ -144,11 +144,11 @@ fun QuranScreen(
     when (readerContext) {
 
         QuranReaderContext.Normal -> {
-            println(readerContext)
+          //  println(readerContext)
         }
 
         is QuranReaderContext.Khitmah -> {
-            println(readerContext)
+           // println(readerContext)
         }
     }
 
@@ -407,7 +407,9 @@ fun QuranScreen(
                 targetNextVerse = { quranViewModel.targetNextVerse() },
                 targetPreviousVerse = { quranViewModel.targetPreviousVerse() },
                 tafseerChapterVerse = quranViewModel.tafseerChapterVerse,
-                changeTafseerSheetMode = { mode -> quranViewModel.tafseerSheetMode = mode }
+                changeTafseerSheetMode = { mode -> quranViewModel.tafseerSheetMode = mode },
+                // only the تفسير tab loads online; the other tabs are always local
+                isLoading = quranViewModel.tafseerSheetMode == TafseerSheetMode.التفسير && quranViewModel.tafseerLoading
             )
 
             ShareVersesHost(versesSectionViewModel, repository)
@@ -501,7 +503,8 @@ fun QuranScreen(
                 quranViewModel.updateSelectedTafseer(selectedTafseer);
                 quranViewModel.showTafseerOptions = false
             },
-            quranViewModel.tafseerNamesMap
+            quranViewModel.tafseerNamesMap,
+            onlineTafaseer = quranViewModel.onlineTafaseer
         )
     }
 }

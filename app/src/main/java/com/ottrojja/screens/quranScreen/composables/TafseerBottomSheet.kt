@@ -46,7 +46,8 @@ fun TafseerBottomSheet(
     targetNextVerse: () -> Unit,
     targetPreviousVerse: () -> Unit,
     tafseerChapterVerse: String,
-    changeTafseerSheetMode: (TafseerSheetMode) -> Unit
+    changeTafseerSheetMode: (TafseerSheetMode) -> Unit,
+    isLoading: Boolean = false
 ) {
     // CHANGED: open fully expanded so an upward swipe scrolls the text instead of growing the sheet
     val modalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -65,10 +66,10 @@ fun TafseerBottomSheet(
                 verseText = verseText,
                 text = contentText,
                 copiedMessage = when (mode) {
-                    TafseerSheetMode.التفسير -> "تم نسخ التفسير بنجاح"            // CHANGED: تسخ -> نسخ
-                    TafseerSheetMode.الإعراب -> "تم نسخ الإعراب بنجاح"            // CHANGED
-                    TafseerSheetMode.أسباب_النزول -> "تم نسخ سبب النزول بنجاح"     // CHANGED
-                    TafseerSheetMode.معاني_المفردات -> "تم نسخ معاني المفردات بنجاح" // CHANGED
+                    TafseerSheetMode.التفسير -> "تم نسخ التفسير بنجاح"
+                    TafseerSheetMode.الإعراب -> "تم نسخ الإعراب بنجاح"
+                    TafseerSheetMode.أسباب_النزول -> "تم نسخ سبب النزول بنجاح"
+                    TafseerSheetMode.معاني_المفردات -> "تم نسخ معاني المفردات بنجاح"
                     TafseerSheetMode.المشابهات -> "تم نسخ الآيات المشابهات بنجاح"
                 },
                 atFirstVerse = atFirstVerse,
@@ -77,7 +78,8 @@ fun TafseerBottomSheet(
                 targetPreviousVerse = { targetPreviousVerse() },
                 tafseerChapterVerse = tafseerChapterVerse,
                 tafseerSheetMode = mode,
-                changeTafseerSheetMode = { mode -> changeTafseerSheetMode(mode) }
+                changeTafseerSheetMode = { mode -> changeTafseerSheetMode(mode) },
+                isLoading = isLoading
             ) {
                 if (mode == TafseerSheetMode.التفسير) {
                     Row(horizontalArrangement = Arrangement.SpaceBetween,
