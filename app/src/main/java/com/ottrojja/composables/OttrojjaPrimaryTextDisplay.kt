@@ -19,16 +19,30 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ottrojja.classes.Helpers
 import com.ottrojja.ui.theme.OttrojjaTheme
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
+
+/** Corner ornament drawn behind the text of [OttrojjaPrimaryTextDisplay]. */
+enum class OttrojjaOrnament {
+    /** Eight-pointed star: the classic {8/3} star around the khatam (two interlaced squares). */
+    Khatam,
+
+    /** Twelve-fold star: four interlaced triangles around three interlaced squares. */
+    Najma,
+
+    /** Sunburst medallion as found on illuminated manuscript pages, with radiating finials. */
+    Shamsa
+}
 
 @Composable
 fun OttrojjaPrimaryTextDisplay(
@@ -36,6 +50,7 @@ fun OttrojjaPrimaryTextDisplay(
     text: String,
     details: String? = null,
     loading: Boolean = false,
+    ornament: OttrojjaOrnament = OttrojjaOrnament.Shamsa,
     onRefresh: (() -> Unit)? = null
 ) {
     Box(
@@ -49,24 +64,24 @@ fun OttrojjaPrimaryTextDisplay(
             .heightIn(min = 200.dp),
         contentAlignment = Alignment.Center
     ) {
-        // Mandala overlay — drawn beneath the text
+        // Ornament overlay — drawn beneath the text
         Canvas(modifier = Modifier.matchParentSize()) {
             val ornamentSize = 190.dp.toPx()
             val stroke = 1.dp.toPx()
-            val mandalaColor = Color.White.copy(alpha = 0.35f)
+            val ornamentColor = Color.White.copy(alpha = 0.35f)
 
             // Top-right corner
             withTransform({
                 translate(left = size.width - ornamentSize / 2, top = -ornamentSize / 2)
             }) {
-                drawMandala(mandalaColor, ornamentSize, stroke)
+                drawOrnament(ornament, ornamentColor, ornamentSize, stroke)
             }
 
             // Bottom-left corner
             withTransform({
                 translate(left = -ornamentSize / 2, top = size.height - ornamentSize / 2)
             }) {
-                drawMandala(mandalaColor, ornamentSize, stroke)
+                drawOrnament(ornament, ornamentColor, ornamentSize, stroke)
             }
         }
 
@@ -98,7 +113,7 @@ fun OttrojjaPrimaryTextDisplay(
             }
         }
 
-        // Refresh button — top-left, on top of everything (only shown if onRefresh is provided)
+        // Refresh button — top-end, on top of everything (only shown if onRefresh is provided)
         if (onRefresh != null) {
             IconButton(
                 onClick = onRefresh,
@@ -124,136 +139,183 @@ fun OttrojjaPrimaryTextDisplay(
 }
 
 /**
- * Draws a layered, 12-fold Islamic mandala centered in a square of [diameter] x [diameter]
+ * Draws [ornament] centered in a square of [diameter] x [diameter]
  * (origin at the top-left of that square).
- *
- * Layers (outer → inner):
- *  1. Triple concentric border rings
- *  2. Beaded ring of 48 dots
- *  3. Ring of 24 pointed lotus petals + 24 smaller petals between them
- *  4. Filled/outlined 12-pointed star with its inner ring
- *  5. Ring of 12 petals nestled between the star points
- *  6. Octagram (two interlaced squares)
- *  7. Ring of 8 inner petals
- *  8. Center rosette: ring, solid 8-pointed star and a dot
  */
-private fun DrawScope.drawMandala(color: Color, diameter: Float, stroke: Float) {
-    val c = Offset(diameter / 2, diameter / 2)
-    val r = diameter / 2
+private fun DrawScope.drawOrnament(
+    ornament: OttrojjaOrnament,
+    color: Color,
+    diameter: Float,
+    stroke: Float
+) {
+    val pen = OrnamentPen(
+        scope = this,
+        c = Offset(diameter / 2, diameter / 2),
+        r = diameter / 2,
+        stroke = stroke,
+        color = color
+    )
+    when (ornament) {
+        OttrojjaOrnament.Khatam -> pen.khatam()
+        OttrojjaOrnament.Najma -> pen.najma()
+        OttrojjaOrnament.Shamsa -> pen.shamsa()
+    }
+}
 
-    fun tone(k: Float) = color.copy(alpha = (color.alpha * k).coerceIn(0f, 1f))
+// ---------------------------------------------------------------------------------------------
+// The three ornaments. Radii are fractions of the ornament radius, widths are multiples of the
+// base stroke, and `alpha` / `fill` are multiples of the base color's alpha.
+// ---------------------------------------------------------------------------------------------
 
-    fun ring(f: Float, width: Float, k: Float) =
-        drawCircle(tone(k), radius = r * f, center = c, style = Stroke(width = width * stroke))
+/** Beaded border, an {8/3} star, and the khatam (two interlaced squares) locked into its core. */
+private fun OrnamentPen.khatam() {
+    ring(0.98f, width = 1.2f)
+    ring(0.90f, width = 0.6f, alpha = 0.7f)
+    beads(count = 32, radius = 0.94f, size = 1.0f, rotation = 5.625f, alpha = 0.9f)
 
-    fun repeatRotated(count: Int, offsetDeg: Float = 0f, block: DrawScope.() -> Unit) {
+    star(points = 8, skip = 3, radius = 0.90f, width = 1.1f, fill = 0.10f)
+    beads(count = 8, radius = 0.72f, size = 1.6f, rotation = 22.5f)
+
+    // 0.373 = radius at which the {8/3} star's innermost crossings sit, so the squares lock in.
+    star(points = 8, skip = 2, radius = 0.373f, width = 1.0f, fill = 0.12f)
+    ring(0.19f, width = 0.7f, alpha = 0.8f)
+    rosette(points = 8, outer = 0.15f, inner = 0.07f, rotation = 22.5f, width = 0f, fill = 1f)
+}
+
+/** Beaded border, four interlaced triangles ({12/4}) and three interlaced squares ({12/3}). */
+private fun OrnamentPen.najma() {
+    ring(0.98f, width = 1.2f)
+    ring(0.90f, width = 0.6f, alpha = 0.7f)
+    beads(count = 48, radius = 0.94f, size = 1.0f, rotation = 3.75f, alpha = 0.9f)
+
+    star(points = 12, skip = 4, radius = 0.90f, width = 1.1f, fill = 0.08f)
+    star(points = 12, skip = 3, radius = 0.466f, rotation = 15f, width = 1.0f, fill = 0.10f)
+
+    ring(0.22f, width = 0.7f, alpha = 0.8f)
+    rosette(points = 12, outer = 0.17f, inner = 0.10f, width = 0f, fill = 1f)
+}
+
+/** Sixteen-pointed sunburst medallion with finials, holding an {8/3} star and a small khatam. */
+private fun OrnamentPen.shamsa() {
+    rays(count = 16, from = 0.82f, to = 0.98f, width = 1.0f)
+    beads(count = 16, radius = 0.99f, size = 1.3f)
+    beads(count = 16, radius = 0.86f, size = 0.9f, rotation = 11.25f, alpha = 0.8f)
+
+    rosette(points = 16, outer = 0.78f, inner = 0.66f, width = 1.1f, fill = 0.12f)
+    ring(0.60f, width = 1.0f)
+    ring(0.55f, width = 0.6f, alpha = 0.7f)
+
+    star(points = 8, skip = 3, radius = 0.55f, width = 1.0f, fill = 0.10f)
+    star(points = 8, skip = 2, radius = 0.228f, width = 0.9f, fill = 0.12f)
+    rosette(points = 8, outer = 0.10f, inner = 0.045f, rotation = 22.5f, width = 0f, fill = 1f)
+}
+
+// ---------------------------------------------------------------------------------------------
+// Drawing primitives
+// ---------------------------------------------------------------------------------------------
+
+private class OrnamentPen(
+    private val scope: DrawScope,
+    private val c: Offset,
+    private val r: Float,
+    private val stroke: Float,
+    private val color: Color
+) {
+    private fun tone(k: Float) = color.copy(alpha = (color.alpha * k).coerceIn(0f, 1f))
+
+    /** Point at [fraction] of the radius, [degrees] clockwise from straight up. */
+    private fun point(fraction: Float, degrees: Float): Offset {
+        val a = (degrees - 90.0) * PI / 180.0
+        return Offset(c.x + r * fraction * cos(a).toFloat(), c.y + r * fraction * sin(a).toFloat())
+    }
+
+    private fun Path.polygon(vertices: List<Offset>) {
+        vertices.forEachIndexed { i, p -> if (i == 0) moveTo(p.x, p.y) else lineTo(p.x, p.y) }
+        close()
+    }
+
+    private fun draw(path: Path, width: Float, alpha: Float, fill: Float) {
+        if (fill > 0f) scope.drawPath(path, tone(fill), style = Fill)
+        if (width > 0f) scope.drawPath(path, tone(alpha), style = Stroke(width = width * stroke))
+    }
+
+    fun ring(radius: Float, width: Float, alpha: Float = 1f) {
+        scope.drawCircle(
+            tone(alpha), radius = r * radius, center = c, style = Stroke(width = width * stroke)
+        )
+    }
+
+    /**
+     * Star polygon {points/skip}: every vertex is joined to the one [skip] steps further round.
+     * When the two numbers share a factor this yields interlaced polygons, e.g. {8/2} is two
+     * squares and {12/4} is four triangles.
+     */
+    fun star(
+        points: Int,
+        skip: Int,
+        radius: Float,
+        rotation: Float = 0f,
+        width: Float = 1f,
+        alpha: Float = 1f,
+        fill: Float = 0f
+    ) {
+        val strands = gcd(points, skip)
+        val path = Path()
+        for (s in 0 until strands) {
+            path.polygon(List(points / strands) { j ->
+                point(radius, rotation + ((s + j * skip) % points) * 360f / points)
+            })
+        }
+        draw(path, width, alpha, fill)
+    }
+
+    /** Zig-zag star outline alternating between the [outer] and [inner] radius. */
+    fun rosette(
+        points: Int,
+        outer: Float,
+        inner: Float,
+        rotation: Float = 0f,
+        width: Float = 1f,
+        alpha: Float = 1f,
+        fill: Float = 0f
+    ) {
+        val path = Path().apply {
+            polygon(List(points * 2) { i ->
+                point(if (i % 2 == 0) outer else inner, rotation + i * 180f / points)
+            })
+        }
+        draw(path, width, alpha, fill)
+    }
+
+    /** [count] dots evenly spaced on a circle; [size] is the dot radius in stroke units. */
+    fun beads(count: Int, radius: Float, size: Float, rotation: Float = 0f, alpha: Float = 1f) {
         for (i in 0 until count) {
-            rotate(offsetDeg + i * 360f / count, pivot = c) { block() }
+            scope.drawCircle(
+                tone(alpha), radius = size * stroke, center = point(radius, rotation + i * 360f / count)
+            )
         }
     }
 
-    // 1. Border rings
-    ring(0.98f, 1.3f, 1f)
-    ring(0.94f, 0.6f, 0.7f)
-    ring(0.85f, 1.0f, 0.9f)
-
-    // 2. Beaded ring
-    repeatRotated(48) {
-        drawCircle(tone(0.9f), radius = 1.1f * stroke, center = Offset(c.x, c.y - r * 0.895f))
-    }
-
-    // 3. Lotus petals
-    val bigPetal = petalPath(c, baseR = r * 0.64f, tipR = r * 0.84f, halfWidth = r * 0.075f)
-    repeatRotated(24) {
-        drawPath(bigPetal, tone(0.18f), style = Fill)
-        drawPath(bigPetal, tone(1f), style = Stroke(width = 1f * stroke))
-    }
-    val smallPetal = petalPath(c, baseR = r * 0.64f, tipR = r * 0.76f, halfWidth = r * 0.04f)
-    repeatRotated(24, offsetDeg = 7.5f) {
-        drawPath(smallPetal, tone(0.6f), style = Stroke(width = 0.7f * stroke))
-    }
-
-    // 4. 12-pointed star
-    val star12 = starPath(c, points = 12, outerR = r * 0.64f, innerR = r * 0.47f)
-    drawPath(star12, tone(0.08f), style = Fill)
-    drawPath(star12, tone(1f), style = Stroke(width = 1.2f * stroke))
-    ring(0.47f, 0.8f, 0.7f)
-
-    // 5. 12 petals sitting in the valleys of the star
-    val midPetal = petalPath(c, baseR = r * 0.27f, tipR = r * 0.50f, halfWidth = r * 0.07f)
-    repeatRotated(12, offsetDeg = 15f) {
-        drawPath(midPetal, tone(0.22f), style = Fill)
-        drawPath(midPetal, tone(1f), style = Stroke(width = 1f * stroke))
-    }
-
-    // 6. Octagram from two interlaced squares
-    val squareA = polygonPath(c, sides = 4, radius = r * 0.34f, rotationDeg = 0f)
-    val squareB = polygonPath(c, sides = 4, radius = r * 0.34f, rotationDeg = 45f)
-    drawPath(squareA, tone(0.9f), style = Stroke(width = 1f * stroke))
-    drawPath(squareB, tone(0.9f), style = Stroke(width = 1f * stroke))
-    ring(0.27f, 0.7f, 0.6f)
-
-    // 7. Inner petals
-    val innerPetal = petalPath(c, baseR = r * 0.12f, tipR = r * 0.27f, halfWidth = r * 0.055f)
-    repeatRotated(8, offsetDeg = 22.5f) {
-        drawPath(innerPetal, tone(0.3f), style = Fill)
-        drawPath(innerPetal, tone(1f), style = Stroke(width = 0.9f * stroke))
-    }
-
-    // 8. Center rosette
-    ring(0.12f, 0.9f, 0.9f)
-    drawPath(starPath(c, points = 8, outerR = r * 0.10f, innerR = r * 0.045f), tone(1f), style = Fill)
-    drawCircle(tone(1f), radius = 1.6f * stroke, center = c)
-}
-
-/**
- * A pointed (ogee-like) petal pointing straight up from the center [c],
- * starting at [baseR] and ending at [tipR]. Rotate the canvas to place copies.
- */
-private fun petalPath(c: Offset, baseR: Float, tipR: Float, halfWidth: Float): Path {
-    val len = tipR - baseR
-    return Path().apply {
-        moveTo(c.x, c.y - baseR)
-        cubicTo(
-            c.x + halfWidth, c.y - (baseR + len * 0.30f),
-            c.x + halfWidth * 0.55f, c.y - (baseR + len * 0.75f),
-            c.x, c.y - tipR
-        )
-        cubicTo(
-            c.x - halfWidth * 0.55f, c.y - (baseR + len * 0.75f),
-            c.x - halfWidth, c.y - (baseR + len * 0.30f),
-            c.x, c.y - baseR
-        )
-        close()
-    }
-}
-
-/** Star polygon with [points] points, alternating between [outerR] and [innerR]. */
-private fun starPath(c: Offset, points: Int, outerR: Float, innerR: Float): Path {
-    val totalVerts = points * 2
-    return Path().apply {
-        for (i in 0 until totalVerts) {
-            val angle = (i * 180.0 / points - 90.0).toRadians()
-            val rad = if (i % 2 == 0) outerR else innerR
-            val x = c.x + rad * cos(angle).toFloat()
-            val y = c.y + rad * sin(angle).toFloat()
-            if (i == 0) moveTo(x, y) else lineTo(x, y)
+    /** [count] radial lines running from the [from] radius out to the [to] radius. */
+    fun rays(
+        count: Int,
+        from: Float,
+        to: Float,
+        width: Float,
+        rotation: Float = 0f,
+        alpha: Float = 1f
+    ) {
+        for (i in 0 until count) {
+            val deg = rotation + i * 360f / count
+            scope.drawLine(
+                tone(alpha),
+                start = point(from, deg),
+                end = point(to, deg),
+                strokeWidth = width * stroke,
+                cap = StrokeCap.Round
+            )
         }
-        close()
     }
-}
 
-/** Regular polygon with [sides] sides, rotated by [rotationDeg]. */
-private fun polygonPath(c: Offset, sides: Int, radius: Float, rotationDeg: Float): Path {
-    return Path().apply {
-        for (i in 0 until sides) {
-            val angle = (rotationDeg + i * 360.0 / sides - 90.0).toRadians()
-            val x = c.x + radius * cos(angle).toFloat()
-            val y = c.y + radius * sin(angle).toFloat()
-            if (i == 0) moveTo(x, y) else lineTo(x, y)
-        }
-        close()
-    }
+    private tailrec fun gcd(a: Int, b: Int): Int = if (b == 0) a else gcd(b, a % b)
 }
-
-private fun Double.toRadians() = this * PI / 180.0
