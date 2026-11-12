@@ -129,7 +129,7 @@ class SyncLocalData(
         if (!needsSync) return
 
         val files = listOf("saadi.json", "baghawy.json", "muyassar.json",
-            "katheer.json", "waseet.json", "jalalayn.json", "qortoby.json")
+            "katheer.json", "waseet.json", "jalalayn.json", "qortoby.json", "abi_zamanin.json")
         files.forEach { file ->
             syncAsset<TafseerData>(
                 assetFile = file,
